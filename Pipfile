@@ -1,0 +1,33 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+ipython = "==7.19.0"
+prompt-toolkit = "==3.0.13"
+pyaud = {editable = true, path = "."}
+restview = "==2.9.2"
+
+[packages]
+appdirs = "==1.4.4"
+black = "==20.8b1"
+codecov = "==2.1.11"
+coverage = {extras = ["toml"], version = "==5.3.1"}
+mypy = "==0.800"
+object-colors = "==1.0.8"
+pipfile-requirements = "==0.3.0"
+pyblake2 = "==1.1.2"
+pylint = "==2.6.0"
+pytest = "==6.2.1"
+pytest-cov = "==2.11.1"
+pytest-profiling = "==1.7.0"
+pytest-randomly = "==3.5.0"
+pytest-sugar = "==0.9.4"
+sphinx = "==3.4.3"
+sphinxcontrib-fulltoc = "==1.2.0"
+sphinxcontrib-programoutput = "==0.16"
+vulture = "==2.3"
+
+[requires]
+python_version = "3.8"

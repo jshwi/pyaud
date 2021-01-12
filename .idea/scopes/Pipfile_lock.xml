@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Pipfile.lock" pattern="file:Pipfile.lock" />
+</component>

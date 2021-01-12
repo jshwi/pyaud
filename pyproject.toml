@@ -1,0 +1,28 @@
+[tool.black]
+line-length = 79
+exclude = '''
+/(
+  | \.git
+  | \.mypy_cache
+  | _build
+  | build
+  | dist
+)/
+'''
+
+[tool.coverage.run]
+omit = ["whitelist.py", "pyaud/__main__.py"]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--profile-svg",
+    "--durations=5",
+     "-vv",
+     "--color=yes",
+]
+norecursedirs = ["docs", "*.egg-info", ".git", ".mypy_cache", ".idea", "prof"]
+filterwarnings = "ignore::DeprecationWarning"
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format="%(asctime)s %(levelname)-8s %(name)s %(message)s"
+log_cli_date_format="%Y-%m-%dT%H:%M:%S"

@@ -1,0 +1,16 @@
+*.egg-info/
+*.spec
+*build/
+*coverage*
+*venv
+.env
+.idea/**/shelf/
+.idea/**/sonarlint/
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/workspace.xml
+.secrets
+__pycache__/
+dist/
+prof/
+reqlib-metadata/
