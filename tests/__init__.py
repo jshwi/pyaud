@@ -133,6 +133,14 @@ class MakeWritten:
         """Make a docs/repo.rst file for testing."""
         cls._write(os.path.join(pyaud.environ.env["TOC"]), files.DEFAULT_TOC)
 
+    @classmethod
+    def pipfile_lock(cls):
+        """Make a Pipfile.lock file for testing"""
+        cls._write(
+            os.path.join(pyaud.environ.env["PIPFILE_LOCK"]),
+            files.PIPFILE_LOCK,
+        )
+
 
 class MakeProjectTree:
     """Make directory tree structure.
@@ -176,3 +184,15 @@ class MakeProjectTree:
             },
         }
         self.make_tree(pyaud.environ.env["PROJECT_DIR"], venv)
+
+    def be8a443_files(self):
+        """Create Python files that would be scanned by
+        ``pyitems.get_files`` on commit be8a443.
+        """
+        self.make_tree(
+            pyaud.environ.env["PROJECT_DIR"],
+            {
+                "tests": {"conftest.py": None, "files.py": None},
+                "pyaud": {"src": {"__init__.py": None, "modules.py": None}},
+            },
+        )

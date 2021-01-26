@@ -127,7 +127,6 @@ def fixture_mock_environment(  # pylint: disable=too-many-arguments
     monkeypatch.setenv("PYAUD_TEST_GH_EMAIL", "stephen@jshwisolutions.com")
     monkeypatch.setenv("PYAUD_TEST_GH_TOKEN", "None")
     monkeypatch.setenv("PYAUD_TEST_CODECOV_TOKEN", "None")
-    monkeypatch.setenv("PYAUD_TEST_CODECOV_SLUG", "jshwi/pyaud")
     mocks = {
         "expanduser": (os.path, _mockreturn_expanduser),
         "find_package": (pyaud.environ, _mock_return_package),
@@ -293,6 +292,34 @@ def fixture_track_called():
         return _track
 
     return _track_called
+
+
+@pytest.fixture(name="patch_sp_output")
+def fixture_patch_sp_output():
+    """Patch ``pyaud.Subprocess`` to return test strings to
+    ``self.stdout``.
+
+    :return : Function for using this fixture.
+    """
+    pyaud_sp = pyaud.Subprocess
+
+    def _patch_sp_output(*stdout):
+        stdout = list(stdout)
+
+        class _Subprocess:  # pylint: disable=too-few-public-methods
+            def __init__(self, *_):
+                self.stdout = None
+
+            def call(self, *_, **__):
+                """Mock call to to do nothing except send the expected
+                stdout to self
+                """
+                self.stdout = stdout.pop()
+
+        pyaud.modules.Subprocess = _Subprocess
+
+    yield _patch_sp_output
+    pyaud.modules.Subprocess = pyaud_sp
 
 
 @pytest.fixture(name="make_written")

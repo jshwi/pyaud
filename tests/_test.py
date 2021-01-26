@@ -653,6 +653,27 @@ def test_find_pylintrc_file(patch_sp_call, nocolorcapsys, is_file):
         assert expected not in nocolorcapsys.stdout()
 
 
+def test_pipfile2req_commands(patch_sp_call, nocolorcapsys, make_written):
+    """Test that the correct commands are executed when running
+    ``make_requirements``.
+
+    :param patch_sp_call:   Patch ``pyaud.Subprocess.call``.
+    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param make_written:    Create files with written content.
+    """
+    make_written.pipfile_lock()
+    patch_sp_call()
+    pyaud.modules.make_requirements()
+    expected = (
+        f"Updating ``{pyaud.environ.env['REQUIREMENTS']}``",
+        f"pipfile2req {pyaud.environ.env['PIPFILE_LOCK']}",
+        f"pipfile2req {pyaud.environ.env['PIPFILE_LOCK']} --dev",
+        "created ``requirements.txt``",
+    )
+    out = nocolorcapsys.stdout()
+    assert all(e in out for e in expected)
+
+
 def test_list_modules(main, nocolorcapsys):
     """Test that all modules are listed when running ``pyaud modules``.
 
@@ -819,7 +840,7 @@ def test_len_env():
         if key.startswith("PYAUD_TEST_"):
             del pyaud.environ.env[key]
 
-    assert len(pyaud.environ.env) == environ_len - 34
+    assert len(pyaud.environ.env) == environ_len - 33
 
 
 def test_validate_env(validate_env):
@@ -1119,6 +1140,51 @@ def test_make_toc(patch_sp_call, make_project_tree):
 
     module_toc = os.path.join(pyaud.environ.env["DOCS"], "modules.rst")
     assert not os.path.isfile(module_toc)
+
+
+def test_make_requirements(patch_sp_output, nocolorcapsys, make_written):
+    """Test that requirements.txt file is correctly edited after calling
+    ``pipfile2req``.
+
+    :param patch_sp_output: Patch ``pyaud.Subprocess`` so that ``call``
+                            sends expected stdout out to self.
+    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param make_written:    Create files with written content.
+    """
+    make_written.pipfile_lock()
+    patch_sp_output(tests.files.PIPFILE2REQ_PROD, tests.files.PIPFILE2REQ_DEV)
+    pyaud.modules.make_requirements()
+    assert nocolorcapsys.stdout() == (
+        f"Updating ``{pyaud.environ.env['REQUIREMENTS']}``\n"
+        f"created ``requirements.txt``\n"
+    )
+    with open(pyaud.environ.env["REQUIREMENTS"]) as fin:
+        assert fin.read() == tests.files.REQUIREMENTS
+
+
+def test_make_whitelist(patch_sp_output, nocolorcapsys, make_project_tree):
+    """Test a whitelist.py file is created properly after piping data
+    from ``vulture --make-whitelist``.
+
+    :param patch_sp_output:     Patch ``pyaud.Subprocess`` so that
+                                ``call`` sends expected stdout out to
+                                self.
+    :param nocolorcapsys:       ``capsys`` without ANSI color codes.
+    :param make_project_tree:   Make directory structure.
+    """
+    make_project_tree.be8a443_files()
+    patch_sp_output(
+        tests.files.Whitelist.be8a443_tests,
+        tests.files.Whitelist.be8a443_pyaud,
+    )
+    pyaud.modules.pyitems.get_files()
+    pyaud.modules.make_whitelist()
+    assert nocolorcapsys.stdout() == (
+        f"Updating ``{pyaud.environ.env['WHITELIST']}``\n"
+        f"created ``whitelist.py``\n"
+    )
+    with open(pyaud.environ.env["WHITELIST"]) as fin:
+        assert fin.read() == tests.files.Whitelist.be8a443_all
 
 
 def test_parser(monkeypatch, nocolorcapsys, track_called, call_status, main):
