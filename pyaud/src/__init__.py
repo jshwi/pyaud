@@ -34,7 +34,7 @@ class PythonItems:
         self.exclude = exclude
         self.items: List[str] = []
 
-    def venv_exclude(self) -> None:
+    def exclude_virtualenv(self) -> None:
         """Remove virtualenv dir."""
         venv_contents = [
             "bin",
@@ -51,6 +51,16 @@ class PythonItems:
                 if all(os.path.basename(e) in contents for e in venv_contents):
                     self.items.pop(count)
 
+    def exclude_unversioned(self) -> None:
+        """Remove unversioned files from list."""
+        for count, item in enumerate(list(self.items)):
+            with Git(os.environ["PROJECT_DIR"]) as git:
+                returncode = git.ls_files(  # type: ignore
+                    "--error-unmatch", item, devnull=True, suppress=True
+                )
+                if returncode:
+                    self.items.pop(count)
+
     def get_files(self) -> None:
         """Get all relevant python files starting from project root."""
         self.items.clear()
@@ -62,7 +72,6 @@ class PythonItems:
 
             path = pathlib.Path(glob_path)
             while str(path.parent) != environ.env["PROJECT_DIR"]:
-
                 path = path.parent
 
             # ensure there are no duplicate entries
@@ -204,6 +213,7 @@ class Git(Subprocess):
         "diff-index",
         "fetch",
         "init",
+        "ls-files",
         "ls-remote",
         "push",
         "remote",

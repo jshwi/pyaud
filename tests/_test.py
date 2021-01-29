@@ -1021,7 +1021,7 @@ def test_pyitems_exclude_venv(make_project_tree):
     venv = os.path.join(pyaud.environ.env["PROJECT_DIR"], "venv")
     pyaud.pyitems.get_files()
     assert set(pyaud.pyitems.items) == {package, venv}
-    pyaud.pyitems.venv_exclude()
+    pyaud.pyitems.exclude_virtualenv()
     assert set(pyaud.pyitems.items) == {package}
 
 
@@ -1228,3 +1228,28 @@ def test_parser(monkeypatch, nocolorcapsys, track_called, call_status, main):
         main(call)
         module = "make_" + call.replace("-", "_")
         assert nocolorcapsys.stdout().strip() == module
+
+
+def test_remove_unversioned(init_test_repo):
+    """Test that when a file is not under version control and the
+    ``pyaud.pyitems.exclude_unversioned`` method  is called unversioned
+    files are removed from ``pyitems.items`` list.
+
+    :param init_test_repo:  Create a git repository with an initial
+                            commit.
+    """
+    init_test_repo()
+    file_py = os.path.join(pyaud.environ.env["PROJECT_DIR"], "file.py")
+    pathlib.Path(file_py).touch()
+    pyaud.pyitems.get_files()
+    assert file_py in pyaud.pyitems.items
+    pyaud.pyitems.exclude_unversioned()
+    assert file_py not in pyaud.pyitems.items
+    with pyaud.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
+        git.add(".")
+        git.commit("-m", "committing file.py")
+
+    pyaud.pyitems.get_files()
+    assert file_py in pyaud.pyitems.items
+    pyaud.pyitems.exclude_unversioned()
+    assert file_py in pyaud.pyitems.items

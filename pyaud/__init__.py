@@ -177,7 +177,8 @@ def main() -> None:
     )
     environ.load_namespace()
     pyitems.get_files()
-    pyitems.venv_exclude()
+    pyitems.exclude_virtualenv()
+    pyitems.exclude_unversioned()
     environ.env["BRANCH"] = get_branch()
     parser.function()
 
