@@ -6,6 +6,9 @@ PyAud
 .. image:: https://img.shields.io/badge/python-3.8-blue.svg
     :target: https://www.python.org/downloads/release/python-380
     :alt: python3.8
+.. image:: https://img.shields.io/pypi/v/pyaud
+    :target: https://img.shields.io/pypi/v/pyaud"
+    :alt: pypi
 .. image:: https://codecov.io/gh/jshwi/pyaud/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/jshwi/pyaud
     :alt: codecov.io

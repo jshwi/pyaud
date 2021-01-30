@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+bump2version = "==1.0.1"
 ipython = "==7.19.0"
 prompt-toolkit = "==3.0.13"
 pyaud = {editable = true, path = "."}
