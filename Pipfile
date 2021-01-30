@@ -9,6 +9,7 @@ ipython = "==7.19.0"
 prompt-toolkit = "==3.0.13"
 pyaud = {editable = true, path = "."}
 restview = "==2.9.2"
+twine = "==3.3.0"
 
 [packages]
 appdirs = "==1.4.4"
