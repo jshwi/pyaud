@@ -30,7 +30,7 @@ from .src import (
     write_command,
 )
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 MODULES = {
     m[0].replace("make_", ""): m[1]
