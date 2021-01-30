@@ -840,7 +840,7 @@ def test_len_env():
         if key.startswith("PYAUD_TEST_"):
             del pyaud.environ.env[key]
 
-    assert len(pyaud.environ.env) == environ_len - 33
+    assert len(pyaud.environ.env) == environ_len - 34
 
 
 def test_validate_env(validate_env):

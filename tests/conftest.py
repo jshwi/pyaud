@@ -127,6 +127,7 @@ def fixture_mock_environment(  # pylint: disable=too-many-arguments
     monkeypatch.setenv("PYAUD_TEST_GH_EMAIL", "stephen@jshwisolutions.com")
     monkeypatch.setenv("PYAUD_TEST_GH_TOKEN", "None")
     monkeypatch.setenv("PYAUD_TEST_CODECOV_TOKEN", "None")
+    monkeypatch.setenv("PYAUD_TEST_CODECOV_SLUG", "jshwi/pyaud")
     mocks = {
         "expanduser": (os.path, _mockreturn_expanduser),
         "find_package": (pyaud.environ, _mock_return_package),
