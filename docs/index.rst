@@ -1,4 +1,4 @@
-Pyaud Docs
+PyAud Docs
 ===========
 
 |
