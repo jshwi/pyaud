@@ -187,6 +187,7 @@ def test_make_docs_no_docs(nocolorcapsys):
     assert nocolorcapsys.stdout() == "No docs found\n"
 
 
+@pytest.mark.usefixtures("make_python_file")
 def test_suppress(nocolorcapsys, monkeypatch, call_status, make_project_tree):
     """Test that the audit still makes it to the end when errors are
     raised but ``--suppress`` is passed to the commandline.
@@ -199,7 +200,6 @@ def test_suppress(nocolorcapsys, monkeypatch, call_status, make_project_tree):
     :param make_project_tree:   Make directory structure.
     """
     make_project_tree.docs_conf()
-    pathlib.Path(pyaud.environ.env["SETUP"]).touch()
     pyaud.pyitems.get_files()
     audit_modules = [
         "make_format",
@@ -840,7 +840,7 @@ def test_len_env():
         if key.startswith("PYAUD_TEST_"):
             del pyaud.environ.env[key]
 
-    assert len(pyaud.environ.env) == environ_len - 34
+    assert len(pyaud.environ.env) == environ_len - 31
 
 
 def test_validate_env(validate_env):

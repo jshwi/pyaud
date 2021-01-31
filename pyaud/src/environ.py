@@ -102,7 +102,6 @@ def init_environ() -> None:
     """
     mapping = dict(
         COVERAGE_XML="${PROJECT_DIR}/coverage.xml",
-        DISTPATH="${PROJECT_DIR}/dist",
         DOCS="${PROJECT_DIR}/docs",
         DOCS_BUILD="${PROJECT_DIR}/docs/_build",
         DOCS_CONF="${PROJECT_DIR}/docs/conf.py",
@@ -111,10 +110,8 @@ def init_environ() -> None:
         PYLINTRC="${PROJECT_DIR}/.pylintrc",
         README_RST="${PROJECT_DIR}/README.rst",
         REQUIREMENTS="${PROJECT_DIR}/requirements.txt",
-        SETUP="${PROJECT_DIR}/setup.py",
         TESTS="${PROJECT_DIR}/tests",
         WHITELIST="${PROJECT_DIR}/whitelist.py",
-        WORKPATH="${PROJECT_DIR}/build",
     )
     if not os.path.isfile(env["ENVIRON_FILE"]):
         with open(env["ENVIRON_FILE"], "w") as fout:
