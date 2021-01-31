@@ -1252,3 +1252,27 @@ def test_remove_unversioned(init_test_repo):
     assert file_py in pyaud.pyitems.items
     pyaud.pyitems.exclude_unversioned()
     assert file_py in pyaud.pyitems.items
+
+
+def test_namespace_assignment_environ_file():
+    """Ensure none of the below items are leaked into the user
+    environment without the prefix ``PYAUD_``
+    (``PYAUD_TEST_`` for test runs)
+    """
+    items = [
+        "COVERAGE_XML",
+        "DOCS",
+        "DOCS_BUILD",
+        "DOCS_CONF",
+        "ENV",
+        "PIPFILE_LOCK",
+        "PYLINTRC",
+        "README_RST",
+        "REQUIREMENTS",
+        "TESTS",
+        "WHITELIST",
+    ]
+    pyaud.environ.init_environ()
+    pyaud.environ.load_namespace()
+    for item in items:
+        assert item not in os.environ

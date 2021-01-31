@@ -132,7 +132,6 @@ def read_env(file: Union[bytes, str, os.PathLike]) -> None:
             key = parts[0]
             val = parts[1].replace('"', "").replace("'", "")
             env[key] = os.path.expandvars(val)
-            os.environ[key] = os.path.expandvars(val)
 
 
 def load_namespace() -> None:
