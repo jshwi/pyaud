@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Removes useless environment variables
 - Prevents environment variables from being set without prefix
+- Ensures dest is always last argument for ``git clone``
 
 [1.1.0](https://github.com/jshwi/pyaud/releases/tag/v1.1.0) - 2021-01-30
 ------------------------------------------------------------------------

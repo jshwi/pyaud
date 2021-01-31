@@ -1276,3 +1276,22 @@ def test_namespace_assignment_environ_file():
     pyaud.environ.load_namespace()
     for item in items:
         assert item not in os.environ
+
+
+def test_arg_order_clone(tmpdir, patch_sp_call, nocolorcapsys):
+    """Test that the clone destination is always the last argument.
+
+    :param tmpdir:          ``pytest`` ``tmpdir`` fixture for creating
+                            and returning a temporary directory.
+    :param patch_sp_call:   Patch ``pyaud.Subprocess.call``.
+    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    """
+    patch_sp_call()
+    project_clone = os.path.join(tmpdir, "pyaud")
+    expected = (
+        f"git clone --depth 1 --branch v1.1.0 {tests.REAL_REPO} "
+        f"{project_clone}"
+    )
+    with pyaud.Git(project_clone) as git:
+        git.clone("--depth", "1", "--branch", "v1.1.0", tests.REAL_REPO)
+        assert nocolorcapsys.stdout().strip() == expected

@@ -237,7 +237,9 @@ class Git(Subprocess):
         :param args:    Arguments to be combined with ``git clone``.
         :param kwargs:  Keyword arguments passed to ``git clone``
         """
-        return self.call("clone", source, self.enter_path, *args, **kwargs)
+        args = list(args)  # type: ignore
+        args.append(self.enter_path)  # type: ignore
+        return self.call("clone", source, *args, **kwargs)
 
     def __enter__(self) -> Git:
         if not self.already_existed:
