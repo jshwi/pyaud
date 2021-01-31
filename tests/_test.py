@@ -801,11 +801,10 @@ def test_git_clone(tmpdir):
     :param tmpdir:  ``pytest`` ``tmpdir`` fixture for creating and
                     returning a temporary directory.
     """
-    real_repo = os.path.dirname(os.path.dirname(__file__))
     with pyaud.Git(os.path.join(tmpdir, "cloned_repo")) as git:
-        git.clone(real_repo)
+        git.clone(tests.REAL_REPO)
 
-    assert filecmp.dircmp(real_repo, pyaud.environ.env["PROJECT_DIR"])
+    assert filecmp.dircmp(tests.REAL_REPO, pyaud.environ.env["PROJECT_DIR"])
 
 
 def test_pipe_to_file():
@@ -851,7 +850,7 @@ def test_validate_env(validate_env):
     :param validate_env:    Execute the ``validate_env`` function
                             returned from this fixture.
     """
-    real_tests = os.path.abspath(os.path.dirname(__file__))
+    real_tests = os.path.join(tests.REAL_REPO, "tests")
     pyaud.environ.env["TESTS"] = real_tests
     expected = (
         "environment not properly set: PYAUD_TEST_TESTS == " + real_tests

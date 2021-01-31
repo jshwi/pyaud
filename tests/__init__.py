@@ -8,6 +8,8 @@ import re
 import pyaud
 from . import files
 
+REAL_REPO = os.path.dirname(os.path.dirname(__file__))
+
 
 class PyaudTestError(Exception):
     """Error to be purposely raised within the testing environment."""
