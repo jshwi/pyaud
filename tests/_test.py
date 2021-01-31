@@ -1295,3 +1295,40 @@ def test_arg_order_clone(tmpdir, patch_sp_call, nocolorcapsys):
     with pyaud.Git(project_clone) as git:
         git.clone("--depth", "1", "--branch", "v1.1.0", tests.REAL_REPO)
         assert nocolorcapsys.stdout().strip() == expected
+
+
+def test_out_of_range_unversioned(tmpdir, main, other_dir, patch_sp_call):
+    """Test that ``pyaud.pyitems.items`` populates when running on a
+    path outside the user's "$PWD". If no properly populated an
+    IndexError like the following would be raised:
+
+        File "/*/**/python3.8/site-packages/pyaud/src/__init__.py",
+        line 62, in exclude_unversioned
+        self.items.pop(count)
+        IndexError: pop index out of range
+
+    :param tmpdir:              ``pytest`` ``tmpdir`` fixture for
+                                creating and returning a temporary
+                                directory.
+    :param main:                Fixture for mocking ``pyaud.main``.
+    :param other_dir:           Random directory existing in ``tmpdir``.
+    :param patch_sp_call:       Patch ``pyaud.Subprocess.call``.
+    """
+
+    def empty_func(*_, **__):
+        # this is meant to be empty
+        pass
+
+    project_clone = os.path.join(tmpdir, "pyaud")
+    with pyaud.Git(project_clone) as git:
+        git.clone(tests.REAL_REPO)
+    patch_sp_call(0, empty_func)
+    items = [
+        os.path.join(project_clone, "pyaud"),
+        os.path.join(project_clone, "setup.py"),
+        os.path.join(project_clone, "tests"),
+    ]
+    with tests.EnterDir(other_dir):
+        main("lint", "--path", "../pyaud")
+        for item in items:
+            assert item in pyaud.pyitems.items

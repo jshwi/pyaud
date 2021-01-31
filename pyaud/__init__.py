@@ -65,6 +65,8 @@ class Parser(argparse.ArgumentParser):
         else:
             self.function = MODULES[self.module.replace("-", "_")]
 
+        self.path = os.path.abspath(self.args.path)
+
     def _add_arguments(self) -> None:
         self.add_argument(
             "module",
@@ -169,7 +171,7 @@ def main() -> None:
     environ.env.store["PROJECT_DIR"] = parser.args.path
     environ.env.update(
         dict(
-            PROJECT_DIR=parser.args.path,
+            PROJECT_DIR=parser.path,
             CLEAN=parser.args.clean,
             SUPPRESS=parser.args.suppress,
             DEPLOY=parser.args.deploy,

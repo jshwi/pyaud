@@ -440,3 +440,17 @@ def fixture_mock_make_docs(monkeypatch):
         os.makedirs(os.path.join(pyaud.environ.env["DOCS_BUILD"], "html"))
 
     monkeypatch.setattr(pyaud.modules, "make_docs", _make_docs)
+
+
+@pytest.fixture(name="other_dir")
+def fixture_other_dir(tmpdir):
+    """Make a random directory named ``other_dir`` to exist alongside
+    the cloned version of this repository in /tmp and return the path.
+
+    :param tmpdir:  ``pytest`` ``tmpdir`` fixture for creating and
+                    returning a temporary directory.
+    :return:        Path to /tmp/*/**/other_dir
+    """
+    other_dir = os.path.join(tmpdir, "other")
+    os.makedirs(other_dir)
+    return other_dir
