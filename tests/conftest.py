@@ -454,3 +454,13 @@ def fixture_other_dir(tmpdir):
     other_dir = os.path.join(tmpdir, "other")
     os.makedirs(other_dir)
     return other_dir
+
+
+@pytest.fixture(name="failing_lint")
+def fixture_failing_lint():
+    os.makedirs(pyaud.environ.env["PKG_PATH"])
+    failing_file = os.path.join(pyaud.environ.env["PKG_PATH"], "fail.py")
+    with open(failing_file, "w") as fout:
+        fout.write("import this_package_does_not_exist")
+
+    return failing_file
