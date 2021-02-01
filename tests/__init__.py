@@ -198,21 +198,3 @@ class MakeProjectTree:
                 "pyaud": {"src": {"__init__.py": None, "modules.py": None}},
             },
         )
-
-
-class EnterDir:
-    """Change to the selected directory entered as an argument and when
-    actions are complete return to the previous directory
-
-    :param new_path: Enter the directory to temporarily change to
-    """
-
-    def __init__(self, new_path):
-        self.saved_path = os.getcwd()
-        self.enter_path = os.path.expanduser(new_path)
-
-    def __enter__(self):
-        os.chdir(self.enter_path)
-
-    def __exit__(self, _, value, __):
-        os.chdir(self.saved_path)

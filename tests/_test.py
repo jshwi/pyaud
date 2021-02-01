@@ -1328,7 +1328,7 @@ def test_out_of_range_unversioned(tmpdir, main, other_dir, patch_sp_call):
         os.path.join(project_clone, "setup.py"),
         os.path.join(project_clone, "tests"),
     ]
-    with tests.EnterDir(other_dir):
+    with pyaud.EnterDir(other_dir):
         main("lint", "--path", "../pyaud")
         for item in items:
             assert item in pyaud.pyitems.items

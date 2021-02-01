@@ -9,6 +9,7 @@ from typing import Union, Callable, List, Any
 
 from . import (
     DeployDocs,
+    EnterDir,
     Git,
     LineSwitch,
     PyaudSubprocessError,
@@ -69,14 +70,15 @@ def make_coverage(**kwargs: Union[bool, str]) -> int:
     not then install development dependencies with ``pipenv``. Run
     the package unittests with ``pytest`` and ``coverage``.
     """
-    coverage = Subprocess("coverage")
-    args = ["--cov=" + e for e in pyitems.items]
-    returncode = make_tests(*args, **kwargs)
-    if not returncode:
-        return coverage.call("xml", suppress=True, **kwargs)
+    with EnterDir(environ.env["PROJECT_DIR"]):
+        coverage = Subprocess("coverage")
+        args = ["--cov=" + e for e in pyitems.items]
+        returncode = make_tests(*args, **kwargs)
+        if not returncode:
+            return coverage.call("xml", suppress=True, **kwargs)
 
-    print("No coverage to report")
-    return 0
+        print("No coverage to report")
+        return 0
 
 
 def make_deploy(**kwargs: Union[bool, str]) -> int:
@@ -300,16 +302,19 @@ def make_tests(*args: str, **kwargs: Union[bool, str]) -> int:
     :param args:    Additional positional arguments for ``pytest``.
     :param kwargs:  Additional keyword arguments for ``pytest``.
     """
-    tests = environ.env["TESTS"]
-    project_dir = environ.env["PROJECT_DIR"]
-    patterns = ("test_*.py", "*_test.py")
-    rglob = [p for a in patterns for p in pathlib.Path(project_dir).rglob(a)]
-    pytest = Subprocess("pytest")
-    if os.path.isdir(tests) and rglob:
-        return pytest.call(*args, **kwargs)
+    with EnterDir(environ.env["PROJECT_DIR"]):
+        tests = environ.env["TESTS"]
+        project_dir = environ.env["PROJECT_DIR"]
+        patterns = ("test_*.py", "*_test.py")
+        rglob = [
+            p for a in patterns for p in pathlib.Path(project_dir).rglob(a)
+        ]
+        pytest = Subprocess("pytest")
+        if os.path.isdir(tests) and rglob:
+            return pytest.call(*args, **kwargs)
 
-    print("No tests found")
-    return 1
+        print("No tests found")
+        return 1
 
 
 @write_command("TOC", required="DOCS")
@@ -368,8 +373,14 @@ def make_typecheck(**kwargs: Union[bool, str]) -> int:
 
     :param kwargs: Additional keyword arguments for ``mypy``.
     """
+    cache_dir = os.path.join(environ.env["PROJECT_DIR"], ".mypy_cache")
+    os.environ["MYPY_CACHE_DIR"] = cache_dir
     mypy = Subprocess("mypy")
-    return mypy.call("--ignore-missing-imports", *pyitems.items, **kwargs)
+    return mypy.call(
+        "--ignore-missing-imports",
+        *pyitems.items,
+        **kwargs,
+    )
 
 
 @check_command

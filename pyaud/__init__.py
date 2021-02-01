@@ -12,6 +12,7 @@ import sys
 from typing import List, Callable, Any, Optional
 
 from .src import (
+    EnterDir,
     Git,
     HashCap,
     LineSwitch,
@@ -186,6 +187,7 @@ def main() -> None:
 
 
 __all__ = [
+    "EnterDir",
     "Git",
     "HashCap",
     "LineSwitch",
