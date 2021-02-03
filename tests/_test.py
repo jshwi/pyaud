@@ -839,7 +839,7 @@ def test_len_env():
         if key.startswith("PYAUD_TEST_"):
             del pyaud.environ.env[key]
 
-    assert len(pyaud.environ.env) == environ_len - 31
+    assert len(pyaud.environ.env) == environ_len - 32
 
 
 def test_validate_env(validate_env):
@@ -1332,3 +1332,13 @@ def test_out_of_range_unversioned(tmpdir, main, other_dir, patch_sp_call):
         main("lint", "--path", "../pyaud")
         for item in items:
             assert item in pyaud.pyitems.items
+
+
+def test_pylint_colorized(monkeypatch, capsys, failing_lint):
+    # sample_tests = os.path.join(tests.REAL_TESTS, "sample_tests")
+    monkeypatch.setattr(pyaud.pyitems, "items", [failing_lint])
+    pyaud.modules.make_lint(suppress=True)
+    codes = ["\x1b[7;33m", "\x1b[0m", "\x1b[1m", "\x1b[1;31m", "\x1b[35m"]
+    output = capsys.readouterr()[0]
+    for code in codes:
+        assert code in output

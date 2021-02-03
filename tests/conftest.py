@@ -63,9 +63,8 @@ def fixture_test_logging():
     """Log environment variables to debug log."""
 
     def _logging():
-        logger = pyaud.get_logger("tests", loglevel="debug")
-        for key, value in pyaud.environ.env.items():
-            logger.debug("%s=%s", key, value)
+        logger = pyaud.get_logger("<Environ>")
+        logger.debug(pyaud.environ.env)
 
     return _logging
 
@@ -128,6 +127,7 @@ def fixture_mock_environment(  # pylint: disable=too-many-arguments
     monkeypatch.setenv("PYAUD_TEST_GH_TOKEN", "None")
     monkeypatch.setenv("PYAUD_TEST_CODECOV_TOKEN", "None")
     monkeypatch.setenv("PYAUD_TEST_CODECOV_SLUG", "jshwi/pyaud")
+    monkeypatch.setenv("PYAUD_TEST_LOG_LEVEL", "DEBUG")
     mocks = {
         "expanduser": (os.path, _mockreturn_expanduser),
         "find_package": (pyaud.environ, _mock_return_package),

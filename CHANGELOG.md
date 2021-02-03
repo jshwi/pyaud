@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v1.1.1...HEAD)
 ------------------------------------------------------------------------
+### Added
+- Mark excluded directories for IntelliJ IDEs
+- Adds debugging logger to ``Subprocess``
+- Logs failed subprocess returncode
+
+### Changed
+- Updates ``get_logger`` documentation
+- Moves default logger to ``Subprocess`` instances to reduce overhead
+- Logs ``Environ.__repr__``
+- Logs ``Subprocess.__repr__``
+- Sends logging for internal git actions to debug level
 
 [1.1.1](https://github.com/jshwi/pyaud/releases/tag/v1.1.1) - 2021-02-01
 ------------------------------------------------------------------------
