@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Logs ``Subprocess.__repr__``
 - Sends logging for internal git actions to debug level
 
+### Fixed
+- Coverage only analyses directories so process no longer logs ``Coverage.py warning``: Module was never imported
+
 [1.1.1](https://github.com/jshwi/pyaud/releases/tag/v1.1.1) - 2021-02-01
 ------------------------------------------------------------------------
 ### Added
