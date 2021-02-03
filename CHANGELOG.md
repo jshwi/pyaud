@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixes ``pylint --output-format=colorize`` when ``colorama`` is installed
+- ``coverage`` only analyses directories so ``Module was never imported`` no longer sent to logs
 
 [1.1.1](https://github.com/jshwi/pyaud/releases/tag/v1.1.1) - 2021-02-01
 ------------------------------------------------------------------------

@@ -72,7 +72,7 @@ def make_coverage(**kwargs: Union[bool, str]) -> int:
     """
     with EnterDir(environ.env["PROJECT_DIR"]):
         coverage = Subprocess("coverage")
-        args = ["--cov=" + e for e in pyitems.items]
+        args = ["--cov=" + e for e in pyitems.items if os.path.isdir(e)]
         returncode = make_tests(*args, **kwargs)
         if not returncode:
             return coverage.call("xml", suppress=True, **kwargs)
