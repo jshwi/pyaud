@@ -1337,6 +1337,9 @@ def test_out_of_range_unversioned(tmpdir, main, other_dir, patch_sp_call):
 def test_pylint_colorized(monkeypatch, capsys, failing_lint):
     # sample_tests = os.path.join(tests.REAL_TESTS, "sample_tests")
     monkeypatch.setattr(pyaud.pyitems, "items", [failing_lint])
+    pylint = pyaud.Subprocess("pylint")
+    pylint.call("--version")
+    assert "2.6.0" in capsys.readouterr()[0]
     pyaud.modules.make_lint(suppress=True)
     codes = ["\x1b[7;33m", "\x1b[0m", "\x1b[1m", "\x1b[1;31m", "\x1b[35m"]
     output = capsys.readouterr()[0]

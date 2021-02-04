@@ -5,7 +5,6 @@ pyaud.src.environ
 Set up the environment variables for the current project.
 """
 import collections.abc
-import json
 import os
 from typing import Union, Iterator, Any
 
@@ -37,7 +36,7 @@ class Environ(collections.abc.MutableMapping):
         self.namespace = NAMESPACE
 
     def __repr__(self):
-        return json.dumps(dict(**self.store), indent=2, sort_keys=True)
+        return "<Environ>"
 
     def _key_proxy(self, key: str) -> str:
         if not key.startswith(self.namespace):

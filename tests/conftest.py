@@ -63,8 +63,9 @@ def fixture_test_logging():
     """Log environment variables to debug log."""
 
     def _logging():
-        logger = pyaud.get_logger("<Environ>")
-        logger.debug(pyaud.environ.env)
+        logger = pyaud.get_logger(str(pyaud.environ.env))
+        for key, value in pyaud.environ.env.items():
+            logger.debug(f"{key}={value}")
 
     return _logging
 
@@ -429,9 +430,9 @@ def fixture_make_deploy_docs_env(init_test_repo, make_written):
 
 @pytest.fixture(name="mock_make_docs")
 def fixture_mock_make_docs(monkeypatch):
-    """Mock ``pymake docs`` so that it simply creates a docs/_build dir
+    """Mock ``pyaud docs`` so that it simply creates a docs/_build dir
     and docs/_build/html dir. This will sufficient for successfully
-    triggering ``pymake deploy-docs``
+    triggering ``pyaud deploy-docs``
 
     :param monkeypatch: ``pytest`` fixture for mocking attributes.
     """
