@@ -19,6 +19,8 @@ addopts = [
     "--durations=5",
      "-vv",
      "--color=yes",
+     "--cov-report",
+     "term-missing"
 ]
 norecursedirs = ["docs", "*.egg-info", ".git", ".mypy_cache", ".idea", "prof"]
 filterwarnings = "ignore::DeprecationWarning"

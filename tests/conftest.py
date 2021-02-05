@@ -63,9 +63,8 @@ def fixture_test_logging():
     """Log environment variables to debug log."""
 
     def _logging():
-        logger = pyaud.get_logger("tests", loglevel="debug")
-        for key, value in pyaud.environ.env.items():
-            logger.debug("%s=%s", key, value)
+        logger = pyaud.get_logger("<Environ>")
+        logger.debug(pyaud.environ.env)
 
     return _logging
 
@@ -128,6 +127,7 @@ def fixture_mock_environment(  # pylint: disable=too-many-arguments
     monkeypatch.setenv("PYAUD_TEST_GH_TOKEN", "None")
     monkeypatch.setenv("PYAUD_TEST_CODECOV_TOKEN", "None")
     monkeypatch.setenv("PYAUD_TEST_CODECOV_SLUG", "jshwi/pyaud")
+    monkeypatch.setenv("PYAUD_TEST_LOG_LEVEL", "DEBUG")
     mocks = {
         "expanduser": (os.path, _mockreturn_expanduser),
         "find_package": (pyaud.environ, _mock_return_package),
@@ -454,3 +454,14 @@ def fixture_other_dir(tmpdir):
     other_dir = os.path.join(tmpdir, "other")
     os.makedirs(other_dir)
     return other_dir
+
+
+@pytest.fixture(name="failing_lint")
+def fixture_failing_lint():
+    """Create a failing file to lint."""
+    os.makedirs(pyaud.environ.env["PKG_PATH"])
+    failing_file = os.path.join(pyaud.environ.env["PKG_PATH"], "fail.py")
+    with open(failing_file, "w") as fout:
+        fout.write("import this_package_does_not_exist")
+
+    return failing_file

@@ -251,13 +251,13 @@ def make_lint(**kwargs: Union[bool, str]) -> int:
 
     :param kwargs: Additional keyword arguments for ``pylint``.
     """
+    with environ.TempEnvVar("PYCHARM_HOSTED", "True"):
+        args = list(pyitems.items)
+        pylint = Subprocess("pylint")
+        if os.path.isfile(environ.env["PYLINTRC"]):
+            args.append(f"--rcfile={environ.env['PYLINTRC']}")
 
-    args = list(pyitems.items)
-    pylint = Subprocess("pylint")
-    if os.path.isfile(environ.env["PYLINTRC"]):
-        args.append(f"--rcfile={environ.env['PYLINTRC']}")
-
-    return pylint.call("--output-format=colorized", *args, **kwargs)
+        return pylint.call("--output-format=colorized", *args, **kwargs)
 
 
 @write_command("REQUIREMENTS", required="PIPFILE_LOCK")

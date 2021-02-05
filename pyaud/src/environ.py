@@ -182,3 +182,25 @@ def load_namespace() -> None:
 
     if os.path.isfile(env["ENV"]):
         read_env(env["ENV"])
+
+
+class TempEnvVar:
+    """Temporarily set an environment variable."""
+
+    def __init__(self, key, value):
+        self.iskey = key in os.environ
+        self.default = None
+        if self.iskey:
+            self.default = os.environ[key]
+
+        self.key = key
+        self.value = value
+
+    def __enter__(self):
+        os.environ[self.key] = self.value
+
+    def __exit__(self, _, value, __):
+        if self.iskey:
+            os.environ[self.key] = self.default
+        else:
+            del os.environ[self.key]

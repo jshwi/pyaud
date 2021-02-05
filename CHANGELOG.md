@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v1.1.1...HEAD)
 ------------------------------------------------------------------------
+### Fixed
+- Fixes ``pylint --output-format=colorize`` when ``colorama`` is installed
 
 [1.1.1](https://github.com/jshwi/pyaud/releases/tag/v1.1.1) - 2021-02-01
 ------------------------------------------------------------------------

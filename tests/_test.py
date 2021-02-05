@@ -839,7 +839,7 @@ def test_len_env():
         if key.startswith("PYAUD_TEST_"):
             del pyaud.environ.env[key]
 
-    assert len(pyaud.environ.env) == environ_len - 31
+    assert len(pyaud.environ.env) == environ_len - 32
 
 
 def test_validate_env(validate_env):
@@ -1332,3 +1332,49 @@ def test_out_of_range_unversioned(tmpdir, main, other_dir, patch_sp_call):
         main("lint", "--path", "../pyaud")
         for item in items:
             assert item in pyaud.pyitems.items
+
+
+def test_pylint_colorized(monkeypatch, capsys, failing_lint):
+    """Test that color codes make their way through
+    ``pylint --output-format=colorized``. If ``colorama`` is installed
+    and a process calls ``colorama.init()`` a subprocess pipe will be
+    stripped. Using environment variable ``PYCHARM_HOSTED`` for now as
+    a workaround as this voids this action.
+
+    :param monkeypatch:     ``pytest`` fixture for mocking attributes.
+    :param capsys:          Capture sys output.
+    :param failing_lint:    Create a failing file to lint.
+    """
+    monkeypatch.setattr(pyaud.pyitems, "items", [failing_lint])
+    pyaud.modules.make_lint(suppress=True)
+    codes = ["\x1b[7;33m", "\x1b[0m", "\x1b[1m", "\x1b[1;31m", "\x1b[35m"]
+    output = capsys.readouterr()[0]
+    for code in codes:
+        assert code in output
+
+
+@pytest.mark.parametrize(
+    "iskey,key",
+    [
+        (False, datetime.datetime.now().strftime("%d%m%YT%H%M%S")),
+        (True, "PROJECT_DIR"),
+    ],
+    ids=["iskey", "nokey"],
+)
+def test_temp_env_var(iskey, key):
+    """Test ``pyaud.environ.TempEnvVar`` sets an environment variable
+    and leaves everything as it originally was once the context action
+    is done.
+    """
+    if iskey:
+        assert key in os.environ
+    else:
+        assert key not in os.environ
+
+    with pyaud.environ.TempEnvVar(key, "True"):
+        assert key in os.environ and os.environ[key] == "True"
+
+    if iskey:
+        assert key in os.environ
+    else:
+        assert key not in os.environ
