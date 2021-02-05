@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v1.1.1...HEAD)
 ------------------------------------------------------------------------
+### Added
+- Adds ``L0G_LEVEL`` environment variable to permanently set default loglevel to other from ``INFO``
+- Adds ``-v/--verbose`` logging option to incrementally reduce loglevel from default
+- Adds debugging logger to ``Subprocess``
+- Logs failed ``Subprocess`` returncode
+- Logs ``Environ.__repr__`` as ``DEBUG`` when running tests
+
+### Changed
+- ``Environ.__repr__`` as json
+- Lowers loglevel for internal ``git`` actions from ``INFO`` to ``DEBUG``
+
 ### Fixed
 - Fixes ``pylint --output-format=colorize`` when ``colorama`` is installed
 

@@ -97,6 +97,13 @@ class Parser(argparse.ArgumentParser):
             help="continue without stopping for errors",
         )
         self.add_argument(
+            "-v",
+            "--verbose",
+            action="count",
+            default=0,
+            help="incrementally increase logging verbosity",
+        )
+        self.add_argument(
             "--path",
             action="store",
             default=os.getcwd(),
@@ -161,6 +168,19 @@ class Parser(argparse.ArgumentParser):
         self._list_modules()
         sys.exit(0)
 
+    def set_loglevel(self):
+        """Set loglevel via commandline and override environment
+        variable if one has been set.
+        """
+        levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        levels_index = 1
+        if "LOG_LEVEL" in environ.env:
+            levels_index = levels.index(environ.env["LOG_LEVEL"])
+
+        environ.env["LOG_LEVEL"] = levels[
+            max(0, levels_index - self.args.verbose)
+        ]
+
 
 def main() -> None:
     """Module entry point. Parse commandline arguments and run the
@@ -179,6 +199,7 @@ def main() -> None:
         )
     )
     environ.load_namespace()
+    parser.set_loglevel()
     pyitems.get_files()
     pyitems.exclude_virtualenv()
     pyitems.exclude_unversioned()

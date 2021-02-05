@@ -5,6 +5,7 @@ pyaud.src.environ
 Set up the environment variables for the current project.
 """
 import collections.abc
+import json
 import os
 from typing import Union, Iterator, Any
 
@@ -34,6 +35,13 @@ class Environ(collections.abc.MutableMapping):
     def __init__(self) -> None:
         self.store = os.environ
         self.namespace = NAMESPACE
+
+    def __repr__(self):
+        return (
+            "<Environ store: "
+            + json.dumps(dict(**self.store), indent=4, sort_keys=True)
+            + ">"
+        )
 
     def _key_proxy(self, key: str) -> str:
         if not key.startswith(self.namespace):
@@ -140,7 +148,7 @@ def load_namespace() -> None:
     pkg = find_package()
     pkg_path = str(os.path.join(env["PROJECT_DIR"], pkg))
     config_dir = os.path.join(appdirs.user_config_dir(NAME), pkg)
-    log_dir = os.path.join(os.path.join(appdirs.user_log_dir(NAME)), pkg)
+    log_dir = os.path.join(appdirs.user_log_dir(NAME))
     docs = os.path.join(project_dir, "docs")
     docs_build = os.path.join(docs, "_build")
     env.update(

@@ -63,7 +63,7 @@ def fixture_test_logging():
     """Log environment variables to debug log."""
 
     def _logging():
-        logger = pyaud.get_logger("<Environ>")
+        logger = pyaud.get_logger("environ.env")
         logger.debug(pyaud.environ.env)
 
     return _logging
@@ -208,18 +208,49 @@ def fixture_nocolorcapsys(capsys):
     return tests.NoColorCapsys(capsys)
 
 
-@pytest.fixture(name="main")
-def fixture_main(monkeypatch):
-    """Function for passing mock ``pyaud.main`` commandline arguments.
+@pytest.fixture(name="patch_argv")
+def fixture_patch_argv(monkeypatch):
+    """Function for passing mock commandline arguments to ``sys.argv``.
 
     :param monkeypatch: ``pytest`` fixture for mocking attributes.
     :return:            Function for using this fixture.
     """
 
-    def _main(*args):
-        """Run pyaud.main with custom args."""
+    def _argv(*args):
         args = [__name__, "--path", pyaud.environ.env["PROJECT_DIR"], *args]
         monkeypatch.setattr(sys, "argv", args)
+
+    return _argv
+
+
+@pytest.fixture(name="parser")
+def fixture_parser(patch_argv):
+    """Function for passing mock commandline arguments to ``Parser``
+    class.
+
+    :param patch_argv:  Set args with ``sys.argv``
+    :return:            Function for using this fixture.
+    """
+
+    def _parser(*args):
+        patch_argv(*args)
+        return pyaud.Parser(__name__)
+
+    return _parser
+
+
+@pytest.fixture(name="main")
+def fixture_main(patch_argv):
+    """Function for passing mock ``pyaud.main`` commandline arguments
+    to package's main function.
+
+    :param patch_argv:  Set args with ``sys.argv``
+    :return:            Function for using this fixture.
+    """
+
+    def _main(*args):
+        """Run pyaud.main with custom args."""
+        patch_argv(*args)
         pyaud.main()
 
     return _main

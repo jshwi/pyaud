@@ -1378,3 +1378,53 @@ def test_temp_env_var(iskey, key):
         assert key in os.environ
     else:
         assert key not in os.environ
+
+
+@pytest.mark.parametrize(
+    "default",
+    [
+        "CRITICAL",
+        "ERROR",
+        "WARNING",
+        "INFO",
+        "DEBUG",
+        None,
+    ],
+)
+def test_loglevel(parser, default):
+    """Test the right loglevel is set when parsing the commandline
+    alongside default ``LOG_LEVEL`` environment variable.
+
+    :param parser:  Instantiated ``Parser`` object with mock
+                    ``sys.argv`` calls.
+    :param default: Default ``LOG_LEVEL`` (``PYAUD_LOG_LEVEL``,
+                    ``PYAUD_TEST_LOG_LEVEL`` in this case) - set in
+                    .env file or bashrc etc.
+    """
+    levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+    default_index = 1 if default is None else levels.index(default)
+    module_arg = "unused"
+    del os.environ["PYAUD_TEST_LOG_LEVEL"]
+
+    def _increment(_int):
+        inc = default_index - _int
+        if inc <= 0:
+            return "DEBUG"
+
+        return levels[inc]
+
+    mapping = {
+        "": _increment(0),
+        "-v": _increment(1),
+        "-vv": _increment(2),
+        "-vvv": _increment(3),
+        "-vvvv": _increment(4),
+    }
+
+    for key, value in mapping.items():
+        if default is not None:
+            os.environ["PYAUD_TEST_LOG_LEVEL"] = default
+
+        parser_instance = parser(module_arg, key)
+        parser_instance.set_loglevel()
+        assert os.environ["PYAUD_TEST_LOG_LEVEL"] == value

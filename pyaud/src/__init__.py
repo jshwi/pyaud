@@ -54,7 +54,7 @@ class PythonItems:
     def exclude_unversioned(self) -> None:
         """Remove unversioned files from list."""
         for count, item in enumerate(list(self.items)):
-            with Git(os.environ["PROJECT_DIR"]) as git:
+            with Git(os.environ["PROJECT_DIR"], loglevel="debug") as git:
                 returncode = git.ls_files(  # type: ignore
                     "--error-unmatch", item, devnull=True, suppress=True
                 )
@@ -105,6 +105,7 @@ class Subprocess:
         self.commands = commands
         self._call = functools.partial(self.run, self.exe)
         self.stdout = stdout
+        self.logger = get_logger(self.exe)
         self._set_attrs()
 
     def call(
@@ -116,6 +117,7 @@ class Subprocess:
         :param kwargs:  Command's keyword arguments.
         :return:        Exit status.
         """
+        self.logger.debug("called with %s", args)
         return self._call(*args, **kwargs)
 
     def _capture(self, line: str) -> None:
@@ -151,9 +153,10 @@ class Subprocess:
                 sys.stdout.write(line)
 
     def _handle_stderr(self, pipeline: subprocess.Popen) -> None:
-        logger = getattr(get_logger(self.exe, self.loglevel), self.loglevel)
         for line in iter(pipeline.stderr.readline, b""):  # type: ignore
-            logger(line.decode("utf-8", "ignore").strip())
+            getattr(self.logger, self.loglevel)(
+                line.decode("utf-8", "ignore").strip()
+            )
 
     def open_process(self, exe: str, *args: str, **kwargs: str) -> int:
         """Open process with ``subprocess.Popen``. Pipe stream depending
@@ -187,8 +190,10 @@ class Subprocess:
         suppress = kwargs.get("suppress", environ.env["SUPPRESS"])
         returncode = self.open_process(exe, *args, **kwargs)
         if returncode and not suppress:
-            command = self.exe + " " + " ".join(args)
-            raise PyaudSubprocessError(returncode, command)
+            self.logger.error("returned non-zero exit status %s", returncode)
+            raise PyaudSubprocessError(
+                returncode, f"{self.exe} {' '.join(args)}"
+            )
 
         return returncode
 
@@ -224,8 +229,8 @@ class Git(Subprocess):
         "symbolic-ref",
     )
 
-    def __init__(self, repo: Union[str, os.PathLike]) -> None:
-        super().__init__("git", commands=self.commands, loglevel="info")
+    def __init__(self, repo: Union[str, os.PathLike], loglevel="info") -> None:
+        super().__init__("git", commands=self.commands, loglevel=loglevel)
         self.enter_path = repo
         self.saved_path = os.getcwd()
         self.already_existed = os.path.isdir(repo)
@@ -450,7 +455,7 @@ def get_branch() -> Optional[str]:
 
     :return: Name of branch.
     """
-    with Git(environ.env["PROJECT_DIR"]) as git:
+    with Git(environ.env["PROJECT_DIR"], loglevel="debug") as git:
         git.symbolic_ref(  # type: ignore
             "--short", "HEAD", capture=True, suppress=True
         )
@@ -460,20 +465,24 @@ def get_branch() -> Optional[str]:
         return None
 
 
-def get_logger(logname: str, loglevel: str = "info") -> logging.Logger:
-    """Instantiate the global logging object containing several
-    combined characteristics. Create logging dir if one doesn't
-    exist already. Ensure all loggers contain the format
-    "/$logdir/$logname". Ensure all loggers either display just the
-    message or date-time, loglevel, message. Ensure all loggers are
-    configured to handle rotating logs. Do not print logs to stdout
-    or stderr.
+def get_logger(logname: str) -> logging.Logger:
+    """Set the name of ``~/.cache/pyaud/log/*/<logfile>.log``. Get the
+    new or already existing ``Logging`` object by ``logname`` with
+    ``logging.getLogger``. Prevent multiple handlers from pointing to
+    the same logging object at once by setting ``propagate`` to False.
+    Log to files using ``TimedRotatingFileHandler`` with a daily rotate.
+    If any handlers already exist within a logging object remove the
+    handler and update so multiple handlers do not log at once and cause
+    unnecessary duplicates in logfiles.
+
+    :param logname:     Name to be logged to file
+    :return:            ``Logging`` callable e.g. call as
+                        ``logger.<[debug, info, warning, etc.]>(msg)``
     """
-    _name = environ.env["PKG"] if loglevel == "info" else loglevel
-    logfile = os.path.join(environ.env["LOG_DIR"], _name + ".log")
+
+    logfile = os.path.join(environ.env["LOG_DIR"], environ.env["PKG"] + ".log")
     logger = logging.getLogger(logname)
     logger.propagate = False
-
     filehandler = logging.handlers.TimedRotatingFileHandler(
         logfile, when="d", interval=1, backupCount=60
     )
@@ -481,7 +490,7 @@ def get_logger(logname: str, loglevel: str = "info") -> logging.Logger:
         fmt="%(asctime)s %(levelname)-8s %(name)s %(message)s",
         datefmt="%Y-%m-%dT%H:%M:%S",
     )
-    logger.setLevel(getattr(logging, loglevel.upper()))
+    logger.setLevel(environ.env["LOG_LEVEL"])
     if logger.hasHandlers():
         logger.handlers.clear()
 
