@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>README &#8212; pyaud 1.2.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/graphite.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="pyaud" href="pyaud.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyaud.html" title="pyaud"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyaud 1.2.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">README</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="readme">
+<h1>README<a class="headerlink" href="#readme" title="Permalink to this headline">¶</a></h1>
+<a class="reference external image-reference" href="https://github.com/jshwi/pyaud/workflows/build/badge.svg"><img alt="audit" src="https://github.com/jshwi/pyaud/workflows/build/badge.svg" /></a>
+<a class="reference external image-reference" href="https://www.python.org/downloads/release/python-380"><img alt="python3.8" src="https://img.shields.io/badge/python-3.8-blue.svg" /></a>
+<a class="reference external image-reference" href="https://img.shields.io/pypi/v/pyaud"><img alt="pypi" src="https://img.shields.io/pypi/v/pyaud" /></a>
+<a class="reference external image-reference" href="https://codecov.io/gh/jshwi/pyaud"><img alt="codecov.io" src="https://codecov.io/gh/jshwi/pyaud/branch/master/graph/badge.svg" /></a>
+<a class="reference external image-reference" href="https://pyaud.readthedocs.io/en/latest/?badge=latest"><img alt="readthedocs.org" src="https://readthedocs.org/projects/pyaud/badge/?version=latest" /></a>
+<a class="reference external image-reference" href="https://lbesson.mit-license.org/"><img alt="mit" src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
+<a class="reference external image-reference" href="https://github.com/psf/black"><img alt="black" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a>
+<p>Automate quality-check of Python package with bundled utils</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">usage: pyaud [-h] [-c] [-d] [-s] [-v] [--path PATH] MODULE</span>
+
+<span class="go">positional arguments:</span>
+<span class="go">  MODULE          choice of module: ``modules`` to list all options</span>
+
+<span class="go">optional arguments:</span>
+<span class="go">  -h, --help      show this help message and exit</span>
+<span class="go">  -c, --clean     clean unversioned files prior to any process</span>
+<span class="go">  -d, --deploy    include test and docs deployment after audit</span>
+<span class="go">  -s, --suppress  continue without stopping for errors</span>
+<span class="go">  -v, --verbose   incrementally increase logging verbosity</span>
+<span class="go">  --path PATH     set alternative path to present working dir</span>
+<span class="go">---------------------------------------------------------------------------</span>
+
+<span class="go">audit                   Run all checks</span>
+<span class="go">clean                   Remove all unversioned files unless excluded</span>
+<span class="go">coverage                Run ``pytest`` with ``coverage``</span>
+<span class="go">deploy                  Deploy code coverage and documentation</span>
+<span class="go">deploy-cov              Deploy code coverage to ``codecov.io``</span>
+<span class="go">deploy-docs             Deploy ``Sphinx`` docs to ``gh-pages``</span>
+<span class="go">docs                    Compile documentation with ``Sphinx``</span>
+<span class="go">files                   Run ``requirements``, ``toc``, and ``whitelist``</span>
+<span class="go">format                  Format all Python project files with ``Black``</span>
+<span class="go">lint                    Show possible corrections with ``pylint``</span>
+<span class="go">requirements            Create requirements.txt from Pipfile.lock</span>
+<span class="go">tests                   Run unittests with ``pytest``</span>
+<span class="go">toc                     Update docs/&lt;PACKAGENAME&gt;.rst</span>
+<span class="go">typecheck               Inspect files for type errors with ``mypy``</span>
+<span class="go">unused                  Inspect files for unused code with ``vulture``</span>
+<span class="go">whitelist               Update ``vulture`` whitelist.py</span>
+</pre></div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="pyaud.html">pyaud</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">README</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyaud.html" title="pyaud"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyaud 1.2.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">README</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stephen Whitlock.
+    </div>
+  </body>
+</html>
