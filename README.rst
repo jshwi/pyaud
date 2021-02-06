@@ -7,7 +7,7 @@ PyAud
     :target: https://www.python.org/downloads/release/python-380
     :alt: python3.8
 .. image:: https://img.shields.io/pypi/v/pyaud
-    :target: https://img.shields.io/pypi/v/pyaud"
+    :target: https://img.shields.io/pypi/v/pyaud
     :alt: pypi
 .. image:: https://codecov.io/gh/jshwi/pyaud/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/jshwi/pyaud
@@ -26,7 +26,7 @@ Automate quality-check of Python package with bundled utils
 
 .. code-block:: console
 
-    usage: pyaud [-h] [-c] [-d] [-s] [--path PATH] MODULE
+    usage: pyaud [-h] [-c] [-d] [-s] [-v] [--path PATH] MODULE
 
     positional arguments:
       MODULE          choice of module: ``modules`` to list all options
@@ -36,6 +36,7 @@ Automate quality-check of Python package with bundled utils
       -c, --clean     clean unversioned files prior to any process
       -d, --deploy    include test and docs deployment after audit
       -s, --suppress  continue without stopping for errors
+      -v, --verbose   incrementally increase logging verbosity
       --path PATH     set alternative path to present working dir
     ---------------------------------------------------------------------------
 
