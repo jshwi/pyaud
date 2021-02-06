@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Updates README to include ``-v/--verbose`` option
 - Fixes ``pypi`` badge in README
+- Updates .bump2version.cfg to ensure only this package gets bumped in setup.py
 
 [1.2.0](https://github.com/jshwi/pyaud/releases/tag/v1.2.0) - 2021-02-06
 ------------------------------------------------------------------------
