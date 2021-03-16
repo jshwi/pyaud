@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v1.2.1...HEAD)
 ------------------------------------------------------------------------
+### Fixed
+- Updates object-colors to the latest major release to prevent version conflicts with other packages
 
 [1.2.1](https://github.com/jshwi/pyaud/releases/tag/v1.2.1) - 2021-02-06
 ------------------------------------------------------------------------

@@ -53,7 +53,7 @@ setuptools.setup(
         "codecov==2.1.11",
         "coverage==5.3.1",
         "mypy==0.800",
-        "object-colors==1.0.8",
+        "object-colors==2.0.0",
         "pipfile-requirements==0.3.0",
         "pyblake2==1.1.2",
         "pylint==2.6.0",
