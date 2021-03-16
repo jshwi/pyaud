@@ -7,6 +7,7 @@ import pathlib
 import sys
 from typing import Union, Dict, Any
 
+import appdirs
 import pytest
 
 import pyaud
@@ -111,6 +112,9 @@ def fixture_mock_environment(  # pylint: disable=too-many-arguments
     def _mock_return_package():
         return "repo"
 
+    def _mock_return_user_config_dir(name):
+        return os.path.join(tmpdir, ".config", name)
+
     _freeze_environ = dict(os.environ)
 
     pyaud.colors.populate_colors()
@@ -129,6 +133,7 @@ def fixture_mock_environment(  # pylint: disable=too-many-arguments
     monkeypatch.setenv("PYAUD_TEST_CODECOV_SLUG", "jshwi/pyaud")
     monkeypatch.setenv("PYAUD_TEST_LOG_LEVEL", "DEBUG")
     mocks = {
+        "user_config_dir": (appdirs, _mock_return_user_config_dir),
         "expanduser": (os.path, _mockreturn_expanduser),
         "find_package": (pyaud.environ, _mock_return_package),
     }
