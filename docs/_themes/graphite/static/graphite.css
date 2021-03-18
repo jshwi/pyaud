@@ -112,7 +112,7 @@ div.section blockquote {
   padding: 0.5em;
   background-color: #555555;
   border-radius: 0.5em;
-  -moz-border-radius: 0,5em;
+  -moz-border-radius: 0.5em;
 }
 
 div.section pre {
@@ -317,7 +317,7 @@ body .highlight {
 
 #searchbox h3 {
   color: #bbbbbb;
-  margin-bottom: 0px;
+  margin-bottom: 0;
   font-weight: normal;
 }
 
