@@ -15,6 +15,8 @@ import pyaud
 import tests
 
 NAME = "pyaud"
+FILES = "file.py"
+PUSHING_SKIPPED = "Pushing skipped"
 
 
 def test_no_files_found(nocolorcapsys):
@@ -182,7 +184,7 @@ def test_make_docs_no_docs(nocolorcapsys):
 
     :param nocolorcapsys: ``capsys`` without ANSI color codes.
     """
-    pathlib.Path(pyaud.environ.env["PROJECT_DIR"], "file.py").touch()
+    pathlib.Path(pyaud.environ.env["PROJECT_DIR"], FILES).touch()
     pyaud.modules.make_docs()
     assert nocolorcapsys.stdout() == "No docs found\n"
 
@@ -366,7 +368,7 @@ def test_deploy_docs_branch(
                 "Documentation Successfully deployed",
                 "git diff gh-pages origin/gh-pages",
                 "No difference between local branch and remote",
-                "Pushing skipped",
+                PUSHING_SKIPPED,
             ]
         )
 
@@ -380,11 +382,11 @@ def test_deploy_docs_branch(
             "- GH_EMAIL",
             "- GH_TOKEN",
             "",
-            "Pushing skipped",
+            PUSHING_SKIPPED,
         ]
 
     elif test_id == "not_master":
-        expected = ["Documentation not for master", "Pushing skipped"]
+        expected = ["Documentation not for master", PUSHING_SKIPPED]
 
     out_list = [i.strip() for i in nocolorcapsys.stdout().splitlines()]
     for expect in expected:
@@ -976,7 +978,7 @@ def test_test_quantity():
     [
         ("setup.py", "setup.py", True),
         (
-            os.path.join("nested", "python", "file", "file.py"),
+            os.path.join("nested", "python", "file", FILES),
             os.path.join("nested"),
             True,
         ),
@@ -1056,7 +1058,7 @@ def test_mypy_expected(patch_sp_call, nocolorcapsys):
     patch_sp_call()
     pyaud.pyitems.get_files()
     pyaud.modules.make_typecheck()
-    file_py = os.path.join(pyaud.environ.env["PROJECT_DIR"], "file.py")
+    file_py = os.path.join(pyaud.environ.env["PROJECT_DIR"], FILES)
     assert f"mypy --ignore-missing-imports {file_py}" in nocolorcapsys.stdout()
 
 
@@ -1238,7 +1240,7 @@ def test_remove_unversioned(init_test_repo):
                             commit.
     """
     init_test_repo()
-    file_py = os.path.join(pyaud.environ.env["PROJECT_DIR"], "file.py")
+    file_py = os.path.join(pyaud.environ.env["PROJECT_DIR"], FILES)
     pathlib.Path(file_py).touch()
     pyaud.pyitems.get_files()
     assert file_py in pyaud.pyitems.items
