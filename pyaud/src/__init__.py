@@ -14,7 +14,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
-from typing import Optional, Iterable, Union, List, Dict, Callable, Any
+from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 
 import object_colors
 import pyblake2

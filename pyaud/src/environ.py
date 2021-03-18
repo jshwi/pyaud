@@ -7,7 +7,7 @@ Set up the environment variables for the current project.
 import collections.abc
 import json
 import os
-from typing import Union, Iterator, Any
+from typing import Any, Iterator, Union
 
 import appdirs
 import setuptools

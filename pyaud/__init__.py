@@ -9,7 +9,7 @@ import contextlib
 import inspect
 import os
 import sys
-from typing import List, Callable, Any, Optional
+from typing import Any, Callable, List, Optional
 
 from .src import (
     EnterDir,

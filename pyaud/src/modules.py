@@ -5,7 +5,7 @@ pyaud.src.modules
 import os
 import pathlib
 import shutil
-from typing import Union, Callable, List, Any
+from typing import Any, Callable, List, Union
 
 from . import (
     DeployDocs,

@@ -6,6 +6,7 @@ import os
 import re
 
 import pyaud
+
 from . import files
 
 REAL_REPO = os.path.dirname(os.path.dirname(__file__))
