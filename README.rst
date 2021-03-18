@@ -51,6 +51,7 @@ Automate quality-check of Python package with bundled utils
     format                  Format all Python project files with ``Black``
     imports                 Sort imports with ``isort``
     lint                    Show possible corrections with ``pylint``
+    readme                  tests code-blocks in README.rst
     requirements            Create requirements.txt from Pipfile.lock
     tests                   Run unittests with ``pytest``
     toc                     Update docs/<PACKAGENAME>.rst

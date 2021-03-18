@@ -1826,6 +1826,19 @@ from pyaud import (
     write_command,
 )
 """
+CODE_BLOCK_TEMPLATE = """
+.. code-block:: python
+
+    >>> print("Hello, world!")
+    'Hello, world!'
+..
+"""
+SUCCESS = "\n{}\nSuccess!".format(80 * "-")
+CODE_BLOCK_EXPECTED = (
+    '\ncode-block 1\n. >>> print("Hello, world!")\nHello, world!\n{}'.format(
+        SUCCESS
+    )
+)
 
 
 class Whitelist:  # pylint: disable=too-few-public-methods

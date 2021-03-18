@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ------------------------------------------------------------------------
 ### Added
 - Adds ``pyaud imports`` utilising ``isort``
+- Adds ``pyaud readme`` utilising ``readmetester``
 
 [1.2.2](https://github.com/jshwi/pyaud/releases/tag/v1.2.2) - 2021-03-17
 ------------------------------------------------------------------------

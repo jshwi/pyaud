@@ -63,6 +63,7 @@ setuptools.setup(
         "pytest-profiling==1.7.0",
         "pytest-randomly==3.5.0",
         "pytest-sugar==0.9.4",
+        "readmetester==1.0.0",
         "sphinx==3.4.3",
         "sphinxcontrib-fulltoc==1.2.0",
         "sphinxcontrib-programoutput==0.16",

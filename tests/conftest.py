@@ -501,3 +501,14 @@ def fixture_failing_lint():
         fout.write("import this_package_does_not_exist")
 
     return failing_file
+
+
+@pytest.fixture(name="make_readme")
+def fixture_make_readme():
+    """Make temp README."""
+
+    def _make_readme(template):
+        with open(pyaud.environ.env["README_RST"], "w") as fout:
+            fout.write(template)
+
+    return _make_readme

@@ -39,6 +39,7 @@ def make_audit(**kwargs: Union[bool, str]) -> int:
         make_unused,
         make_lint,
         make_coverage,
+        make_readme,
         make_docs,
     ]
     if environ.env.get("CLEAN"):
@@ -463,3 +464,12 @@ def make_imports():
             Tally.pyfiles(*pyitems.items)
         )
     )
+
+
+def make_readme() -> None:
+    """Parse, test, and assert RST code-blocks."""
+    readmtester = Subprocess("readmetester")
+    if os.path.isfile(environ.env["README_RST"]):
+        readmtester.call(environ.env["README_RST"])
+    else:
+        print("No README.rst found in project root")

@@ -1434,7 +1434,7 @@ def test_loglevel(parser, default):
 
 
 def test_isort_imports(project_dir):
-    """Test ``isort`` properly sorts file imports.
+    """Test isort properly sorts file imports.
 
     :param project_dir: Create and return testing project root.
     """
@@ -1451,3 +1451,21 @@ def test_isort_imports(project_dir):
             tests.files.IMPORTS_SORTED.splitlines()[1:]
             == fin.read().splitlines()[:20]
         )
+
+
+def test_readme(nocolorcapsys, main, make_readme):
+    """Test standard README and return values.
+
+    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param main:            Mock the main function for the package.
+                            Provide test arguments to ``sys.argv`` as
+                            function parameters.
+    :param make_readme:     Create a README.rst file in the temp dir
+                            containing the provided ``str``.
+    """
+    make_readme(tests.files.CODE_BLOCK_TEMPLATE)
+    main("readme")
+    output = "\n".join(
+        [i.strip() for i in nocolorcapsys.stdout().splitlines()]
+    )
+    assert output == tests.files.CODE_BLOCK_EXPECTED
