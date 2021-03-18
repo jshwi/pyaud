@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v1.2.2...HEAD)
 ------------------------------------------------------------------------
+### Added
+- Adds ``pyaud imports`` utilising ``isort``
 
 [1.2.2](https://github.com/jshwi/pyaud/releases/tag/v1.2.2) - 2021-03-17
 ------------------------------------------------------------------------

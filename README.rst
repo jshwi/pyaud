@@ -49,6 +49,7 @@ Automate quality-check of Python package with bundled utils
     docs                    Compile documentation with ``Sphinx``
     files                   Run ``requirements``, ``toc``, and ``whitelist``
     format                  Format all Python project files with ``Black``
+    imports                 Sort imports with ``isort``
     lint                    Show possible corrections with ``pylint``
     requirements            Create requirements.txt from Pipfile.lock
     tests                   Run unittests with ``pytest``

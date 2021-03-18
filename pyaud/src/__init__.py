@@ -33,6 +33,7 @@ class PythonItems:
     def __init__(self, *exclude: str) -> None:
         self.exclude = exclude
         self.items: List[str] = []
+        self.files: List[str] = []
 
     def exclude_virtualenv(self) -> None:
         """Remove virtualenv dir."""
@@ -80,6 +81,16 @@ class PythonItems:
                 str(path) in str(p) or str(p) in str(path) for p in self.items
             ):
                 self.items.append(str(path))
+
+    def get_file_paths(self) -> None:
+        """Get all relevant python file paths starting from project
+        root.
+        """
+        self.files.clear()
+        for glob_path in pathlib.Path(environ.env["PROJECT_DIR"]).rglob(
+            "*.py"
+        ):
+            self.files.append(str(glob_path))
 
 
 pyitems = PythonItems("whitelist.py", "conf.py")

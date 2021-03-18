@@ -205,6 +205,7 @@ def test_suppress(nocolorcapsys, monkeypatch, call_status, make_project_tree):
     pyaud.pyitems.get_files()
     audit_modules = [
         "make_format",
+        "make_imports",
         "make_typecheck",
         "make_unused",
         "make_lint",
@@ -1430,3 +1431,23 @@ def test_loglevel(parser, default):
         parser_instance = parser(module_arg, key)
         parser_instance.set_loglevel()
         assert os.environ["PYAUD_TEST_LOG_LEVEL"] == value
+
+
+def test_isort_imports(project_dir):
+    """Test ``isort`` properly sorts file imports.
+
+    :param project_dir: Create and return testing project root.
+    """
+    file = os.path.join(project_dir, "file.py")
+    with open(file, "w") as fout:
+        fout.write(tests.files.IMPORTS_UNSORTED)
+
+    pyaud.pyitems.get_file_paths()
+    with pytest.raises(pyaud.PyaudSubprocessError):
+        pyaud.modules.make_imports()
+
+    with open(file) as fin:
+        assert (
+            tests.files.IMPORTS_SORTED.splitlines()[1:]
+            == fin.read().splitlines()[:20]
+        )

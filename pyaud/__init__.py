@@ -203,6 +203,7 @@ def main() -> None:
     pyitems.get_files()
     pyitems.exclude_virtualenv()
     pyitems.exclude_unversioned()
+    pyitems.get_file_paths()
     environ.env["BRANCH"] = get_branch()
     parser.function()
 

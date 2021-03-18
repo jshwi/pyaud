@@ -52,6 +52,7 @@ setuptools.setup(
         "black==20.8b1",
         "codecov==2.1.11",
         "coverage==5.3.1",
+        "isort==5.7.0",
         "mypy==0.800",
         "object-colors==2.0.0",
         "pipfile-requirements==0.3.0",

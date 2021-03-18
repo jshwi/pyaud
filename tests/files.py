@@ -1760,6 +1760,72 @@ wcwidth==0.2.5
 webencodings==0.5.1
 wrapt==1.12.1
 """
+IMPORTS_UNSORTED = """
+from typing import Union, Callable, List, Any
+from pyaud import (
+    colors,
+    Subprocess,
+    write_command,
+    HashCap,
+    config,
+    Git,
+    LineSwitch,
+    check_command,
+    print_command,
+    environ,
+    PyaudSubprocessError,
+    EnterDir,
+    pyitems
+)
+import shutil
+import pathlib
+import os
+
+_ = (
+    Git,
+    List,
+    pathlib,
+    os,
+    colors,
+    config,
+    check_command,
+    Callable,
+    PyaudSubprocessError,
+    write_command,
+    shutil,
+    EnterDir,
+    LineSwitch,
+    Union,
+    HashCap,
+    pyitems,
+    Any,
+    Subprocess,
+    print_command,
+    environ,
+)
+"""
+IMPORTS_SORTED = """
+import os
+import pathlib
+import shutil
+from typing import Any, Callable, List, Union
+
+from pyaud import (
+    EnterDir,
+    Git,
+    HashCap,
+    LineSwitch,
+    PyaudSubprocessError,
+    Subprocess,
+    check_command,
+    colors,
+    config,
+    environ,
+    print_command,
+    pyitems,
+    write_command,
+)
+"""
 
 
 class Whitelist:  # pylint: disable=too-few-public-methods
