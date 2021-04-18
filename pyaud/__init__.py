@@ -222,6 +222,7 @@ __all__ = [
     "environ",
     "get_branch",
     "get_logger",
+    "main",
     "modules",
     "print_command",
     "pyitems",

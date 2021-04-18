@@ -69,6 +69,6 @@ setuptools.setup(
         "sphinxcontrib-programoutput==0.16",
         "vulture==2.3",
     ],
-    entry_points={"console_scripts": ["pyaud=pyaud:main"]},
+    entry_points={"console_scripts": ["pyaud=pyaud.__main__:main"]},
     python_requires=">=3.8",
 )

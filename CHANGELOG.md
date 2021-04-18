@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v1.3.0...HEAD)
 ------------------------------------------------------------------------
 ### Fixed
+- Moves console entry point to `pyaud.__main__`
 - Patches "$HOME" for setting ~/.gitconfig in tests
 
 [1.3.0](https://github.com/jshwi/pyaud/releases/tag/v1.3.0) - 2021-03-18
