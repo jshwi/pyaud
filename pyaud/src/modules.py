@@ -237,7 +237,7 @@ def make_format(**kwargs: Union[bool, str]) -> int:
 
     :param kwargs: Additional keyword arguments for ``Black``.
     """
-    black = Subprocess("black", loglevel="info")
+    black = Subprocess("black", loglevel="debug")
     args = pyitems.items
     black.call(*args, **kwargs)
     blacklogs = os.path.join(
