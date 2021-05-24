@@ -26,7 +26,6 @@ from .src import (
     get_branch,
     get_logger,
     modules,
-    print_command,
     pyitems,
     write_command,
 )
@@ -224,7 +223,6 @@ __all__ = [
     "get_logger",
     "main",
     "modules",
-    "print_command",
     "pyitems",
     "write_command",
 ]

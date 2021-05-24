@@ -19,7 +19,6 @@ from . import (
     colors,
     config,
     environ,
-    print_command,
     pyitems,
     write_command,
 )
@@ -48,7 +47,13 @@ def make_audit(**kwargs: Union[bool, str]) -> int:
         audit_modules.append(make_deploy)
 
     for audit_module in audit_modules:
-        print_command(audit_module)
+        colors.cyan.bold.print(
+            "\n{}".format(
+                audit_module.__name__.replace(
+                    "make_", f"{environ.NAME} "
+                ).replace("_", "-")
+            )
+        )
         audit_module(**kwargs)
 
     return 0
@@ -93,7 +98,13 @@ def make_deploy(**kwargs: Union[bool, str]) -> int:
 
     deploy_modules = [make_deploy_cov, make_deploy_docs]
     for deploy_module in deploy_modules:
-        print_command(deploy_module)
+        colors.cyan.bold.print(
+            "\n{}".format(
+                deploy_module.__name__.replace(
+                    "make_", f"{environ.NAME} "
+                ).replace("_", "-")
+            )
+        )
         returncode = deploy_module(**kwargs)
         if returncode:
             return returncode

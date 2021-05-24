@@ -521,17 +521,6 @@ def get_logger(logname: str) -> logging.Logger:
     return logger
 
 
-def print_command(func) -> None:
-    """Display the command being run.
-
-    :param func: Function for ``__name__``.
-    """
-    print()
-    colors.cyan.bold.print(
-        func.__name__.replace("make_", f"{environ.NAME} ").replace("_", "-")
-    )
-
-
 def write_command(
     file: Union[bytes, str, os.PathLike],
     required: Optional[Union[bytes, str, os.PathLike]] = None,
