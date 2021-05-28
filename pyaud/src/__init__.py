@@ -511,97 +511,6 @@ def write_command(
     return _decorator
 
 
-class DeployDocs(Git):
-    """Deploy documentation to ``gh-pages`` with git."""
-
-    def __init__(self, repo: Union[str, os.PathLike], url: str) -> None:
-        super().__init__(repo)
-        self.url = url
-        self.stashed = False
-
-    def _dirty_tree(self) -> Optional[str]:
-        self.add(".")  # type: ignore
-        self.diff_index("--cached", "HEAD", capture=True)  # type: ignore
-        return self.stdout
-
-    @staticmethod
-    def _remove_prefix() -> None:
-        shutil.move(os.path.join("docs", "_build", "html"), ".")
-        shutil.copy("README.rst", os.path.join("html", "README.rst"))
-
-    def _checkout_root(self) -> None:
-        self.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
-        self.checkout(self.stdout.strip())  # type: ignore
-
-    def _stash(self, *args) -> None:
-        if not args:
-            self.stashed = True
-
-        self.stash(*args, devnull=True)  # type: ignore
-
-    def _config(self) -> None:
-        self.config(  # type: ignore
-            "--global", "user.name", environ.env["GH_NAME"]
-        )
-        self.config(  # type: ignore
-            "--global", "user.email", environ.env["GH_EMAIL"]
-        )
-
-    def _commit(self) -> None:
-        self.add(".")  # type: ignore
-        self.commit(  # type: ignore
-            "-m", '"[ci skip] Publishes updated documentation"', devnull=True
-        )
-
-    def _config_remote(self) -> None:
-        self.remote("rm", "origin")  # type: ignore
-        self.remote("add", "origin", self.url)  # type: ignore
-
-    def _remote_exists(self) -> Optional[str]:
-        self.fetch()  # type: ignore
-        self.ls_remote(  # type: ignore
-            "--heads", self.url, "gh-pages", capture=True
-        )
-        return self.stdout
-
-    def _remote_diff(self) -> Optional[str]:
-        self.diff("gh-pages", "origin/gh-pages", capture=True)  # type: ignore
-        return self.stdout
-
-    def deploy_docs(self) -> None:
-        """Series of functions for deploying docs."""
-        if self._dirty_tree():
-            self._stash()
-
-        self._remove_prefix()
-        self._checkout_root()
-        self.checkout("--orphan", "gh-pages")  # type: ignore
-        self._config()
-        shutil.rmtree("docs")
-        self.rm("-rf", ".", devnull=True)  # type: ignore
-        self.clean("-fdx", "--exclude=html", devnull=True)  # type: ignore
-        for file in os.listdir("html"):
-            shutil.move(os.path.join("html", file), ".")
-
-        shutil.rmtree("html")
-        self._commit()
-        self._config_remote()
-
-        if self._remote_exists() and not self._remote_diff():
-            colors.green.print("No difference between local branch and remote")
-            print("Pushing skipped")
-        else:
-            colors.green.print("Pushing updated documentation")
-            self.push("origin", "gh-pages", "-f")  # type: ignore
-            print("Documentation Successfully deployed")
-
-        self.checkout("master", devnull=True)  # type: ignore
-        if self.stashed:
-            self.stash("pop", devnull=True)  # type: ignore
-
-        self.branch("-D", "gh-pages", devnull=True)  # type: ignore
-
-
 class EnterDir:
     """Change to the selected directory entered as an argument and when
     actions are complete return to the previous directory
@@ -631,3 +540,65 @@ def tally_tests() -> int:
             total.extend(fin.read().splitlines())
 
     return len([i for i in total if i.startswith("def test_")])
+
+
+def deploy_docs(url: Union[bool, str]) -> None:
+    """Series of functions for deploying docs.
+
+    :param url: URL to push documentation to.
+    """
+    with Git(environ.env["PROJECT_DIR"]) as git:
+        git.add(".")  # type: ignore
+        git.diff_index("--cached", "HEAD", capture=True)  # type: ignore
+        stashed = False
+        if git.stdout is not None:
+            git.stash(devnull=True)  # type: ignore
+            stashed = True
+
+        shutil.move(os.path.join(environ.env["DOCS_BUILD"], "html"), ".")
+        shutil.copy("README.rst", os.path.join("html", "README.rst"))
+
+        git.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
+        if git.stdout is not None:
+            git.checkout(git.stdout.strip())  # type: ignore
+
+        git.checkout("--orphan", "gh-pages")  # type: ignore
+        git.config(  # type: ignore
+            "--global", "user.name", environ.env["GH_NAME"]
+        )
+        git.config(  # type: ignore
+            "--global", "user.email", environ.env["GH_EMAIL"]
+        )
+        shutil.rmtree("docs")
+        git.rm("-rf", ".", devnull=True)  # type: ignore
+        git.clean("-fdx", "--exclude=html", devnull=True)  # type: ignore
+        for file in os.listdir("html"):
+            shutil.move(os.path.join("html", file), ".")
+
+        shutil.rmtree("html")
+        git.add(".")  # type: ignore
+        git.commit(  # type: ignore
+            "-m", '"[ci skip] Publishes updated documentation"', devnull=True
+        )
+        git.remote("rm", "origin")  # type: ignore
+        git.remote("add", "origin", url)  # type: ignore
+        git.fetch()  # type: ignore
+        git.ls_remote("--heads", url, "gh-pages", capture=True)  # type: ignore
+        remote_exists = git.stdout
+        git.diff(  # type: ignore
+            "gh-pages", "origin/gh-pages", suppress=True, capture=True
+        )
+        remote_diff = git.stdout
+        if remote_exists is not None and remote_diff is None:
+            colors.green.print("No difference between local branch and remote")
+            print("Pushing skipped")
+        else:
+            colors.green.print("Pushing updated documentation")
+            git.push("origin", "gh-pages", "-f")  # type: ignore
+            print("Documentation Successfully deployed")
+
+        git.checkout("master", devnull=True)  # type: ignore
+        if stashed:
+            git.stash("pop", devnull=True)  # type: ignore
+
+        git.branch("-D", "gh-pages", devnull=True)  # type: ignore

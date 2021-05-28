@@ -8,7 +8,6 @@ import shutil
 from typing import Any, Callable, List, Union
 
 from . import (
-    DeployDocs,
     EnterDir,
     Git,
     HashCap,
@@ -18,6 +17,7 @@ from . import (
     check_command,
     colors,
     config,
+    deploy_docs,
     environ,
     pyitems,
     write_command,
@@ -170,11 +170,7 @@ def make_deploy_docs(**kwargs: Union[bool, str]) -> int:
             if not os.path.isdir(environ.env["DOCS_BUILD_HTML"]):
                 make_docs(**kwargs)
 
-            with DeployDocs(
-                environ.env["PROJECT_DIR"], url  # type: ignore
-            ) as deploy_docs:
-                deploy_docs.deploy_docs()  # type: ignore
-
+            deploy_docs(url)
         else:
             print("The following is not set:")
             for null_val in null_vals:
