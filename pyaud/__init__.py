@@ -62,8 +62,6 @@ class Parser(argparse.ArgumentParser):
 
         if self.module == "modules":
             self._print_module_help()
-        else:
-            self.function = MODULES[self.module]
 
         self.path = os.path.abspath(self.args.path)
 
@@ -204,7 +202,7 @@ def main() -> None:
     pyitems.exclude_unversioned()
     pyitems.get_file_paths()
     environ.env["BRANCH"] = get_branch()
-    parser.function()
+    MODULES[parser.args.module]()
 
 
 __all__ = [
