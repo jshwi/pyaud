@@ -5,7 +5,6 @@ tests._test
 # pylint: disable=too-many-lines,too-many-arguments
 import datetime
 import filecmp
-import inspect
 import os
 import pathlib
 
@@ -670,7 +669,7 @@ def test_list_modules(main, nocolorcapsys):
         main("modules")
 
     out = nocolorcapsys.stdout().splitlines()
-    for key in [m.replace("_", "-") for m in pyaud.MODULES]:
+    for key in pyaud.MODULES:
         assert any(key in i for i in out)
 
 
@@ -1197,12 +1196,10 @@ def test_parser(monkeypatch, nocolorcapsys, track_called, call_status, main):
         "whitelist",
     ]
     monkeypatch.setattr(
-        pyaud,
-        "MODULES",
+        "pyaud.MODULES",
         {
-            m[0].replace("make_", ""): track_called(call_status(m[0], 0))
-            for m in inspect.getmembers(pyaud.modules)
-            if m[0].startswith("make_") and inspect.isfunction(m[1])
+            k: track_called(call_status(v.__name__, 0))
+            for k, v in pyaud.MODULES.items()
         },
     )
     for call in calls:

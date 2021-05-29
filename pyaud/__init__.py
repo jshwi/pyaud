@@ -9,7 +9,7 @@ import contextlib
 import inspect
 import os
 import sys
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Dict, Optional
 
 from .src import (
     EnterDir,
@@ -34,9 +34,9 @@ from .src import (
 __version__ = "1.3.0"
 
 MODULES = {
-    m[0].replace("make_", ""): m[1]
-    for m in inspect.getmembers(modules)
-    if m[0].startswith("make_") and inspect.isfunction(m[1])
+    k.replace("make_", "").replace("_", "-"): v
+    for k, v in inspect.getmembers(modules, inspect.isfunction)
+    if k.startswith("make_")
 }
 
 
@@ -56,7 +56,7 @@ class Parser(argparse.ArgumentParser):
 
     def __init__(self, prog: str) -> None:
         super().__init__(prog=prog)
-        self.module_list = [m.replace("_", "-") for m in list(MODULES)]
+        self.module_list = list(MODULES)
         self._add_arguments()
         self.args = self.parse_args()
         self.module = self.args.module
@@ -64,7 +64,7 @@ class Parser(argparse.ArgumentParser):
         if self.module == "modules":
             self._print_module_help()
         else:
-            self.function = MODULES[self.module.replace("-", "_")]
+            self.function = MODULES[self.module]
 
         self.path = os.path.abspath(self.args.path)
 
@@ -121,14 +121,14 @@ class Parser(argparse.ArgumentParser):
             + "\n]"
         )
 
-    def _populate_functions(self) -> List[Callable[..., Any]]:
-        funcs = []
+    def _populate_functions(self) -> Dict[str, Callable[..., Any]]:
+        funcs = {}
         try:
-            funcs.append(MODULES[self.args.positional])
+            funcs.update({self.args.positional: MODULES[self.args.positional]})
 
         except KeyError:
             if self.args.positional == "all":
-                funcs.extend([MODULES[k] for k in MODULES])
+                funcs.update(dict(MODULES))
 
         return funcs
 
@@ -149,9 +149,10 @@ class Parser(argparse.ArgumentParser):
     def _print_module_info(self) -> None:
         funcs = self._populate_functions()
         if funcs:
-            for func in funcs:
-                print_command(func)
-                print(self._get_docs(func))
+            for key, value in funcs.items():
+                print()
+                colors.cyan.bold.print(f"pyaud {key}")
+                print(self._get_docs(value))
         else:
             with contextlib.redirect_stdout(sys.stderr):
                 colors.red.print(f"No such module: ``{self.args.positional}``")
