@@ -255,9 +255,14 @@ class Git(Subprocess):
         """
         args = list(args)  # type: ignore
         args.append(self.enter_path)  # type: ignore
+        del os.environ["GIT_WORK_TREE"]
         return self.call("clone", source, *args, **kwargs)
 
     def __enter__(self) -> Git:
+        os.environ.update(
+            GIT_DIR=str(os.path.join(self.enter_path, ".git")),
+            GIT_WORK_TREE=str(self.enter_path),
+        )
         if not self.already_existed:
             os.makedirs(self.enter_path)
 
@@ -285,6 +290,12 @@ class Git(Subprocess):
         os.chdir(self.saved_path)
         if not self.already_existed and not self._keep_repo():
             shutil.rmtree(self.enter_path)
+
+    def call(self, *args: Any, **kwargs: Any) -> int:
+        if "--bare" in args:
+            del os.environ["GIT_WORK_TREE"]
+
+        return super().call(*args, **kwargs)
 
 
 class HashCap:
