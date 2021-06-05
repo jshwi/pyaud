@@ -1403,15 +1403,17 @@ def test_loglevel(parser, default):
         assert os.environ["PYAUD_TEST_LOG_LEVEL"] == value
 
 
-def test_isort_imports(project_dir):
+def test_isort_imports(project_dir, nocolorcapsys):
     """Test isort properly sorts file imports.
 
-    :param project_dir: Create and return testing project root.
+    :param project_dir:     Create and return testing project root.
+    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
     """
     file = os.path.join(project_dir, "file.py")
     with open(file, "w") as fout:
         fout.write(tests.files.IMPORTS_UNSORTED)
 
+    pyaud.pyitems.get_files()
     pyaud.pyitems.get_file_paths()
     with pytest.raises(pyaud.PyaudSubprocessError):
         pyaud.modules.make_imports()
@@ -1421,6 +1423,16 @@ def test_isort_imports(project_dir):
             tests.files.IMPORTS_SORTED.splitlines()[1:]
             == fin.read().splitlines()[:20]
         )
+
+    pyaud.modules.make_imports()
+    out = nocolorcapsys.stdout()
+    assert all(
+        i in out
+        for i in (
+            f"Fixing {file}",
+            "Success: no issues found in 1 source files",
+        )
+    )
 
 
 def test_readme(nocolorcapsys, main, make_readme):

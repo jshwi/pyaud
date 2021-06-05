@@ -15,7 +15,6 @@ from . import (
     LineSwitch,
     PyaudSubprocessError,
     Subprocess,
-    Tally,
     check_command,
     colors,
     config,
@@ -424,7 +423,8 @@ def make_whitelist(**kwargs: Union[bool, str]) -> int:
     return 0
 
 
-def make_imports():
+@check_command
+def make_imports(**kwargs: Union[bool, str]) -> int:
     """Sort imports with ``isort``. ``Black`` and ``isort`` clash in
     some areas when it comes to ``Black`` and sorting imports. To
     avoid running into false positives when running both in conjunction
@@ -437,24 +437,21 @@ def make_imports():
     for item in pyitems.files:
         if os.path.isfile(item):
             with HashCap(item) as cap:
-                isort.call(item, capture=True)
-                black.call(item, devnull=True)
+                isort.call(item, capture=True, **kwargs)
+                black.call(item, devnull=True, **kwargs)
 
             if not cap.compare:
                 changed.append(
                     os.path.relpath(item, environ.env["PROJECT_DIR"])
                 )
-                print(isort.stdout.strip())
+                if isort.stdout is not None:
+                    print(isort.stdout.strip())
 
     if changed:
         command = "isort {}".format(" ".join(changed))
         raise PyaudSubprocessError(returncode=1, cmd=command)
 
-    colors.green.bold.print(
-        "Success: no issues found in {} source files".format(
-            Tally.pyfiles(*pyitems.items)
-        )
-    )
+    return 0
 
 
 def make_readme() -> None:
