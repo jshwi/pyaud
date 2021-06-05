@@ -77,7 +77,7 @@ class Environ(MutableMapping):
 env = Environ()
 
 
-def find_package():
+def find_package() -> str:
     """Find the relative path of the package to the project root.
 
     :return: Relative path to the package.

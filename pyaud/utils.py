@@ -288,7 +288,7 @@ class Git(Subprocess):
         )
         return os.path.isdir(os.path.join(self.enter_path, ".git")) or baredir
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         os.chdir(self.saved_path)
         if not self.already_existed and not self._keep_repo():
             shutil.rmtree(self.enter_path)
@@ -336,7 +336,7 @@ class HashCap:
 
         return self
 
-    def __exit__(self, exc_type: str, exc_val: str, exc_tb: str) -> None:
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         try:
             self.after = self._hash_file()
         except FileNotFoundError:
@@ -466,11 +466,11 @@ def write_command(
     :return:            Wrapped function.
     """
 
-    def _decorator(func):
+    def _decorator(func: Callable[..., int]) -> Callable[..., None]:
         @functools.wraps(func)
-        def _wrapper(*args, **kwargs):
-            if not required or os.path.exists(env[required]):
-                _file = env[file]
+        def _wrapper(*args: str, **kwargs: Union[bool, str]) -> None:
+            if not required or os.path.exists(env[str(required)]):
+                _file = env[str(file)]
                 print(f"Updating ``{_file}``")
                 with HashCap(_file) as cap:
                     func(*args, **kwargs)
@@ -497,14 +497,14 @@ class EnterDir:
     :param new_path: Enter the directory to temporarily change to
     """
 
-    def __init__(self, new_path):
+    def __init__(self, new_path: Union[bytes, str, os.PathLike]) -> None:
         self.saved_path = os.getcwd()
         self.enter_path = os.path.expanduser(new_path)
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         os.chdir(self.enter_path)
 
-    def __exit__(self, _, value, __):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         os.chdir(self.saved_path)
 
 

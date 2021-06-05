@@ -4,6 +4,7 @@ Imports from ``tests.static`` and ``tests.utils``
 """
 import os
 import re
+from typing import Any, Callable, Dict, Tuple, Union
 
 import pyaud
 
@@ -29,11 +30,11 @@ class NoColorCapsys:
     :param capsys: Capture and return stdout and stderr stream.
     """
 
-    def __init__(self, capsys):
+    def __init__(self, capsys: Any) -> None:
         self.capsys = capsys
 
     @staticmethod
-    def regex(out):
+    def regex(out: str) -> str:
         """Replace ANSI color codes with empty strings.
 
         Remove all escape codes. Preference is to test colored output
@@ -47,26 +48,26 @@ class NoColorCapsys:
         ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
         return ansi_escape.sub("", out)
 
-    def readouterr(self):
+    def readouterr(self) -> Tuple[str, ...]:
         """Call as capsys ``readouterr`` but remove ANSI color-codes.
 
         :return:    A tuple (just like the capsys) containing stdout in
                     the first index and stderr in the second
         """
-        return [self.regex(r) for r in self.capsys.readouterr()]
+        return tuple([self.regex(r) for r in self.capsys.readouterr()])
 
-    def _readouterr_index(self, idx):
+    def _readouterr_index(self, idx: int) -> str:
         readouterr = self.readouterr()
         return readouterr[idx]
 
-    def stdout(self):
+    def stdout(self) -> str:
         """Return stdout without referencing the tuple indices.
 
         :return: Stdout.
         """
         return self._readouterr_index(0)
 
-    def stderr(self):
+    def stderr(self) -> str:
         """Return stderr without referencing the tuple indices.
 
         :return: Stderr.
@@ -81,19 +82,19 @@ class CallStatus:  # pylint: disable=too-few-public-methods
     :param returncode:  Exit status for the function.
     """
 
-    def __init__(self, module_name, returncode=0):
+    def __init__(self, module_name: str, returncode: int = 0) -> None:
         self._module_name = module_name
         self._returncode = returncode
         setattr(self, self._module_name, self._factory())
 
-    def _factory(self):
-        def _func(**_):
+    def _factory(self) -> Any:
+        def _func(**_: Any) -> int:
             return self._returncode
 
         _func.__name__ = self._module_name
         return _func
 
-    def func(self):
+    def func(self) -> Any:
         """Get the dynamically named function."""
         return getattr(self, self._module_name)
 
@@ -102,17 +103,17 @@ class MakeWritten:
     """Create files containing text."""
 
     @staticmethod
-    def _write(path, content):
+    def _write(path: Union[bytes, str, os.PathLike], content: str) -> None:
         with open(path, "w") as fout:
             fout.write(content)
 
     @classmethod
-    def readme(cls):
+    def readme(cls) -> None:
         """Make a README.rst file for testing."""
         cls._write(pyaud.environ.env["README_RST"], files.README_RST)
 
     @classmethod
-    def index_rst(cls):
+    def index_rst(cls) -> None:
         """Make a docs/index.rst file for testing."""
         cls._write(
             os.path.join(pyaud.environ.env["DOCS"], "index.rst"),
@@ -120,7 +121,7 @@ class MakeWritten:
         )
 
     @classmethod
-    def readme_toc(cls):
+    def readme_toc(cls) -> None:
         """Make a docs/readme.rst file for testing."""
         cls._write(
             os.path.join(pyaud.environ.env["DOCS"], "readme.rst"),
@@ -128,12 +129,12 @@ class MakeWritten:
         )
 
     @classmethod
-    def repo_toc(cls):
+    def repo_toc(cls) -> None:
         """Make a docs/repo.rst file for testing."""
         cls._write(os.path.join(pyaud.environ.env["TOC"]), files.DEFAULT_TOC)
 
     @classmethod
-    def pipfile_lock(cls):
+    def pipfile_lock(cls) -> None:
         """Make a Pipfile.lock file for testing."""
         cls._write(
             os.path.join(pyaud.environ.env["PIPFILE_LOCK"]), files.PIPFILE_LOCK
@@ -147,30 +148,30 @@ class MakeProjectTree:
                         directories and files.
     """
 
-    def __init__(self, make_tree):
+    def __init__(self, make_tree: Any) -> None:
         self.make_tree = make_tree
 
-    def package(self):
+    def package(self) -> None:
         """Make a Python package for testing."""
         self.make_tree(
             pyaud.environ.env["PROJECT_DIR"], {"repo": {"__init__.py": None}}
         )
 
-    def docs_conf(self):
+    def docs_conf(self) -> None:
         """Make a docs/conf.py file for testing."""
         self.make_tree(
             pyaud.environ.env["PROJECT_DIR"], {"docs": {"conf.py": None}}
         )
 
-    def toc(self):
+    def toc(self) -> None:
         """Make a docs/repo.rst file for testing."""
         self.make_tree(
             pyaud.environ.env["PROJECT_DIR"], {"docs": {"repo.rst": None}}
         )
 
-    def mock_virtualenv(self):
+    def mock_virtualenv(self) -> None:
         """Make a fake ``venv`` directory."""
-        venv = {
+        venv: Dict[str, Any] = {
             "venv": {
                 "pyvenv.cfg": None,
                 "bin": {},
@@ -183,7 +184,7 @@ class MakeProjectTree:
         }
         self.make_tree(pyaud.environ.env["PROJECT_DIR"], venv)
 
-    def be8a443_files(self):
+    def be8a443_files(self) -> None:
         """Create .py files that would be scanned on commit be8a443."""
         self.make_tree(
             pyaud.environ.env["PROJECT_DIR"],

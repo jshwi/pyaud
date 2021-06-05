@@ -39,7 +39,7 @@ class ConfigParser(_ConfigParser):  # pylint: disable=too-many-ancestors
             with open(self.configfile, "w") as fout:
                 self.write(fout)
 
-    def getlist(self, section, key) -> List[str]:
+    def getlist(self, section: str, key: str) -> List[str]:
         """Return a comma separated ini list as a Python list.
 
         :param section: Section containing the key-value pair.

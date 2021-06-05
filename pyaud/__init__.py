@@ -149,7 +149,7 @@ class _Parser(ArgumentParser):
         self._list_modules()
         sys.exit(0)
 
-    def set_loglevel(self):
+    def set_loglevel(self) -> None:
         """Override ``LOGLEVEL`` environment variable."""
         levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         levels_index = 1
