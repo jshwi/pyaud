@@ -2,7 +2,7 @@
 pyaud.utils
 ===========
 
-Shared classes and functions.
+Utility classes and functions.
 """
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ colors.populate_colors()
 class PythonItems:
     """Scan a directory fo Python files.
 
-    :param exclude: Files to exclude.
+    :param exclude: Files to exclude from indexing.
     """
 
     def __init__(self, *exclude: str) -> None:
@@ -82,9 +82,7 @@ class PythonItems:
                 self.items.append(str(path))
 
     def get_file_paths(self) -> None:
-        """Get all relevant python file paths starting from project
-        root.
-        """
+        """Get all python file paths starting from project root."""
         self.files.clear()
         for glob_path in Path(env["PROJECT_DIR"]).rglob("*.py"):
             if glob_path.name not in self.exclude:
@@ -95,7 +93,7 @@ pyitems = PythonItems("whitelist.py", "conf.py", "setup.py")
 
 
 class Subprocess:
-    """Object oriented
+    """Object oriented Subprocess.
 
     :param exe:         Subprocess executable.
     :param loglevel:    Level to log the application under.
@@ -165,18 +163,19 @@ class Subprocess:
             )
 
     def open_process(self, exe: str, *args: str, **kwargs: str) -> int:
-        """Open process with ``Popen``. Pipe stream depending
-        on the keyword arguments provided. Log errors to file
-        regardless. Wait for process to finish and return it's
-        exit-code.
+        """Open process with ``subprocess.Popen``.
 
-        :param exe:     str: Subprocess executable.
-        :param args:    tuple: Series of commands.
-        :key file:      str: File path to write stream to.
-        :key devnull:   bool: Suppress output.
-        :key capture:   bool: Pipe stream to self.
-        :key suppress:  bool: Suppress errors and continue running.
-        :return:        int: Exit status.
+        Pipe stream depending on the keyword arguments provided. Log
+        errors to file regardless. Wait for process to finish and return
+        it's exit-code.
+
+        :param exe:     Subprocess executable.
+        :param args:    Series of commands.
+        :key file:      File path to write stream to.
+        :key devnull:   Suppress output.
+        :key capture:   Pipe stream to self.
+        :key suppress:  Suppress errors and continue running.
+        :return:        Exit status.
         """
         pipeline = Popen([exe, *args], stdout=PIPE, stderr=PIPE)
         self._handle_stdout(pipeline, **kwargs)
@@ -186,13 +185,16 @@ class Subprocess:
     def run(self, exe: str, *args: str, **kwargs: str) -> int:
         """Call subprocess run and manipulate error resolve.
 
-        :param exe:                 str: Subprocess executable.
-        :param args:                str: Positional arguments for
-                                    process called.
-        :param kwargs:              str: Keyword arguments for handling
-                                    stdout.
+        :param exe:                 Subprocess executable.
+        :param args:                Positional str arguments.
+        :key file:                  File path to write stream to if not
+                                    None.
+        :key devnull:               Send output to /dev/null.
+        :key capture:               Collect output array.
+        :key suppress:              Suppress errors and continue
+                                    running.
         :raises CalledProcessError: If error occurs in subprocess.
-        :return:                    int: Exit status.
+        :return:                    Exit status.
         """
         suppress = kwargs.get("suppress", env["SUPPRESS"])
         returncode = self.open_process(exe, *args, **kwargs)
@@ -210,7 +212,8 @@ class Git(Subprocess):
 
     @DynamicAttrs
 
-    :param repo: Repository to perform ``git`` actions in.
+    :param repo:        Repository to perform ``git`` actions in.
+    :param loglevel:    Loglevel to log git actions under.
     """
 
     commands = (
@@ -250,6 +253,7 @@ class Git(Subprocess):
         :param source:  Source repository to clone.
         :param args:    Arguments to be combined with ``git clone``.
         :param kwargs:  Keyword arguments passed to ``git clone``
+        :return:        Exit status.
         """
         args = list(args)  # type: ignore
         args.append(self.enter_path)  # type: ignore
@@ -297,9 +301,7 @@ class Git(Subprocess):
 
 
 class HashCap:
-    """Analyze hashes for before and after. ``self.snapshot``, the
-    ``list`` object, only holds a maximum of two snapshots for before
-    and after.
+    """Analyze hashes for before and after.
 
     :param file: The path of the file to hash.
     """
@@ -312,8 +314,9 @@ class HashCap:
         self.new = not os.path.isfile(self.file)
 
     def _hash_file(self) -> str:
-        """Open the files and inspect it to get its hash. Return the
-        hash as a string.
+        """Open the files and inspect it to get its hash.
+
+        :return: Hash as a string.
         """
         with open(self.file, "rb") as lines:
             _hash = pyblake2.blake2b(lines.read())
@@ -323,7 +326,7 @@ class HashCap:
     def _compare(self) -> bool:
         """Compare two hashes in the ``snapshot`` list.
 
-        :return:    Boolean: True for both match, False if they don't.
+        :return: Boolean: True for both match, False if they don't.
         """
         return self.before == self.after
 
@@ -375,10 +378,10 @@ class LineSwitch:
 
 
 def check_command(func: Callable[..., int]) -> Callable[..., None]:
-    """Run the routine common with all functions checking files in this
-    package.
+    """Run the routine common with all functions in this package.
 
-    :param func: Function to decorate.
+    :param func:    Function to decorate.
+    :return:        Wrapped function.
     """
 
     @functools.wraps(func)
@@ -405,7 +408,7 @@ def check_command(func: Callable[..., int]) -> Callable[..., None]:
 def get_branch() -> Optional[str]:
     """Get the current checked out branch of the project.
 
-    :return: Name of branch.
+    :return: Name of branch or None if on a branch with no parent.
     """
     with Git(env["PROJECT_DIR"], loglevel="debug") as git:
         git.symbolic_ref(  # type: ignore
@@ -418,8 +421,10 @@ def get_branch() -> Optional[str]:
 
 
 def get_logger(logname: str) -> logging.Logger:
-    """Set the name of ``~/.cache/pyaud/log/*/<logfile>.log``. Get the
-    new or already existing ``Logging`` object by ``logname`` with
+    """Get package logger.
+
+    Set the name of ``~/.cache/pyaud/log/*/<logfile>.log``. Get the new
+    or already existing ``Logging`` object by ``logname`` with
     ``logging.getLogger``. Prevent multiple handlers from pointing to
     the same logging object at once by setting ``propagate`` to False.
     Log to files using ``TimedRotatingFileHandler`` with a daily rotate.
@@ -427,9 +432,8 @@ def get_logger(logname: str) -> logging.Logger:
     handler and update so multiple handlers do not log at once and cause
     unnecessary duplicates in logfiles.
 
-    :param logname:     Name to be logged to file
-    :return:            ``Logging`` callable e.g. call as
-                        ``logger.<[debug, info, warning, etc.]>(msg)``
+    :param logname: Name to be logged to file
+    :return:        Logging object.
     """
 
     logfile = os.path.join(env["LOG_DIR"], f"{env['PKG']}.log")
@@ -455,11 +459,11 @@ def write_command(
     file: Union[bytes, str, os.PathLike],
     required: Optional[Union[bytes, str, os.PathLike]] = None,
 ) -> Callable[..., Any]:
-    """Run the routine common with all functions manipulating files in
-    this package.
+    """Run the routine common with all functions manipulating files.
 
     :param file:        File which is to be written to.
     :param required:    Any required files.
+    :return:            Wrapped function.
     """
 
     def _decorator(func):
@@ -486,8 +490,9 @@ def write_command(
 
 
 class EnterDir:
-    """Change to the selected directory entered as an argument and when
-    actions are complete return to the previous directory
+    """Change to the selected directory.
+
+    Once actions are complete return to the previous directory.
 
     :param new_path: Enter the directory to temporarily change to
     """

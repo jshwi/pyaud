@@ -1,5 +1,4 @@
-"""
-Select module with commandline arguments.
+"""Select module with commandline arguments.
 
 The word ``function`` and ``module`` are used interchangeably in this
 package.
@@ -24,6 +23,7 @@ MODULES = {
 
 class _Parser(ArgumentParser):
     """Inherited ``argparse.ArgumentParser`` object for the package.
+
     Assign positional argument to ``self.module``. If there is a
     positional argument accompanying the ``modules`` argument assign it
     to ``self.positional``. If ``modules`` has been called run the
@@ -33,7 +33,7 @@ class _Parser(ArgumentParser):
     ``argparse.ArgumentParser`` help method then assign the chosen
     function to ``self.function`` to be called in ``pyaud.main``.
 
-    :param prog:    Name of the program.
+    :param prog: Name of the program.
     """
 
     def __init__(self, prog: str) -> None:
@@ -150,9 +150,7 @@ class _Parser(ArgumentParser):
         sys.exit(0)
 
     def set_loglevel(self):
-        """Set loglevel via commandline and override environment
-        variable if one has been set.
-        """
+        """Override ``LOGLEVEL`` environment variable."""
         levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         levels_index = 1
         if "LOG_LEVEL" in environ.env:
@@ -164,9 +162,10 @@ class _Parser(ArgumentParser):
 
 
 def main() -> None:
-    """Module entry point. Parse commandline arguments and run the
-    selected choice from the dictionary of functions which matches the
-    key.
+    """Module entry point.
+
+    Parse commandline arguments and run the selected choice from the
+    dictionary of functions which matches the key.
     """
     parser = _Parser(utils.colors.cyan.get(__name__))
     environ.env.store["PROJECT_DIR"] = parser.args.path

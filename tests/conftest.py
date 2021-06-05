@@ -1,5 +1,5 @@
 """
-conftest
+tests.conftest
 ==============
 """
 import os
@@ -22,9 +22,10 @@ from . import (
 
 @pytest.fixture(name="is_env_path_var")
 def fixture_is_env_path_var():
-    """Confirm that an environment variable belongs in the ``pyaud``
-    namespace, that are prefixed with ``PYAUD_TEST_`` or the ``PROJECT_DIR``
-    environment variable.
+    """Confirm environment variable belongs in ``pyaud`` namespace.
+
+    Ensure package env variables are prefixed with ``PYAUD_TEST_`` or
+    the ``PROJECT_DIR`` environment variable.
 
     :return: Function for using this fixture.
     """
@@ -39,10 +40,9 @@ def fixture_is_env_path_var():
 
 @pytest.fixture(name="validate_env")
 def fixture_validate_env(tmpdir, is_env_path_var):
-    """Ensure no real paths remain or else fail and stop the test
+    """Ensure no real paths remain or else fail and stop the test.
 
-    :param tmpdir:          ``pytest`` ``tmpdir`` fixture for creating
-                            and returning a temporary directory.
+    :param tmpdir:          Create and return temporary directory.
     :param is_env_path_var: Key and value are a ``pyaud`` path
                             environment variable: True or False.
     :return:                Function for using this fixture.
@@ -80,8 +80,7 @@ def fixture_test_logging():
 def fixture_project_dir(tmpdir):
     """Create and return testing project root.
 
-    :param tmpdir:  ``pytest`` ``tmpdir`` fixture for creating and
-                    returning a temporary directory.
+    :param tmpdir:  Create and return temporary directory.
     :return:        Path to testing project root.
     """
     project_dir = os.path.join(tmpdir, "repo")
@@ -98,13 +97,11 @@ def fixture_mock_environment(  # pylint: disable=too-many-arguments
     validate_env,
     test_logging,
 ):
-    """Mock the ary imports to reflect the temporary testing
-    environment.
+    """Mock imports to reflect the temporary testing environment.
 
-    :param tmpdir:          ``pytest`` ``tmpdir`` fixture for creating
-                            and returning a temporary directory.
+    :param tmpdir:          Create and return temporary directory.
     :param project_dir:     Create and return testing project root.
-    :param monkeypatch:     ``pytest`` fixture for mocking attributes.
+    :param monkeypatch:     Mock patch environment and attributes.
     :param is_env_path_var: Key and value are a ``pyaud`` path
                             environment variable: True or False.
     :param validate_env:    Ensure no real paths remain or else fail and
@@ -194,11 +191,11 @@ def fixture_init_test_repo():
 
 @pytest.fixture(name="mock_remote_origin")
 def fixture_mock_remote_origin(tmpdir):
-    """Create a local bare repository to push to instead of a remote
-    origin URL. Return the path of the 'remote' as the fixture object.
+    """Create a local bare repository to push to instead of a remote.
 
-    :param tmpdir:  ``pytest`` ``tmpdir`` fixture for creating and
-                    returning a temporary directory.
+    Return the path of the 'remote' as the fixture object.
+
+    :param tmpdir: Create and return temporary directory.
     """
     remote_origin = os.path.join(tmpdir, "origin.git")
     with pyaud.utils.Git(remote_origin) as git:
@@ -209,9 +206,9 @@ def fixture_mock_remote_origin(tmpdir):
 
 @pytest.fixture(name="nocolorcapsys")
 def fixture_nocolorcapsys(capsys):
-    """Instantiate capsys with the regex method
+    """Instantiate capsys with the regex method.
 
-    :param capsys: ``pytest`` fixture for capturing output stream.
+    :param capsys:  Capture ``sys`` stdout and stderr..
     :return:        Instantiated ``NoColorCapsys`` object for capturing
                     output stream and sanitizing the string if it
                     contains ANSI escape codes.
@@ -246,7 +243,10 @@ def fixture_main(monkeypatch):
 
 @pytest.fixture(name="call_status")
 def fixture_call_status():
-    """Fixture for ``CallStatus`` factory class.
+    """Disable all usage of function apart from selected returncode.
+
+    Useful for processes programmed to return a value for the function
+    depending on the value of ``__name__``.
 
     :return: Function for using this fixture.
     """
@@ -259,10 +259,11 @@ def fixture_call_status():
 
 @pytest.fixture(name="patch_sp_call")
 def fixture_patch_sp_call(monkeypatch):
-    """Mock ``pyaud.utils.Subprocess.call``to print the command that is
-    being run.
+    """Mock ``Subprocess.call``.
 
-    :param monkeypatch: ``pytest`` fixture for mocking attributes.
+    Print the command that is being run.
+
+    :param monkeypatch: Mock patch environment and attributes.
     :return:            Function for using this fixture.
     """
 
@@ -284,7 +285,7 @@ def fixture_patch_sp_call(monkeypatch):
 def fixture_patch_sp_returncode(monkeypatch):
     """Patch ``subprocess.Popen.wait`` to return the chosen return code.
 
-    :param monkeypatch: ``pytest`` fixture for mocking attributes.
+    :param monkeypatch: Mock patch environment and attributes.
     :return:            Function for using this fixture.
     """
 
@@ -318,8 +319,9 @@ def fixture_track_called():
 
 @pytest.fixture(name="patch_sp_output")
 def fixture_patch_sp_output():
-    """Patch ``pyaud.utils.Subprocess`` to return test strings to
-    ``self.stdout``.
+    """Patch ``Subprocess``.
+
+    Return test strings to ``self.stdout``.
 
     :return : Function for using this fixture.
     """
@@ -333,9 +335,7 @@ def fixture_patch_sp_output():
                 self.stdout = None
 
             def call(self, *_, **__):
-                """Mock call to to do nothing except send the expected
-                stdout to self
-                """
+                """Mock call to only assign stdout to self."""
                 self.stdout = stdout.pop()
 
         pyaud.modules.Subprocess = _Subprocess
@@ -424,8 +424,7 @@ def fixture_make_test_file():
 
 @pytest.fixture(name="make_deploy_docs_env")
 def fixture_make_deploy_docs_env(init_test_repo, make_written):
-    """Set up the environment suitable for successfully running
-    ``pyaud deploy-docs``.
+    """Setup environment for successfully running ``pyaud deploy-docs``.
 
     :param init_test_repo:  Initialize a test repository.
     :param make_written:    Create files containing content.
@@ -448,11 +447,12 @@ def fixture_make_deploy_docs_env(init_test_repo, make_written):
 
 @pytest.fixture(name="mock_make_docs")
 def fixture_mock_make_docs(monkeypatch):
-    """Mock ``pymake docs`` so that it simply creates a docs/_build dir
-    and docs/_build/html dir. This will sufficient for successfully
-    triggering ``pymake deploy-docs``
+    """Mock ``pymake docs`` so that it simply creates docs/_build.
 
-    :param monkeypatch: ``pytest`` fixture for mocking attributes.
+    This is sufficient for successfully triggering
+    ``pymake deploy-docs``
+
+    :param monkeypatch: Mock patch environment and attributes.
     """
 
     def _make_docs(*_, **__):
@@ -463,11 +463,12 @@ def fixture_mock_make_docs(monkeypatch):
 
 @pytest.fixture(name="other_dir")
 def fixture_other_dir(tmpdir):
-    """Make a random directory named ``other_dir`` to exist alongside
-    the cloned version of this repository in /tmp and return the path.
+    """Make a random directory named ``other_dir``.
 
-    :param tmpdir:  ``pytest`` ``tmpdir`` fixture for creating and
-                    returning a temporary directory.
+    Dir exists alongside the cloned version of this repository in /tmp
+    and returns the path.
+
+    :param tmpdir:  Create and return temporary directory.
     :return:        Path to /tmp/*/**/other_dir
     """
     other_dir = os.path.join(tmpdir, "other")
@@ -477,7 +478,10 @@ def fixture_other_dir(tmpdir):
 
 @pytest.fixture(name="failing_lint")
 def fixture_failing_lint():
-    """Create a failing file to lint."""
+    """Create and return a failing file to lint.
+
+    :return: Path to failing file.
+    """
     os.makedirs(pyaud.environ.env["PKG_PATH"])
     failing_file = os.path.join(pyaud.environ.env["PKG_PATH"], "fail.py")
     with open(failing_file, "w") as fout:
@@ -488,9 +492,12 @@ def fixture_failing_lint():
 
 @pytest.fixture(name="make_readme")
 def fixture_make_readme():
-    """Make temp README."""
+    """Make temp README.
 
-    def _make_readme(template):
+    :return Function for using this fixture.
+    """
+
+    def _make_readme(template: str) -> None:
         with open(pyaud.environ.env["README_RST"], "w") as fout:
             fout.write(template)
 

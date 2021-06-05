@@ -1,6 +1,6 @@
 """
 pyaud.environ
-==============
+=============
 
 Set up the environment variables for the current project.
 """
@@ -16,9 +16,10 @@ NAMESPACE = NAME.upper()
 
 
 class Environ(MutableMapping):
-    """Dictionary class to take the place of ``os.``. Converts
-    strings when settings and to the correct type when getting. Prefixes
-    input keys with the namespace prefix.
+    """Dictionary class to take the place of ``os.``.
+
+    Converts strings when settings and to the correct type when getting.
+    Prefixes input keys with the namespace prefix.
     """
 
     _values = {
@@ -92,7 +93,8 @@ def find_package():
 
 
 def init_environ() -> None:
-    """Load up the variables configurable in the
+    """Write default environment variables.
+
     ``~/.config/pyaud/<PACKAGENAME>/environ`` file and then write the
     file free to be configured and loaded (overriding the below) later.
     """
@@ -117,9 +119,12 @@ def init_environ() -> None:
 
 
 def read_env(file: Union[bytes, str, os.PathLike]) -> None:
-    """Read ent variables into ``os.environ``. Not using
-    ``dotenv`` as it would not allow keys to be named before being set
-    in the ent.
+    """Read ent variables into ``os.environ``.
+
+    Not using ``dotenv`` as it would not allow keys to be named before
+    being set in the ent.
+
+    :param file. Env file to read from.
     """
     with open(file) as fin:
         lines = fin.read().strip().splitlines()
@@ -131,7 +136,7 @@ def read_env(file: Union[bytes, str, os.PathLike]) -> None:
 
 
 def load_namespace() -> None:
-    """Load key-value pairs"""
+    """Load key-value pairs."""
     project_dir = env["PROJECT_DIR"]
     pkg = find_package()
     pkg_path = str(os.path.join(env["PROJECT_DIR"], pkg))

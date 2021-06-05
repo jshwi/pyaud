@@ -1753,7 +1753,7 @@ CODE_BLOCK_EXPECTED = (
 
 
 class Whitelist:  # pylint: disable=too-few-public-methods
-    """Output for whitelist.py on commit be8a443"""
+    """Output for whitelist.py on commit be8a443."""
 
     be8a443_tests = """fixture_is_env_path_var  # unused function (tests/conftest.py:16)
 fixture_call_status  # unused function (tests/conftest.py:228)

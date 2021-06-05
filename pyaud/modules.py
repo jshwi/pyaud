@@ -1,6 +1,6 @@
 """
 pyaud.modules
-==============
+=============
 """
 import os
 import shutil
@@ -26,10 +26,16 @@ from .utils import (
 
 
 def make_audit(**kwargs: Union[bool, str]) -> int:
-    """Combine (almost) all make functions into a single build
-    function.
+    """Run all modules for complete package audit.
 
-    :param kwargs: Pass keyword arguments to audit submodule.
+    :param kwargs:  Pass keyword arguments to audit submodule.
+    :key clean:     Insert clean module to the beginning of module list
+                    to remove all unversioned files before executing
+                    rest of audit.
+    :key deploy:    Append deploy modules (docs and coverage) to end of
+                    modules list to deploy package data after executing
+                    audit.
+    :return:        Exit status.
     """
     audit_modules: List[Callable[..., Any]] = [
         make_format,
@@ -62,10 +68,10 @@ def make_audit(**kwargs: Union[bool, str]) -> int:
 
 
 def make_clean(**kwargs: Union[bool, str]) -> int:
-    """Remove all unversioned directories and files within a git
-    repository.
+    """Remove all unversioned package files recursively.
 
-    :param kwargs: Additional keyword arguments for ``git clean``.
+    :param kwargs:  Additional keyword arguments for ``git clean``.
+    :return:        Exit status.
     """
     _config = ConfigParser()
     exclude = _config.getlist("CLEAN", "exclude")
@@ -76,9 +82,10 @@ def make_clean(**kwargs: Union[bool, str]) -> int:
 
 
 def make_coverage(**kwargs: Union[bool, str]) -> int:
-    """Ensure ``pytest`` and ``coverage`` are installed. If it is
-    not then install development dependencies with ``pipenv``. Run
-    the package unittests with ``pytest`` and ``coverage``.
+    """Run package unit-tests with ``pytest`` and ``coverage``.
+
+    :param kwargs:  Pass keyword arguments to ``pytest`` and ``call``.
+    :return:        Exit status.
     """
     with EnterDir(env["PROJECT_DIR"]):
         coverage = Subprocess("coverage")
@@ -93,10 +100,10 @@ def make_coverage(**kwargs: Union[bool, str]) -> int:
 
 
 def make_deploy(**kwargs: Union[bool, str]) -> int:
-    """Combine both the ``deploy-cov`` and ``deploy-docs`` modules into
-    a single process.
+    """Deploy package documentation and test coverage.
 
-    :param kwargs: Keyword arguments for ``deploy_module``.
+    :param kwargs:  Keyword arguments for ``deploy_module``.
+    :return:        Exit status.
     """
 
     deploy_modules = [make_deploy_cov, make_deploy_docs]
@@ -116,13 +123,15 @@ def make_deploy(**kwargs: Union[bool, str]) -> int:
 
 
 def make_deploy_cov(**kwargs: Union[bool, str]) -> int:
-    """Upload coverage data from a ``coverage.xml`` to ``codecov.io``.
+    """Upload coverage data to ``Codecov``.
+
     If no file exists otherwise announce that no file has been created
     yet. If no ``CODECOV_TOKEN`` environment variable has been exported
     or defined in ``.env`` announce that no authorization token has been
     created yet.
 
-    :param kwargs: Additional keyword arguments for ``codecov``.
+    :param kwargs:  Pass keyword arguments to ``call``.
+    :return:        Exit status.
     """
     codecov = Subprocess("codecov")
     if os.path.isfile(env["COVERAGE_XML"]):
@@ -145,12 +154,15 @@ def make_deploy_cov(**kwargs: Union[bool, str]) -> int:
 
 
 def make_deploy_docs(**kwargs: Union[bool, str]) -> int:
-    """Check that the branch is being pushed as master (or other branch
-    for tests). If the correct branch is the one in use deploy
+    """Deploy package documentation to ``gh-pages``.
+
+    Check that the branch is being pushed as master (or other branch
+    for tests). If the correct branch is the one in use deploy.
     ``gh-pages`` to the orphaned branch - otherwise do nothing and
     announce.
 
-    :key url: Remote origin URL.
+    :key url:   Remote origin URL.
+    :return:    Exit status.
     """
     if env["BRANCH"] == "master":
         git_credentials = ["GH_NAME", "GH_EMAIL", "GH_TOKEN"]
@@ -189,13 +201,14 @@ def make_deploy_docs(**kwargs: Union[bool, str]) -> int:
 
 
 def make_docs(**kwargs: Union[bool, str]) -> None:
-    """Replace the title of ``README.rst`` with ``README`` so the
-    hyperlink isn't exactly the same as the package documentation. Build
-    the ``Sphinx`` html documentation. Return the README's title to what
-    it originally was.
+    """Compile package documentation with ``Sphinx``.
 
-    :param kwargs:  Additional keyword arguments for ``make_toc`` and
-                    ``sphinx-build``.
+    This is so the hyperlink isn't exactly the same as the package
+    documentation. Build the ``Sphinx`` html documentation. Return the
+    README's title to what it originally was.
+
+    :param kwargs:  Pass keyword arguments to ``call``.
+    :return:        Exit status.
     """
     make_toc(**kwargs)
 
@@ -215,12 +228,14 @@ def make_docs(**kwargs: Union[bool, str]) -> None:
 
 
 def make_files(**kwargs: Union[bool, str]) -> int:
-    """Make ``docs/<APPNAME>.rst``, ``whitelist.py``, and
+    """Audit project data files.
+
+    Make ``docs/<APPNAME>.rst``, ``whitelist.py``, and
     ``requirements.txt`` if none already exist, update them if they do
     and changes are needed or pass if nothing needs to be done.
 
-    :param kwargs:  Keyword arguments for ``make_requirements``,
-                    ``make_toc``, and ``make_whitelist``
+    :param kwargs:  Pass keyword arguments to ``func``.
+    :return:        Exit status.
     """
     for func in (make_requirements, make_toc, make_whitelist):
         returncode = func(**kwargs)
@@ -232,10 +247,10 @@ def make_files(**kwargs: Union[bool, str]) -> int:
 
 @check_command
 def make_format(**kwargs: Union[bool, str]) -> int:
-    """Subprocess ``Black`` to format python files and directories within a
-    Python project.
+    """Audit code against ``Black``.
 
-    :param kwargs: Additional keyword arguments for ``Black``.
+    :param kwargs:  Pass keyword arguments to ``call``.
+    :return:        Exit status.
     """
     black = Subprocess("black", loglevel="debug")
     args = pyitems.items
@@ -249,10 +264,10 @@ def make_format(**kwargs: Union[bool, str]) -> int:
 
 @check_command
 def make_lint(**kwargs: Union[bool, str]) -> int:
-    """Lint all Python files with ``pylint``. If a ``.pylintrc`` file
-    exists include this.
+    """Lint code with ``pylint``.
 
-    :param kwargs: Additional keyword arguments for ``pylint``.
+    :param kwargs:  Pass keyword arguments to ``call``.
+    :return:        Exit status.
     """
     with TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
         args = list(pyitems.items)
@@ -265,10 +280,10 @@ def make_lint(**kwargs: Union[bool, str]) -> int:
 
 @write_command("REQUIREMENTS", required="PIPFILE_LOCK")
 def make_requirements(**kwargs: Union[bool, str]) -> int:
-    """Create or update and then format ``requirements.txt`` from
-    ``Pipfile.lock``.
+    """Audit requirements.txt with Pipfile.lock.
 
-    :param kwargs: Additional keyword arguments for ``pipfile2req``.
+    :param kwargs:  Pass keyword arguments to ``call``.
+    :return:        Exit status.
     """
     newlines = []
     contents = []
@@ -298,12 +313,11 @@ def make_requirements(**kwargs: Union[bool, str]) -> int:
 
 
 def make_tests(*args: str, **kwargs: Union[bool, str]) -> int:
-    """Ensure ``pytest`` is installed. If it is not then install
-    development dependencies with ``pipenv``. Run the package
-    unit-tests with ``pytest``.
+    """Run the package unit-tests with ``pytest``.
 
     :param args:    Additional positional arguments for ``pytest``.
-    :param kwargs:  Additional keyword arguments for ``pytest``.
+    :param kwargs:  Pass keyword arguments to ``call``.
+    :return:        Exit status.
     """
     with EnterDir(env["PROJECT_DIR"]):
         tests = env["TESTS"]
@@ -320,10 +334,10 @@ def make_tests(*args: str, **kwargs: Union[bool, str]) -> int:
 
 @write_command("TOC", required="DOCS")
 def make_toc(**kwargs: Union[bool, str]) -> int:
-    """Make the docs/<APPNAME>.rst file from the package source for
-    ``Sphinx`` to parse into documentation.
+    """Audit docs/<NAME>.rst toc-file.
 
-    :param kwargs: Additional keyword arguments for ``sphinx-apidoc``.
+    :param kwargs:  Pass keyword arguments to ``call``.
+    :return:        Exit status.
     """
     kwargs["devnull"] = True
     toc_attrs = [
@@ -357,10 +371,13 @@ def make_toc(**kwargs: Union[bool, str]) -> int:
 
 @check_command
 def make_typecheck(**kwargs: Union[bool, str]) -> int:
-    """Run ``mypy`` on all python files to check that there are no
-    errors between the files and their stub-files.
+    """Typecheck code with ``mypy``.
 
-    :param kwargs: Additional keyword arguments for ``mypy``.
+    Check that there are no errors between the files and their
+    stub-files.
+
+    :param kwargs:  Pass keyword arguments to ``call``.
+    :return:        Exit status.
     """
     cache_dir = os.path.join(env["PROJECT_DIR"], ".mypy_cache")
     os.environ["MYPY_CACHE_DIR"] = cache_dir
@@ -370,10 +387,12 @@ def make_typecheck(**kwargs: Union[bool, str]) -> int:
 
 @check_command
 def make_unused(**kwargs: Union[bool, str]) -> int:
-    """Run ``vulture`` on all python files to inspect them for unused
-    code.
+    """Audit unused code with ``vulture``.
 
-    :param kwargs: Additional keyword arguments for ``vulture``.
+    Create whitelist first with --fix.
+
+    :param kwargs:  Pass keyword arguments to ``call``.
+    :return:        Exit status.
     """
     args = list(pyitems.items)
     if os.path.isfile(env["WHITELIST"]):
@@ -385,11 +404,13 @@ def make_unused(**kwargs: Union[bool, str]) -> int:
 
 @write_command("WHITELIST")
 def make_whitelist(**kwargs: Union[bool, str]) -> int:
-    """Generate a ``whitelist.py`` file for ``vulture``. This will
-    consider all unused code an exception so resolve code that is not
-    to be excluded from the ``vulture`` search first.
+    """Check whitelist.py file with ``vulture``.
 
-    :param kwargs: Additional keyword arguments for ``vulture``.
+    This will consider all unused code an exception so resolve code that
+    is not to be excluded from the ``vulture`` search first.
+
+    :param kwargs:  Pass keyword arguments to ``call``.
+    :return:        Exit status.
     """
     lines = []
     vulture = Subprocess("vulture")
@@ -416,11 +437,13 @@ def make_whitelist(**kwargs: Union[bool, str]) -> int:
 
 @check_command
 def make_imports(**kwargs: Union[bool, str]) -> int:
-    """Sort imports with ``isort``. ``Black`` and ``isort`` clash in
-    some areas when it comes to ``Black`` and sorting imports. To
-    avoid running into false positives when running both in conjunction
-    run ``Black`` straight after. Use ``HashCap`` to determine if any
-    files have changed for presenting data to user.
+    """Audit imports with ``isort``.
+
+    ``Black`` and ``isort`` clash in some areas when it comes to
+    ``Black`` and sorting imports. To avoid running into false positives
+    when running both in conjunction run ``Black`` straight after. Use
+    ``HashCap`` to determine if any files have changed for presenting
+    data to user.
     """
     changed = []
     isort = Subprocess("isort")

@@ -1,5 +1,5 @@
 """
-_test
+tests._test
 ===========
 """
 # pylint: disable=too-many-lines,too-many-arguments
@@ -21,10 +21,10 @@ PUSHING_SKIPPED = "Pushing skipped"
 
 
 def test_no_files_found(nocolorcapsys):
-    """Test the correct output is produced when no file exists when
-    compiling the Python files list with ``get_pyfiles``.
+    """Test the correct output is produced when no file exists.
 
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     """
     pyaud.modules.make_typecheck()
     assert nocolorcapsys.stdout().strip() == "No files found"
@@ -47,14 +47,15 @@ def test_success_output(
     module,
     expected,
 ):
-    """Test the output returned from the ``pyaud.utils.check_command``
-    decorator matches the function being used. Changed the parametrized
-    ``func`` __name__ to match the mocked module.
+    """Test the output returned from ``check_command`` decorator.
 
-    :param nocolorcapsys:       ``capsys`` without ANSI color codes.
-    :param monkeypatch:         ``pytest`` fixture for mocking
-                                attributes.
-    :param make_project_tree:   Make directory structure.
+    Test decorator matches the function being used. Changed the
+    parametrized ``func`` __name__ to match the mocked module.
+
+    :param nocolorcapsys:       Capture system output while stripping
+                                ANSI color codes.
+    :param monkeypatch:         Mock patch environment and attributes.
+    :param make_project_tree:   Create directory tree from dict mapping.
     :param call_status:         Patch function to return specific
                                 exit-code.
     :param module:              Function to test.
@@ -83,12 +84,11 @@ def test_success_output(
     ids=("created", "updated", "up_to_date"),
 )
 def test_write_command(monkeypatch, nocolorcapsys, contents, expected):
-    """Test the ``@write_command`` decorator to correctly document when
-    a file has been created, updated or whether no changes needed to be
-    made.
+    """Test the ``@write_command`` decorator.
 
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
-    :param monkeypatch:     ``pytest`` fixture for mocking attributes.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    :param monkeypatch:     Mock patch environment and attributes.
     :param contents:        Content to write to file.
     :param expected:        Expected output.
     """
@@ -112,8 +112,9 @@ def test_write_command(monkeypatch, nocolorcapsys, contents, expected):
 def test_make_audit_error(nocolorcapsys, patch_sp_returncode):
     """Test errors are handled correctly when running ``pyaud audit``.
 
-    :param nocolorcapsys:       ``capsys`` without ANSI color codes.
-    :param patch_sp_returncode: Patch ``pyaud.utils.Subprocess`` to return
+    :param nocolorcapsys:       Capture system output while stripping
+                                ANSI color codes.
+    :param patch_sp_returncode: Patch ``Subprocess`` to return
                                 specific exit-code.
     """
     patch_sp_returncode(1)
@@ -128,9 +129,11 @@ def test_make_audit_error(nocolorcapsys, patch_sp_returncode):
 def test_call_coverage_xml(monkeypatch, patch_sp_call, nocolorcapsys):
     """Test ``coverage xml`` is called after successful test run.
 
-    :param monkeypatch:     ``pytest`` fixture for mocking attributes.
-    :param patch_sp_call:   Patch ``pyaud.utils.Subprocess.call``.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param monkeypatch:             Mock patch environment and
+                                    attributes.
+    :param patch_sp_call:           Patch ``Subprocess.call``.
+    :param nocolorcapsys:           Capture system output while
+                                    stripping ANSI color codes.
     """
 
     def make_tests(*_):
@@ -145,9 +148,17 @@ def test_call_coverage_xml(monkeypatch, patch_sp_call, nocolorcapsys):
 def test_make_deploy_all(call_status, monkeypatch, nocolorcapsys):
     """Test the correct commands are run when running ``pyaud deploy``.
 
-    :param call_status:     Patch function to return specific exit-code.
-    :param monkeypatch:     ``pytest`` fixture for mocking attributes.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    Patch functions with ``call_status`` to remove functionality from
+    function and only return a zero exit-status. ``make_deploy_*``
+    functions should still be able to print what functions are being run
+    as announced to the console in cyan.
+
+    :param monkeypatch:     Mock patch environment and attributes.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    :param call_status:    Patch function to not do anything.
+                            Optionally returns non-zero exit code (0 by
+                            default).
     """
     deploy_modules = ["make_deploy_cov", "make_deploy_docs"]
     for deploy_module in deploy_modules:
@@ -163,12 +174,12 @@ def test_make_deploy_all(call_status, monkeypatch, nocolorcapsys):
 
 
 def test_make_deploy_all_fail(call_status, monkeypatch, nocolorcapsys):
-    """Test ``pyaud deploy`` fails correctly when encountering an
-    error.
+    """Test ``pyaud deploy`` fails correctly when encountering an error.
 
     :param call_status:     Patch function to return specific exit-code.
-    :param monkeypatch:     ``pytest`` fixture for mocking attributes.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param monkeypatch:     Mock patch environment and attributes.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     """
     deploy_module = "make_deploy_docs"
     mockreturn = call_status(deploy_module, 1)
@@ -180,10 +191,12 @@ def test_make_deploy_all_fail(call_status, monkeypatch, nocolorcapsys):
 
 
 def test_make_docs_no_docs(nocolorcapsys):
-    """Test correct message is produced when running ``pyaud docs``
-    when no docs are present.
+    """Test correct message is produced.
 
-    :param nocolorcapsys: ``capsys`` without ANSI color codes.
+    Test when running ``pyaud docs`` when no docs are present.
+
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     """
     Path(pyaud.environ.env["PROJECT_DIR"], FILES).touch()
     pyaud.modules.make_docs()
@@ -192,15 +205,14 @@ def test_make_docs_no_docs(nocolorcapsys):
 
 @pytest.mark.usefixtures("make_python_file")
 def test_suppress(nocolorcapsys, monkeypatch, call_status, make_project_tree):
-    """Test that the audit still makes it to the end when errors are
-    raised but ``--suppress`` is passed to the commandline.
+    """Test that audit proceeds through errors with ``--suppress``.
 
-    :param nocolorcapsys:       ``capsys`` without ANSI color codes.
-    :param monkeypatch:         ``pytest`` fixture for mocking
-                                attributes.
+    :param nocolorcapsys:       Capture system output while stripping
+                                ANSI color codes.
+    :param monkeypatch:         Mock patch environment and attributes.
     :param call_status:         Patch function to return specific
                                 exit-code.
-    :param make_project_tree:   Make directory structure.
+    :param make_project_tree:   Create directory tree from dict mapping.
     """
     make_project_tree.docs_conf()
     pyaud.utils.pyitems.get_files()
@@ -296,8 +308,23 @@ def test_deploy_docs_branch(
 ):
     """Check that nothing happens when not checkout at at master.
 
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
-    :param branch:          Test's current branch.
+    :param nocolorcapsys:           Capture system output while
+                                    stripping ANSI color codes.
+    :param monkeypatch:             Mock patch environment and
+                                    attributes.
+    :param gh_name:                 Github test username.
+    :param gh_email:                Github test email.
+    :param gh_token:                Github test token.
+    :param branch:                  Test's current branch.
+    :param working_tree_clean:      Is the working tree clean? True or
+                                    False.
+    :param deploy_twice:            Will the test deploy documentation
+                                    twice? True or False.
+    :param make_deploy_docs_env:    Setup environment to test
+                                    deployment of documentation.
+    :param mock_remote_origin:      Setup remote origin bare repository
+                                    and return path to remote.
+    :param test_id:                 Name of test iteration.
     """
     base_method = pyaud.utils.Subprocess.run
     expected = [
@@ -398,13 +425,21 @@ def test_deploy_docs_branch(
 def test_audit_modules(
     monkeypatch, nocolorcapsys, main, call_status, args, add, first, last
 ):
-    """Test that the correct functions are called when using the
-    ``make_audit`` meta function.
+    """Test that the correct functions are called with ``make_audit``.
 
-    :param monkeypatch:     ``pytest`` fixture for mocking attributes.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
-    :param main:            Fixture for mocking ``pyaud.main``
-    :param call_status:     Patch function to return specific exit-code.
+    Mock all functions in ``MODULES`` to do nothing so the test can
+    confirm that all the functions that are meant to be run are run with
+    the output that is displayed to the console in cyan. Confirm what
+    the first and last functions being run are with the parametrized
+    values.
+
+    :param monkeypatch:     Mock patch environment and attributes.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    :param main:            Patch package entry point.
+    :param call_status:     Patch function to not do anything.
+                            Optionally returns non-zero exit code (0 by
+                            default).
     :param args:            Arguments for ``pyaud audit``.
     :param add:             Function to add to the ``audit_modules``
                             list
@@ -437,10 +472,13 @@ def test_audit_modules(
 
 
 def test_coverage_no_tests(nocolorcapsys):
-    """Ensure the correct message is displayed if ``pytest`` could not
-    find a valid test folder.
+    """Test the correct output is produced when no tests exists.
 
-    :param nocolorcapsys: ``capsys`` without ANSI color codes.
+     Ensure message is displayed if ``pytest`` could not find a valid
+     test folder.
+
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     """
     pyaud.modules.make_coverage()
     assert nocolorcapsys.stdout().strip() == (
@@ -460,14 +498,12 @@ def test_coverage_no_tests(nocolorcapsys):
 def test_deploy_cov(
     monkeypatch, nocolorcapsys, patch_sp_call, is_report, is_token, expected
 ):
-    """Test ``make_deploy_cov`` when ``CODECOV_TOKEN`` is set and a
-    coverage.xml file exists, when only a coverage.xml file exists and
-    when ``CODECOV_TOKEN`` is not set and a coverage.xml file does not
-    exist.
+    """Test ``make_deploy_cov`` through several scenarios.
 
-    :param monkeypatch:     ``pytest`` fixture for mocking attributes.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
-    :param patch_sp_call:   Patch ``pyaud.utils.Subprocess.call``.
+    :param monkeypatch:     Mock patch environment and attributes.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    :param patch_sp_call:   Patch ``Subprocess.call``.
     :param is_report:       Coverage report exists: True or False.
     :param is_token:        ``CODECOV_TOKEN`` has been set: True or
                             False
@@ -488,14 +524,16 @@ def test_deploy_cov(
 def test_make_docs_toc_fail(
     nocolorcapsys, patch_sp_returncode, make_project_tree
 ):
-    """Test that the correct error message is produced and the process
-    stops when ``make_toc`` fails before running the main ``make_docs``
-    process.
+    """Test that error message is produced when ``make_toc`` fails.
 
-    :param nocolorcapsys:       ``capsys`` without ANSI color codes.
-    :param patch_sp_returncode: Patch ``pyaud.utils.Subprocess`` to return
-                                specific exit-code.
-    :param make_project_tree:   Make directory structure.
+    Test process stops when ``make_toc`` fails before running the main
+    ``make_docs`` process.
+
+    :param nocolorcapsys:       Capture system output while stripping
+                                ANSI color codes.
+    :param patch_sp_returncode: Patch ``Subprocess`` to return specific
+                                exit-code.
+    :param make_project_tree:   Create directory tree from dict mapping.
     """
     make_project_tree.docs_conf()
     patch_sp_returncode(1)
@@ -524,17 +562,16 @@ def test_make_docs_rm_cache(
     make_written,
     make_project_tree,
 ):
-    """Test that ``make_docs`` properly removed all existing builds
-    before starting a new one.
+    """Test ``make_docs`` removes all builds before starting a new one.
 
-    :param monkeypatch:         ``pytest`` fixture for mocking
-                                attributes.
-    :param nocolorcapsys:       ``capsys`` without ANSI color codes.
+    :param monkeypatch:         Mock patch environment and attributes.
+    :param nocolorcapsys:       Capture system output while stripping
+                                ANSI color codes.
     :param call_status:         Patch function to return specific
                                 exit-code.
-    :param patch_sp_call:       Patch ``pyaud.utils.Subprocess.call``.
+    :param patch_sp_call:       Patch ``Subprocess.call``.
     :param make_written:        Create files with written content.
-    :param make_project_tree:   Make directory structure.
+    :param make_project_tree:   Create directory tree from dict mapping.
     """
 
     def call_func():
@@ -568,13 +605,12 @@ def test_make_docs_rm_cache(
 def test_make_files(
     monkeypatch, call_status, nocolorcapsys, track_called, returncode, expected
 ):
-    """Test that the correct commands are executed when running
-    ``make_files`` and that the process properly exits if one of the
-    commands fails.
+    """Test correct commands are executed when running ``make_files``.
 
-    :param monkeypatch:     ``pytest`` fixture for mocking attributes.
-    :param call_status:     Patch function to return specific  exit-code.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param monkeypatch:     Mock patch environment and attributes.
+    :param call_status:     Patch function to return specific exit-code.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     :param track_called:    Decorate a mocked function to print what was
                             called.
     :param returncode:      Returncode to patch function with.
@@ -608,11 +644,11 @@ def test_make_format() -> None:
 @pytest.mark.usefixtures("make_python_file")
 @pytest.mark.parametrize("is_file", [False, True])
 def test_find_pylintrc_file(patch_sp_call, nocolorcapsys, is_file):
-    """Test the ``pytest`` process when an rc-file exists and when one
-    doesn't.
+    """Test the ``pytest`` process when an rcfile does or doesn't exist.
 
-    :param patch_sp_call:   Patch ``pyaud.utils.Subprocess.call``.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param patch_sp_call:   Patch ``Subprocess.call``.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     :param is_file:         File exists: True or False.
     """
     patch_sp_call()
@@ -628,11 +664,11 @@ def test_find_pylintrc_file(patch_sp_call, nocolorcapsys, is_file):
 
 
 def test_pipfile2req_commands(patch_sp_call, nocolorcapsys, make_written):
-    """Test that the correct commands are executed when running
-    ``make_requirements``.
+    """Test that the correct commands are executed.
 
-    :param patch_sp_call:   Patch ``pyaud.utils.Subprocess.call``.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param patch_sp_call:   Patch ``Subprocess.call``.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     :param make_written:    Create files with written content.
     """
     make_written.pipfile_lock()
@@ -651,8 +687,9 @@ def test_pipfile2req_commands(patch_sp_call, nocolorcapsys, make_written):
 def test_list_modules(main, nocolorcapsys):
     """Test that all modules are listed when running ``pyaud modules``.
 
-    :param main:            Fixture for mocking ``pyaud.main``
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param main:            Patch package entry point.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     """
     with pytest.raises(SystemExit):
         main("modules")
@@ -663,11 +700,14 @@ def test_list_modules(main, nocolorcapsys):
 
 
 def test_module_help(main, nocolorcapsys):
-    """Test that all modules and their docs are listed when running
-    ``pyaud modules MODULE``.
+    """Test expected output for ``pyaud modules``.
 
-    :param main:            Mock main function.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    Test call with no arguments, with ``all``, and when querying a
+    non-existent module.
+
+    :param main:            Patch package entry point.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     """
     with pytest.raises(SystemExit):
         main("modules", "all")
@@ -678,11 +718,11 @@ def test_module_help(main, nocolorcapsys):
 
 
 def test_module_not_valid(main, nocolorcapsys):
-    """Test that the right error message is displayed when a
-    non-existing module is called.
+    """Test for error message when non-existing module is called.
 
-    :param main:            Fixture for mocking ``pyaud.main``
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param main:            Patch package entry point.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     """
     with pytest.raises(SystemExit):
         main("modules", "not_a_module")
@@ -692,8 +732,10 @@ def test_module_not_valid(main, nocolorcapsys):
 
 
 def test_get_branch_unique(init_test_repo):
-    """Test that ``pyaud.pyaud.utils.get_branch`` returns a unique
-    timestamped branch after checkout out new branch from ``master``.
+    """Test that ``get_branch`` returns correct branch.
+
+    :param init_test_repo:  Create a git repository with an initial
+                            commit.
     """
     init_test_repo()
     branch = datetime.datetime.now().strftime("%d%m%YT%H%M%S")
@@ -703,8 +745,13 @@ def test_get_branch_unique(init_test_repo):
 
 
 def test_get_branch_initial_commit(init_test_repo):
-    """Test that ``pyaud.pyaud.utils.get_branch`` returns None when run from
-    the a commit with no parent commits i.e. initial commit.
+    """Test that ``get_branch`` returns None.
+
+    Test when run from a commit with no parent commits i.e. initial
+    commit.
+
+    :param init_test_repo:  Create a git repository with an initial
+                            commit.
     """
     init_test_repo()
     with pyaud.utils.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
@@ -728,13 +775,15 @@ def test_get_branch_initial_commit(init_test_repo):
     ids=["no_exclude", "exclude"],
 )
 def test_clean_exclude(main, nocolorcapsys, init_test_repo, exclude, expected):
-    """Test clean files including exclude parameters
+    """Test clean with and without exclude parameters.
 
-    :param main:            Mock main function.
-    :param nocolorcapsys:   ``capsys`` without ANSI escape codes.
+    :param main:            Patch package entry point.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    :param init_test_repo:  Create a git repository with an initial
+                            commit.
     :param exclude:         Files to exclude from ``git clean``.
     :param expected:        Expected output from ``pyaud clean``.
-
     """
     init_test_repo()
     for exclusion in exclude:
@@ -747,12 +796,12 @@ def test_clean_exclude(main, nocolorcapsys, init_test_repo, exclude, expected):
 
 @pytest.mark.usefixtures("make_project_tree")
 def test_git_context_no_artifact(tmpdir):
-    """Ensure that no dir remains if no action occurs inside created
-    dir. This functionality exists for cloning directories to keep
-    ``pyaud.utils.Git``s context action intact.
+    """Ensure that no dir remains if no action occurs.
 
-    :param tmpdir:  ``pytest`` ``tmpdir`` fixture for creating and
-                    returning a temporary directory.
+    Test from inside created dir. This functionality exists for cloning
+    directories while keeping ``Git``s context action intact.
+
+    :param tmpdir: Create and return temporary directory.
     """
     tmprepo = os.path.join(tmpdir, "test_repo")
     with pyaud.utils.Git(tmprepo):
@@ -766,8 +815,7 @@ def test_git_context_no_artifact(tmpdir):
 
 
 def test_git_clone(tmpdir):
-    """Test that the ``pyaud.utils.Git`` class can properly clone a
-    repository
+    """Test that the ``Git`` class can properly clone a repo.
 
     :param tmpdir:  ``pytest`` ``tmpdir`` fixture for creating and
                     returning a temporary directory.
@@ -779,14 +827,16 @@ def test_git_clone(tmpdir):
 
 
 def test_pipe_to_file():
-    """Test that the ``pyaud.utils.Subprocess`` class correctly writes to a
-    file when the ``file`` keyword argument is used.
+    """Test that the ``Subprocess`` class correctly writes file.
+
+    When the ``file`` keyword argument is used stdout should be piped to
+    the filename provided.
     """
     gitdir = os.path.join(pyaud.environ.env["PROJECT_DIR"], ".git") + os.sep
     piped_file = os.path.join(pyaud.environ.env["PROJECT_DIR"], "pipe.txt")
     expected = f"Initialized empty Git repository in {gitdir}"
     with pyaud.utils.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
-        git.init(file=piped_file)
+        git.init(file=piped_file)  # type: ignore
 
     with open(piped_file) as fin:
         assert fin.read().strip() == expected
@@ -814,9 +864,11 @@ def test_len_env():
 
 
 def test_validate_env(validate_env):
-    """Ensure an error is raised if the environment contains any
-    remnants of the system's actual filepaths, and not just the
-    filepaths contained within the /tmp directory.
+    """Ensure an error is raised.
+
+    Tested for if the environment contains any remnants of the system's
+    actual filepaths, and not just the filepaths contained within the
+    /tmp directory.
 
     :param validate_env:    Execute the ``validate_env`` function
                             returned from this fixture.
@@ -845,14 +897,13 @@ def test_env_empty_keys():
 def test_find_package(
     monkeypatch, project_dir, make_project_tree, find_package
 ):
-    """Test that Python package is found.
+    """Test error is raised if no Python file exists in project root.
 
-    :param monkeypatch:         ``pytest`` fixture for mocking
-                                attributes.
+    :param monkeypatch:         Mock patch environment and attributes.
     :param project_dir:         Create and return testing project root.
-    :param make_project_tree:   Make directory structure.
-    :param find_package:        Package exists and
-                                ``pyaud.find_package`` should succeed.
+    :param make_project_tree:   Create directory tree from dict mapping.
+    :param find_package:        Package exists and ``find_package``
+                                should succeed.
     """
     monkeypatch.undo()
     os.environ["PROJECT_DIR"] = project_dir
@@ -870,8 +921,9 @@ def test_find_package(
 
 
 def test_config():
-    """Test that the config properly parser a comma separated list and
-    can resolve paths by expanding environment variables.
+    """Test that the config properly parses a comma separated list.
+
+    Test config can resolve paths by expanding environment variables.
     """
     config = pyaud.config.ConfigParser()
     assert config.getlist("CLEAN", "exclude") == [
@@ -889,10 +941,9 @@ def test_config():
     ids=["no_change", "change"],
 )
 def test_hash_file(make_project_tree, change, expected):
-    """Test that ``pyaud.utils.HashCap`` can properly determine changes
-    within a file.
+    """Test that ``HashCap`` can properly determine changes.
 
-    :param make_project_tree:   Make directory structure.
+    :param make_project_tree:   Create directory tree from dict mapping.
     :param change:              True or False: Change the file.
     :param expected:            Expected result from ``cap.compare``.
     """
@@ -907,9 +958,7 @@ def test_hash_file(make_project_tree, change, expected):
 
 @pytest.mark.usefixtures("make_project_tree")
 def test_readme_replace():
-    """Test that ``pyaud.utils.LineSwitch`` properly returns a file to
-    how it was before the context action.
-    """
+    """Test that ``LineSwitch`` properly edits a file."""
 
     def _test_file_index(title, underline):
         with open(pyaud.environ.env["README_RST"]) as fin:
@@ -948,8 +997,10 @@ def test_readme_replace():
     ids=["file", "nested", "exclude"],
 )
 def test_get_pyfiles(make_relative_file, assert_relative_item, assert_true):
-    """Test ``get_pyfiles`` for standard files, nested directories (only
-    return the directory root) or files that are excluded.
+    """Test ``get_files``.
+
+    Test for standard files, nested directories (only return the
+    directory root) or files that are excluded.
 
     :param make_relative_file:      Relative path to Python file.
     :param assert_relative_item:    Relative path to Python item to
@@ -972,10 +1023,11 @@ def test_get_pyfiles(make_relative_file, assert_relative_item, assert_true):
 
 
 def test_pyitems_exclude_venv(make_project_tree):
-    """Test that virtualenv dir is excluded from ``PythonItems.items``
-    after running ``venv_exclude``.
+    """Test that virtualenv dir is excluded.
 
-    :param make_project_tree: Make directory structure.
+     Test when indexing with ``PythonItems.items``.
+
+    :param make_project_tree: Create directory tree from dict mapping.
     """
     make_project_tree.package()
     make_project_tree.mock_virtualenv()
@@ -990,11 +1042,14 @@ def test_pyitems_exclude_venv(make_project_tree):
 @pytest.mark.usefixtures("make_python_file")
 @pytest.mark.parametrize("is_file", [False, True])
 def test_append_whitelist(nocolorcapsys, patch_sp_call, is_file):
-    """Test that the whitelist file argument is appended to the
-    ``vulture`` call if it exists and is not appended if it does not.
+    """Test that whitelist file argument is appended ``vulture`` call.
 
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
-    :param patch_sp_call:   Patch ``pyaud.utils.Subprocess.call``.
+    Test for when whitelist.py exists and is not appended if it does
+    not, thus avoiding an error.
+
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    :param patch_sp_call:   Patch ``Subprocess.call``.
     :param is_file:         File exists: True or False.
     """
     patch_sp_call()
@@ -1013,8 +1068,9 @@ def test_append_whitelist(nocolorcapsys, patch_sp_call, is_file):
 def test_mypy_expected(patch_sp_call, nocolorcapsys):
     """Test that the ``mypy`` command is correctly called.
 
-    :param patch_sp_call:   Patch ``pyaud.utils.Subprocess.call``.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param patch_sp_call:   Patch ``Subprocess.call``.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     """
     patch_sp_call()
     pyaud.utils.pyitems.get_files()
@@ -1049,9 +1105,7 @@ def test_mypy_expected(patch_sp_call, nocolorcapsys):
 def test_pytest_is_tests(
     patch_sp_call, nocolorcapsys, make_tree, test_mapping, call
 ):
-    """Test that ``pytest`` is correctly called if:
-
-        - tests with valid name exist within a tests dir
+    """Test that ``pytest`` is correctly called.
 
     Test that ``pytest`` is not called if:
 
@@ -1059,9 +1113,10 @@ def test_pytest_is_tests(
         - incorrect names within tests dir
         - no tests at all within tests dir.
 
-    :param patch_sp_call:   Patch ``pyaud.utils.Subprocess.call``.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
-    :param make_tree:       Make tree from parametrized mappings.
+    :param patch_sp_call:   Patch ``Subprocess.call``.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    :param make_tree:       Create directory tree from dict mapping.
     :param test_mapping:    Parametrized mappings.
     :param call:            Pytest should be called.
     """
@@ -1079,11 +1134,12 @@ def test_pytest_is_tests(
 
 @pytest.mark.usefixtures("make_default_toc")
 def test_make_toc(patch_sp_call, make_project_tree):
-    """Test that the default toc file is edited correctly and additional
-    files generated by ``sphinx-api`` doc are removed.
+    """Test that the default toc file is edited correctly.
 
-    :param patch_sp_call:       Patch ``pyaud.utils.Subprocess.call``.
-    :param make_project_tree:   Make directory structure.
+    Ensure additional files generated by ``sphinx-api`` doc are removed.
+
+    :param patch_sp_call:       Patch ``Subprocess.call``.
+    :param make_project_tree:   Create directory tree from dict mapping.
     """
     make_project_tree.docs_conf()
     make_project_tree.package()
@@ -1105,12 +1161,14 @@ def test_make_toc(patch_sp_call, make_project_tree):
 
 
 def test_make_requirements(patch_sp_output, nocolorcapsys, make_written):
-    """Test that requirements.txt file is correctly edited after calling
-    ``pipfile2req``.
+    """Test that requirements.txt file is correctly edited.
 
-    :param patch_sp_output: Patch ``pyaud.utils.Subprocess`` so that ``call``
-                            sends expected stdout out to self.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+     Tested for use with ``pipfile2req``.
+
+    :param patch_sp_output: Patch ``Subprocess`` so that ``call`` sends
+                            expected stdout out to self.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     :param make_written:    Create files with written content.
     """
     make_written.pipfile_lock()
@@ -1125,14 +1183,15 @@ def test_make_requirements(patch_sp_output, nocolorcapsys, make_written):
 
 
 def test_make_whitelist(patch_sp_output, nocolorcapsys, make_project_tree):
-    """Test a whitelist.py file is created properly after piping data
-    from ``vulture --make-whitelist``.
+    """Test a whitelist.py file is created properly.
 
-    :param patch_sp_output:     Patch ``pyaud.utils.Subprocess`` so that
-                                ``call`` sends expected stdout out to
-                                self.
-    :param nocolorcapsys:       ``capsys`` without ANSI color codes.
-    :param make_project_tree:   Make directory structure.
+    Test for when piping data from ``vulture --make-whitelist``.
+
+    :param patch_sp_output:     Patch ``Subprocess`` so that ``call``
+                                sends expected stdout out to self.
+    :param nocolorcapsys:       Capture system output while stripping
+                                ANSI color codes.
+    :param make_project_tree:   Create directory tree from dict mapping.
     """
     make_project_tree.be8a443_files()
     patch_sp_output(
@@ -1149,14 +1208,14 @@ def test_make_whitelist(patch_sp_output, nocolorcapsys, make_project_tree):
 
 
 def test_parser(monkeypatch, nocolorcapsys, track_called, call_status, main):
-    """Test that passed arguments call the selected module correctly and
-    without any errors.
+    """Test that passed arguments call the selected module correctly.
 
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     :param track_called:    Decorate a mocked function to print what was
                             called.
     :param call_status:     Patch function to return specific exit-code.
-    :param main:            Fixture for mocking ``pyaud.main``
+    :param main:            Patch package entry point.
     """
     calls = [
         "audit",
@@ -1191,9 +1250,11 @@ def test_parser(monkeypatch, nocolorcapsys, track_called, call_status, main):
 
 
 def test_remove_unversioned(init_test_repo):
-    """Test that when a file is not under version control and the
-    ``pyaud.utils.pyitems.exclude_unversioned`` method  is called unversioned
-    files are removed from ``pyitems.items`` list.
+    """Test files not under version controls are not included.
+
+    Test that when a file is not under version control and the
+    ``pyitems.exclude_unversioned`` method  is called unversioned files
+    are removed from ``pyitems.items`` list.
 
     :param init_test_repo:  Create a git repository with an initial
                             commit.
@@ -1206,8 +1267,8 @@ def test_remove_unversioned(init_test_repo):
     pyaud.utils.pyitems.exclude_unversioned()
     assert file_py not in pyaud.utils.pyitems.items
     with pyaud.utils.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
-        git.add(".")
-        git.commit("-m", "committing file.py")
+        git.add(".")  # type: ignore
+        git.commit("-m", "committing file.py")  # type: ignore
 
     pyaud.utils.pyitems.get_files()
     assert file_py in pyaud.utils.pyitems.items
@@ -1216,8 +1277,9 @@ def test_remove_unversioned(init_test_repo):
 
 
 def test_namespace_assignment_environ_file():
-    """Ensure none of the below items are leaked into the user
-    environment without the prefix ``PYAUD_``
+    """Ensure none of the below items are leaked.
+
+    Test against the user environment without the prefix ``PYAUD_``
     (``PYAUD_TEST_`` for test runs)
     """
     items = [
@@ -1242,10 +1304,10 @@ def test_namespace_assignment_environ_file():
 def test_arg_order_clone(tmpdir, patch_sp_call, nocolorcapsys):
     """Test that the clone destination is always the last argument.
 
-    :param tmpdir:          ``pytest`` ``tmpdir`` fixture for creating
-                            and returning a temporary directory.
-    :param patch_sp_call:   Patch ``pyaud.utils.Subprocess.call``.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param tmpdir:          Create and return temporary directory.
+    :param patch_sp_call:   Patch ``Subprocess.call``.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     """
     patch_sp_call()
     project_clone = os.path.join(tmpdir, "pyaud")
@@ -1258,21 +1320,20 @@ def test_arg_order_clone(tmpdir, patch_sp_call, nocolorcapsys):
 
 
 def test_out_of_range_unversioned(tmpdir, main, other_dir, patch_sp_call):
-    """Test that ``pyaud.utils.pyitems.items`` populates when running on a
-    path outside the user's "$PWD". If no properly populated an
-    IndexError like the following would be raised:
+    """Test that ``items`` populates.
+
+    Test for when running on a path outside the user's "$PWD". If not
+    properly populated an IndexError like the following would be raised:
 
         File "/*/**/python3.8/site-packages/pyaud/src/__init__.py",
         line 62, in exclude_unversioned
         self.items.pop(count)
         IndexError: pop index out of range
 
-    :param tmpdir:              ``pytest`` ``tmpdir`` fixture for
-                                creating and returning a temporary
-                                directory.
-    :param main:                Fixture for mocking ``pyaud.main``.
-    :param other_dir:           Random directory existing in ``tmpdir``.
-    :param patch_sp_call:       Patch ``pyaud.utils.Subprocess.call``.
+    :param tmpdir:          Create and return temporary directory.
+    :param main:            Patch package entry point.
+    :param other_dir:       Random directory existing in ``tmpdir``.
+    :param patch_sp_call:   Patch ``Subprocess.call``.
     """
 
     def empty_func(*_, **__):
@@ -1294,13 +1355,14 @@ def test_out_of_range_unversioned(tmpdir, main, other_dir, patch_sp_call):
 
 
 def test_pylint_colorized(monkeypatch, capsys, failing_lint):
-    """Test that color codes make their way through
-    ``pylint --output-format=colorized``. If ``colorama`` is installed
-    and a process calls ``colorama.init()`` a subprocess pipe will be
-    stripped. Using environment variable ``PYCHARM_HOSTED`` for now as
-    a workaround as this voids this action.
+    """Test that color codes are produced with ``process.PIPE``.
 
-    :param monkeypatch:     ``pytest`` fixture for mocking attributes.
+    Test ``pylint --output-format=colorized``. If ``colorama`` is
+    installed and a process calls ``colorama.init()`` a process pipe
+    will be stripped. Using environment variable ``PYCHARM_HOSTED`` for
+    now as a workaround as this voids this action.
+
+    :param monkeypatch:     Mock patch environment and attributes.
     :param capsys:          Capture sys output.
     :param failing_lint:    Create a failing file to lint.
     """
@@ -1321,9 +1383,13 @@ def test_pylint_colorized(monkeypatch, capsys, failing_lint):
     ids=["iskey", "nokey"],
 )
 def test_temp_env_var(iskey, key):
-    """Test ``pyaud.environ.TempEnvVar`` sets an environment variable
-    and leaves everything as it originally was once the context action
-    is done.
+    """Test ``TempEnvVar`` sets environment variables.
+
+    Ensure class leaves everything as it originally was once the context
+    action is complete.
+
+    :param iskey:   Assert key is or is not already in ``os.environ.``
+    :param key:     Dictionary key to test with.
     """
     if iskey:
         assert key in os.environ
@@ -1343,8 +1409,7 @@ def test_temp_env_var(iskey, key):
     "default", ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", None]
 )
 def test_loglevel(main, default):
-    """Test the right loglevel is set when parsing the commandline
-    alongside default ``LOG_LEVEL`` environment variable.
+    """Test the right loglevel is set when parsing the commandline.
 
     :param main:    Mock the main function for the package.
     :param default: Default ``LOG_LEVEL`` (``PYAUD_LOG_LEVEL``,
@@ -1382,8 +1447,8 @@ def test_loglevel(main, default):
 def test_isort_imports(project_dir, nocolorcapsys):
     """Test isort properly sorts file imports.
 
-    :param project_dir:     Create and return testing project root.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     """
     file = os.path.join(project_dir, "file.py")
     with open(file, "w") as fout:
@@ -1414,12 +1479,9 @@ def test_isort_imports(project_dir, nocolorcapsys):
 def test_readme(nocolorcapsys, main, make_readme):
     """Test standard README and return values.
 
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
-    :param main:            Mock the main function for the package.
-                            Provide test arguments to ``sys.argv`` as
-                            function parameters.
-    :param make_readme:     Create a README.rst file in the temp dir
-                            containing the provided ``str``.
+    :param main:            Patch package entry point.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
     """
     make_readme(files.CODE_BLOCK_TEMPLATE)
     main("readme")

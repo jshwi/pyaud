@@ -1,6 +1,6 @@
 """
 pyaud.config
-=============
+============
 
 Config module for ini parsing.
 """

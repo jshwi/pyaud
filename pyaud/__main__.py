@@ -1,6 +1,6 @@
 """
 pyaud.__main__
-===============
+==============
 """
 from pyaud import main
 

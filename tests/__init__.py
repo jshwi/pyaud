@@ -1,6 +1,6 @@
-"""
-lib
-=========
+"""Register tests as a package.
+
+Imports from ``tests.static`` and ``tests.utils``
 """
 import os
 import re
@@ -17,7 +17,7 @@ class PyaudTestError(Exception):
 
 
 class NoColorCapsys:
-    """Capsys but with a regex to remove ANSI escape codes
+    """Capsys but with a regex to remove ANSI escape codes.
 
     Class is preferable for this as we can instantiate the instance
     as a fixture that also contains the same attributes as capsys
@@ -26,7 +26,7 @@ class NoColorCapsys:
     capsys immediately thus losing control of what stdout and stderr
     we are to capture
 
-    :param capsys: ``pytest`` fixture for capturing output stream.
+    :param capsys: Capture and return stdout and stderr stream.
     """
 
     def __init__(self, capsys):
@@ -34,13 +34,12 @@ class NoColorCapsys:
 
     @staticmethod
     def regex(out):
-        """Replace ANSI color codes with empty strings i.e. remove all
-        escape codes
+        """Replace ANSI color codes with empty strings.
 
-        Prefer to test colored output this way as colored strings can
-        be tricky and the effort in testing their validity really isn't
-        worth it. Also hard to read expected strings when they contain
-        the codes.
+        Remove all escape codes. Preference is to test colored output
+        this way as colored strings can be tricky and the effort in
+        testing their validity really isn't worthwhile. It is also
+        hard to  read expected strings when they contain the codes.
 
         :param out: String to strip of ANSI escape codes
         :return:    Same string but without ANSI codes
@@ -49,8 +48,7 @@ class NoColorCapsys:
         return ansi_escape.sub("", out)
 
     def readouterr(self):
-        """Call as capsys ``readouterr`` but regex the strings for
-        escape codes at the same time
+        """Call as capsys ``readouterr`` but remove ANSI color-codes.
 
         :return:    A tuple (just like the capsys) containing stdout in
                     the first index and stderr in the second
@@ -62,16 +60,14 @@ class NoColorCapsys:
         return readouterr[idx]
 
     def stdout(self):
-        """Call this to return the stdout without referencing the tuple
-        indices
+        """Return stdout without referencing the tuple indices.
 
         :return: Stdout.
         """
         return self._readouterr_index(0)
 
     def stderr(self):
-        """Call this to return the stderr without referencing the tuple
-        indices
+        """Return stderr without referencing the tuple indices.
 
         :return: Stderr.
         """
@@ -138,7 +134,7 @@ class MakeWritten:
 
     @classmethod
     def pipfile_lock(cls):
-        """Make a Pipfile.lock file for testing"""
+        """Make a Pipfile.lock file for testing."""
         cls._write(
             os.path.join(pyaud.environ.env["PIPFILE_LOCK"]), files.PIPFILE_LOCK
         )
@@ -188,9 +184,7 @@ class MakeProjectTree:
         self.make_tree(pyaud.environ.env["PROJECT_DIR"], venv)
 
     def be8a443_files(self):
-        """Create Python files that would be scanned by
-        ``pyitems.get_files`` on commit be8a443.
-        """
+        """Create .py files that would be scanned on commit be8a443."""
         self.make_tree(
             pyaud.environ.env["PROJECT_DIR"],
             {
