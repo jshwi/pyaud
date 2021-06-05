@@ -468,8 +468,9 @@ def make_imports():
 
 def make_readme() -> None:
     """Parse, test, and assert RST code-blocks."""
-    readmtester = Subprocess("readmetester")
-    if os.path.isfile(environ.env["README_RST"]):
-        readmtester.call(environ.env["README_RST"])
-    else:
-        print("No README.rst found in project root")
+    with environ.TempEnvVar("PYCHARM_HOSTED", "True"):
+        readmtester = Subprocess("readmetester")
+        if os.path.isfile(environ.env["README_RST"]):
+            readmtester.call(environ.env["README_RST"])
+        else:
+            print("No README.rst found in project root")
