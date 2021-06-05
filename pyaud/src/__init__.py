@@ -110,13 +110,12 @@ class Subprocess:
         exe: str,
         loglevel: str = "error",
         commands: Optional[Iterable] = None,
-        stdout: Optional[str] = None,
     ) -> None:
         self.exe = exe
         self.loglevel = loglevel
         self.commands = commands
         self._call = functools.partial(self.run, self.exe)
-        self.stdout = stdout
+        self.stdout: Optional[str] = None
         self.logger = get_logger(self.exe)
         self._set_attrs()
 
