@@ -1186,7 +1186,7 @@ def test_make_whitelist(patch_sp_output, nocolorcapsys, make_project_tree):
         f"created ``whitelist.py``\n"
     )
     with open(pyaud.environ.env["WHITELIST"]) as fin:
-        assert fin.read() == tests.files.Whitelist.be8a443_all
+        assert fin.read() == tests.files.Whitelist.be8a443_all()
 
 
 def test_parser(monkeypatch, nocolorcapsys, track_called, call_status, main):

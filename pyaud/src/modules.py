@@ -424,8 +424,10 @@ def make_whitelist(**kwargs: Union[bool, str]) -> int:
 
     # clear contents of instantiated ``TextIO' object to write a new
     # file and not append
+    stdout = [i for i in "\n".join(lines).splitlines() if i != ""]
+    stdout.sort()
     with open(environ.env["WHITELIST"], "w") as fout:
-        for line in lines:
+        for line in stdout:
             fout.write(
                 line.replace(environ.env["PROJECT_DIR"] + os.sep, "") + "\n"
             )

@@ -1755,43 +1755,50 @@ CODE_BLOCK_EXPECTED = (
 class Whitelist:  # pylint: disable=too-few-public-methods
     """Output for whitelist.py on commit be8a443"""
 
-    be8a443_tests = """
-fixture_is_env_path_var  # unused function (tests/conftest.py:16)
-fixture_validate_env  # unused function (tests/conftest.py:33)
-fixture_test_logging  # unused function (tests/conftest.py:61)
-fixture_project_dir  # unused function (tests/conftest.py:73)
-fixture_mock_environment  # unused function (tests/conftest.py:86)
-fixture_set_git_creds  # unused function (tests/conftest.py:152)
-fixture_init_test_repo  # unused function (tests/conftest.py:160)
-fixture_mock_remote_origin  # unused function (tests/conftest.py:184)
-fixture_nocolorcapsys  # unused function (tests/conftest.py:199)
-fixture_main  # unused function (tests/conftest.py:211)
+    be8a443_tests = """fixture_is_env_path_var  # unused function (tests/conftest.py:16)
 fixture_call_status  # unused function (tests/conftest.py:228)
-fixture_patch_sp_call  # unused function (tests/conftest.py:241)
-fixture_patch_sp_returncode  # unused function (tests/conftest.py:264)
-fixture_track_called  # unused function (tests/conftest.py:281)
-fixture_make_written  # unused function (tests/conftest.py:298)
-fixture_make_tree  # unused function (tests/conftest.py:307)
-fixture_make_project_tree  # unused function (tests/conftest.py:336)
+fixture_commit_test  # unused function (tests/conftest.py:160)
+fixture_main  # unused function (tests/conftest.py:211)
 fixture_make_default_toc  # unused function (tests/conftest.py:345)
+fixture_make_deploy_docs_env  # unused function (tests/conftest.py:378)
+fixture_make_project_tree  # unused function (tests/conftest.py:336)
 fixture_make_python_file  # unused function (tests/conftest.py:359)
 fixture_make_test_file  # unused function (tests/conftest.py:365)
-fixture_make_deploy_docs_env  # unused function (tests/conftest.py:378)
+fixture_make_tree  # unused function (tests/conftest.py:307)
+fixture_make_written  # unused function (tests/conftest.py:298)
+fixture_mock_environment  # unused function (tests/conftest.py:86)
 fixture_mock_make_docs  # unused function (tests/conftest.py:402)
+fixture_mock_remote_origin  # unused function (tests/conftest.py:184)
+fixture_nocolorcapsys  # unused function (tests/conftest.py:199)
+fixture_patch_sp_call  # unused function (tests/conftest.py:241)
+fixture_patch_sp_returncode  # unused function (tests/conftest.py:264)
+fixture_project_dir  # unused function (tests/conftest.py:73)
+fixture_set_git_creds  # unused function (tests/conftest.py:152)
+fixture_test_logging  # unused function (tests/conftest.py:61)
+fixture_track_called  # unused function (tests/conftest.py:281)
+fixture_validate_env  # unused function (tests/conftest.py:33)
 """
-    be8a443_pyaud = """
-_.clone  # unused method (pyaud/src/__init__.py:223)
-exc_tb  # unused variable (pyaud/src/__init__.py:256)
-exc_type  # unused variable (pyaud/src/__init__.py:256)
-exc_val  # unused variable (pyaud/src/__init__.py:256)
-exc_tb  # unused variable (pyaud/src/__init__.py:299)
-exc_type  # unused variable (pyaud/src/__init__.py:299)
-exc_val  # unused variable (pyaud/src/__init__.py:299)
-exc_tb  # unused variable (pyaud/src/__init__.py:381)
-exc_type  # unused variable (pyaud/src/__init__.py:381)
-exc_val  # unused variable (pyaud/src/__init__.py:381)
+    be8a443_pyaud = """_.clone  # unused method (pyaud/src/__init__.py:223)
 _.propagate  # unused attribute (pyaud/src/__init__.py:463)
+exc_tb  # unused variable (pyaud/src/__init__.py:256)
+exc_tb  # unused variable (pyaud/src/__init__.py:299)
+exc_tb  # unused variable (pyaud/src/__init__.py:381)
+exc_type  # unused variable (pyaud/src/__init__.py:256)
+exc_type  # unused variable (pyaud/src/__init__.py:299)
+exc_type  # unused variable (pyaud/src/__init__.py:381)
+exc_val  # unused variable (pyaud/src/__init__.py:256)
+exc_val  # unused variable (pyaud/src/__init__.py:299)
+exc_val  # unused variable (pyaud/src/__init__.py:381)
 make_audit  # unused function (pyaud/src/modules.py:26)
 make_files  # unused function (pyaud/src/modules.py:205)
 """
-    be8a443_all = be8a443_pyaud + be8a443_tests
+
+    @classmethod
+    def be8a443_all(cls):
+        """Concatenate and sort the two files worth of whitelist text.
+
+        :return: Concatenated and sorted ``str``.
+        """
+        seq = f"{cls.be8a443_pyaud}{cls.be8a443_tests}".splitlines()
+        seq.sort()
+        return "{}\n".format("\n".join(seq))
