@@ -18,7 +18,6 @@ from .src import (
     LineSwitch,
     PyaudSubprocessError,
     Subprocess,
-    Tally,
     check_command,
     colors,
     config,
@@ -27,6 +26,7 @@ from .src import (
     get_logger,
     modules,
     pyitems,
+    tally_tests,
     write_command,
 )
 
@@ -214,7 +214,6 @@ __all__ = [
     "LineSwitch",
     "PyaudSubprocessError",
     "Subprocess",
-    "Tally",
     "check_command",
     "colors",
     "config",
@@ -224,5 +223,6 @@ __all__ = [
     "main",
     "modules",
     "pyitems",
+    "tally_tests",
     "write_command",
 ]

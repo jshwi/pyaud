@@ -345,48 +345,6 @@ class HashCap:
         self.compare = self._compare()
 
 
-# noinspection PyClassHasNoInit
-class Tally:
-    """Count elements of package."""
-
-    @staticmethod
-    def tests(*args: str) -> int:
-        """Count the number of tests in a testing suite.
-
-        :param args:    Pattern to search for when running glob on
-                            directory.
-        :return:            int: Number of tests in suite.
-        """
-        total = 0
-        for arg in args:
-            for file in pathlib.Path(environ.env["PROJECT_DIR"]).rglob(arg):
-                with open(file) as fin:
-                    for line in fin.read().splitlines():
-                        if "def test_" in line:
-                            total += 1
-
-        return total
-
-    @classmethod
-    def pyfiles(cls, *args: str) -> int:
-        """Return the quantity of files traversing the given paths
-        recursively.
-
-        :param args: Paths to count.
-        """
-
-        total = 0
-        for arg in args:
-            if os.path.isfile(arg) and arg.endswith(".py"):
-                total += 1
-
-            elif os.path.isdir(arg) and os.path.basename(arg) != "__pycache__":
-                for item in os.listdir(arg):
-                    total += cls.pyfiles(os.path.join(arg, item))
-
-        return total
-
-
 class LineSwitch:
     """Take the ``path`` and ``replace`` argument from the commandline
     and reformat the README whilst returning the original title to
@@ -437,7 +395,6 @@ def check_command(func: Callable[..., int]) -> Callable[..., int]:
 
     @functools.wraps(func)
     def _wrapper(**kwargs):
-        _pyitems = pyitems.items
         if func.__name__ == "make_docs":
             _requires = os.path.isfile(environ.env["DOCS_CONF"])
             success = "Build successful"
@@ -447,11 +404,9 @@ def check_command(func: Callable[..., int]) -> Callable[..., int]:
             success = "Success: no issues found in "
             _type = "files"
             if func.__name__ in ("make_tests", "make_coverage"):
-                total = Tally.tests("test_*.py", "*_test.py")
-                success += f"{total} tests"
+                success += f"{tally_tests()} tests"
             else:
-                quantity = Tally.pyfiles(*_pyitems)
-                success += f"{quantity} source files"
+                success += "{} source files".format(len(pyitems.files))
 
         if _requires:
             returncode = func(**kwargs)
@@ -663,3 +618,16 @@ class EnterDir:
 
     def __exit__(self, _, value, __):
         os.chdir(self.saved_path)
+
+
+def tally_tests() -> int:
+    """Count the number of tests in a testing suite.
+
+    :return: Number of tests in suite.
+    """
+    total = []
+    for path in pathlib.Path(os.environ["PROJECT_DIR"]).rglob("tests/*"):
+        with open(path) as fin:
+            total.extend(fin.read().splitlines())
+
+    return len([i for i in total if i.startswith("def test_")])

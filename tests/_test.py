@@ -950,7 +950,7 @@ def test_readme_replace():
 @pytest.mark.usefixtures("make_test_file")
 def test_test_quantity():
     """Test that the right amount of tests are recorded."""
-    test_total = pyaud.Tally.tests("test_*.py", "*_test.py")
+    test_total = pyaud.tally_tests()
     assert test_total == 20
 
 
