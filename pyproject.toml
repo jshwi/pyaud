@@ -15,7 +15,6 @@ omit = ["whitelist.py", "pyaud/__main__.py"]
 
 [tool.pytest.ini_options]
 addopts = [
-    "--profile-svg",
     "--durations=5",
      "-vv",
      "--color=yes",
