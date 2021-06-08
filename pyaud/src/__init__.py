@@ -93,7 +93,7 @@ class PythonItems:
             self.files.append(str(glob_path))
 
 
-pyitems = PythonItems("whitelist.py", "conf.py")
+pyitems = PythonItems("whitelist.py", "conf.py", "setup.py")
 
 
 class Subprocess:

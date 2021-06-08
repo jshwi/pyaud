@@ -977,7 +977,7 @@ def test_test_quantity():
 @pytest.mark.parametrize(
     "make_relative_file,assert_relative_item,assert_true",
     [
-        ("setup.py", "setup.py", True),
+        (FILES, FILES, True),
         (
             os.path.join("nested", "python", "file", FILES),
             os.path.join("nested"),
@@ -1328,7 +1328,6 @@ def test_out_of_range_unversioned(tmpdir, main, other_dir, patch_sp_call):
     patch_sp_call(0, empty_func)
     items = [
         os.path.join(project_clone, "pyaud"),
-        os.path.join(project_clone, "setup.py"),
         os.path.join(project_clone, "tests"),
     ]
     with pyaud.EnterDir(other_dir):
