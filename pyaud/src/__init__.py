@@ -605,9 +605,7 @@ class DeployDocs(Git):
     def _commit(self) -> None:
         self.add(".")  # type: ignore
         self.commit(  # type: ignore
-            "-m",
-            '"[ci skip] Publishes updated documentation"',
-            devnull=True,
+            "-m", '"[ci skip] Publishes updated documentation"', devnull=True
         )
 
     def _config_remote(self) -> None:

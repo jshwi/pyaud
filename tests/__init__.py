@@ -140,8 +140,7 @@ class MakeWritten:
     def pipfile_lock(cls):
         """Make a Pipfile.lock file for testing"""
         cls._write(
-            os.path.join(pyaud.environ.env["PIPFILE_LOCK"]),
-            files.PIPFILE_LOCK,
+            os.path.join(pyaud.environ.env["PIPFILE_LOCK"]), files.PIPFILE_LOCK
         )
 
 
@@ -184,7 +183,7 @@ class MakeProjectTree:
                 "src": {},
                 "lib": {"python3.8": {"site-packages": {"six.py": None}}},
                 "lib64": "lib",
-            },
+            }
         }
         self.make_tree(pyaud.environ.env["PROJECT_DIR"], venv)
 

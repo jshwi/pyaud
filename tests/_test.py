@@ -241,24 +241,8 @@ def test_suppress(nocolorcapsys, monkeypatch, call_status, make_project_tree):
         "test_id",
     ),
     [
-        (
-            None,
-            None,
-            None,
-            "not_master",
-            True,
-            False,
-            "not_master",
-        ),
-        (
-            None,
-            None,
-            None,
-            "master",
-            True,
-            False,
-            "master_not_set",
-        ),
+        (None, None, None, "not_master", True, False, "not_master"),
+        (None, None, None, "master", True, False, "master_not_set"),
         (
             "jshwi",
             "stephen@jshwisolutions.com",
@@ -621,8 +605,7 @@ def test_make_format(patch_sp_call, assert_error, nocolorcapsys):
     patch_sp_call(0)
     if assert_error:
         blacklogs = os.path.join(
-            pyaud.environ.env["LOG_DIR"],
-            pyaud.environ.env["PKG"] + ".log",
+            pyaud.environ.env["LOG_DIR"], pyaud.environ.env["PKG"] + ".log"
         )
         with open(blacklogs, "w") as fout:
             fout.write("reformatted")
@@ -746,10 +729,7 @@ def test_get_branch_initial_commit(init_test_repo):
 @pytest.mark.parametrize(
     "exclude,expected",
     [
-        (
-            [],
-            "",
-        ),
+        ([], ""),
         (
             [".env_diff", "instance_diff", ".cache_diff"],
             "Removing .cache_diff\n"
@@ -959,8 +939,7 @@ def test_readme_replace():
 
     _test_file_index(repo, repo_underline)
     with pyaud.LineSwitch(
-        pyaud.environ.env["README_RST"],
-        {0: readme, 1: readme_underline},
+        pyaud.environ.env["README_RST"], {0: readme, 1: readme_underline}
     ):
         _test_file_index(readme, readme_underline)
 
@@ -1383,15 +1362,7 @@ def test_temp_env_var(iskey, key):
 
 
 @pytest.mark.parametrize(
-    "default",
-    [
-        "CRITICAL",
-        "ERROR",
-        "WARNING",
-        "INFO",
-        "DEBUG",
-        None,
-    ],
+    "default", ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", None]
 )
 def test_loglevel(parser, default):
     """Test the right loglevel is set when parsing the commandline

@@ -338,11 +338,7 @@ def make_toc(**kwargs: Union[bool, str]) -> int:
     if os.path.isfile(environ.env["DOCS_CONF"]):
         apidoc = Subprocess("sphinx-apidoc")
         apidoc.call(
-            "-o",
-            environ.env["DOCS"],
-            environ.env["PKG_PATH"],
-            "-f",
-            **kwargs,
+            "-o", environ.env["DOCS"], environ.env["PKG_PATH"], "-f", **kwargs
         )
         with open(environ.env["TOC"]) as fin:
             contents = fin.read().splitlines()
@@ -357,10 +353,7 @@ def make_toc(**kwargs: Union[bool, str]) -> int:
                     fout.write(content + "\n")
 
         modules = (
-            os.path.join(
-                environ.env["DOCS"],
-                f"{environ.env['PKG']}.src.rst",
-            ),
+            os.path.join(environ.env["DOCS"], f"{environ.env['PKG']}.src.rst"),
             os.path.join(environ.env["DOCS"], "modules.rst"),
         )
         for module in modules:
@@ -380,11 +373,7 @@ def make_typecheck(**kwargs: Union[bool, str]) -> int:
     cache_dir = os.path.join(environ.env["PROJECT_DIR"], ".mypy_cache")
     os.environ["MYPY_CACHE_DIR"] = cache_dir
     mypy = Subprocess("mypy")
-    return mypy.call(
-        "--ignore-missing-imports",
-        *pyitems.items,
-        **kwargs,
-    )
+    return mypy.call("--ignore-missing-imports", *pyitems.items, **kwargs)
 
 
 @check_command

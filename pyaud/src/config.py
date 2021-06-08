@@ -17,7 +17,7 @@ class ConfigParser(
     """ConfigParser inherited class with some tweaks."""
 
     default = dict(
-        CLEAN={"exclude": "*.egg*,\n  .mypy_cache,\n  .env,\n  instance,"},
+        CLEAN={"exclude": "*.egg*,\n  .mypy_cache,\n  .env,\n  instance,"}
     )
 
     def __init__(self) -> None:

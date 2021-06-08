@@ -9,6 +9,7 @@ exclude = '''
   | dist
 )/
 '''
+skip-magic-trailing-comma = true
 
 [tool.coverage.run]
 omit = ["whitelist.py", "pyaud/__main__.py"]
