@@ -50,7 +50,7 @@ setuptools.setup(
     zip_safe=False,
     install_requires=[
         "appdirs==1.4.4",
-        "black==20.8b1",
+        "black==21.5b1",
         "codecov==2.1.11",
         "coverage==5.3.1",
         "isort==5.7.0",
