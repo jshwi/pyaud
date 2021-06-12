@@ -528,7 +528,7 @@ def print_command(func) -> None:
     """
     print()
     colors.cyan.bold.print(
-        func.__name__.replace("make_", "pyaud ").replace("_", "-")
+        func.__name__.replace("make_", f"{environ.NAME} ").replace("_", "-")
     )
 
 

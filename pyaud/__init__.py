@@ -112,8 +112,8 @@ class Parser(argparse.ArgumentParser):
 
     def _list_modules(self) -> None:
         colors.yellow.print(
-            "``pyaud modules MODULE`` for more on each module or "
-            "``pyaud modules all``"
+            f"``{__name__} modules MODULE`` for more on each module or "
+            f"``{__name__} modules all``"
         )
         print(
             "\nMODULES = [\n"
@@ -187,7 +187,7 @@ def main() -> None:
     selected choice from the dictionary of functions which matches the
     key.
     """
-    parser = Parser(colors.cyan.get(__name__.split(".")[0]))
+    parser = Parser(colors.cyan.get(__name__))
     environ.env.store["PROJECT_DIR"] = parser.args.path
     environ.env.update(
         dict(
