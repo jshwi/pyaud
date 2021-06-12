@@ -117,7 +117,6 @@ def fixture_mock_environment(  # pylint: disable=too-many-arguments
 
     _freeze_environ = dict(os.environ)
 
-    pyaud.colors.populate_colors()
     monkeypatch.setattr(pyaud.environ.env, "namespace", "PYAUD_TEST")
     pyaud.environ.env["PROJECT_DIR"] = project_dir
     monkeypatch.setenv("HOME", str(tmpdir))

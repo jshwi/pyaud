@@ -22,6 +22,7 @@ import pyblake2
 from . import environ
 
 colors = object_colors.Color()
+colors.populate_colors()
 
 
 class PythonItems:

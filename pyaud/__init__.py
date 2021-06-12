@@ -187,7 +187,6 @@ def main() -> None:
     selected choice from the dictionary of functions which matches the
     key.
     """
-    colors.populate_colors()
     parser = Parser(colors.cyan.get(__name__.split(".")[0]))
     environ.env.store["PROJECT_DIR"] = parser.args.path
     environ.env.update(
