@@ -1,4 +1,4 @@
-PyAud
+pyaud
 =====
 .. image:: https://github.com/jshwi/pyaud/workflows/build/badge.svg
     :target: https://github.com/jshwi/pyaud/workflows/build/badge.svg
@@ -24,6 +24,39 @@ PyAud
 
 Automate quality-check of Python package with bundled utils
 
+Configuration of settings can be made with the following ini syntax file:
+    | ~/.config/pyaud/pyaud.ini
+
+Default environment variables:
+
+or environment variables (overriding in this order)
+
+.. code-block:: shell
+
+    WHITELIST       = "whitelist.py"
+    COVERAGE_XML    = "coverage.xml"
+    REQUIREMENTS    = "requirements.txt"
+    DOCS_BUILD      = "docs/_build"
+    GH_NAME         = ""
+    GH_EMAIL        = ""
+    GH_TOKEN        = ""
+    GH_REMOTE       = ""
+    CODECOV_TOKEN   = ""
+
+Environment variables should be placed in an .env file in project root:
+
+Example config:
+
+.. code-block:: ini
+
+    [CLEAN]
+    exclude = *.egg*,
+              .env,
+              instance,
+              .coverage
+
+Commandline arguments:
+
 .. code-block:: console
 
     usage: pyaud [-h] [-c] [-d] [-s] [-v] [--path PATH] MODULE
@@ -38,8 +71,7 @@ Automate quality-check of Python package with bundled utils
       -s, --suppress  continue without stopping for errors
       -v, --verbose   incrementally increase logging verbosity
       --path PATH     set alternative path to present working dir
-    ---------------------------------------------------------------------------
-
+    ------------------------------------------------------------------------
     audit                   Run all checks
     clean                   Remove all unversioned files unless excluded
     coverage                Run ``pytest`` with ``coverage``
@@ -58,4 +90,5 @@ Automate quality-check of Python package with bundled utils
     typecheck               Inspect files for type errors with ``mypy``
     unused                  Inspect files for unused code with ``vulture``
     whitelist               Update ``vulture`` whitelist.py
-..
+
+*The word `function` and `module` are used interchangeably in this package*
