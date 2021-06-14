@@ -348,38 +348,35 @@ class HashCap:
 
 
 class LineSwitch:
-    """Take the ``path`` and ``replace`` argument from the commandline
-    and reformat the README whilst returning the original title to
-    the parent process.
+    """Take the ``path`` and ``replace`` argument from the commandline.
 
-    :param file:    File to manipulate.
-    :param lines:   Dictionary of line number's as key and replacement
+    Reformat the README whilst returning the original title to the
+    parent process.
+
+    :param path:    File to manipulate.
+    :param obj:     Dictionary of line number's as key and replacement
                     strings as values.
     """
 
     def __init__(
-        self, file: Union[bytes, str, os.PathLike], lines: Dict[int, str]
+        self, path: Union[bytes, str, os.PathLike], obj: Dict[int, str]
     ) -> None:
-        self.file = file
-        self.lines = lines
-        with open(self.file) as fin:
-            self.readlines = fin.read().splitlines()
-
-        self.store = self.readlines.copy()
-
-    def _write_file(self, fin: List[str]) -> None:
-        with open(self.file, "w") as file:
-            for line in fin:
-                file.write(line + "\n")
+        self._path = path
+        self._obj = obj
+        with open(path) as fin:
+            self.read = fin.read()
 
     def __enter__(self) -> None:
-        for key, value in self.lines.items():
-            self.readlines[key] = value
+        with open(self._path, "w") as file:
+            for count, line in enumerate(self.read.splitlines()):
+                if count in self._obj:
+                    line = self._obj[count]
 
-        self._write_file(self.readlines)
+                file.write(f"{line}\n")
 
-    def __exit__(self, exc_type: str, exc_val: str, exc_tb: str) -> None:
-        self._write_file(self.store)
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        with open(self._path, "w") as file:
+            file.write(self.read)
 
 
 class PyaudSubprocessError(subprocess.CalledProcessError):
