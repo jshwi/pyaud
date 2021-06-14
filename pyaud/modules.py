@@ -33,11 +33,10 @@ from .utils import (
 )
 
 
-def make_clean(**kwargs: bool) -> int:
+def make_clean(**kwargs: bool) -> None:
     """Remove all unversioned package files recursively.
 
     :param kwargs:  Additional keyword arguments for ``git clean``.
-    :return:        Exit status.
     """
     exclude = toml["clean"]["exclude"]
     return git.clean(  # type: ignore
@@ -45,27 +44,24 @@ def make_clean(**kwargs: bool) -> int:
     )
 
 
-def make_coverage(**kwargs: bool) -> int:
+def make_coverage(**kwargs: bool) -> None:
     """Run package unit-tests with ``pytest`` and ``coverage``.
 
     :param kwargs:  Pass keyword arguments to ``pytest`` and ``call``.
-    :return:        Exit status.
     """
     coverage = Subprocess("coverage")
     returncode = make_tests(*[f"--cov={e}" for e in tree.reduce()], **kwargs)
     if not returncode:
         with TempEnvVar(kwargs, suppress=True):
-            return coverage.call("xml", **kwargs)
+            coverage.call("xml", **kwargs)
+    else:
+        print("No coverage to report")
 
-    print("No coverage to report")
-    return 0
 
-
-def make_deploy(**kwargs: bool) -> int:
+def make_deploy(**kwargs: bool) -> None:
     """Deploy package documentation and test coverage.
 
-    :param kwargs:  Keyword arguments for ``deploy_module``.
-    :return:        Exit status.
+    :param kwargs: Keyword arguments for ``deploy_module``.
     """
 
     deploy_modules = [make_deploy_cov, make_deploy_docs]
@@ -77,14 +73,10 @@ def make_deploy(**kwargs: bool) -> int:
                 )
             )
         )
-        returncode = deploy_module(**kwargs)
-        if returncode:
-            return returncode
-
-    return 0
+        deploy_module(**kwargs)
 
 
-def make_deploy_cov(**kwargs: bool) -> int:
+def make_deploy_cov(**kwargs: bool) -> None:
     """Upload coverage data to ``Codecov``.
 
     If no file exists otherwise announce that no file has been created
@@ -92,23 +84,20 @@ def make_deploy_cov(**kwargs: bool) -> int:
     or defined in ``.env`` announce that no authorization token has been
     created yet.
 
-    :param kwargs:  Pass keyword arguments to ``call``.
-    :return:        Exit status.
+    :param kwargs: Pass keyword arguments to ``call``.
     """
     codecov = Subprocess("codecov")
     coverage_xml = Path.cwd() / os.environ["PYAUD_COVERAGE_XML"]
     if coverage_xml.is_file():
         if os.environ["CODECOV_TOKEN"] != "":
-            return codecov.call("--file", coverage_xml, **kwargs)
-
-        print("CODECOV_TOKEN not set")
+            codecov.call("--file", Path.cwd() / coverage_xml, **kwargs)
+        else:
+            print("CODECOV_TOKEN not set")
     else:
         print("No coverage report found")
 
-    return 0
 
-
-def make_deploy_docs(**kwargs: bool) -> int:
+def make_deploy_docs(**kwargs: bool) -> None:
     """Deploy package documentation to ``gh-pages``.
 
     Check that the branch is being pushed as master (or other branch
@@ -116,8 +105,7 @@ def make_deploy_docs(**kwargs: bool) -> int:
     ``gh-pages`` to the orphaned branch - otherwise do nothing and
     announce.
 
-    :param kwargs:  Pass keyword arguments to ``make_docs``.
-    :return:        Exit status.
+    :param kwargs: Pass keyword arguments to ``make_docs``.
     """
     if get_branch() == "master":
         git_credentials = ["PYAUD_GH_NAME", "PYAUD_GH_EMAIL", "PYAUD_GH_TOKEN"]
@@ -137,8 +125,6 @@ def make_deploy_docs(**kwargs: bool) -> int:
     else:
         colors.green.print("Documentation not for master")
         print("Pushing skipped")
-
-    return 0
 
 
 def make_docs(**kwargs: bool) -> None:
@@ -169,7 +155,7 @@ def make_docs(**kwargs: bool) -> None:
         print("No docs found")
 
 
-def make_files(**kwargs: bool) -> int:
+def make_files(**kwargs: bool) -> None:
     """Audit project data files.
 
     Make ``docs/<APPNAME>.rst``, ``whitelist.py``, and
@@ -180,11 +166,7 @@ def make_files(**kwargs: bool) -> int:
     :return:        Exit status.
     """
     for func in (make_requirements, make_toc, make_whitelist):
-        returncode = func(**kwargs)
-        if returncode:
-            return returncode
-
-    return 0
+        func(**kwargs)
 
 
 @check_command
@@ -222,12 +204,11 @@ def make_lint(**kwargs: bool) -> int:
 
 
 @write_command("PYAUD_REQUIREMENTS", required="PYAUD_PIPFILE_LOCK")
-def make_requirements(**kwargs: bool) -> int:
+def make_requirements(**kwargs: bool) -> None:
     """Audit requirements.txt with Pipfile.lock.
 
     :param kwargs:  Pass keyword arguments to ``call``.
     :key fix:       Do not raise error - fix problem instead.
-    :return:        Exit status.
     """
     # get the stdout for both production and development packages
     pipfile_lock_path = Path.cwd() / PIPFILE_LOCK
@@ -245,8 +226,6 @@ def make_requirements(**kwargs: bool) -> int:
     with open(requirements_path, "w") as fout:
         for content in stdout:
             fout.write(f"{content.split(';')[0]}\n")
-
-    return 0
 
 
 def make_tests(*args: str, **kwargs: bool) -> int:
@@ -273,7 +252,7 @@ def make_tests(*args: str, **kwargs: bool) -> int:
 
 
 @write_command("PYAUD_TOC", required="PYAUD_DOCS")
-def make_toc(**kwargs: bool) -> int:
+def make_toc(**kwargs: bool) -> None:
     """Audit docs/<NAME>.rst toc-file.
 
     :param kwargs:  Pass keyword arguments to ``call``.
@@ -308,8 +287,6 @@ def make_toc(**kwargs: bool) -> int:
         for module in modules:
             if module.is_file():
                 os.remove(module)
-
-    return 0
 
 
 @check_command
@@ -348,7 +325,8 @@ def make_unused(**kwargs: bool) -> int:
 
         except CalledProcessError as err:
             if kwargs.get("fix", False):
-                return make_whitelist(**kwargs)
+                make_whitelist(**kwargs)
+                return 0
 
             raise PyAuditError(
                 f"{vulture} {tuple([str(i) for i in args])}"
@@ -356,7 +334,7 @@ def make_unused(**kwargs: bool) -> int:
 
 
 @write_command("PYAUD_WHITELIST")
-def make_whitelist(**kwargs: bool) -> int:
+def make_whitelist(**kwargs: bool) -> None:
     """Check whitelist.py file with ``vulture``.
 
     This will consider all unused code an exception so resolve code that
@@ -381,8 +359,6 @@ def make_whitelist(**kwargs: bool) -> int:
     with open(Path.cwd() / os.environ["PYAUD_WHITELIST"], "w") as fout:
         for line in stdout:
             fout.write(f"{line.replace(str(Path.cwd()) + os.sep, '')}\n")
-
-    return 0
 
 
 @check_command

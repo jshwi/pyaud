@@ -396,21 +396,8 @@ def test_make_docs_rm_cache(
     assert freeze_docs_build != builddir.iterdir()
 
 
-@pytest.mark.parametrize(
-    "returncode,expected",
-    [
-        (0, "make_requirements\nmake_toc\nmake_whitelist\n"),
-        (1, "make_requirements\n"),
-    ],
-    ids=["success", "fail"],
-)
 def test_make_files(
-    monkeypatch: Any,
-    call_status: Any,
-    nocolorcapsys: Any,
-    track_called: Any,
-    returncode: int,
-    expected: str,
+    monkeypatch: Any, call_status: Any, nocolorcapsys: Any, track_called: Any
 ) -> None:
     """Test correct commands are executed when running ``make_files``.
 
@@ -418,19 +405,17 @@ def test_make_files(
     :param call_status:     Patch function to return specific exit-code.
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
-    :param track_called:    Decorate a mocked function to print what was
-                            called.
-    :param returncode:      Returncode to patch function with.
-    :param expected:        Expected output.
     """
     file_funcs = "make_toc", "make_whitelist", "make_requirements"
     for file_func in file_funcs:
         monkeypatch.setattr(
-            f"pyaud.modules.{file_func}",
-            track_called(call_status(file_func, returncode)),
+            f"pyaud.modules.{file_func}", track_called(call_status(file_func))
         )
     pyaud.modules.make_files()
-    assert nocolorcapsys.stdout() == expected
+    assert (
+        nocolorcapsys.stdout()
+        == "make_requirements\nmake_toc\nmake_whitelist\n"
+    )
 
 
 def test_make_format() -> None:

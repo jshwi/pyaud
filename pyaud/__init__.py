@@ -173,7 +173,7 @@ class _Parser(ArgumentParser):
         return self._returncode
 
 
-def audit(**kwargs: bool) -> int:
+def audit(**kwargs: bool) -> None:
     """Run all modules for complete package audit.
 
     :param kwargs:  Pass keyword arguments to audit submodule.
@@ -195,8 +195,6 @@ def audit(**kwargs: bool) -> int:
     for func in funcs:
         utils.colors.cyan.bold.print(f"\n{__name__} {func}")
         MODULES[func](**kwargs)
-
-    return 0
 
 
 def main() -> None:
