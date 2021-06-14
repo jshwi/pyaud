@@ -5,6 +5,7 @@ pyaud.src.modules
 import os
 import pathlib
 import shutil
+import subprocess
 from typing import Any, Callable, List, Union
 
 from . import (
@@ -239,19 +240,14 @@ def make_format(**kwargs: Union[bool, str]) -> int:
     """
     black = Subprocess("black", loglevel="debug")
     args = pyitems.items
-    black.call(*args, **kwargs)
-    blacklogs = os.path.join(
-        environ.env["LOG_DIR"], environ.env["PKG"] + ".log"
-    )
-    with open(blacklogs) as fin:
-        if (
-            "reformatted" in fin.read().splitlines()[-1]
-            and not environ.env["SUPPRESS"]
-        ):
-            command = black.exe + " " + " ".join([str(s) for s in args])
-            raise PyaudSubprocessError(1, command)
+    try:
+        return black.call("--check", *args, **kwargs)
 
-    return 0
+    except subprocess.CalledProcessError as err:
+        black.call(*args, **kwargs)
+        raise PyaudSubprocessError(
+            1, f"{black} {' '.join([str(s) for s in args])}"
+        ) from err
 
 
 @check_command

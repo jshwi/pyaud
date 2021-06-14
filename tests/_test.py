@@ -587,35 +587,18 @@ def test_make_files(
     assert nocolorcapsys.stdout() == expected
 
 
-@pytest.mark.usefixtures("make_python_file")
-@pytest.mark.parametrize(
-    "assert_error", [False, True], ids=["success", "fail"]
-)
-def test_make_format(patch_sp_call, assert_error, nocolorcapsys):
-    """Test ``make_format`` when successful and when it fails. Ensure
-    process fails when "reformatted" is found in the ``black`` log as
-    ``Black`` does not return a non-zero exit code for a format but in
-    this instance we want it to fail in accordance with all the other
-    processes.
-
-    :param patch_sp_call:   Patch ``pyaud.Subprocess.call``.
-    :param assert_error:    Assert error was raised: True or False.
-    :param nocolorcapsys:   ``capsys`` without ANSI color codes.
-    """
-    pyaud.pyitems.get_files()
-    patch_sp_call(0)
-    if assert_error:
-        blacklogs = os.path.join(
-            pyaud.environ.env["LOG_DIR"], pyaud.environ.env["PKG"] + ".log"
+def test_make_format() -> None:
+    """Test ``make_format`` when successful and when it fails."""
+    file = os.path.join(pyaud.environ.env["PROJECT_DIR"], FILES)
+    with open(file, "w") as fout:
+        fout.write(
+            "def reformat_this() -> None:\n"
+            "   print('black will make sure this is double quoted')\n"
         )
-        with open(blacklogs, "w") as fout:
-            fout.write("reformatted")
 
-        with pytest.raises(pyaud.PyaudSubprocessError):
-            pyaud.modules.make_format()
-    else:
+    pyaud.pyitems.get_files()
+    with pytest.raises(pyaud.PyaudSubprocessError):
         pyaud.modules.make_format()
-        nocolorcapsys.readouterr()
 
 
 @pytest.mark.usefixtures("make_python_file")
