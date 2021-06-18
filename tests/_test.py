@@ -34,10 +34,9 @@ def test_no_files_found(nocolorcapsys):
     "module,expected",
     [
         ("make_unused", "Success: no issues found in 2 source files"),
-        ("make_tests", "Success: no issues found in 20 tests"),
-        ("make_docs", "Build successful"),
+        ("make_tests", "Success: no issues found in 2 source files"),
     ],
-    ids=["files", "tests", "build"],
+    ids=["files", "tests"],
 )
 def test_success_output(
     nocolorcapsys,
@@ -58,7 +57,6 @@ def test_success_output(
     :param call_status:         Patch function to return specific
                                 exit-code.
     :param module:              Function to test.
-    :param expected:            Expected function output
     """
     Path(pyaud.environ.env["PROJECT_DIR"], FILES).touch()
     make_project_tree.docs_conf()
@@ -929,13 +927,6 @@ def test_readme_replace():
         _test_file_index(readme, readme_underline)
 
     _test_file_index(repo, repo_underline)
-
-
-@pytest.mark.usefixtures("make_test_file")
-def test_test_quantity():
-    """Test that the right amount of tests are recorded."""
-    test_total = pyaud.utils.tally_tests()
-    assert test_total == 20
 
 
 @pytest.mark.parametrize(

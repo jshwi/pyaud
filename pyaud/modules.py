@@ -186,8 +186,7 @@ def make_deploy_docs(**kwargs: Union[bool, str]) -> int:
     return 0
 
 
-@check_command
-def make_docs(**kwargs: Union[bool, str]) -> int:
+def make_docs(**kwargs: Union[bool, str]) -> None:
     """Replace the title of ``README.rst`` with ``README`` so the
     hyperlink isn't exactly the same as the package documentation. Build
     the ``Sphinx`` html documentation. Return the README's title to what
@@ -204,9 +203,13 @@ def make_docs(**kwargs: Union[bool, str]) -> int:
         shutil.rmtree(env["DOCS_BUILD"])
 
     sphinx_build = Subprocess("sphinx-build")
-    with LineSwitch(env["README_RST"], {0: readme_rst, 1: underline}):
-        command = ["-M", "html", env["DOCS"], env["DOCS_BUILD"], "-W"]
-        return sphinx_build.call(*command, **kwargs)
+    if os.path.isdir(env["DOCS"]):
+        with LineSwitch(env["README_RST"], {0: readme_rst, 1: underline}):
+            command = ["-M", "html", env["DOCS"], env["DOCS_BUILD"], "-W"]
+            sphinx_build.call(*command, **kwargs)
+            colors.green.bold.print("Build successful")
+    else:
+        print("No docs found")
 
 
 def make_files(**kwargs: Union[bool, str]) -> int:

@@ -378,7 +378,7 @@ class PyaudSubprocessError(CalledProcessError):
     """
 
 
-def check_command(func: Callable[..., int]) -> Callable[..., int]:
+def check_command(func: Callable[..., int]) -> Callable[..., None]:
     """Run the routine common with all functions checking files in this
     package.
 
@@ -386,36 +386,22 @@ def check_command(func: Callable[..., int]) -> Callable[..., int]:
     """
 
     @functools.wraps(func)
-    def _wrapper(**kwargs):
-        if func.__name__ == "make_docs":
-            _requires = os.path.isfile(env["DOCS_CONF"])
-            success = "Build successful"
-            _type = "docs"
+    def _wrapper(**kwargs: bool) -> None:
+        if not pyitems.items:
+            print("No files found")
         else:
-            _requires = [str(f) for f in pyitems.items if os.path.exists(f)]
-            success = "Success: no issues found in "
-            _type = "files"
-            if func.__name__ in ("make_tests", "make_coverage"):
-                success += f"{tally_tests()} tests"
-            else:
-                success += "{} source files".format(len(pyitems.files))
-
-        if _requires:
             returncode = func(**kwargs)
             if returncode:
-                print(
-                    colors.red.bold.get(
-                        f"Failed: returned non-zero exit status {returncode}"
-                    ),
+                colors.red.bold.print(
+                    f"Failed: returned non-zero exit status {returncode}",
                     file=sys.stderr,
                 )
             else:
-
-                colors.green.bold.print(success)
-        else:
-            print(f"No {_type} found")
-
-        return 0
+                colors.green.bold.print(
+                    "Success: no issues found in {} source files".format(
+                        len(pyitems.files)
+                    )
+                )
 
     return _wrapper
 
@@ -519,19 +505,6 @@ class EnterDir:
 
     def __exit__(self, _, value, __):
         os.chdir(self.saved_path)
-
-
-def tally_tests() -> int:
-    """Count the number of tests in a testing suite.
-
-    :return: Number of tests in suite.
-    """
-    total = []
-    for path in Path(os.environ["PROJECT_DIR"]).rglob("tests/*"):
-        with open(path) as fin:
-            total.extend(fin.read().splitlines())
-
-    return len([i for i in total if i.startswith("def test_")])
 
 
 def deploy_docs(url: Union[bool, str]) -> None:
