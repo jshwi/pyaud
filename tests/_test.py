@@ -9,6 +9,7 @@ import datetime
 import logging
 import logging.config as logging_config
 import os
+import random
 from pathlib import Path
 from subprocess import CalledProcessError
 from typing import Any, Dict, List, Tuple
@@ -242,7 +243,7 @@ def test_suppress(
     make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
     pyaud.utils.tree.append(Path.cwd() / FILES)
     mocked_modules = copy.deepcopy(pyaud.MODULES)
-    audit_modules = pyaud.AUDIT_ARGS
+    audit_modules = pyaud.config.DEFAULT_CONFIG["audit"]["modules"]
     for audit_module in audit_modules:
         mocked_modules[audit_module] = pyaud.utils.check_command(
             call_status(f"make_{audit_module}", 1)
@@ -306,7 +307,7 @@ def test_audit_modules(
     :param last:            Expected last function executed.
     """
     mocked_modules = copy.deepcopy(pyaud.MODULES)
-    modules = list(pyaud.AUDIT_ARGS)
+    modules = list(pyaud.config.DEFAULT_CONFIG["audit"]["modules"])
     modules.extend(add)
     for module in modules:
         mocked_modules[module] = call_status(f"make_{module}")
@@ -1271,7 +1272,7 @@ def test_make_format_success(
     "arg,index,expected",
     [
         ("", 0, pyaud.MODULES.keys()),
-        ("audit", 0, ("audit -- Run all modules for complete package audit",)),
+        ("audit", 0, ("audit -- Read from [audit] key in config",)),
         ("all", 0, pyaud.MODULES.keys()),
         ("not-a-module", 1, ("No such module: not-a-module",)),
     ],
@@ -1813,3 +1814,33 @@ def test_format_str_fix(main: Any, nocolorcapsys: Any) -> None:
     nocolorcapsys.stdout()
     with open(Path.cwd() / FILES) as fin:
         assert fin.read() == files.FORMAT_STR_FUNCS_POST
+
+
+def test_custom_modules(
+    monkeypatch: Any, nocolorcapsys: Any, main: Any, call_status: Any
+) -> None:
+    """Test the ``custom`` arg runs what is configured in toml file.
+
+    :param monkeypatch:     Mock patch environment and attributes.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    :param main:            Patch package entry point.
+    :param call_status:     Patch function to not do anything.
+                            Optionally returns non-zero exit code (0 by
+                            default).
+    """
+    mocked_modules = copy.deepcopy(pyaud.MODULES)
+    modules = list(pyaud.config.DEFAULT_CONFIG["audit"]["modules"])
+    random.shuffle(modules)
+    pyaud.config.toml["audit"]["modules"] = modules
+    for module in modules:
+        mocked_modules[module] = call_status(f"make_{module}")
+
+    monkeypatch.setattr("pyaud.MODULES", mocked_modules)
+
+    # make ``load_config`` do nothing so it does not override the toml
+    # config above
+    monkeypatch.setattr("pyaud.config.load_config", lambda *_: None)
+    main("audit")
+    out = [i for i in nocolorcapsys.stdout().splitlines() if i != ""]
+    assert out == [f"pyaud {i}" for i in modules]

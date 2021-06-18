@@ -7,7 +7,6 @@ import inspect
 import json
 import sys
 from argparse import SUPPRESS, ArgumentParser
-from typing import Any, Dict
 
 from . import config, environ, modules, utils
 
@@ -18,19 +17,6 @@ MODULES = {
     for k, v in inspect.getmembers(modules, inspect.isfunction)
     if k.startswith("make_")
 }
-AUDIT_ARGS = (
-    "format",
-    "format-str",
-    "format-docs",
-    "format-str",
-    "imports",
-    "typecheck",
-    "unused",
-    "lint",
-    "coverage",
-    "readme",
-    "docs",
-)
 
 
 class _Parser(ArgumentParser):
@@ -50,7 +36,7 @@ class _Parser(ArgumentParser):
 
     def __init__(self, prog: str) -> None:
         super().__init__(prog=prog)
-        self._modules: Dict[str, Any] = dict(MODULES)
+        self._modules = dict(MODULES)
         self._returncode = 0
         self._add_arguments()
         self.args = self.parse_args()
@@ -174,7 +160,7 @@ class _Parser(ArgumentParser):
 
 
 def audit(**kwargs: bool) -> None:
-    """Run all modules for complete package audit.
+    """Read from [audit] key in config.
 
     :param kwargs:  Pass keyword arguments to audit submodule.
     :key clean:     Insert clean module to the beginning of module list
@@ -185,7 +171,7 @@ def audit(**kwargs: bool) -> None:
                     audit.
     :return:        Exit status.
     """
-    funcs = list(AUDIT_ARGS)
+    funcs = config.toml["audit"]["modules"]
     if kwargs.get("clean", False):
         funcs.insert(0, "clean")
 
@@ -193,8 +179,9 @@ def audit(**kwargs: bool) -> None:
         funcs.append("deploy")
 
     for func in funcs:
-        utils.colors.cyan.bold.print(f"\n{__name__} {func}")
-        MODULES[func](**kwargs)
+        if func in MODULES:
+            utils.colors.cyan.bold.print(f"\n{__name__} {func}")
+            MODULES[func](**kwargs)
 
 
 def main() -> None:

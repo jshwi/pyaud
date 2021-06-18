@@ -64,6 +64,20 @@ Example config:
     [indexing]
     exclude = ["whitelist.py", "conf.py", "setup.py"]
 
+    [audit]
+    modules = [
+        "format",
+        "format-docs",
+        "format-str",
+        "imports",
+        "typecheck",
+        "unused",
+        "lint",
+        "coverage",
+        "readme",
+        "docs",
+    ]
+
     [logging.root]
     level = "INFO"
     handlers = ["default"]
@@ -103,7 +117,7 @@ Commandline arguments:
       -v, --verbose    incrementally increase logging verbosity
       --rcfile RCFILE  select file to override config hierarchy
     ------------------------------------------------------------------------
-    audit           -- Run all modules for complete package audit
+    audit           -- Read from [audit] key in config
     clean           -- Remove all unversioned package files recursively
     coverage        -- Run package unit-tests with `pytest` and `coverage`
     deploy          -- Deploy package documentation and test coverage

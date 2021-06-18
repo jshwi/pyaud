@@ -8,6 +8,19 @@ disable_existing_loggers = true
 [indexing]
 exclude = ["whitelist.py", "conf.py", "setup.py"]
 
+[audit]
+modules = [
+    "format", 
+    "format-docs", 
+    "imports", 
+    "typecheck", 
+    "unused", 
+    "lint", 
+    "coverage", 
+    "readme", 
+    "docs", 
+]
+
 [logging.root]
 level = "DEBUG"
 handlers = ["default"]

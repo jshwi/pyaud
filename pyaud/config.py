@@ -53,6 +53,20 @@ DEFAULT_CONFIG: Dict[str, Any] = dict(
         "root": {"level": "INFO", "handlers": ["default"], "propagate": False},
     },
     indexing={"exclude": ["whitelist.py", "conf.py", "setup.py"]},
+    audit={
+        "modules": [
+            "format",
+            "format-docs",
+            "format-str",
+            "imports",
+            "typecheck",
+            "unused",
+            "lint",
+            "coverage",
+            "readme",
+            "docs",
+        ]
+    },
 )
 
 
