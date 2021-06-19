@@ -7,48 +7,6 @@ Content to write to mock files.
 # pylint: disable=too-many-lines
 
 README_RST = """repo\n====\n"""
-DOCS_CONF = """
-import sys
-sys.path.append('..')
-import repo
-project = "repo"
-author = "John Doe"
-email = "john@foobar.com"
-maintainer = "John Doe"
-maintainer_email = "john@foobar.com"
-license = "MIT"
-release = "1.0.0"
-copyright = "2021, John Doe"
-extensions = [
-    "sphinx.ext.todo",
-    "sphinx.ext.viewcode",
-    "sphinx.ext.autodoc",
-    "sphinx.ext.imgmath",
-    "sphinx.ext.doctest",
-    "sphinxcontrib.programoutput",
-    "sphinx.ext.githubpages",
-    "sphinxcontrib.fulltoc",
-]
-templates_path = ["_templates"]
-source_suffix = ".rst"
-master_doc = "index"
-language = None
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-pygments_style = "monokai"
-html_domain_indices = True
-html_use_index = True
-html_show_sourcelink = True
-html_show_sphinx = False
-html_theme_path = ["_themes"]
-html_sidebars = {"**": ["globaltoc.html", "searchbox.html"]}
-todo_include_todos = True
-autoclass_content = "both"
-autodoc_member_order = "bysource"
-autodoc_default_options = {"members": None}
-logo = "_static/icon.png"
-add_function_parentheses = True
-add_module_names = True
-"""
 INDEX_RST = """
 Repo
 ====
@@ -69,53 +27,6 @@ The source code is available `here <https://github.com/johndoe/repo>`_
 * :ref:`genindex`
 
 This documentation was last updated on |today|
-"""
-README_TOC = """
-.. include:: ../README.rst
-"""
-REPO_TOC = """
-repo
-====
-
-.. automodule:: repo
-    :members:
-    :undoc-members:
-    :show-inheritance:
-"""
-PIPFILE = """
-[[source]]
-name = "pypi"
-url = "https://pypi.org/simple"
-verify_ssl = true
-
-[dev-packages]
-ipython = "==7.19.0"
-prompt-toolkit = "==3.0.13"
-pyaud = {editable = true, path = "."}
-restview = "==2.9.2"
-
-[packages]
-appdirs = "==1.4.4"
-black = "==20.8b1"
-codecov = "==2.1.11"
-coverage = {extras = ["toml"], version = "==5.3.1"}
-mypy = "==0.800"
-object-colors = "==1.0.8"
-pipfile-requirements = "==0.3.0"
-pyblake2 = "==1.1.2"
-pylint = "==2.6.0"
-pytest = "==6.2.1"
-pytest-cov = "==2.11.1"
-pytest-profiling = "==1.7.0"
-pytest-randomly = "==3.5.0"
-pytest-sugar = "==0.9.4"
-sphinx = "==3.4.3"
-sphinxcontrib-fulltoc = "==1.2.0"
-sphinxcontrib-programoutput = "==0.16"
-vulture = "==2.3"
-
-[requires]
-python_version = "3.8"
 """
 PIPFILE_LOCK = """{
 {
