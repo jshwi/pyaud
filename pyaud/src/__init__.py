@@ -91,7 +91,8 @@ class PythonItems:
         for glob_path in pathlib.Path(environ.env["PROJECT_DIR"]).rglob(
             "*.py"
         ):
-            self.files.append(str(glob_path))
+            if glob_path.name not in self.exclude:
+                self.files.append(str(glob_path))
 
 
 pyitems = PythonItems("whitelist.py", "conf.py", "setup.py")

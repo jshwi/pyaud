@@ -32,7 +32,7 @@ def test_no_files_found(nocolorcapsys):
 @pytest.mark.parametrize(
     "module,expected",
     [
-        ("make_unused", "Success: no issues found in 1 source files"),
+        ("make_unused", "Success: no issues found in 2 source files"),
         ("make_tests", "Success: no issues found in 20 tests"),
         ("make_docs", "Build successful"),
     ],
@@ -59,8 +59,10 @@ def test_success_output(
     :param module:              Function to test.
     :param expected:            Expected function output
     """
+    pathlib.Path(pyaud.environ.env["PROJECT_DIR"], FILES).touch()
     make_project_tree.docs_conf()
     pyaud.pyitems.get_files()
+    pyaud.pyitems.get_file_paths()
     monkeypatch.setattr(
         pyaud.modules, module, pyaud.check_command(call_status(module))
     )
