@@ -1,6 +1,6 @@
 """
-pyaud.src
-==========
+pyaud.utils
+===========
 
 Shared classes and functions.
 """

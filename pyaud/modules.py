@@ -1,6 +1,6 @@
 """
-pyaud.src.modules
-==================
+pyaud.modules
+==============
 """
 import os
 import shutil
@@ -8,7 +8,9 @@ from pathlib import Path
 from subprocess import CalledProcessError
 from typing import Any, Callable, List, Union
 
-from . import (
+from .config import ConfigParser
+from .environ import NAME, TempEnvVar, env
+from .utils import (
     EnterDir,
     Git,
     HashCap,
@@ -21,8 +23,6 @@ from . import (
     pyitems,
     write_command,
 )
-from .config import ConfigParser
-from .environ import NAME, TempEnvVar, env
 
 
 def make_audit(**kwargs: Union[bool, str]) -> int:

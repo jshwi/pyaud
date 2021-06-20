@@ -1,6 +1,6 @@
 """
-pyaud.src.config
-=================
+pyaud.config
+=============
 
 Config module for ini parsing.
 """

@@ -1,6 +1,6 @@
 """
-pyaud.src.environ
-==================
+pyaud.environ
+==============
 
 Set up the environment variables for the current project.
 """

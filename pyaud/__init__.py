@@ -11,24 +11,7 @@ import sys
 from argparse import SUPPRESS, ArgumentParser
 from typing import Any, Callable, Dict, Optional
 
-from .src import (
-    EnterDir,
-    Git,
-    HashCap,
-    LineSwitch,
-    PyaudSubprocessError,
-    Subprocess,
-    check_command,
-    colors,
-    config,
-    environ,
-    get_branch,
-    get_logger,
-    modules,
-    pyitems,
-    tally_tests,
-    write_command,
-)
+from . import config, environ, modules, utils
 
 __version__ = "1.3.0"
 
@@ -106,7 +89,7 @@ class Parser(ArgumentParser):
         )
 
     def _list_modules(self) -> None:
-        colors.yellow.print(
+        utils.colors.yellow.print(
             f"``{__name__} modules MODULE`` for more on each module or "
             f"``{__name__} modules all``"
         )
@@ -146,11 +129,13 @@ class Parser(ArgumentParser):
         if funcs:
             for key, value in funcs.items():
                 print()
-                colors.cyan.bold.print(f"pyaud {key}")
+                utils.colors.cyan.bold.print(f"pyaud {key}")
                 print(self._get_docs(value))
         else:
             with contextlib.redirect_stdout(sys.stderr):
-                colors.red.print(f"No such module: ``{self.args.positional}``")
+                utils.colors.red.print(
+                    f"No such module: ``{self.args.positional}``"
+                )
                 self._list_modules()
                 sys.exit(1)
 
@@ -183,7 +168,7 @@ def main() -> None:
     selected choice from the dictionary of functions which matches the
     key.
     """
-    parser = Parser(colors.cyan.get(__name__))
+    parser = Parser(utils.colors.cyan.get(__name__))
     environ.env.store["PROJECT_DIR"] = parser.args.path
     environ.env.update(
         dict(
@@ -195,30 +180,9 @@ def main() -> None:
     )
     environ.load_namespace()
     parser.set_loglevel()
-    pyitems.get_files()
-    pyitems.exclude_virtualenv()
-    pyitems.exclude_unversioned()
-    pyitems.get_file_paths()
-    environ.env["BRANCH"] = get_branch()
+    utils.pyitems.get_files()
+    utils.pyitems.exclude_virtualenv()
+    utils.pyitems.exclude_unversioned()
+    utils.pyitems.get_file_paths()
+    environ.env["BRANCH"] = utils.get_branch()
     MODULES[parser.args.module]()
-
-
-__all__ = [
-    "EnterDir",
-    "Git",
-    "HashCap",
-    "LineSwitch",
-    "PyaudSubprocessError",
-    "Subprocess",
-    "check_command",
-    "colors",
-    "config",
-    "environ",
-    "get_branch",
-    "get_logger",
-    "main",
-    "modules",
-    "pyitems",
-    "tally_tests",
-    "write_command",
-]

@@ -71,7 +71,7 @@ def fixture_test_logging():
     """Log environment variables to debug log."""
 
     def _logging():
-        logger = pyaud.get_logger("environ.env")
+        logger = pyaud.utils.get_logger("environ.env")
         logger.debug(pyaud.environ.env)
 
     return _logging
@@ -152,9 +152,9 @@ def fixture_mock_environment(  # pylint: disable=too-many-arguments
         if is_env_path_var(key, str(value)):
             monkeypatch.setenv(key, str(value))
 
-    monkeypatch.setenv("PYAUD_TEST_BRANCH", str(pyaud.get_branch()))
+    monkeypatch.setenv("PYAUD_TEST_BRANCH", str(pyaud.utils.get_branch()))
     validate_env()
-    pyaud.pyitems.get_files()
+    pyaud.utils.pyitems.get_files()
     test_logging()
     yield
     os.environ.clear()
@@ -164,7 +164,7 @@ def fixture_mock_environment(  # pylint: disable=too-many-arguments
 @pytest.fixture(name="set_git_creds", autouse=True)
 def fixture_set_git_creds():
     """Set git credentials."""
-    git = pyaud.Git(pyaud.environ.env["PROJECT_DIR"])
+    git = pyaud.utils.Git(pyaud.environ.env["PROJECT_DIR"])
     git.config("--global", "user.email", os.environ["PYAUD_TEST_GH_EMAIL"])
     git.config("--global", "user.name", os.environ["PYAUD_TEST_GH_NAME"])
 
@@ -181,12 +181,12 @@ def fixture_init_test_repo():
     """
 
     def _init_test_repo():
-        with pyaud.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
+        with pyaud.utils.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
             git.init(devnull=True)
 
         Path(pyaud.environ.env["README_RST"]).touch()
 
-        with pyaud.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
+        with pyaud.utils.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
             git.add(".")
             git.commit("-m", "Initial commit", devnull=True)
 
@@ -202,7 +202,7 @@ def fixture_mock_remote_origin(tmpdir):
                     returning a temporary directory.
     """
     remote_origin = os.path.join(tmpdir, "origin.git")
-    with pyaud.Git(remote_origin) as git:
+    with pyaud.utils.Git(remote_origin) as git:
         git.init("--bare", ".", devnull=True)
 
     return remote_origin
@@ -283,7 +283,7 @@ def fixture_call_status():
 
 @pytest.fixture(name="patch_sp_call")
 def fixture_patch_sp_call(monkeypatch):
-    """Mock ``pyaud.Subprocess.call``to print the command that is
+    """Mock ``pyaud.utils.Subprocess.call``to print the command that is
     being run.
 
     :param monkeypatch: ``pytest`` fixture for mocking attributes.
@@ -299,7 +299,7 @@ def fixture_patch_sp_call(monkeypatch):
 
             return returncode
 
-        monkeypatch.setattr(pyaud.Subprocess, "call", call)
+        monkeypatch.setattr(pyaud.utils.Subprocess, "call", call)
 
     return _patch_sp_call
 
@@ -316,7 +316,9 @@ def fixture_patch_sp_returncode(monkeypatch):
         def open_process(*_, **__):
             return returncode
 
-        monkeypatch.setattr(pyaud.Subprocess, "open_process", open_process)
+        monkeypatch.setattr(
+            pyaud.utils.Subprocess, "open_process", open_process
+        )
 
     return _patch_sp_wait
 
@@ -340,12 +342,12 @@ def fixture_track_called():
 
 @pytest.fixture(name="patch_sp_output")
 def fixture_patch_sp_output():
-    """Patch ``pyaud.Subprocess`` to return test strings to
+    """Patch ``pyaud.utils.Subprocess`` to return test strings to
     ``self.stdout``.
 
     :return : Function for using this fixture.
     """
-    pyaud_sp = pyaud.Subprocess
+    pyaud_sp = pyaud.utils.Subprocess
 
     def _patch_sp_output(*stdout):
         stdout = list(stdout)
@@ -458,11 +460,11 @@ def fixture_make_deploy_docs_env(init_test_repo, make_written):
         init_test_repo()
         make_written.readme()
         Path(pyaud.environ.env["PROJECT_DIR"], "emptyfile").touch()
-        with pyaud.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
+        with pyaud.utils.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
             git.add(".", devnull=True)
             git.commit("-m", "empty commit", devnull=True)
 
-        with pyaud.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
+        with pyaud.utils.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
             git.remote("add", "origin", "origin", devnull=True)
 
     return _make_deploy_env
