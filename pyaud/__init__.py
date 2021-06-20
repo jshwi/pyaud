@@ -4,11 +4,11 @@ Select module with commandline arguments.
 The word ``function`` and ``module`` are used interchangeably in this
 package.
 """
-import argparse
 import contextlib
 import inspect
 import os
 import sys
+from argparse import SUPPRESS, ArgumentParser
 from typing import Any, Callable, Dict, Optional
 
 from .src import (
@@ -39,7 +39,7 @@ MODULES = {
 }
 
 
-class Parser(argparse.ArgumentParser):
+class Parser(ArgumentParser):
     """Inherited ``argparse.ArgumentParser`` object for the package.
     Assign positional argument to ``self.module``. If there is a
     positional argument accompanying the ``modules`` argument assign it
@@ -72,9 +72,7 @@ class Parser(argparse.ArgumentParser):
             choices=self.module_list + ["modules"],
             help="choice of module: ``modules`` to list all options",
         )
-        self.add_argument(
-            "positional", nargs="?", default=None, help=argparse.SUPPRESS
-        )
+        self.add_argument("positional", nargs="?", default=None, help=SUPPRESS)
         self.add_argument(
             "-c",
             "--clean",

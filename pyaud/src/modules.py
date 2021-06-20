@@ -3,9 +3,9 @@ pyaud.src.modules
 ==================
 """
 import os
-import pathlib
 import shutil
-import subprocess
+from pathlib import Path
+from subprocess import CalledProcessError
 from typing import Any, Callable, List, Union
 
 from . import (
@@ -17,12 +17,12 @@ from . import (
     Subprocess,
     check_command,
     colors,
-    config,
     deploy_docs,
-    environ,
     pyitems,
     write_command,
 )
+from .config import ConfigParser
+from .environ import NAME, TempEnvVar, env
 
 
 def make_audit(**kwargs: Union[bool, str]) -> int:
@@ -41,18 +41,18 @@ def make_audit(**kwargs: Union[bool, str]) -> int:
         make_readme,
         make_docs,
     ]
-    if environ.env.get("CLEAN"):
+    if env.get("CLEAN"):
         audit_modules.insert(0, make_clean)
 
-    if environ.env.get("DEPLOY"):
+    if env.get("DEPLOY"):
         audit_modules.append(make_deploy)
 
     for audit_module in audit_modules:
         colors.cyan.bold.print(
             "\n{}".format(
-                audit_module.__name__.replace(
-                    "make_", f"{environ.NAME} "
-                ).replace("_", "-")
+                audit_module.__name__.replace("make_", f"{NAME} ").replace(
+                    "_", "-"
+                )
             )
         )
         audit_module(**kwargs)
@@ -66,7 +66,7 @@ def make_clean(**kwargs: Union[bool, str]) -> int:
 
     :param kwargs: Additional keyword arguments for ``git clean``.
     """
-    _config = config.ConfigParser()
+    _config = ConfigParser()
     exclude = _config.getlist("CLEAN", "exclude")
     with Git(os.environ["PROJECT_DIR"]) as git:
         return git.clean(  # type: ignore
@@ -79,7 +79,7 @@ def make_coverage(**kwargs: Union[bool, str]) -> int:
     not then install development dependencies with ``pipenv``. Run
     the package unittests with ``pytest`` and ``coverage``.
     """
-    with EnterDir(environ.env["PROJECT_DIR"]):
+    with EnterDir(env["PROJECT_DIR"]):
         coverage = Subprocess("coverage")
         args = ["--cov=" + e for e in pyitems.items if os.path.isdir(e)]
         returncode = make_tests(*args, **kwargs)
@@ -101,9 +101,9 @@ def make_deploy(**kwargs: Union[bool, str]) -> int:
     for deploy_module in deploy_modules:
         colors.cyan.bold.print(
             "\n{}".format(
-                deploy_module.__name__.replace(
-                    "make_", f"{environ.NAME} "
-                ).replace("_", "-")
+                deploy_module.__name__.replace("make_", f"{NAME} ").replace(
+                    "_", "-"
+                )
             )
         )
         returncode = deploy_module(**kwargs)
@@ -123,15 +123,15 @@ def make_deploy_cov(**kwargs: Union[bool, str]) -> int:
     :param kwargs: Additional keyword arguments for ``codecov``.
     """
     codecov = Subprocess("codecov")
-    if os.path.isfile(environ.env["COVERAGE_XML"]):
-        if environ.env["CODECOV_TOKEN"]:
+    if os.path.isfile(env["COVERAGE_XML"]):
+        if env["CODECOV_TOKEN"]:
             return codecov.call(
                 "--file",
-                environ.env["COVERAGE_XML"],
+                env["COVERAGE_XML"],
                 "--token",
-                environ.env["CODECOV_TOKEN"],
+                env["CODECOV_TOKEN"],
                 "--slug",
-                environ.env["CODECOV_SLUG"],
+                env["CODECOV_SLUG"],
                 **kwargs,
             )
 
@@ -150,25 +150,25 @@ def make_deploy_docs(**kwargs: Union[bool, str]) -> int:
 
     :key url: Remote origin URL.
     """
-    if environ.env["BRANCH"] == "master":
+    if env["BRANCH"] == "master":
         git_credentials = ["GH_NAME", "GH_EMAIL", "GH_TOKEN"]
-        null_vals = [k for k in git_credentials if environ.env[k] is None]
+        null_vals = [k for k in git_credentials if env[k] is None]
         if not null_vals:
             url = kwargs.get(
                 "url",
                 (
                     "https://"
-                    + environ.env["GH_NAME"]
+                    + env["GH_NAME"]
                     + ":"
-                    + environ.env["GH_TOKEN"]
+                    + env["GH_TOKEN"]
                     + "@github.com/"
-                    + environ.env["GH_NAME"]
+                    + env["GH_NAME"]
                     + "/"
-                    + environ.env["PKG"]
+                    + env["PKG"]
                     + ".git"
                 ),
             )
-            if not os.path.isdir(environ.env["DOCS_BUILD_HTML"]):
+            if not os.path.isdir(env["DOCS_BUILD_HTML"]):
                 make_docs(**kwargs)
 
             deploy_docs(url)
@@ -200,18 +200,12 @@ def make_docs(**kwargs: Union[bool, str]) -> int:
 
     readme_rst = "README"
     underline = len(readme_rst) * "="
-    if os.path.isdir(environ.env["DOCS_BUILD"]):
-        shutil.rmtree(environ.env["DOCS_BUILD"])
+    if os.path.isdir(env["DOCS_BUILD"]):
+        shutil.rmtree(env["DOCS_BUILD"])
 
     sphinx_build = Subprocess("sphinx-build")
-    with LineSwitch(environ.env["README_RST"], {0: readme_rst, 1: underline}):
-        command = [
-            "-M",
-            "html",
-            environ.env["DOCS"],
-            environ.env["DOCS_BUILD"],
-            "-W",
-        ]
+    with LineSwitch(env["README_RST"], {0: readme_rst, 1: underline}):
+        command = ["-M", "html", env["DOCS"], env["DOCS_BUILD"], "-W"]
         return sphinx_build.call(*command, **kwargs)
 
 
@@ -243,7 +237,7 @@ def make_format(**kwargs: Union[bool, str]) -> int:
     try:
         return black.call("--check", *args, **kwargs)
 
-    except subprocess.CalledProcessError as err:
+    except CalledProcessError as err:
         black.call(*args, **kwargs)
         raise PyaudSubprocessError(
             1, f"{black} {' '.join([str(s) for s in args])}"
@@ -257,11 +251,11 @@ def make_lint(**kwargs: Union[bool, str]) -> int:
 
     :param kwargs: Additional keyword arguments for ``pylint``.
     """
-    with environ.TempEnvVar("PYCHARM_HOSTED", "True"):
+    with TempEnvVar("PYCHARM_HOSTED", "True"):
         args = list(pyitems.items)
         pylint = Subprocess("pylint")
-        if os.path.isfile(environ.env["PYLINTRC"]):
-            args.append(f"--rcfile={environ.env['PYLINTRC']}")
+        if os.path.isfile(env["PYLINTRC"]):
+            args.append(f"--rcfile={env['PYLINTRC']}")
 
         return pylint.call("--output-format=colorized", *args, **kwargs)
 
@@ -278,10 +272,10 @@ def make_requirements(**kwargs: Union[bool, str]) -> int:
 
     # get the stdout for both production and development packages
     p2req = Subprocess("pipfile2req")
-    p2req.call(environ.env["PIPFILE_LOCK"], capture=True, **kwargs)
+    p2req.call(env["PIPFILE_LOCK"], capture=True, **kwargs)
 
     prod_stdout = p2req.stdout
-    p2req.call(environ.env["PIPFILE_LOCK"], "--dev", capture=True, **kwargs)
+    p2req.call(env["PIPFILE_LOCK"], "--dev", capture=True, **kwargs)
 
     dev_stdout = p2req.stdout
     for stdout in prod_stdout, dev_stdout:
@@ -291,7 +285,7 @@ def make_requirements(**kwargs: Union[bool, str]) -> int:
     # write to file and then use sed to remove the additional
     # information following the semi-colon
     contents.sort()
-    with open(environ.env["REQUIREMENTS"], "w") as fout:
+    with open(env["REQUIREMENTS"], "w") as fout:
         for content in contents:
             if content not in newlines:
                 newlines.append(content)
@@ -308,13 +302,11 @@ def make_tests(*args: str, **kwargs: Union[bool, str]) -> int:
     :param args:    Additional positional arguments for ``pytest``.
     :param kwargs:  Additional keyword arguments for ``pytest``.
     """
-    with EnterDir(environ.env["PROJECT_DIR"]):
-        tests = environ.env["TESTS"]
-        project_dir = environ.env["PROJECT_DIR"]
+    with EnterDir(env["PROJECT_DIR"]):
+        tests = env["TESTS"]
+        project_dir = env["PROJECT_DIR"]
         patterns = ("test_*.py", "*_test.py")
-        rglob = [
-            p for a in patterns for p in pathlib.Path(project_dir).rglob(a)
-        ]
+        rglob = [p for a in patterns for p in Path(project_dir).rglob(a)]
         pytest = Subprocess("pytest")
         if os.path.isdir(tests) and rglob:
             return pytest.call(*args, **kwargs)
@@ -337,26 +329,21 @@ def make_toc(**kwargs: Union[bool, str]) -> int:
         "   :undoc-members:",
         "   :show-inheritance:",
     ]
-    if os.path.isfile(environ.env["DOCS_CONF"]):
+    if os.path.isfile(env["DOCS_CONF"]):
         apidoc = Subprocess("sphinx-apidoc")
-        apidoc.call(
-            "-o", environ.env["DOCS"], environ.env["PKG_PATH"], "-f", **kwargs
-        )
-        with open(environ.env["TOC"]) as fin:
+        apidoc.call("-o", env["DOCS"], env["PKG_PATH"], "-f", **kwargs)
+        with open(env["TOC"]) as fin:
             contents = fin.read().splitlines()
 
-        with open(environ.env["TOC"], "w") as fout:
-            fout.write(
-                f"{environ.env['PKG']}\n"
-                f"{len(environ.env['PKG']) * '='}\n\n"
-            )
+        with open(env["TOC"], "w") as fout:
+            fout.write(f"{env['PKG']}\n{len(env['PKG']) * '='}\n\n")
             for content in contents:
                 if any(a in content for a in toc_attrs):
                     fout.write(content + "\n")
 
         modules = (
-            os.path.join(environ.env["DOCS"], f"{environ.env['PKG']}.src.rst"),
-            os.path.join(environ.env["DOCS"], "modules.rst"),
+            os.path.join(env["DOCS"], f"{env['PKG']}.src.rst"),
+            os.path.join(env["DOCS"], "modules.rst"),
         )
         for module in modules:
             if os.path.isfile(module):
@@ -372,7 +359,7 @@ def make_typecheck(**kwargs: Union[bool, str]) -> int:
 
     :param kwargs: Additional keyword arguments for ``mypy``.
     """
-    cache_dir = os.path.join(environ.env["PROJECT_DIR"], ".mypy_cache")
+    cache_dir = os.path.join(env["PROJECT_DIR"], ".mypy_cache")
     os.environ["MYPY_CACHE_DIR"] = cache_dir
     mypy = Subprocess("mypy")
     return mypy.call("--ignore-missing-imports", *pyitems.items, **kwargs)
@@ -386,8 +373,8 @@ def make_unused(**kwargs: Union[bool, str]) -> int:
     :param kwargs: Additional keyword arguments for ``vulture``.
     """
     args = list(pyitems.items)
-    if os.path.isfile(environ.env["WHITELIST"]):
-        args.append(environ.env["WHITELIST"])
+    if os.path.isfile(env["WHITELIST"]):
+        args.append(env["WHITELIST"])
 
     vulture = Subprocess("vulture")
     return vulture.call(*args, **kwargs)
@@ -417,11 +404,9 @@ def make_whitelist(**kwargs: Union[bool, str]) -> int:
     # file and not append
     stdout = [i for i in "\n".join(lines).splitlines() if i != ""]
     stdout.sort()
-    with open(environ.env["WHITELIST"], "w") as fout:
+    with open(env["WHITELIST"], "w") as fout:
         for line in stdout:
-            fout.write(
-                line.replace(environ.env["PROJECT_DIR"] + os.sep, "") + "\n"
-            )
+            fout.write(line.replace(env["PROJECT_DIR"] + os.sep, "") + "\n")
 
     return 0
 
@@ -444,9 +429,7 @@ def make_imports(**kwargs: Union[bool, str]) -> int:
                 black.call(item, devnull=True, **kwargs)
 
             if not cap.compare:
-                changed.append(
-                    os.path.relpath(item, environ.env["PROJECT_DIR"])
-                )
+                changed.append(os.path.relpath(item, env["PROJECT_DIR"]))
                 if isort.stdout is not None:
                     print(isort.stdout.strip())
 
@@ -459,9 +442,9 @@ def make_imports(**kwargs: Union[bool, str]) -> int:
 
 def make_readme() -> None:
     """Parse, test, and assert RST code-blocks."""
-    with environ.TempEnvVar("PYCHARM_HOSTED", "True"):
+    with TempEnvVar("PYCHARM_HOSTED", "True"):
         readmtester = Subprocess("readmetester")
-        if os.path.isfile(environ.env["README_RST"]):
-            readmtester.call(environ.env["README_RST"])
+        if os.path.isfile(env["README_RST"]):
+            readmtester.call(env["README_RST"])
         else:
             print("No README.rst found in project root")

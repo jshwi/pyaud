@@ -4,16 +4,14 @@ pyaud.src.config
 
 Config module for ini parsing.
 """
-import configparser
 import os
+from configparser import ConfigParser as _ConfigParser
 from typing import List
 
-from . import environ
+from .environ import env
 
 
-class ConfigParser(
-    configparser.ConfigParser
-):  # pylint: disable=too-many-ancestors
+class ConfigParser(_ConfigParser):  # pylint: disable=too-many-ancestors
     """ConfigParser inherited class with some tweaks."""
 
     default = dict(
@@ -22,7 +20,7 @@ class ConfigParser(
 
     def __init__(self) -> None:
         super().__init__(default_section="")
-        self.configfile = environ.env["CONFIG_FILE"]
+        self.configfile = env["CONFIG_FILE"]
         self._resolve()
 
     def _read_proxy(self) -> None:

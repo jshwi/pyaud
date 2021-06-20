@@ -1,17 +1,18 @@
 """
-tests._test
+_test
 ===========
 """
 # pylint: disable=too-many-lines,too-many-arguments
 import datetime
 import filecmp
 import os
-import pathlib
+from pathlib import Path
 
 import pytest
 
 import pyaud
-import tests
+
+from . import REAL_REPO, PyaudTestError, files
 
 NAME = "pyaud"
 FILES = "file.py"
@@ -59,7 +60,7 @@ def test_success_output(
     :param module:              Function to test.
     :param expected:            Expected function output
     """
-    pathlib.Path(pyaud.environ.env["PROJECT_DIR"], FILES).touch()
+    Path(pyaud.environ.env["PROJECT_DIR"], FILES).touch()
     make_project_tree.docs_conf()
     pyaud.pyitems.get_files()
     pyaud.pyitems.get_file_paths()
@@ -117,7 +118,7 @@ def test_make_audit_error(nocolorcapsys, patch_sp_returncode):
                                 specific exit-code.
     """
     patch_sp_returncode(1)
-    pathlib.Path(pyaud.environ.env["PROJECT_DIR"], "python_file.py").touch()
+    Path(pyaud.environ.env["PROJECT_DIR"], "python_file.py").touch()
     pyaud.pyitems.get_files()
     with pytest.raises(pyaud.PyaudSubprocessError):
         pyaud.modules.make_audit()
@@ -185,7 +186,7 @@ def test_make_docs_no_docs(nocolorcapsys):
 
     :param nocolorcapsys: ``capsys`` without ANSI color codes.
     """
-    pathlib.Path(pyaud.environ.env["PROJECT_DIR"], FILES).touch()
+    Path(pyaud.environ.env["PROJECT_DIR"], FILES).touch()
     pyaud.modules.make_docs()
     assert nocolorcapsys.stdout() == "No docs found\n"
 
@@ -333,7 +334,7 @@ def test_deploy_docs_branch(
         make_deploy_docs_env()
 
     if not working_tree_clean:
-        pathlib.Path(pyaud.environ.env["PROJECT_DIR"], "files.py").touch()
+        Path(pyaud.environ.env["PROJECT_DIR"], "files.py").touch()
 
     pyaud.modules.make_deploy_docs(url=mock_remote_origin)
     if deploy_twice:
@@ -470,7 +471,7 @@ def test_deploy_cov(
     :param expected:        Expected output.
     """
     if is_report:
-        pathlib.Path(pyaud.environ.env["COVERAGE_XML"]).touch()
+        Path(pyaud.environ.env["COVERAGE_XML"]).touch()
 
     if is_token:
         patch_sp_call()
@@ -545,7 +546,7 @@ def test_make_docs_rm_cache(
     monkeypatch.setattr(pyaud.modules, "make_toc", make_toc)
     docs_build = pyaud.environ.env["DOCS_BUILD"]
     os.makedirs(docs_build)
-    pathlib.Path(docs_build, "marker").touch()
+    Path(docs_build, "marker").touch()
     freeze_docs_build = os.listdir(docs_build)
     patch_sp_call(0, call_func)
     pyaud.modules.make_docs()
@@ -614,7 +615,7 @@ def test_find_pylintrc_file(patch_sp_call, nocolorcapsys, is_file):
     patch_sp_call()
     expected = "--rcfile=" + pyaud.environ.env["PYLINTRC"]
     if is_file:
-        pathlib.Path(pyaud.environ.env["PYLINTRC"]).touch()
+        Path(pyaud.environ.env["PYLINTRC"]).touch()
         pyaud.pyitems.get_files()
         pyaud.modules.make_lint()
         assert expected in nocolorcapsys.stdout()
@@ -735,7 +736,7 @@ def test_clean_exclude(main, nocolorcapsys, init_test_repo, exclude, expected):
     init_test_repo()
     for exclusion in exclude:
         obj = os.path.join(pyaud.environ.env["PROJECT_DIR"], exclusion)
-        pathlib.Path(obj).touch()
+        Path(obj).touch()
 
     main("clean")
     assert nocolorcapsys.stdout() == expected
@@ -769,9 +770,9 @@ def test_git_clone(tmpdir):
                     returning a temporary directory.
     """
     with pyaud.Git(os.path.join(tmpdir, "cloned_repo")) as git:
-        git.clone(tests.REAL_REPO)
+        git.clone(REAL_REPO)
 
-    assert filecmp.dircmp(tests.REAL_REPO, pyaud.environ.env["PROJECT_DIR"])
+    assert filecmp.dircmp(REAL_REPO, pyaud.environ.env["PROJECT_DIR"])
 
 
 def test_pipe_to_file():
@@ -817,12 +818,12 @@ def test_validate_env(validate_env):
     :param validate_env:    Execute the ``validate_env`` function
                             returned from this fixture.
     """
-    real_tests = os.path.join(tests.REAL_REPO, "tests")
+    real_tests = os.path.join(REAL_REPO, "tests")
     pyaud.environ.env["TESTS"] = real_tests
     expected = (
         "environment not properly set: PYAUD_TEST_TESTS == " + real_tests
     )
-    with pytest.raises(tests.PyaudTestError) as err:
+    with pytest.raises(PyaudTestError) as err:
         validate_env()
 
     assert str(err.value) == expected
@@ -966,7 +967,7 @@ def test_get_pyfiles(make_relative_file, assert_relative_item, assert_true):
     if not os.path.isdir(dirname):
         os.makedirs(os.path.dirname(make_file))
 
-    pathlib.Path(make_file).touch()
+    Path(make_file).touch()
     pyaud.pyitems.get_files()
     if assert_true:
         assert make_item in pyaud.pyitems.items
@@ -1003,7 +1004,7 @@ def test_append_whitelist(nocolorcapsys, patch_sp_call, is_file):
     patch_sp_call()
     expected = pyaud.environ.env["WHITELIST"]
     if is_file:
-        pathlib.Path(pyaud.environ.env["WHITELIST"]).touch()
+        Path(pyaud.environ.env["WHITELIST"]).touch()
         pyaud.pyitems.get_files()
         pyaud.modules.make_unused()
         assert expected in nocolorcapsys.stdout()
@@ -1117,14 +1118,14 @@ def test_make_requirements(patch_sp_output, nocolorcapsys, make_written):
     :param make_written:    Create files with written content.
     """
     make_written.pipfile_lock()
-    patch_sp_output(tests.files.PIPFILE2REQ_PROD, tests.files.PIPFILE2REQ_DEV)
+    patch_sp_output(files.PIPFILE2REQ_PROD, files.PIPFILE2REQ_DEV)
     pyaud.modules.make_requirements()
     assert nocolorcapsys.stdout() == (
         f"Updating ``{pyaud.environ.env['REQUIREMENTS']}``\n"
         f"created ``requirements.txt``\n"
     )
     with open(pyaud.environ.env["REQUIREMENTS"]) as fin:
-        assert fin.read() == tests.files.REQUIREMENTS
+        assert fin.read() == files.REQUIREMENTS
 
 
 def test_make_whitelist(patch_sp_output, nocolorcapsys, make_project_tree):
@@ -1139,8 +1140,7 @@ def test_make_whitelist(patch_sp_output, nocolorcapsys, make_project_tree):
     """
     make_project_tree.be8a443_files()
     patch_sp_output(
-        tests.files.Whitelist.be8a443_tests,
-        tests.files.Whitelist.be8a443_pyaud,
+        files.Whitelist.be8a443_tests, files.Whitelist.be8a443_pyaud
     )
     pyaud.modules.pyitems.get_files()
     pyaud.modules.make_whitelist()
@@ -1149,7 +1149,7 @@ def test_make_whitelist(patch_sp_output, nocolorcapsys, make_project_tree):
         f"created ``whitelist.py``\n"
     )
     with open(pyaud.environ.env["WHITELIST"]) as fin:
-        assert fin.read() == tests.files.Whitelist.be8a443_all()
+        assert fin.read() == files.Whitelist.be8a443_all()
 
 
 def test_parser(monkeypatch, nocolorcapsys, track_called, call_status, main):
@@ -1203,7 +1203,7 @@ def test_remove_unversioned(init_test_repo):
     """
     init_test_repo()
     file_py = os.path.join(pyaud.environ.env["PROJECT_DIR"], FILES)
-    pathlib.Path(file_py).touch()
+    Path(file_py).touch()
     pyaud.pyitems.get_files()
     assert file_py in pyaud.pyitems.items
     pyaud.pyitems.exclude_unversioned()
@@ -1253,11 +1253,10 @@ def test_arg_order_clone(tmpdir, patch_sp_call, nocolorcapsys):
     patch_sp_call()
     project_clone = os.path.join(tmpdir, "pyaud")
     expected = (
-        f"git clone --depth 1 --branch v1.1.0 {tests.REAL_REPO} "
-        f"{project_clone}"
+        f"git clone --depth 1 --branch v1.1.0 {REAL_REPO} {project_clone}"
     )
     with pyaud.Git(project_clone) as git:
-        git.clone("--depth", "1", "--branch", "v1.1.0", tests.REAL_REPO)
+        git.clone("--depth", "1", "--branch", "v1.1.0", REAL_REPO)
         assert nocolorcapsys.stdout().strip() == expected
 
 
@@ -1285,7 +1284,7 @@ def test_out_of_range_unversioned(tmpdir, main, other_dir, patch_sp_call):
 
     project_clone = os.path.join(tmpdir, "pyaud")
     with pyaud.Git(project_clone) as git:
-        git.clone(tests.REAL_REPO)
+        git.clone(REAL_REPO)
     patch_sp_call(0, empty_func)
     items = [
         os.path.join(project_clone, "pyaud"),
@@ -1393,7 +1392,7 @@ def test_isort_imports(project_dir, nocolorcapsys):
     """
     file = os.path.join(project_dir, "file.py")
     with open(file, "w") as fout:
-        fout.write(tests.files.IMPORTS_UNSORTED)
+        fout.write(files.IMPORTS_UNSORTED)
 
     pyaud.pyitems.get_files()
     pyaud.pyitems.get_file_paths()
@@ -1402,7 +1401,7 @@ def test_isort_imports(project_dir, nocolorcapsys):
 
     with open(file) as fin:
         assert (
-            tests.files.IMPORTS_SORTED.splitlines()[1:]
+            files.IMPORTS_SORTED.splitlines()[1:]
             == fin.read().splitlines()[:20]
         )
 
@@ -1427,9 +1426,9 @@ def test_readme(nocolorcapsys, main, make_readme):
     :param make_readme:     Create a README.rst file in the temp dir
                             containing the provided ``str``.
     """
-    make_readme(tests.files.CODE_BLOCK_TEMPLATE)
+    make_readme(files.CODE_BLOCK_TEMPLATE)
     main("readme")
     output = "\n".join(
         [i.strip() for i in nocolorcapsys.stdout().splitlines()]
     )
-    assert output == tests.files.CODE_BLOCK_EXPECTED
+    assert output == files.CODE_BLOCK_EXPECTED

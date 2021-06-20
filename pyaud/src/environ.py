@@ -4,9 +4,9 @@ pyaud.src.environ
 
 Set up the environment variables for the current project.
 """
-import collections.abc
 import json
 import os
+from collections.abc import MutableMapping
 from typing import Any, Iterator, Union
 
 import appdirs
@@ -20,7 +20,7 @@ class PyaudEnvironmentError(EnvironmentError):
     """Raise a ``PyaudValueError`` for EnvironmentError in process."""
 
 
-class Environ(collections.abc.MutableMapping):
+class Environ(MutableMapping):
     """Dictionary class to take the place of ``os.`. Converts
     strings when settings and to the correct type when getting. Prefixes
     input keys with the namespace prefix.

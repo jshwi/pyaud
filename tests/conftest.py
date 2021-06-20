@@ -1,17 +1,24 @@
 """
-tests.conftest
+conftest
 ==============
 """
 import os
-import pathlib
 import sys
+from pathlib import Path
 from typing import Any, Dict, Union
 
 import appdirs
 import pytest
 
 import pyaud
-import tests
+
+from . import (
+    CallStatus,
+    MakeProjectTree,
+    MakeWritten,
+    NoColorCapsys,
+    PyaudTestError,
+)
 
 
 @pytest.fixture(name="is_env_path_var")
@@ -49,7 +56,7 @@ def fixture_validate_env(tmpdir, is_env_path_var):
                 tmpdirvar = os.sep.join(str(tmpdir).split(os.sep)[:4])
                 invalid = valuevar != tmpdirvar
                 if is_env_path_var(key, value) and invalid:
-                    raise tests.PyaudTestError(
+                    raise PyaudTestError(
                         f"environment not properly set: {key} == {value}"
                     )
 
@@ -139,7 +146,7 @@ def fixture_mock_environment(  # pylint: disable=too-many-arguments
     }
     for attr in mocks:
         monkeypatch.setattr(mocks[attr][0], attr, mocks[attr][1])
-    pathlib.Path(os.path.join(project_dir, ".env")).touch()
+    Path(os.path.join(project_dir, ".env")).touch()
     pyaud.environ.load_namespace()
     for key, value in pyaud.environ.env.items():
         if is_env_path_var(key, str(value)):
@@ -177,7 +184,7 @@ def fixture_init_test_repo():
         with pyaud.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
             git.init(devnull=True)
 
-        pathlib.Path(pyaud.environ.env["README_RST"]).touch()
+        Path(pyaud.environ.env["README_RST"]).touch()
 
         with pyaud.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
             git.add(".")
@@ -210,7 +217,7 @@ def fixture_nocolorcapsys(capsys):
                     output stream and sanitizing the string if it
                     contains ANSI escape codes.
     """
-    return tests.NoColorCapsys(capsys)
+    return NoColorCapsys(capsys)
 
 
 @pytest.fixture(name="patch_argv")
@@ -269,7 +276,7 @@ def fixture_call_status():
     """
 
     def _print_called(module, returncode=0):
-        return tests.CallStatus(module, returncode).func()
+        return CallStatus(module, returncode).func()
 
     return _print_called
 
@@ -365,7 +372,7 @@ def fixture_make_written():
 
     :return: Class as fixture.
     """
-    return tests.MakeWritten
+    return MakeWritten
 
 
 @pytest.fixture(name="make_tree")
@@ -392,7 +399,7 @@ def fixture_make_tree():
             elif isinstance(value, str):
                 os.symlink(value, fullpath)
             else:
-                pathlib.Path(str(fullpath)).touch()
+                Path(str(fullpath)).touch()
 
     return _make_tree
 
@@ -403,7 +410,7 @@ def fixture_make_project_tree(make_tree):
 
     :return: Class as fixture.
     """
-    return tests.MakeProjectTree(make_tree)
+    return MakeProjectTree(make_tree)
 
 
 @pytest.fixture(name="make_default_toc")
@@ -415,20 +422,18 @@ def fixture_make_default_toc(make_project_tree, make_written):
     """
     make_project_tree.toc()
     make_written.repo_toc()
-    pathlib.Path(
-        os.path.join(pyaud.environ.env["DOCS"], "modules.rst")
-    ).touch()
+    Path(os.path.join(pyaud.environ.env["DOCS"], "modules.rst")).touch()
 
 
 @pytest.fixture(name="make_python_file")
 def fixture_make_python_file():
     """Make a blank Python file with the test project root."""
-    pathlib.Path(pyaud.environ.env["PROJECT_DIR"], "file.py").touch()
+    Path(pyaud.environ.env["PROJECT_DIR"], "file.py").touch()
 
 
 @pytest.fixture(name="make_test_file")
 def fixture_make_test_file():
-    """Create a test file with 20 tests."""
+    """Create a test file with 20"""
     os.makedirs(pyaud.environ.env["TESTS"])
     testfile = os.path.join(pyaud.environ.env["TESTS"], "_test.py")
     with open(testfile, "w") as fout:
@@ -452,7 +457,7 @@ def fixture_make_deploy_docs_env(init_test_repo, make_written):
     def _make_deploy_env():
         init_test_repo()
         make_written.readme()
-        pathlib.Path(pyaud.environ.env["PROJECT_DIR"], "emptyfile").touch()
+        Path(pyaud.environ.env["PROJECT_DIR"], "emptyfile").touch()
         with pyaud.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
             git.add(".", devnull=True)
             git.commit("-m", "empty commit", devnull=True)

@@ -8,20 +8,20 @@ from __future__ import annotations
 
 import functools
 import logging
-import logging.handlers
+import logging.handlers as logging_handlers
 import os
-import pathlib
 import shutil
-import subprocess
 import sys
+from pathlib import Path
+from subprocess import PIPE, CalledProcessError, Popen
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 
-import object_colors
 import pyblake2
+from object_colors import Color
 
-from . import environ
+from .environ import env
 
-colors = object_colors.Color()
+colors = Color()
 colors.populate_colors()
 
 
@@ -66,14 +66,12 @@ class PythonItems:
     def get_files(self) -> None:
         """Get all relevant python files starting from project root."""
         self.items.clear()
-        for glob_path in pathlib.Path(environ.env["PROJECT_DIR"]).rglob(
-            "*.py"
-        ):
+        for glob_path in Path(env["PROJECT_DIR"]).rglob("*.py"):
             if glob_path.name in self.exclude:
                 continue
 
-            path = pathlib.Path(glob_path)
-            while str(path.parent) != environ.env["PROJECT_DIR"]:
+            path = Path(glob_path)
+            while str(path.parent) != env["PROJECT_DIR"]:
                 path = path.parent
 
             # ensure there are no duplicate entries
@@ -88,9 +86,7 @@ class PythonItems:
         root.
         """
         self.files.clear()
-        for glob_path in pathlib.Path(environ.env["PROJECT_DIR"]).rglob(
-            "*.py"
-        ):
+        for glob_path in Path(env["PROJECT_DIR"]).rglob("*.py"):
             if glob_path.name not in self.exclude:
                 self.files.append(str(glob_path))
 
@@ -99,7 +95,7 @@ pyitems = PythonItems("whitelist.py", "conf.py", "setup.py")
 
 
 class Subprocess:
-    """Object oriented subprocess.
+    """Object oriented
 
     :param exe:         Subprocess executable.
     :param loglevel:    Level to log the application under.
@@ -145,9 +141,7 @@ class Subprocess:
                 _name = command.replace("-", "_")
                 setattr(self, _name, func)
 
-    def _handle_stdout(
-        self, pipeline: subprocess.Popen, **kwargs: str
-    ) -> None:
+    def _handle_stdout(self, pipeline: Popen, **kwargs: str) -> None:
         self.stdout = None
         file = kwargs.get("file", None)
         capture = kwargs.get("capture", False)
@@ -164,14 +158,14 @@ class Subprocess:
             elif not devnull:
                 sys.stdout.write(line)
 
-    def _handle_stderr(self, pipeline: subprocess.Popen) -> None:
+    def _handle_stderr(self, pipeline: Popen) -> None:
         for line in iter(pipeline.stderr.readline, b""):  # type: ignore
             getattr(self.logger, self.loglevel)(
                 line.decode("utf-8", "ignore").strip()
             )
 
     def open_process(self, exe: str, *args: str, **kwargs: str) -> int:
-        """Open process with ``subprocess.Popen``. Pipe stream depending
+        """Open process with ``Popen``. Pipe stream depending
         on the keyword arguments provided. Log errors to file
         regardless. Wait for process to finish and return it's
         exit-code.
@@ -184,8 +178,7 @@ class Subprocess:
         :key suppress:  bool: Suppress errors and continue running.
         :return:        int: Exit status.
         """
-        pipe = subprocess.PIPE
-        pipeline = subprocess.Popen([exe, *args], stdout=pipe, stderr=pipe)
+        pipeline = Popen([exe, *args], stdout=PIPE, stderr=PIPE)
         self._handle_stdout(pipeline, **kwargs)
         self._handle_stderr(pipeline)
         return pipeline.wait()
@@ -199,7 +192,7 @@ class Subprocess:
         :raises:        Exception: PyaudError.
         :return:        int: Exit status.
         """
-        suppress = kwargs.get("suppress", environ.env["SUPPRESS"])
+        suppress = kwargs.get("suppress", env["SUPPRESS"])
         returncode = self.open_process(exe, *args, **kwargs)
         if returncode and not suppress:
             self.logger.error("returned non-zero exit status %s", returncode)
@@ -379,7 +372,7 @@ class LineSwitch:
             file.write(self.read)
 
 
-class PyaudSubprocessError(subprocess.CalledProcessError):
+class PyaudSubprocessError(CalledProcessError):
     """Raise a ``PyaudSubprocessError`` for non-zero subprocess
     exits.
     """
@@ -395,7 +388,7 @@ def check_command(func: Callable[..., int]) -> Callable[..., int]:
     @functools.wraps(func)
     def _wrapper(**kwargs):
         if func.__name__ == "make_docs":
-            _requires = os.path.isfile(environ.env["DOCS_CONF"])
+            _requires = os.path.isfile(env["DOCS_CONF"])
             success = "Build successful"
             _type = "docs"
         else:
@@ -432,7 +425,7 @@ def get_branch() -> Optional[str]:
 
     :return: Name of branch.
     """
-    with Git(environ.env["PROJECT_DIR"], loglevel="debug") as git:
+    with Git(env["PROJECT_DIR"], loglevel="debug") as git:
         git.symbolic_ref(  # type: ignore
             "--short", "HEAD", capture=True, suppress=True
         )
@@ -457,17 +450,17 @@ def get_logger(logname: str) -> logging.Logger:
                         ``logger.<[debug, info, warning, etc.]>(msg)``
     """
 
-    logfile = os.path.join(environ.env["LOG_DIR"], environ.env["PKG"] + ".log")
+    logfile = os.path.join(env["LOG_DIR"], env["PKG"] + ".log")
     logger = logging.getLogger(logname)
     logger.propagate = False
-    filehandler = logging.handlers.TimedRotatingFileHandler(
+    filehandler = logging_handlers.TimedRotatingFileHandler(
         logfile, when="d", interval=1, backupCount=60
     )
     formatter = logging.Formatter(
         fmt="%(asctime)s %(levelname)-8s %(name)s %(message)s",
         datefmt="%Y-%m-%dT%H:%M:%S",
     )
-    logger.setLevel(environ.env["LOG_LEVEL"])
+    logger.setLevel(env["LOG_LEVEL"])
     if logger.hasHandlers():
         logger.handlers.clear()
 
@@ -490,8 +483,8 @@ def write_command(
     def _decorator(func):
         @functools.wraps(func)
         def _wrapper(*args, **kwargs):
-            if not required or os.path.exists(environ.env[required]):
-                _file = environ.env[file]
+            if not required or os.path.exists(env[required]):
+                _file = env[file]
                 print(f"Updating ``{_file}``")
                 with HashCap(_file) as cap:
                     func(*args, **kwargs)
@@ -534,7 +527,7 @@ def tally_tests() -> int:
     :return: Number of tests in suite.
     """
     total = []
-    for path in pathlib.Path(os.environ["PROJECT_DIR"]).rglob("tests/*"):
+    for path in Path(os.environ["PROJECT_DIR"]).rglob("tests/*"):
         with open(path) as fin:
             total.extend(fin.read().splitlines())
 
@@ -546,7 +539,7 @@ def deploy_docs(url: Union[bool, str]) -> None:
 
     :param url: URL to push documentation to.
     """
-    with Git(environ.env["PROJECT_DIR"]) as git:
+    with Git(env["PROJECT_DIR"]) as git:
         git.add(".")  # type: ignore
         git.diff_index("--cached", "HEAD", capture=True)  # type: ignore
         stashed = False
@@ -554,7 +547,7 @@ def deploy_docs(url: Union[bool, str]) -> None:
             git.stash(devnull=True)  # type: ignore
             stashed = True
 
-        shutil.move(os.path.join(environ.env["DOCS_BUILD"], "html"), ".")
+        shutil.move(os.path.join(env["DOCS_BUILD"], "html"), ".")
         shutil.copy("README.rst", os.path.join("html", "README.rst"))
 
         git.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
@@ -562,12 +555,8 @@ def deploy_docs(url: Union[bool, str]) -> None:
             git.checkout(git.stdout.strip())  # type: ignore
 
         git.checkout("--orphan", "gh-pages")  # type: ignore
-        git.config(  # type: ignore
-            "--global", "user.name", environ.env["GH_NAME"]
-        )
-        git.config(  # type: ignore
-            "--global", "user.email", environ.env["GH_EMAIL"]
-        )
+        git.config("--global", "user.name", env["GH_NAME"])  # type: ignore
+        git.config("--global", "user.email", env["GH_EMAIL"])  # type: ignore
         shutil.rmtree("docs")
         git.rm("-rf", ".", devnull=True)  # type: ignore
         git.clean("-fdx", "--exclude=html", devnull=True)  # type: ignore
