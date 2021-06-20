@@ -21,7 +21,7 @@ class PyaudEnvironmentError(EnvironmentError):
 
 
 class Environ(MutableMapping):
-    """Dictionary class to take the place of ``os.`. Converts
+    """Dictionary class to take the place of ``os.``. Converts
     strings when settings and to the correct type when getting. Prefixes
     input keys with the namespace prefix.
     """
