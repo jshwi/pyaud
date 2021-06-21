@@ -4,30 +4,9 @@ tests.files
 
 Content to write to mock files.
 """
-# pylint: disable=too-many-lines
+# pylint: disable=too-many-lines,line-too-long,too-few-public-methods
 
 README_RST = """repo\n====\n"""
-INDEX_RST = """
-Repo
-====
-
-|
-
-The source code is available `here <https://github.com/johndoe/repo>`_
-
-|
-
-.. toctree::
-   :maxdepth: 1
-   :name: mastertoc
-
-   repo
-   readme
-
-* :ref:`genindex`
-
-This documentation was last updated on |today|
-"""
 PIPFILE_LOCK = """{
 {
     "_meta": {
@@ -1752,7 +1731,7 @@ CODE_BLOCK_EXPECTED = (
 )
 
 
-class Whitelist:  # pylint: disable=too-few-public-methods
+class Whitelist:
     """Output for whitelist.py on commit be8a443."""
 
     be8a443_tests = """fixture_is_env_path_var  # unused function (tests/conftest.py:16)
@@ -1840,3 +1819,11 @@ def make_deploy_docs(**kwargs: bool) -> None:
         for null_val in null_vals:
             print(f"- {null_val}")
 """
+ALTERED_TOC = (
+    "repo\n"
+    "====\n\n"
+    ".. automodule:: repo\n"
+    "   :members:\n"
+    "   :undoc-members:\n"
+    "   :show-inheritance:\n"
+)
