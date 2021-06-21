@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moves console entry point to `pyaud.__main__`
 - Patches "$HOME" for setting ~/.gitconfig in tests
 
+### Removed
+- Removes json from `Environ.__repr__`
+
 [1.3.0](https://github.com/jshwi/pyaud/releases/tag/v1.3.0) - 2021-03-18
 ------------------------------------------------------------------------
 ### Added

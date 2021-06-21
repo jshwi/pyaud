@@ -4,7 +4,6 @@ pyaud.src.environ
 
 Set up the environment variables for the current project.
 """
-import json
 import os
 from collections.abc import MutableMapping
 from typing import Any, Iterator, Union
@@ -35,13 +34,6 @@ class Environ(MutableMapping):
     def __init__(self) -> None:
         self.store = os.environ
         self.namespace = NAMESPACE
-
-    def __repr__(self):
-        return (
-            "<Environ store: "
-            + json.dumps(dict(**self.store), indent=4, sort_keys=True)
-            + ">"
-        )
 
     def _key_proxy(self, key: str) -> str:
         if not key.startswith(self.namespace):
@@ -187,9 +179,6 @@ def load_namespace() -> None:
         read_env(env["ENVIRON_FILE"])
     else:
         init_environ()
-
-    if os.path.isfile(env["ENV"]):
-        read_env(env["ENV"])
 
 
 class TempEnvVar:
