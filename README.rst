@@ -90,7 +90,7 @@ Commandline arguments:
 
 .. code-block:: console
 
-    usage: pyaud [-h] [-c] [-d] [-s] [-v] [--rcfile RCFILE] MODULE
+    usage: pyaud [-h] [-c] [-d] [-f] [-s] [-v] [--rcfile RCFILE] MODULE
 
     positional arguments:
       MODULE           choice of module: [modules] to list all

@@ -1875,3 +1875,5 @@ BEFORE_ISORT = (
     "    files,\n"
     ")"
 )
+UNFORMATTED = """def reformat_this():
+    print('black will make sure this is double quoted')"""

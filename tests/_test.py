@@ -992,9 +992,7 @@ def test_isort_imports(nocolorcapsys: Any) -> None:
         fout.write(files.IMPORTS_UNSORTED)
 
     pyaud.utils.tree.append(path)
-    with pytest.raises(pyaud.utils.PyAuditError):
-        pyaud.modules.make_imports()
-
+    pyaud.modules.make_imports(fix=True)
     with open(path) as fin:
         assert (
             files.IMPORTS_SORTED.splitlines()[1:]
@@ -1064,36 +1062,6 @@ def test_py_audit_error(
         i in stderr for i in (process, file.name, "did not pass all checks")
     )
     assert "Path" not in stderr
-
-
-def test_format_str(main: Any, nocolorcapsys: Any) -> None:
-    """Test failing audit when f-strings can be created with ``flynt``.
-
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
-    """
-    path = Path.cwd() / FILES
-    with open(path, "w") as fout:
-        fout.write(files.FORMAT_STR_FUNCS_PRE)
-
-    pyaud.utils.git.init()  # type: ignore
-    pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.tree.populate()
-    with pytest.raises(pyaud.utils.PyAuditError):
-        main("format-str")
-
-    expected = (
-        "Files modified:                            1",
-        "Character count reduction:                 10 (2.04%)",
-        "`.format(...)` calls attempted:            1/1 (100.0%)",
-        "String concatenations attempted:           1/1 (100.0%)",
-        "F-string expressions created:              2",
-    )
-    out = nocolorcapsys.stdout()
-    assert all(i in out for i in expected)
-    with open(path) as fin:
-        assert fin.read() == files.FORMAT_STR_FUNCS_POST
 
 
 def test_del_key_in_context():
@@ -1176,7 +1144,7 @@ def test_deploy_master(monkeypatch: Any, nocolorcapsys: Any) -> None:
     with open(readme, "w") as fout:
         fout.write(files.README_RST)
 
-    pyaud.modules.make_deploy_docs()
+    pyaud.modules.make_deploy_docs(fix=True)
     out = nocolorcapsys.stdout().splitlines()
     assert all(
         i in out
@@ -1185,7 +1153,7 @@ def test_deploy_master(monkeypatch: Any, nocolorcapsys: Any) -> None:
             "Documentation Successfully deployed",
         ]
     )
-    pyaud.modules.make_deploy_docs()
+    pyaud.modules.make_deploy_docs(fix=True)
     out = nocolorcapsys.stdout().splitlines()
     assert all(
         i in out
@@ -1240,7 +1208,7 @@ def test_deploy_master_param(
     pyaud.utils.git.add(".", devnull=True)  # type: ignore
     pyaud.utils.git.commit("-m", INITIAL_COMMIT, devnull=True)  # type: ignore
     for _ in range(rounds):
-        pyaud.modules.make_deploy_docs()
+        pyaud.modules.make_deploy_docs(fix=True)
 
     out = [i.strip() for i in nocolorcapsys.stdout().splitlines()]
     assert all(i in out for i in expected)
@@ -1754,3 +1722,109 @@ def test_isort_and_black() -> None:
     pyaud.utils.tree.append(path)
     with pytest.raises(pyaud.utils.PyAuditError):
         pyaud.modules.make_imports()
+
+
+def test_isort_and_black_fix(nocolorcapsys: Any) -> None:
+    """Test file is correctly fixed  for failed check.
+
+    When looking for formatted inputs run through ``isort`` and
+    ``Black`` ensure no errors are raised, and output is as expected.
+
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    """
+    with open(Path.cwd() / FILES, "w") as fout:
+        fout.write(files.BEFORE_ISORT)
+
+    pyaud.utils.tree.append(Path.cwd() / FILES)
+    pyaud.modules.make_imports(suppress=True, fix=True)
+    assert (
+        f"Fixed {Path(Path.cwd() / FILES).relative_to(Path.cwd())}"
+        in nocolorcapsys.stdout()
+    )
+
+
+def test_make_format_fix() -> None:
+    """Test ``make_format`` when it fails."""
+    with open(Path.cwd() / FILES, "w") as fout:
+        fout.write(files.UNFORMATTED)
+
+    pyaud.utils.tree.append(Path.cwd() / FILES)
+    pyaud.modules.make_format(fix=True)
+    with open(Path.cwd() / FILES) as fin:
+        assert fin.read().strip() == files.UNFORMATTED.replace("'", '"')
+
+
+def test_make_unused_fix(nocolorcapsys: Any) -> None:
+    """Test ``make_unused`` when ``-f/--fix`` is provided.
+
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    """
+    with open(Path.cwd() / FILES, "w") as fout:
+        fout.write(files.UNFORMATTED)  # also an unused function
+
+    pyaud.utils.tree.append(Path.cwd() / FILES)
+    pyaud.modules.make_unused(fix=True)
+    assert nocolorcapsys.stdout() == (
+        "{}:1: unused function 'reformat_this' (60% confidence)\n"
+        "Updating ``{}``\n"
+        "created ``whitelist.py``\n"
+        "Success: no issues found in 1 source files\n".format(
+            Path.cwd() / FILES, Path.cwd() / os.environ["PYAUD_WHITELIST"]
+        )
+    )
+    with open(Path.cwd() / os.environ["PYAUD_WHITELIST"]) as fin:
+        assert fin.read().strip() == (
+            "reformat_this  # unused function (file.py:1)"
+        )
+
+
+def test_make_unused_fail() -> None:
+    """Test ``make_unused`` with neither ``--fix`` or ``--suppress``."""
+    with open(Path.cwd() / FILES, "w") as fout:
+        fout.write(files.UNFORMATTED)  # also an unused function
+
+    pyaud.utils.tree.append(Path.cwd() / FILES)
+    with pytest.raises(pyaud.utils.PyAuditError) as err:
+        pyaud.modules.make_unused()
+
+    assert str(
+        err.value
+    ) == "<Subprocess (vulture)> ('{}',) did not pass all checks".format(
+        Path.cwd() / FILES
+    )
+
+
+def test_make_format_docs_fix(nocolorcapsys: Any) -> None:
+    """Test ``make_format`` when running with ``-f/--fix``.
+
+    Ensure process fixes checked failure.
+
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    """
+    pyaud.utils.tree.append(Path.cwd() / FILES)
+    with open(Path.cwd() / FILES, "w") as fout:
+        fout.write(files.DOCFORMATTER_EXAMPLE)
+
+    pyaud.modules.make_format_docs(fix=True)
+    assert nocolorcapsys.stdout().strip() == NO_ISSUES
+
+
+def test_format_str_fix(main: Any, nocolorcapsys: Any) -> None:
+    """Test fix audit when f-strings can be created with ``flynt``.
+
+    :param main:            Patch package entry point.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    """
+    with open(Path.cwd() / FILES, "w") as fout:
+        fout.write(files.FORMAT_STR_FUNCS_PRE)
+
+    pyaud.utils.git.add(".", devnull=True)  # type: ignore
+    pyaud.utils.tree.populate()
+    main("format-str", "--fix")
+    nocolorcapsys.stdout()
+    with open(Path.cwd() / FILES) as fin:
+        assert fin.read() == files.FORMAT_STR_FUNCS_POST

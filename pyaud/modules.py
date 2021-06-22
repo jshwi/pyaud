@@ -192,6 +192,7 @@ def make_format(**kwargs: bool) -> int:
     """Audit code against ``Black``.
 
     :param kwargs:  Pass keyword arguments to ``call``.
+    :key fix:       Do not raise error - fix problem instead.
     :return:        Exit status.
     """
     black = Subprocess("black", loglevel="debug")
@@ -201,6 +202,9 @@ def make_format(**kwargs: bool) -> int:
 
     except CalledProcessError as err:
         black.call(*args, **kwargs)
+        if kwargs.get("fix", False):
+            return black.call(*args, **kwargs)
+
         raise PyAuditError(f"{black} {tuple([str(p) for p in args])}") from err
 
 
@@ -222,6 +226,7 @@ def make_requirements(**kwargs: bool) -> int:
     """Audit requirements.txt with Pipfile.lock.
 
     :param kwargs:  Pass keyword arguments to ``call``.
+    :key fix:       Do not raise error - fix problem instead.
     :return:        Exit status.
     """
     # get the stdout for both production and development packages
@@ -272,6 +277,7 @@ def make_toc(**kwargs: bool) -> int:
     """Audit docs/<NAME>.rst toc-file.
 
     :param kwargs:  Pass keyword arguments to ``call``.
+    :key fix:       Do not raise error - fix problem instead.
     :return:        Exit status.
     """
     toc_attrs = [
@@ -327,15 +333,26 @@ def make_unused(**kwargs: bool) -> int:
     Create whitelist first with --fix.
 
     :param kwargs:  Pass keyword arguments to ``call``.
+    :key fix:       Do not raise error - fix problem instead.
     :return:        Exit status.
     """
     whitelist = Path.cwd() / os.environ["PYAUD_WHITELIST"]
     args = tree.reduce()
-    if whitelist.is_file():
-        args.append(whitelist)
-
     vulture = Subprocess("vulture")
-    return vulture.call(*args, **kwargs)
+    while True:
+        try:
+            if whitelist.is_file():
+                args.append(whitelist)
+
+            return vulture.call(*args, **kwargs)
+
+        except CalledProcessError as err:
+            if kwargs.get("fix", False):
+                return make_whitelist(**kwargs)
+
+            raise PyAuditError(
+                f"{vulture} {tuple([str(i) for i in args])}"
+            ) from err
 
 
 @write_command("PYAUD_WHITELIST")
@@ -346,6 +363,7 @@ def make_whitelist(**kwargs: bool) -> int:
     is not to be excluded from the ``vulture`` search first.
 
     :param kwargs:  Pass keyword arguments to ``call``.
+    :key fix:       Do not raise error - fix problem instead.
     :return:        Exit status.
     """
     vulture = Subprocess("vulture", capture=True)
@@ -413,19 +431,21 @@ def make_imports(**kwargs: bool) -> int:
 
             os.remove(tmp.name)
             if result != content:
-                print(f"Fixed {item.relative_to(Path.cwd())}")
+                if kwargs.get("fix"):
+                    print(f"Fixed {item.relative_to(Path.cwd())}")
 
-                # replace original file's contents with the temp
-                # file post ``isort`` and ``Black``
-                with open(item, "w") as fout:
-                    fout.write(result)
+                    # replace original file's contents with the temp
+                    # file post ``isort`` and ``Black``
+                    with open(item, "w") as fout:
+                        fout.write(result)
 
-                raise PyAuditError(
-                    "{} {}".format(
-                        make_imports.__name__,
-                        tuple([str(p) for p in tree.reduce()]),
+                else:
+                    raise PyAuditError(
+                        "{} {}".format(
+                            make_imports.__name__,
+                            tuple([str(p) for p in tree.reduce()]),
+                        )
                     )
-                )
 
     return 0
 
@@ -461,7 +481,9 @@ def make_format_str(**kwargs: bool) -> int:
         )
 
     except CalledProcessError as err:
-        flynt.call(*args, **kwargs)
+        if kwargs.get("fix", False):
+            return flynt.call(*args, **kwargs)
+
         raise PyAuditError(f"{flynt} {tuple([str(p) for p in args])}") from err
 
 
@@ -469,7 +491,9 @@ def make_format_str(**kwargs: bool) -> int:
 def make_format_docs(**kwargs: bool) -> int:
     """Format docstrings with ``docformatter``.
 
-    :param kwargs: Keyword arguments (later implemented).
+    :param kwargs:  Pass keyword arguments to ``call``.
+    :key fix:       Do not raise error - fix problem instead.
+    :return:        Exit status.
     """
     docformatter = Subprocess("docformatter")
     args = ("--recursive", "--wrap-summaries", "72", *tree.reduce())
@@ -478,7 +502,9 @@ def make_format_docs(**kwargs: bool) -> int:
 
     except CalledProcessError as err:
         args = ("--in-place", *args)
-        docformatter.call(*args, **kwargs)
+        if kwargs.get("fix", False):
+            return docformatter.call(*args, **kwargs)
+
         raise PyAuditError(
             f"{docformatter} {tuple([str(p) for p in args])}"
         ) from err

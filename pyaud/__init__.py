@@ -20,6 +20,7 @@ MODULES = {
 }
 AUDIT_ARGS = (
     "format",
+    "format-str",
     "format-docs",
     "format-str",
     "imports",
@@ -74,6 +75,12 @@ class _Parser(ArgumentParser):
             "--deploy",
             action="store_true",
             help="include test and docs deployment after audit",
+        )
+        self.add_argument(
+            "-f",
+            "--fix",
+            action="store_true",
+            help="suppress and fix all fixable issues",
         )
         self.add_argument(
             "-s",
@@ -208,4 +215,5 @@ def main() -> None:
         clean=parser.args.clean,
         suppress=parser.args.suppress,
         deploy=parser.args.deploy,
+        fix=parser.args.fix,
     )
