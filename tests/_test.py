@@ -1003,7 +1003,7 @@ def test_isort_imports(nocolorcapsys: Any) -> None:
 
     pyaud.modules.make_imports()
     out = nocolorcapsys.stdout()
-    assert all(i in out for i in (f"Fixing {path}", NO_ISSUES))
+    assert all(i in out for i in (f"Fixed {path.name}", NO_ISSUES))
 
 
 def test_readme(main: Any, nocolorcapsys: Any) -> None:
@@ -1739,3 +1739,18 @@ def test_backup_toml() -> None:
         pyaud.config.toml.load(fin)
 
     assert pyaud.config.toml["logging"]["disable_existing_loggers"] is False
+
+
+def test_isort_and_black() -> None:
+    """Test ``PyAuditError`` is raised.
+
+    For failed checks when looking for formatted inputs run through
+    ``isort`` and ``Black``.
+    """
+    path = Path.cwd() / FILES
+    with open(path, "w") as fout:
+        fout.write(files.BEFORE_ISORT)
+
+    pyaud.utils.tree.append(path)
+    with pytest.raises(pyaud.utils.PyAuditError):
+        pyaud.modules.make_imports()

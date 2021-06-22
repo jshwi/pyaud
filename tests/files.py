@@ -1864,3 +1864,14 @@ def main():
     if factorial(10):
         launch_rocket()
 """
+BEFORE_ISORT = (
+    "from . import (\n"
+    "    GH_EMAIL,\n"
+    "    GH_TOKEN,\n"
+    "    REAL_REPO,\n"
+    "    GH_NAME,\n"
+    "    FILES,\n"
+    "    REPO,\n"
+    "    files,\n"
+    ")"
+)

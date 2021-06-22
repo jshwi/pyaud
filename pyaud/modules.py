@@ -4,6 +4,7 @@ pyaud.modules
 """
 import os
 import shutil
+import tempfile
 from pathlib import Path
 from subprocess import CalledProcessError
 
@@ -19,7 +20,6 @@ from .environ import (
     find_package,
 )
 from .utils import (
-    HashCap,
     LineSwitch,
     PyAuditError,
     Subprocess,
@@ -372,29 +372,60 @@ def make_imports(**kwargs: bool) -> int:
     """Audit imports with ``isort``.
 
     ``Black`` and ``isort`` clash in some areas when it comes to
-    ``Black`` and sorting imports. To avoid running into false positives
-    when running both in conjunction run ``Black`` straight after. Use
-    ``HashCap`` to determine if any files have changed for presenting
-    data to user.
+    ``Black`` sorting imports. To avoid  running into false positives
+    when running both in conjunction (as ``Black`` is uncompromising)
+    run ``Black`` straight after. To effectively test this, for lack of
+    stdin functionality, use ``tempfile.NamedTemporaryFunction`` to
+    first evaluate contents from original file, then after ``isort``,
+    then after ``Black``. If nothing has changed, even if ``isort``
+    has changed a file, then the imports are sorted enough for
+    ``Black``'s standard. If there is a change raise ``PyAuditError`` if
+    ``-f/--fix`` or ``-s/--suppress`` was not passed to the commandline.
+    If ``-f/--fix`` was passed then replace the original file with the
+    temp file's contents.
+
+    :param kwargs:  Pass keyword arguments to ``call``.
+    :key fix:       Do not raise error - fix problem instead.
+    :return:        Exit status.
     """
-    changed = []
-    isort = Subprocess("isort", capture=True)
+    isort = Subprocess("isort", devnull=True)
     black = Subprocess("black", loglevel="debug", devnull=True)
     for item in tree:
         if item.is_file():
-            with HashCap(item) as cap:
-                isort.call(item, **kwargs)
-                black.call(item, **kwargs)
 
-            if not cap.compare:
-                changed.append(item.relative_to(Path.cwd()))
-                for stdout in isort.stdout():
-                    print(stdout)
+            # collect original file's contents
+            with open(item) as fin:
+                content = fin.read()
 
-    if changed:
-        raise PyAuditError(
-            f"{make_imports.__name__} {tuple([str(p) for p in changed])}"
-        )
+            # write original file's contents to temporary file
+            tmp = tempfile.NamedTemporaryFile(delete=False)
+            with open(tmp.name, "w") as fout:
+                fout.write(content)
+
+            # run both ``isort`` and ``black`` on the temporary file,
+            # leaving the original file untouched
+            isort.call(tmp.name, **kwargs)
+            black.call(tmp.name, "--line-length", "79", **kwargs)
+
+            # collect the results from the temporary file
+            with open(tmp.name) as fin:
+                result = fin.read()
+
+            os.remove(tmp.name)
+            if result != content:
+                print(f"Fixed {item.relative_to(Path.cwd())}")
+
+                # replace original file's contents with the temp
+                # file post ``isort`` and ``Black``
+                with open(item, "w") as fout:
+                    fout.write(result)
+
+                raise PyAuditError(
+                    "{} {}".format(
+                        make_imports.__name__,
+                        tuple([str(p) for p in tree.reduce()]),
+                    )
+                )
 
     return 0
 
