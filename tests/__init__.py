@@ -26,6 +26,7 @@ INFO = pyaud.config.INFO
 WARNING = pyaud.config.WARNING
 ERROR = pyaud.config.ERROR
 CRITICAL = pyaud.config.CRITICAL
+PYAUD_MODULES = "pyaud.MODULES"
 
 
 class NoColorCapsys:

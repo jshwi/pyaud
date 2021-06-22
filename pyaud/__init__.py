@@ -7,6 +7,7 @@ import inspect
 import json
 import sys
 from argparse import SUPPRESS, ArgumentParser
+from typing import Any, Dict
 
 from . import config, environ, modules, utils
 
@@ -17,6 +18,18 @@ MODULES = {
     for k, v in inspect.getmembers(modules, inspect.isfunction)
     if k.startswith("make_")
 }
+AUDIT_ARGS = (
+    "format",
+    "format-docs",
+    "format-str",
+    "imports",
+    "typecheck",
+    "unused",
+    "lint",
+    "coverage",
+    "readme",
+    "docs",
+)
 
 
 class _Parser(ArgumentParser):
@@ -36,7 +49,7 @@ class _Parser(ArgumentParser):
 
     def __init__(self, prog: str) -> None:
         super().__init__(prog=prog)
-        self._modules = dict(MODULES)
+        self._modules: Dict[str, Any] = dict(MODULES)
         self._returncode = 0
         self._add_arguments()
         self.args = self.parse_args()
@@ -153,12 +166,39 @@ class _Parser(ArgumentParser):
         return self._returncode
 
 
+def audit(**kwargs: bool) -> int:
+    """Run all modules for complete package audit.
+
+    :param kwargs:  Pass keyword arguments to audit submodule.
+    :key clean:     Insert clean module to the beginning of module list
+                    to remove all unversioned files before executing
+                    rest of audit.
+    :key deploy:    Append deploy modules (docs and coverage) to end of
+                    modules list to deploy package data after executing
+                    audit.
+    :return:        Exit status.
+    """
+    funcs = list(AUDIT_ARGS)
+    if kwargs.get("clean", False):
+        funcs.insert(0, "clean")
+
+    if kwargs.get("deploy", False):
+        funcs.append("deploy")
+
+    for func in funcs:
+        utils.colors.cyan.bold.print(f"\n{__name__} {func}")
+        MODULES[func](**kwargs)
+
+    return 0
+
+
 def main() -> None:
     """Module entry point.
 
     Parse commandline arguments and run the selected choice from the
     dictionary of functions which matches the key.
     """
+    MODULES[audit.__name__] = audit
     parser = _Parser(utils.colors.cyan.get(__name__))
     environ.load_namespace()
     config.load_config(parser.args.rcfile)

@@ -32,6 +32,7 @@ from . import (
     INITIAL_COMMIT,
     NO_ISSUES,
     PUSHING_SKIPPED,
+    PYAUD_MODULES,
     REAL_REPO,
     REPO,
     WARNING,
@@ -140,7 +141,7 @@ def test_make_audit_error(monkeypatch: Any, nocolorcapsys: Any) -> None:
     )
     pyaud.utils.tree.append(Path.cwd() / FILES)
     with pytest.raises(CalledProcessError):
-        pyaud.modules.make_audit()
+        pyaud.audit()
 
     assert nocolorcapsys.stdout().strip() == "pyaud format"
 
@@ -239,31 +240,22 @@ def test_suppress(
     :param make_tree:       Create directory tree from dict mapping.
     """
     make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
-    pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.tree.populate()
-    audit_modules = [
-        "make_format",
-        "make_format_docs",
-        "make_format_str",
-        "make_imports",
-        "make_typecheck",
-        "make_unused",
-        "make_lint",
-        "make_coverage",
-        "make_readme",
-        "make_docs",
-    ]
+    pyaud.utils.tree.append(Path.cwd() / FILES)
+    mocked_modules = copy.deepcopy(pyaud.MODULES)
+    audit_modules = pyaud.AUDIT_ARGS
     for audit_module in audit_modules:
-        mockreturn = call_status(audit_module, 1)
-        monkeypatch.setattr(
-            f"pyaud.modules.{audit_module}",
-            pyaud.utils.check_command(mockreturn),
+        mocked_modules[audit_module] = pyaud.utils.check_command(
+            call_status(f"make_{audit_module}", 1)
         )
 
-    pyaud.modules.make_audit()
-    errs = nocolorcapsys.stderr().splitlines()
+    monkeypatch.setattr(PYAUD_MODULES, mocked_modules)
+    pyaud.audit(suppress=True)
     assert len(
-        [e for e in errs if "Failed: returned non-zero exit status" in e]
+        [
+            i
+            for i in nocolorcapsys.stderr().splitlines()
+            if "Failed: returned non-zero exit status" in i
+        ]
     ) == len(audit_modules)
 
 
@@ -271,11 +263,11 @@ def test_suppress(
     "args,add,first,last",
     [
         ([], [], "pyaud format", "pyaud docs"),
-        (["--clean"], ["make_clean"], "pyaud clean", "pyaud docs"),
-        (["--deploy"], ["make_deploy"], "pyaud format", "pyaud deploy"),
+        (["--clean"], ["clean"], "pyaud clean", "pyaud docs"),
+        (["--deploy"], ["deploy"], "pyaud format", "pyaud deploy"),
         (
             ["--clean", "--deploy"],
-            ["make_clean", "make_deploy"],
+            ["clean", "deploy"],
             "pyaud clean",
             "pyaud deploy",
         ),
@@ -313,31 +305,16 @@ def test_audit_modules(
     :param first:           Expected first function executed.
     :param last:            Expected last function executed.
     """
-    audit_modules = [
-        "make_format",
-        "make_format_docs",
-        "make_format_str",
-        "make_imports",
-        "make_typecheck",
-        "make_unused",
-        "make_lint",
-        "make_coverage",
-        "make_readme",
-        "make_docs",
-    ]
-    audit_modules.extend(add)
-    for audit_module in audit_modules:
-        monkeypatch.setattr(
-            f"pyaud.modules.{audit_module}", call_status(audit_module)
-        )
+    mocked_modules = copy.deepcopy(pyaud.MODULES)
+    modules = list(pyaud.AUDIT_ARGS)
+    modules.extend(add)
+    for module in modules:
+        mocked_modules[module] = call_status(f"make_{module}")
 
+    monkeypatch.setattr(PYAUD_MODULES, mocked_modules)
     main("audit", *args)
     output = [i for i in nocolorcapsys.stdout().splitlines() if i != ""]
-    expected = [
-        i.replace("make_", f"{pyaud.__name__} ").replace("_", "-")
-        for i in audit_modules
-    ]
-    assert all([i in output for i in expected])
+    assert all([f"pyaud {i}" in output for i in modules])
     assert output[0] == first
     assert output[-1] == last
 
@@ -897,7 +874,6 @@ def test_parser(
     :param main:            Patch package entry point.
     """
     calls = [
-        "audit",
         "clean",
         "coverage",
         "deploy",
@@ -917,7 +893,7 @@ def test_parser(
         "whitelist",
     ]
     monkeypatch.setattr(
-        "pyaud.MODULES",
+        PYAUD_MODULES,
         {
             k: track_called(call_status(v.__name__, 0))
             for k, v in pyaud.MODULES.items()

@@ -6,7 +6,6 @@ import os
 import shutil
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Any, Callable, List
 
 from .config import generate_rcfile, toml
 from .environ import (
@@ -32,49 +31,6 @@ from .utils import (
     tree,
     write_command,
 )
-
-
-def make_audit(**kwargs: bool) -> int:
-    """Run all modules for complete package audit.
-
-    :param kwargs:  Pass keyword arguments to audit submodule.
-    :key clean:     Insert clean module to the beginning of module list
-                    to remove all unversioned files before executing
-                    rest of audit.
-    :key deploy:    Append deploy modules (docs and coverage) to end of
-                    modules list to deploy package data after executing
-                    audit.
-    :return:        Exit status.
-    """
-    audit_modules: List[Callable[..., Any]] = [
-        make_format,
-        make_format_docs,
-        make_format_str,
-        make_imports,
-        make_typecheck,
-        make_unused,
-        make_lint,
-        make_coverage,
-        make_readme,
-        make_docs,
-    ]
-    if kwargs.get("clean", False):
-        audit_modules.insert(0, make_clean)
-
-    if kwargs.get("deploy", False):
-        audit_modules.append(make_deploy)
-
-    for audit_module in audit_modules:
-        colors.cyan.bold.print(
-            "\n{}".format(
-                audit_module.__name__.replace("make_", f"{NAME} ").replace(
-                    "_", "-"
-                )
-            )
-        )
-        audit_module(**kwargs)
-
-    return 0
 
 
 def make_clean(**kwargs: bool) -> int:
