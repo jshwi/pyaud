@@ -28,10 +28,6 @@ ERROR = pyaud.config.ERROR
 CRITICAL = pyaud.config.CRITICAL
 
 
-class PyaudTestError(Exception):
-    """Error to be purposely raised within the testing environment."""
-
-
 class NoColorCapsys:
     """Capsys but with a regex to remove ANSI escape codes.
 

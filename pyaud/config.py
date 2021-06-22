@@ -257,8 +257,8 @@ def load_config(opt: Optional[str] = None):
     files = [
         os.path.join(CONFIGDIR, TOMLFILE),
         os.path.join(os.path.expanduser("~"), RCFILE),
-        os.path.join(os.environ["PROJECT_DIR"], RCFILE),
-        os.path.join(os.environ["PROJECT_DIR"], PYPROJECT),
+        os.path.join(os.getcwd(), RCFILE),
+        os.path.join(os.getcwd(), PYPROJECT),
     ]
     if opt is not None:
         files.append(opt)

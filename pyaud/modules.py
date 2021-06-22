@@ -11,7 +11,6 @@ from typing import Any, Callable, List
 from .config import generate_rcfile, toml
 from .environ import NAME, TempEnvVar
 from .utils import (
-    Git,
     HashCap,
     LineSwitch,
     PyAuditError,
@@ -20,6 +19,7 @@ from .utils import (
     colors,
     deploy_docs,
     get_branch,
+    git,
     tree,
     write_command,
 )
@@ -75,10 +75,9 @@ def make_clean(**kwargs: bool) -> int:
     :return:        Exit status.
     """
     exclude = toml["clean"]["exclude"]
-    with Git(os.environ["PROJECT_DIR"]) as git:
-        return git.clean(  # type: ignore
-            "-fdx", *[f"--exclude={e}" for e in exclude], **kwargs
-        )
+    return git.clean(  # type: ignore
+        "-fdx", *[f"--exclude={e}" for e in exclude], **kwargs
+    )
 
 
 def make_coverage(**kwargs: bool) -> int:
@@ -291,9 +290,8 @@ def make_tests(*args: str, **kwargs: bool) -> int:
     :return:        Exit status.
     """
     tests = os.environ["PYAUD_TESTS"]
-    project_dir = os.environ["PROJECT_DIR"]
     patterns = ("test_*.py", "*_test.py")
-    rglob = [p for a in patterns for p in Path(project_dir).rglob(a)]
+    rglob = [p for a in patterns for p in Path.cwd().rglob(a)]
     pytest = Subprocess("pytest")
     if os.path.isdir(tests) and rglob:
         return pytest.call(*args, **kwargs)
@@ -401,9 +399,7 @@ def make_whitelist(**kwargs: bool) -> int:
     stdout.sort()
     with open(os.environ["PYAUD_WHITELIST"], "w") as fout:
         for line in stdout:
-            fout.write(
-                f"{line.replace(os.environ['PROJECT_DIR'] + os.sep, '')}\n"
-            )
+            fout.write(f"{line.replace(os.getcwd() + os.sep, '')}\n")
 
     return 0
 
@@ -428,9 +424,7 @@ def make_imports(**kwargs: bool) -> int:
                 black.call(item, **kwargs)
 
             if not cap.compare:
-                changed.append(
-                    os.path.relpath(item, os.environ["PROJECT_DIR"])
-                )
+                changed.append(os.path.relpath(item, os.getcwd()))
                 for stdout in isort.stdout():
                     print(stdout)
 

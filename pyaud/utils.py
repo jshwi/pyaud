@@ -20,6 +20,7 @@ import pyblake2
 from object_colors import Color
 
 from .config import toml
+from .environ import TempEnvVar
 
 colors = Color()
 colors.populate_colors()
@@ -148,13 +149,10 @@ class Subprocess:
         return captured
 
 
-class Git(Subprocess):
+class _Git(Subprocess):
     """Git commands as class attributes.
 
     @DynamicAttrs
-
-    :param repo:        Repository to perform ``git`` actions in.
-    :param loglevel:    Loglevel to log git actions under.
     """
 
     commands = (
@@ -163,6 +161,7 @@ class Git(Subprocess):
         "branch",
         "checkout",
         "clean",
+        "clone",
         "commit",
         "config",
         "diff",
@@ -180,70 +179,31 @@ class Git(Subprocess):
         "symbolic-ref",
     )
 
-    def __init__(
-        self,
-        repo: Union[str, os.PathLike] = os.getcwd(),
-        loglevel: str = "debug",
-        **kwargs: Any,
-    ) -> None:
-        super().__init__(
-            "git", commands=self.commands, loglevel=loglevel, **kwargs
-        )
-        self.enter_path = repo
-        self.saved_path = os.getcwd()
-        self.already_existed = os.path.isdir(repo)
-
-    def clone(self, source: str, *args: str, **kwargs: str) -> int:
-        """Clone repository to entered path.
-
-        :param source:  Source repository to clone.
-        :param args:    Arguments to be combined with ``git clone``.
-        :param kwargs:  Keyword arguments passed to ``git clone``
-        :return:        Exit status.
-        """
-        args = list(args)  # type: ignore
-        args.append(self.enter_path)  # type: ignore
-        del os.environ["GIT_WORK_TREE"]
-        return self.call("clone", source, *args, **kwargs)
-
-    def __enter__(self) -> Git:
-        os.environ.update(
-            GIT_DIR=str(os.path.join(self.enter_path, ".git")),
-            GIT_WORK_TREE=str(self.enter_path),
-        )
-        if not self.already_existed:
-            os.makedirs(self.enter_path)
-
-        os.chdir(self.enter_path)
-        return self
-
-    def _keep_repo(self) -> bool:
-        git_internals = [
-            "branches",
-            "config",
-            "description",
-            "HEAD",
-            "hooks",
-            "info",
-            "objects",
-            "refs",
-        ]
-        baredir = all(
-            os.path.exists(os.path.join(self.enter_path, i))
-            for i in git_internals
-        )
-        return os.path.isdir(os.path.join(self.enter_path, ".git")) or baredir
-
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        os.chdir(self.saved_path)
-        if not self.already_existed and not self._keep_repo():
-            shutil.rmtree(self.enter_path)
+    def __init__(self) -> None:
+        super().__init__("git", commands=self.commands, loglevel="debug")
 
     def call(self, *args: Any, **kwargs: Any) -> int:
-        if "--bare" in args:
-            del os.environ["GIT_WORK_TREE"]
+        """Call partial git command instantiated in superclass.
 
-        return super().call(*args, **kwargs)
+        :param args:                Command's positional arguments.
+        :key file:                  File path to write the stdout stream
+                                    to.
+        :key capture:               Pipe stream to self.
+        :key devnull:               Suppress output.
+        :key suppress:              Suppress errors and continue
+                                    running.
+        :raises CalledProcessError: If error occurs in subprocess.
+        :return:                    Exit status.
+        """
+        with TempEnvVar(
+            os.environ,
+            GIT_WORK_TREE=str(Path.cwd()),
+            GIT_DIR=str(Path.cwd() / ".git"),
+        ):
+            if "--bare" in args:
+                del os.environ["GIT_WORK_TREE"]
+
+            return super().call(*args, **kwargs)
 
 
 class HashCap:
@@ -356,14 +316,14 @@ def get_branch() -> Optional[str]:
 
     :return: Name of branch or None if on a branch with no parent.
     """
-    with Git(os.environ["PROJECT_DIR"], loglevel="debug", capture=True) as git:
-        git.symbolic_ref("--short", "HEAD", suppress=True)  # type: ignore
+    git.symbolic_ref(  # type: ignore
+        "--short", "HEAD", suppress=True, capture=True
+    )
+    stdout = git.stdout()
+    if stdout:
+        return stdout[-1]
 
-        stdout = git.stdout()
-        if stdout:
-            return stdout[-1]
-
-        return None
+    return None
 
 
 def write_command(
@@ -403,66 +363,74 @@ def write_command(
 def deploy_docs() -> None:
     """Series of functions for deploying docs."""
     gh_remote = os.environ["PYAUD_GH_REMOTE"]
-    with Git(os.environ["PROJECT_DIR"]) as git:
-        git.add(".")  # type: ignore
-        git.diff_index("--cached", "HEAD", capture=True)  # type: ignore
-        stashed = False
-        if git.stdout():
-            git.stash(devnull=True)  # type: ignore
-            stashed = True
+    git.add(".")  # type: ignore
+    git.diff_index("--cached", "HEAD", capture=True)  # type: ignore
+    stashed = False
+    if git.stdout():
+        git.stash(devnull=True)  # type: ignore
+        stashed = True
 
-        shutil.move(os.path.join(os.environ["BUILDDIR"], "html"), ".")
-        shutil.copy("README.rst", os.path.join("html", "README.rst"))
+    shutil.move(
+        os.path.join(os.getcwd(), "docs", "_build", "html"),
+        os.path.join(os.getcwd(), "html"),
+    )
+    shutil.copy(
+        os.path.join(os.getcwd(), "README.rst"),
+        os.path.join(os.getcwd(), "html", "README.rst"),
+    )
+    git.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
+    stdout = git.stdout()
+    if stdout:
+        git.checkout(stdout[-1])  # type: ignore
 
-        git.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
-        stdout = git.stdout()
-        if stdout:
-            git.checkout(stdout[-1])  # type: ignore
-
-        git.checkout("--orphan", "gh-pages")  # type: ignore
-        git.config(  # type: ignore
-            "--global", "user.name", os.environ["PYAUD_GH_NAME"]
+    git.checkout("--orphan", "gh-pages")  # type: ignore
+    git.config(  # type: ignore
+        "--global", "user.name", os.environ["PYAUD_GH_NAME"]
+    )
+    git.config(  # type: ignore
+        "--global", "user.email", os.environ["PYAUD_GH_EMAIL"]
+    )
+    shutil.rmtree(os.path.join(os.getcwd(), "docs"))
+    git.rm("-rf", ".", devnull=True)  # type: ignore
+    git.clean("-fdx", "--exclude=html", devnull=True)  # type: ignore
+    for file in os.listdir(os.path.join(os.getcwd(), "html")):
+        shutil.move(
+            os.path.join(os.getcwd(), "html", file),
+            os.path.join(os.getcwd(), file),
         )
-        git.config(  # type: ignore
-            "--global", "user.email", os.environ["PYAUD_GH_EMAIL"]
-        )
-        shutil.rmtree("docs")
-        git.rm("-rf", ".", devnull=True)  # type: ignore
-        git.clean("-fdx", "--exclude=html", devnull=True)  # type: ignore
-        for file in os.listdir("html"):
-            shutil.move(os.path.join("html", file), ".")
 
-        shutil.rmtree("html")
-        git.add(".")  # type: ignore
-        git.commit(  # type: ignore
-            "-m", '"[ci skip] Publishes updated documentation"', devnull=True
-        )
-        git.remote("rm", "origin")  # type: ignore
-        git.remote("add", "origin", gh_remote)  # type: ignore
-        git.fetch()  # type: ignore
-        git.ls_remote(  # type: ignore
-            "--heads", gh_remote, "gh-pages", capture=True
-        )
-        result = git.stdout()
-        remote_exists = None if not result else result[-1]
-        git.diff(  # type: ignore
-            "gh-pages", "origin/gh-pages", suppress=True, capture=True
-        )
-        result = git.stdout()
-        remote_diff = None if not result else result[-1]
-        if remote_exists is not None and remote_diff is None:
-            colors.green.print("No difference between local branch and remote")
-            print("Pushing skipped")
-        else:
-            colors.green.print("Pushing updated documentation")
-            git.push("origin", "gh-pages", "-f")  # type: ignore
-            print("Documentation Successfully deployed")
+    shutil.rmtree(os.path.join(os.getcwd(), "html"))
+    git.add(".")  # type: ignore
+    git.commit(  # type: ignore
+        "-m", '"[ci skip] Publishes updated documentation"', devnull=True
+    )
+    git.remote("rm", "origin")  # type: ignore
+    git.remote("add", "origin", gh_remote)  # type: ignore
+    git.fetch()  # type: ignore
+    git.stdout()
+    git.ls_remote(  # type: ignore
+        "--heads", gh_remote, "gh-pages", capture=True
+    )
+    result = git.stdout()
+    remote_exists = None if not result else result[-1]
+    git.diff(  # type: ignore
+        "gh-pages", "origin/gh-pages", suppress=True, capture=True
+    )
+    result = git.stdout()
+    remote_diff = None if not result else result[-1]
+    if remote_exists is not None and remote_diff is None:
+        colors.green.print("No difference between local branch and remote")
+        print("Pushing skipped")
+    else:
+        colors.green.print("Pushing updated documentation")
+        git.push("origin", "gh-pages", "-f")  # type: ignore
+        print("Documentation Successfully deployed")
 
-        git.checkout("master", devnull=True)  # type: ignore
-        if stashed:
-            git.stash("pop", devnull=True)  # type: ignore
+    git.checkout("master", devnull=True)  # type: ignore
+    if stashed:
+        git.stash("pop", devnull=True)  # type: ignore
 
-        git.branch("-D", "gh-pages", devnull=True)  # type: ignore
+    git.branch("-D", "gh-pages", devnull=True)  # type: ignore
 
 
 class PyAuditError(Exception):
@@ -521,14 +489,13 @@ class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
 
         Exclude items not in version-control.
         """
-        project_dir = Path(os.environ["PROJECT_DIR"])
-        for path in [str(p) for p in project_dir.rglob("*.py")]:
-            if os.path.basename(path) not in self._exclude:
-                with Git(os.environ["PROJECT_DIR"], loglevel="debug") as git:
-                    if not git.ls_files(  # type: ignore
-                        "--error-unmatch", path, devnull=True, suppress=True
-                    ):
-                        self.append(path)
+        for path in [str(p) for p in Path.cwd().rglob("*.py")]:
+            if os.path.basename(
+                path
+            ) not in self._exclude and not git.ls_files(  # type: ignore
+                "--error-unmatch", path, devnull=True, suppress=True
+            ):
+                self.append(path)
 
     def reduce(self) -> List[str]:
         """Get all relevant python files starting from project root.
@@ -540,7 +507,7 @@ class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
                     $PROJECT_DIR/dir but PROJECT_DIR/file1.py
                     and $PROJECT_DIR/file2.py remain as they are.
         """
-        project_dir = os.environ["PROJECT_DIR"]
+        project_dir = os.getcwd()
         return list(
             set(
                 os.path.join(
@@ -553,3 +520,4 @@ class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
 
 
 tree = _Tree(*toml["indexing"]["exclude"])
+git = _Git()

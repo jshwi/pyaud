@@ -13,63 +13,15 @@ import pytest
 
 import pyaud
 
-from . import GH_EMAIL, GH_NAME, GH_TOKEN, REPO, NoColorCapsys, PyaudTestError
-
-
-@pytest.fixture(name="is_env_path_var")
-def fixture_is_env_path_var() -> Any:
-    """Confirm environment variable belongs in ``pyaud`` namespace.
-
-    Ensure package env variables are prefixed with ``PYAUD_TEST_`` or
-    the ``PROJECT_DIR`` environment variable.
-
-    :return: Function for using this fixture.
-    """
-
-    def _is_env_path_var(key: str, value: str) -> bool:
-        iskey = key.startswith("PYAUD_") or key == "PROJECT_DIR"
-        try:
-            isval = value[0] == os.sep
-            return iskey and isval
-        except IndexError:
-            return False
-
-    return _is_env_path_var
-
-
-@pytest.fixture(name="validate_env")
-def fixture_validate_env(tmp_path: Path, is_env_path_var: Any) -> Any:
-    """Ensure no real paths remain or else fail and stop the test.
-
-    :param tmp_path:        Create and return temporary directory.
-    :param is_env_path_var: Key and value are a ``pyaud`` path
-                            environment variable: True or False.
-    :return:                Function for using this fixture.
-    """
-
-    def _validate_env() -> None:
-        for key, value in os.environ.items():
-            valuevar = os.sep.join(value.split(os.sep)[:4])
-            tmpdirvar = os.sep.join(str(tmp_path).split(os.sep)[:4])
-            invalid = valuevar != tmpdirvar
-            if is_env_path_var(key, value) and invalid:
-                raise PyaudTestError(
-                    f"environment not properly set: {key} == {value}"
-                )
-
-    return _validate_env
+from . import GH_EMAIL, GH_NAME, GH_TOKEN, REPO, NoColorCapsys
 
 
 @pytest.fixture(name="mock_environment", autouse=True)
-def fixture_mock_environment(
-    tmp_path: Path, monkeypatch: Any, validate_env: Any
-) -> None:
+def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     """Mock imports to reflect the temporary testing environment.
 
-    :param tmp_path:        Create and return temporary directory.
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param validate_env:    Ensure no real paths remain or else fail and
-                            stop the test.
+    :param tmp_path:     Create and return temporary directory.
+    :param monkeypatch: Mock patch environment and attributes.
     """
     # set environment variables
     # =========================
@@ -77,18 +29,15 @@ def fixture_mock_environment(
     # relevant variables for test environment
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("CODECOV_SLUG", f"{GH_NAME}/{REPO}")
-    monkeypatch.setenv(
-        "PROJECT_DIR", os.path.join(os.path.expanduser("~"), REPO)
-    )
 
     # patch 3rd party attributes
     # ==========================
     # set the cwd to the temporary project dir
     # ensure no real .env file interferes with tests
     # patch ``setuptools.find_package`` to return package as existing
+    monkeypatch.setattr("os.getcwd", lambda: os.path.join(tmp_path, REPO))
     monkeypatch.setattr(
-        "dotenv.find_dotenv",
-        lambda: os.path.join(os.environ["PROJECT_DIR"], ".env"),
+        "dotenv.find_dotenv", lambda: os.path.join(os.getcwd(), ".env")
     )
     monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [REPO])
 
@@ -100,14 +49,10 @@ def fixture_mock_environment(
     monkeypatch.setattr("pyaud.modules.get_branch", lambda: "master")
     monkeypatch.setattr(
         "pyaud.config.CONFIGDIR",
-        os.path.join(tmp_path, ".config", pyaud.utils.__name__),
+        os.path.join(tmp_path, ".config", pyaud.__name__),
     )
     logfile = os.path.join(
-        tmp_path,
-        ".cache",
-        pyaud.utils.__name__,
-        "log",
-        f"{pyaud.__name__}.log",
+        tmp_path, ".cache", pyaud.__name__, "log", f"{pyaud.__name__}.log"
     )
 
     # load default key-value pairs
@@ -122,22 +67,17 @@ def fixture_mock_environment(
         "PYAUD_GH_REMOTE", os.path.join(os.path.expanduser("~"), "origin.git")
     )
 
-    # confirm all environment variables changed
-    # =========================================
-    validate_env()
-
     # prepare test locations
     # ======================
     # create test directories
     # ~/.cache/pyaud/log/pyaud.utils.log needs to exist before running
     # ``logging.config.dictConfig(config: Dict[str, Any])``
-    os.makedirs(os.environ["PROJECT_DIR"])
+    os.makedirs(os.getcwd())
     os.makedirs(os.path.dirname(logfile))
 
     # initialize repository
     # =====================
-    with pyaud.utils.Git(os.environ["PROJECT_DIR"]) as git:
-        git.init(devnull=True)  # type: ignore
+    pyaud.utils.git.init(devnull=True)  # type: ignore
 
     # prepare default config
     # ======================
@@ -324,11 +264,12 @@ def fixture_init_remote() -> None:
 
     :return: Function for using this fixture.
     """
-    with pyaud.utils.Git(os.environ["PYAUD_GH_REMOTE"], devnull=True) as git:
-        git.init("--bare", ".")  # type: ignore
-
-    with pyaud.utils.Git(os.environ["PROJECT_DIR"], devnull=True) as git:
-        git.remote("add", "origin", "origin")  # type: ignore
+    pyaud.utils.git.init(  # type: ignore
+        "--bare", Path(os.environ["PYAUD_GH_REMOTE"]), devnull=True
+    )
+    pyaud.utils.git.remote(  # type: ignore
+        "add", "origin", "origin", devnull=True
+    )
 
 
 @pytest.fixture(name="patch_sp_print_called")

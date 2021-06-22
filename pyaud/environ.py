@@ -19,9 +19,7 @@ def find_package() -> str:
 
     :return: Relative path to the package.
     """
-    package = setuptools.find_packages(
-        where=os.environ["PROJECT_DIR"], exclude=["tests"]
-    )
+    package = setuptools.find_packages(where=os.getcwd(), exclude=["tests"])
 
     if not package:
         raise EnvironmentError("Unable to find a Python package")
@@ -31,31 +29,29 @@ def find_package() -> str:
 
 def load_namespace() -> None:
     """Load key-value pairs."""
-    project_dir = os.environ.get("PROJECT_DIR", os.getcwd())
-    os.environ["PROJECT_DIR"] = project_dir
     pkg = find_package()
-    pkg_path = str(os.path.join(os.environ["PROJECT_DIR"], pkg))
-    docs = os.path.join(project_dir, "docs")
+    pkg_path = str(os.path.join(os.getcwd(), pkg))
+    docs = os.path.join(os.getcwd(), "docs")
     docs_build = os.path.join(docs, "_build")
     os.environ.update(
         PYAUD_PKG=pkg,
         PYAUD_PKG_PATH=pkg_path,
         PYAUD_DOCS=docs,
-        PYAUD_COVERAGE_XML=os.path.join(project_dir, "coverage.xml"),
+        PYAUD_COVERAGE_XML=os.path.join(os.getcwd(), "coverage.xml"),
         PYAUD_DOCS_CONF=os.path.join(docs, "conf.py"),
-        PYAUD_PIPFILE_LOCK=os.path.join(project_dir, "Pipfile.lock"),
-        PYAUD_README_RST=os.path.join(project_dir, "README.rst"),
-        PYAUD_REQUIREMENTS=os.path.join(project_dir, "requirements.txt"),
-        PYAUD_TESTS=os.path.join(project_dir, "tests"),
-        PYAUD_WHITELIST=os.path.join(project_dir, "whitelist.py"),
+        PYAUD_PIPFILE_LOCK=os.path.join(os.getcwd(), "Pipfile.lock"),
+        PYAUD_README_RST=os.path.join(os.getcwd(), "README.rst"),
+        PYAUD_REQUIREMENTS=os.path.join(os.getcwd(), "requirements.txt"),
+        PYAUD_TESTS=os.path.join(os.getcwd(), "tests"),
+        PYAUD_WHITELIST=os.path.join(os.getcwd(), "whitelist.py"),
         PYAUD_TOC=os.path.join(docs, f"{pkg}.rst"),
         PYAUD_GH_NAME=os.environ.get("GITHUB_REPOSITORY_OWNER", ""),
         PYAUD_GH_EMAIL=os.environ.get("PYAUD_GH_EMAIL", ""),
         PYAUD_GH_TOKEN=os.environ.get("PYAUD_GH_TOKEN", ""),
         CODECOV_TOKEN=os.environ.get("CODECOV_TOKEN", ""),
         BUILDDIR=docs_build,
-        PYLINTRC=os.path.join(project_dir, ".pylintrc"),
-        MYPY_CACHE_DIR=os.path.join(os.environ["PROJECT_DIR"], ".mypy_cache"),
+        PYLINTRC=os.path.join(os.getcwd(), ".pylintrc"),
+        MYPY_CACHE_DIR=os.path.join(os.getcwd(), ".mypy_cache"),
     )
     dotenv.load_dotenv(dotenv.find_dotenv(), override=True)
     if "PYAUD_GH_REMOTE" not in os.environ:
