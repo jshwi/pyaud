@@ -186,17 +186,19 @@ class Subprocess:
     def run(self, exe: str, *args: str, **kwargs: str) -> int:
         """Call subprocess run and manipulate error resolve.
 
-        :param exe:     str: Subprocess executable.
-        :param args:    str: Positional arguments for process called.
-        :param kwargs:  str: Keyword arguments for handling stdout.
-        :raises:        Exception: PyaudError.
-        :return:        int: Exit status.
+        :param exe:                 str: Subprocess executable.
+        :param args:                str: Positional arguments for
+                                    process called.
+        :param kwargs:              str: Keyword arguments for handling
+                                    stdout.
+        :raises CalledProcessError: If error occurs in subprocess.
+        :return:                    int: Exit status.
         """
         suppress = kwargs.get("suppress", env["SUPPRESS"])
         returncode = self.open_process(exe, *args, **kwargs)
         if returncode and not suppress:
             self.logger.error("returned non-zero exit status %s", returncode)
-            raise PyaudSubprocessError(
+            raise CalledProcessError(
                 returncode, f"{self.exe} {' '.join(args)}"
             )
 
@@ -370,12 +372,6 @@ class LineSwitch:
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         with open(self._path, "w") as file:
             file.write(self.read)
-
-
-class PyaudSubprocessError(CalledProcessError):
-    """Raise a ``PyaudSubprocessError`` for non-zero subprocess
-    exits.
-    """
 
 
 def check_command(func: Callable[..., int]) -> Callable[..., None]:
@@ -563,3 +559,14 @@ def deploy_docs(url: Union[bool, str]) -> None:
             git.stash("pop", devnull=True)  # type: ignore
 
         git.branch("-D", "gh-pages", devnull=True)  # type: ignore
+
+
+class PyAuditError(Exception):
+    """Raise for audit failures that aren't failed subprocesses.
+
+    :param cmd: Optional str. If no argument provided the value will be
+                None.
+    """
+
+    def __init__(self, cmd: Optional[str]) -> None:
+        super().__init__(f"{cmd} did not pass all checks")

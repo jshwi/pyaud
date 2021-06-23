@@ -1802,3 +1802,9 @@ make_files  # unused function (pyaud/src/modules.py:205)
         seq = f"{cls.be8a443_pyaud}{cls.be8a443_tests}".splitlines()
         seq.sort()
         return "{}\n".format("\n".join(seq))
+
+
+UNFORMATTED = """
+def reformat_this() -> None:
+   print('black will make sure this is double quoted')
+"""

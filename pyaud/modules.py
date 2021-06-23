@@ -15,7 +15,7 @@ from .utils import (
     Git,
     HashCap,
     LineSwitch,
-    PyaudSubprocessError,
+    PyAuditError,
     Subprocess,
     check_command,
     colors,
@@ -242,9 +242,7 @@ def make_format(**kwargs: Union[bool, str]) -> int:
 
     except CalledProcessError as err:
         black.call(*args, **kwargs)
-        raise PyaudSubprocessError(
-            1, f"{black} {' '.join([str(s) for s in args])}"
-        ) from err
+        raise PyAuditError(f"{black.exe} {args}") from err
 
 
 @check_command
@@ -437,8 +435,7 @@ def make_imports(**kwargs: Union[bool, str]) -> int:
                     print(isort.stdout.strip())
 
     if changed:
-        command = "isort {}".format(" ".join(changed))
-        raise PyaudSubprocessError(returncode=1, cmd=command)
+        raise PyAuditError(f"{isort.exe} {tuple(changed)}")
 
     return 0
 

@@ -7,6 +7,7 @@ import datetime
 import filecmp
 import os
 from pathlib import Path
+from subprocess import CalledProcessError
 
 import pytest
 
@@ -118,7 +119,7 @@ def test_make_audit_error(nocolorcapsys, patch_sp_returncode):
     patch_sp_returncode(1)
     Path(pyaud.environ.env["PROJECT_DIR"], "python_file.py").touch()
     pyaud.utils.pyitems.get_files()
-    with pytest.raises(pyaud.utils.PyaudSubprocessError):
+    with pytest.raises(CalledProcessError):
         pyaud.modules.make_audit()
 
     assert nocolorcapsys.stdout().strip() == "pyaud format"
@@ -494,7 +495,7 @@ def test_make_docs_toc_fail(
     """
     make_project_tree.docs_conf()
     patch_sp_returncode(1)
-    with pytest.raises(pyaud.utils.PyaudSubprocessError) as err:
+    with pytest.raises(CalledProcessError) as err:
         pyaud.modules.make_docs()
 
     assert str(err.value) == (
@@ -596,7 +597,7 @@ def test_make_format() -> None:
         )
 
     pyaud.utils.pyitems.get_files()
-    with pytest.raises(pyaud.utils.PyaudSubprocessError):
+    with pytest.raises(pyaud.utils.PyAuditError):
         pyaud.modules.make_format()
 
 
@@ -1387,7 +1388,7 @@ def test_isort_imports(project_dir, nocolorcapsys):
 
     pyaud.utils.pyitems.get_files()
     pyaud.utils.pyitems.get_file_paths()
-    with pytest.raises(pyaud.utils.PyaudSubprocessError):
+    with pytest.raises(pyaud.utils.PyAuditError):
         pyaud.modules.make_imports()
 
     with open(file) as fin:
@@ -1423,3 +1424,42 @@ def test_readme(nocolorcapsys, main, make_readme):
         [i.strip() for i in nocolorcapsys.stdout().splitlines()]
     )
     assert output == files.CODE_BLOCK_EXPECTED
+
+
+@pytest.mark.parametrize(
+    "module,process,content",
+    [
+        ("format", "black", files.UNFORMATTED),
+        ("imports", "isort", files.IMPORTS_UNSORTED),
+    ],
+    ids=["format", "imports"],
+)
+def test_py_audit_error(main, make_tree, module, process, content):
+    """Test ``PyAuditError`` message.
+
+    :param main:        Patch package entry point.
+    :param make_tree:   Create directory tree from dict mapping.
+    :param module:      [<module>].__name__.
+    :param process:     Subprocess being called.
+    :param content:     Content to write to file.
+    """
+    project_dir = pyaud.environ.env["PROJECT_DIR"]
+    file = os.path.join(project_dir, FILES)
+    make_tree(
+        project_dir,
+        {"tests": {"_test.py": None}, "repo": {"__init__.py": None}},
+    )
+    with open(file, "w") as fout:
+        fout.write(content)
+
+    with pyaud.utils.Git(project_dir) as git:
+        git.init()  # type: ignore
+        git.add(".")  # type: ignore
+
+    pyaud.utils.pyitems.get_files()
+    with pytest.raises(pyaud.utils.PyAuditError) as err:
+        main(module)
+
+    stderr = str(err.value)
+    assert all(i in stderr for i in (process, "did not pass all checks"))
+    assert "Path" not in stderr
