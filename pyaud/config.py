@@ -10,7 +10,8 @@ import os
 import shutil
 from collections.abc import MutableMapping
 from configparser import ConfigParser as _ConfigParser
-from typing import Any, Dict, Iterator, List, Optional, TextIO
+from pathlib import Path
+from typing import Any, Dict, Iterator, List, Optional, TextIO, Union
 
 import appdirs
 import toml.decoder as toml_decoder
@@ -21,7 +22,7 @@ from .environ import NAME
 RCFILE = f".{NAME}rc"
 TOMLFILE = f"{NAME}.toml"
 PYPROJECT = "pyproject.toml"
-CONFIGDIR = appdirs.user_config_dir(NAME)
+CONFIGDIR = Path(appdirs.user_config_dir(NAME))
 DEBUG = "DEBUG"
 INFO = "INFO"
 WARNING = "WARNING"
@@ -44,8 +45,8 @@ DEFAULT_CONFIG: Dict[str, Any] = dict(
                 "formatter": "standard",
                 "when": "d",
                 "backupCount": 60,
-                "filename": os.path.join(
-                    appdirs.user_log_dir(NAME), f"{NAME}.log"
+                "filename": str(
+                    Path(appdirs.user_log_dir(NAME)) / f"{NAME}.log"
                 ),
             }
         },
@@ -60,7 +61,7 @@ class ConfigParser(_ConfigParser):  # pylint: disable=too-many-ancestors
 
     def __init__(self) -> None:
         super().__init__(default_section="")
-        self.configfile = os.path.join(CONFIGDIR, f"{NAME}.ini")
+        self.configfile = CONFIGDIR / f"{NAME}.ini"
         self._resolve()
 
     def _read_proxy(self) -> None:
@@ -70,7 +71,7 @@ class ConfigParser(_ConfigParser):  # pylint: disable=too-many-ancestors
                 self[section][key] = os.path.expandvars(self[section][key])
 
     def _resolve(self) -> None:
-        if os.path.isfile(self.configfile):
+        if self.configfile.is_file():
             self._read_proxy()
 
     def getlist(self, section: str, key: str) -> List[str]:
@@ -130,7 +131,7 @@ class _MutableMapping(MutableMapping):  # pylint: disable=too-many-ancestors
                 value = self._nested_update(obj.get(key, {}), value)
 
             elif isinstance(value, str):
-                value = os.path.expanduser(value)
+                value = str(Path(value).expanduser())
 
             obj[key] = value
 
@@ -169,7 +170,7 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
                 value = self._format_dump(value)
 
             if isinstance(value, str):
-                value = value.replace(os.path.expanduser("~"), "~")
+                value = value.replace(str(Path.home()), "~")
 
             obj[key] = value
 
@@ -218,11 +219,11 @@ def configure_global() -> None:
     already exist. Load base config file which may or may not still have
     the default settings configured.
     """
-    configfile = os.path.join(CONFIGDIR, TOMLFILE)
-    backupfile = os.path.join(CONFIGDIR, f".{TOMLFILE}.bak")
+    configfile = CONFIGDIR / TOMLFILE
+    backupfile = CONFIGDIR / f".{TOMLFILE}.bak"
     default_config = copy.deepcopy(DEFAULT_CONFIG)
     config = ConfigParser()
-    if os.path.isfile(configfile):
+    if configfile.is_file():
         while True:
             with open(configfile) as fin:
                 try:
@@ -231,7 +232,7 @@ def configure_global() -> None:
                     break
 
                 except toml_decoder.TomlDecodeError:
-                    if os.path.isfile(backupfile):
+                    if backupfile.is_file():
                         os.rename(backupfile, configfile)
                     else:
                         break
@@ -244,27 +245,27 @@ def configure_global() -> None:
     if exclude:
         toml["clean"]["exclude"] = exclude
 
-    os.makedirs(os.path.dirname(configfile), exist_ok=True)
+    CONFIGDIR.mkdir(exist_ok=True, parents=True)
     with open(configfile, "w") as fout:
         toml.dump(fout)
 
 
-def load_config(opt: Optional[str] = None):
+def load_config(opt: Optional[Union[str, os.PathLike]] = None):
     """Load configs in order, each one overriding the previous.
 
     :param opt: Optional extra path which will override all others.
     """
     files = [
-        os.path.join(CONFIGDIR, TOMLFILE),
-        os.path.join(os.path.expanduser("~"), RCFILE),
-        os.path.join(os.getcwd(), RCFILE),
-        os.path.join(os.getcwd(), PYPROJECT),
+        CONFIGDIR / TOMLFILE,
+        Path.home() / RCFILE,
+        Path.cwd() / RCFILE,
+        Path.cwd() / PYPROJECT,
     ]
     if opt is not None:
-        files.append(opt)
+        files.append(Path(opt))
 
     for file in files:
-        if os.path.isfile(file):
+        if file.is_file():
             with open(file) as fin:
                 toml.load(fin, "tool", NAME)
 
@@ -284,11 +285,8 @@ def configure_logging(verbose: int = 0) -> None:
     config = toml["logging"]
 
     # create logging dir and it's parents if they do not exist already
-    os.makedirs(
-        os.path.dirname(
-            os.path.expanduser(config["handlers"]["default"]["filename"])
-        ),
-        exist_ok=True,
+    Path(config["handlers"]["default"]["filename"]).expanduser().parent.mkdir(
+        exist_ok=True, parents=True
     )
 
     # tweak loglevel if commandline argument is provided

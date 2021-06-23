@@ -6,17 +6,18 @@ Set up the environment variables for the current project.
 """
 import os
 from collections.abc import MutableMapping
+from pathlib import Path
 from typing import Any
 
 import dotenv
 import setuptools
 
 NAME = __name__.split(".")[0]
-README = "README.rst"
-TESTS = "tests"
-DOCS = "docs"
-DOCS_CONF = os.path.join(DOCS, "conf.py")
-PIPFILE_LOCK = "Pipfile.lock"
+README = Path("README.rst")
+TESTS = Path("tests")
+DOCS = Path("docs")
+DOCS_CONF = DOCS / "conf.py"
+PIPFILE_LOCK = Path("Pipfile.lock")
 
 
 def find_package() -> str:
@@ -24,7 +25,7 @@ def find_package() -> str:
 
     :return: Relative path to the package.
     """
-    packages = setuptools.find_packages(where=os.getcwd(), exclude=["tests"])
+    packages = setuptools.find_packages(where=Path.cwd(), exclude=["tests"])
     if not packages:
         raise EnvironmentError("no packages found")
 
@@ -37,14 +38,14 @@ def load_namespace() -> None:
         PYAUD_WHITELIST="whitelist.py",
         PYAUD_COVERAGE_XML="coverage.xml",
         PYAUD_REQUIREMENTS="requirements.txt",
-        BUILDDIR=str(os.path.join(DOCS, "_build")),
+        BUILDDIR=str(DOCS / "_build"),
         PYAUD_GH_NAME=os.environ.get("GITHUB_REPOSITORY_OWNER", ""),
         PYAUD_GH_EMAIL=os.environ.get("PYAUD_GH_EMAIL", ""),
         PYAUD_GH_TOKEN=os.environ.get("PYAUD_GH_TOKEN", ""),
         CODECOV_TOKEN=os.environ.get("CODECOV_TOKEN", ""),
-        PYAUD_DOCS=DOCS,
-        PYAUD_PIPFILE_LOCK=PIPFILE_LOCK,
-        PYAUD_TOC=os.path.join(DOCS, f"{find_package()}.rst"),
+        PYAUD_DOCS=str(DOCS),
+        PYAUD_PIPFILE_LOCK=str(PIPFILE_LOCK),
+        PYAUD_TOC=str(DOCS / f"{find_package()}.rst"),
     )
     dotenv.load_dotenv(dotenv.find_dotenv(), override=True)
     if "PYAUD_GH_REMOTE" not in os.environ:

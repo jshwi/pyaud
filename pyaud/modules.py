@@ -140,8 +140,8 @@ def make_deploy_cov(**kwargs: bool) -> int:
     :return:        Exit status.
     """
     codecov = Subprocess("codecov")
-    coverage_xml = os.path.join(os.getcwd(), os.environ["PYAUD_COVERAGE_XML"])
-    if os.path.isfile(coverage_xml):
+    coverage_xml = Path.cwd() / os.environ["PYAUD_COVERAGE_XML"]
+    if coverage_xml.is_file():
         if os.environ["CODECOV_TOKEN"] != "":
             return codecov.call("--file", coverage_xml, **kwargs)
 
@@ -167,9 +167,7 @@ def make_deploy_docs(**kwargs: bool) -> int:
         git_credentials = ["PYAUD_GH_NAME", "PYAUD_GH_EMAIL", "PYAUD_GH_TOKEN"]
         null_vals = [k for k in git_credentials if os.environ[k] == ""]
         if not null_vals:
-            if not os.path.isdir(
-                os.path.join(os.getcwd(), os.environ["BUILDDIR"], "html")
-            ):
+            if not Path(Path.cwd() / os.environ["BUILDDIR"] / "html").is_dir():
                 make_docs(**kwargs)
 
             deploy_docs()
@@ -201,22 +199,14 @@ def make_docs(**kwargs: bool) -> None:
 
     readme_rst = "README"
     underline = len(readme_rst) * "="
-    build_dir = os.path.join(os.getcwd(), os.environ["BUILDDIR"])
-    if os.path.isdir(build_dir):
+    build_dir = Path.cwd() / os.environ["BUILDDIR"]
+    if build_dir.is_dir():
         shutil.rmtree(build_dir)
 
     sphinx_build = Subprocess("sphinx-build")
-    if os.path.isdir(os.path.join(os.getcwd(), DOCS)):
-        with LineSwitch(
-            os.path.join(os.getcwd(), README), {0: readme_rst, 1: underline}
-        ):
-            command = [
-                "-M",
-                "html",
-                os.path.join(os.getcwd(), DOCS),
-                build_dir,
-                "-W",
-            ]
+    if Path(Path.cwd() / DOCS).is_dir():
+        with LineSwitch(Path.cwd() / README, {0: readme_rst, 1: underline}):
+            command = ["-M", "html", Path.cwd() / DOCS, build_dir, "-W"]
             sphinx_build.call(*command, **kwargs)
             colors.green.bold.print("Build successful")
     else:
@@ -255,7 +245,7 @@ def make_format(**kwargs: bool) -> int:
 
     except CalledProcessError as err:
         black.call(*args, **kwargs)
-        raise PyAuditError(f"{black} {args}") from err
+        raise PyAuditError(f"{black} {tuple([str(p) for p in args])}") from err
 
 
 @check_command
@@ -279,10 +269,8 @@ def make_requirements(**kwargs: bool) -> int:
     :return:        Exit status.
     """
     # get the stdout for both production and development packages
-    pipfile_lock_path = os.path.join(os.getcwd(), PIPFILE_LOCK)
-    requirements_path = os.path.join(
-        os.getcwd(), os.environ["PYAUD_REQUIREMENTS"]
-    )
+    pipfile_lock_path = Path.cwd() / PIPFILE_LOCK
+    requirements_path = Path.cwd() / os.environ["PYAUD_REQUIREMENTS"]
 
     # get the stdout for both production and development packages
     p2req = Subprocess("pipfile2req", capture=True)
@@ -309,8 +297,13 @@ def make_tests(*args: str, **kwargs: bool) -> int:
     """
     tests = Path.cwd() / TESTS
     patterns = ("test_*.py", "*_test.py")
-    rglob = [p for a in patterns for p in tests.rglob(a)]
     pytest = Subprocess("pytest")
+    rglob = [
+        f
+        for f in tree
+        for p in patterns
+        if f.match(p) and str(tests) in str(f)
+    ]
     if rglob:
         return pytest.call(*args, **kwargs)
 
@@ -332,17 +325,12 @@ def make_toc(**kwargs: bool) -> int:
         "   :show-inheritance:",
     ]
     package = find_package()
-    docspath = os.path.join(os.getcwd(), DOCS)
-    tocpath = os.path.join(docspath, f"{package}.rst")
-    if os.path.isfile(os.path.join(os.getcwd(), DOCS_CONF)):
+    docspath = Path.cwd() / DOCS
+    tocpath = docspath / f"{package}.rst"
+    if Path(Path.cwd() / DOCS_CONF).is_file():
         apidoc = Subprocess("sphinx-apidoc")
         apidoc.call(
-            "-o",
-            docspath,
-            os.path.join(os.getcwd(), package),
-            "-f",
-            devnull=True,
-            **kwargs,
+            "-o", docspath, Path.cwd() / package, "-f", devnull=True, **kwargs
         )
 
         with open(tocpath) as fin:
@@ -354,12 +342,9 @@ def make_toc(**kwargs: bool) -> int:
                 if any(a in content for a in toc_attrs):
                     fout.write(f"{content}\n")
 
-        modules = (
-            os.path.join(docspath, f"{package}.src.rst"),
-            os.path.join(docspath, "modules.rst"),
-        )
+        modules = (docspath / f"{package}.src.rst", docspath / "modules.rst")
         for module in modules:
-            if os.path.isfile(module):
+            if module.is_file():
                 os.remove(module)
 
     return 0
@@ -388,9 +373,9 @@ def make_unused(**kwargs: bool) -> int:
     :param kwargs:  Pass keyword arguments to ``call``.
     :return:        Exit status.
     """
-    whitelist = os.path.join(os.getcwd(), os.environ["PYAUD_WHITELIST"])
+    whitelist = Path.cwd() / os.environ["PYAUD_WHITELIST"]
     args = tree.reduce()
-    if os.path.isfile(whitelist):
+    if whitelist.is_file():
         args.append(whitelist)
 
     vulture = Subprocess("vulture")
@@ -411,7 +396,7 @@ def make_whitelist(**kwargs: bool) -> int:
 
     # append whitelist exceptions for each individual module
     for item in tree.reduce():
-        if os.path.exists(item):
+        if item.exists():
             with TempEnvVar(kwargs, suppress=True):
                 vulture.call(item, "--make-whitelist", **kwargs)
 
@@ -419,11 +404,9 @@ def make_whitelist(**kwargs: bool) -> int:
     # file and not append
     stdout = [i for i in "\n".join(vulture.stdout()).splitlines() if i != ""]
     stdout.sort()
-    with open(
-        os.path.join(os.getcwd(), os.environ["PYAUD_WHITELIST"]), "w"
-    ) as fout:
+    with open(Path.cwd() / os.environ["PYAUD_WHITELIST"], "w") as fout:
         for line in stdout:
-            fout.write(f"{line.replace(os.getcwd() + os.sep, '')}\n")
+            fout.write(f"{line.replace(str(Path.cwd()) + os.sep, '')}\n")
 
     return 0
 
@@ -442,18 +425,20 @@ def make_imports(**kwargs: bool) -> int:
     isort = Subprocess("isort", capture=True)
     black = Subprocess("black", loglevel="debug", devnull=True)
     for item in tree:
-        if os.path.isfile(item):
+        if item.is_file():
             with HashCap(item) as cap:
                 isort.call(item, **kwargs)
                 black.call(item, **kwargs)
 
             if not cap.compare:
-                changed.append(os.path.relpath(item, os.getcwd()))
+                changed.append(item.relative_to(Path.cwd()))
                 for stdout in isort.stdout():
                     print(stdout)
 
     if changed:
-        raise PyAuditError(f"{make_imports.__name__} {tuple(changed)}")
+        raise PyAuditError(
+            f"{make_imports.__name__} {tuple([str(p) for p in changed])}"
+        )
 
     return 0
 
@@ -467,8 +452,8 @@ def make_readme(**kwargs: bool) -> None:
     """
     with TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
         readmtester = Subprocess("readmetester")
-        if os.path.isfile(os.path.join(os.getcwd(), README)):
-            readmtester.call(os.path.join(os.getcwd(), README), **kwargs)
+        if Path(Path.cwd() / README).is_file():
+            readmtester.call(Path.cwd() / README, **kwargs)
         else:
             print("No README.rst found in project root")
 
@@ -490,7 +475,7 @@ def make_format_str(**kwargs: bool) -> int:
 
     except CalledProcessError as err:
         flynt.call(*args, **kwargs)
-        raise PyAuditError(f"{flynt} {args}") from err
+        raise PyAuditError(f"{flynt} {tuple([str(p) for p in args])}") from err
 
 
 @check_command
@@ -507,7 +492,9 @@ def make_format_docs(**kwargs: bool) -> int:
     except CalledProcessError as err:
         args = ("--in-place", *args)
         docformatter.call(*args, **kwargs)
-        raise PyAuditError(f"{docformatter} {args}") from err
+        raise PyAuditError(
+            f"{docformatter} {tuple([str(p) for p in args])}"
+        ) from err
 
 
 def make_generate_rcfile(**__: bool) -> None:

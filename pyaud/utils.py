@@ -212,12 +212,12 @@ class HashCap:
     :param file: The path of the file to hash.
     """
 
-    def __init__(self, file: Union[bytes, str, os.PathLike]) -> None:
+    def __init__(self, file: Path) -> None:
         self.file = file
         self.before: Optional[str] = None
         self.after: Optional[str] = None
         self.compare = False
-        self.new = not os.path.isfile(self.file)
+        self.new = not self.file.is_file()
 
     def _hash_file(self) -> str:
         """Open the files and inspect it to get its hash.
@@ -262,9 +262,7 @@ class LineSwitch:
                     strings as values.
     """
 
-    def __init__(
-        self, path: Union[bytes, str, os.PathLike], obj: Dict[int, str]
-    ) -> None:
+    def __init__(self, path: Path, obj: Dict[int, str]) -> None:
         self._path = path
         self._obj = obj
         with open(path) as fin:
@@ -340,22 +338,22 @@ def write_command(
     def _decorator(func: Callable[..., int]) -> Callable[..., None]:
         @functools.wraps(func)
         def _wrapper(*args: str, **kwargs: Union[bool, str]) -> None:
-            if not required or os.path.exists(
-                os.path.join(os.getcwd(), os.environ[str(required)])
+            if (
+                not required
+                or Path(Path.cwd() / os.environ[str(required)]).exists()
             ):
-                _file = os.path.join(os.getcwd(), os.environ[str(file)])
+                _file = Path.cwd() / os.environ[str(file)]
                 print(f"Updating ``{_file}``")
                 with HashCap(_file) as cap:
                     func(*args, **kwargs)
 
-                _file_name = os.path.basename(_file)
                 if cap.new:
-                    print(f"created ``{_file_name}``")
+                    print(f"created ``{_file.name}``")
 
                 elif cap.compare:
-                    print(f"``{_file_name}`` is already up to date")
+                    print(f"``{_file.name}`` is already up to date")
                 else:
-                    print(f"updated ``{_file_name}``")
+                    print(f"updated ``{_file.name}``")
 
         return _wrapper
 
@@ -365,7 +363,7 @@ def write_command(
 def deploy_docs() -> None:
     """Series of functions for deploying docs."""
     gh_remote = os.environ["PYAUD_GH_REMOTE"]
-    root_html = os.path.join(os.path.join(os.getcwd(), "html"))
+    root_html = Path.cwd() / "html"
     git.add(".")  # type: ignore
     git.diff_index("--cached", "HEAD", capture=True)  # type: ignore
     stashed = False
@@ -373,12 +371,8 @@ def deploy_docs() -> None:
         git.stash(devnull=True)  # type: ignore
         stashed = True
 
-    shutil.move(
-        os.path.join(os.getcwd(), os.environ["BUILDDIR"], "html"), root_html
-    )
-    shutil.copy(
-        os.path.join(os.getcwd(), README), os.path.join(root_html, README)
-    )
+    shutil.move(str(Path.cwd() / os.environ["BUILDDIR"] / "html"), root_html)
+    shutil.copy(Path.cwd() / README, root_html / README)
     git.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
     stdout = git.stdout()
     if stdout:
@@ -391,13 +385,11 @@ def deploy_docs() -> None:
     git.config(  # type: ignore
         "--global", "user.email", os.environ["PYAUD_GH_EMAIL"]
     )
-    shutil.rmtree(os.path.join(os.getcwd(), DOCS))
-    git.rm("-rf", ".", devnull=True)  # type: ignore
+    shutil.rmtree(Path.cwd() / DOCS)
+    git.rm("-rf", Path.cwd(), devnull=True)  # type: ignore
     git.clean("-fdx", "--exclude=html", devnull=True)  # type: ignore
-    for file in os.listdir(root_html):
-        shutil.move(
-            os.path.join(root_html, file), os.path.join(os.getcwd(), file)
-        )
+    for file in root_html.rglob("*"):
+        shutil.move(str(file), Path.cwd() / file.name)
 
     shutil.rmtree(root_html)
     git.add(".")  # type: ignore
@@ -489,15 +481,16 @@ class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
 
         Exclude items not in version-control.
         """
-        for path in [str(p) for p in Path.cwd().rglob("*.py")]:
-            if os.path.basename(
-                path
-            ) not in self._exclude and not git.ls_files(  # type: ignore
-                "--error-unmatch", path, devnull=True, suppress=True
+        for path in Path.cwd().rglob("*.py"):
+            if (
+                path.name not in self._exclude
+                and not git.ls_files(  # type: ignore
+                    "--error-unmatch", path, devnull=True, suppress=True
+                )
             ):
                 self.append(path)
 
-    def reduce(self) -> List[str]:
+    def reduce(self) -> List[Path]:
         """Get all relevant python files starting from project root.
 
         :return:    List of project's Python file index, reduced to
@@ -507,14 +500,10 @@ class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
                     $PROJECT_DIR/dir but PROJECT_DIR/file1.py
                     and $PROJECT_DIR/file2.py remain as they are.
         """
-        project_dir = os.getcwd()
+        project_dir = Path.cwd()
         return list(
             set(
-                os.path.join(
-                    project_dir,
-                    os.path.relpath(p, project_dir).split(os.sep)[0],
-                )
-                for p in self
+                project_dir / p.relative_to(project_dir).parts[0] for p in self
             )
         )
 

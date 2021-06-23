@@ -7,7 +7,7 @@ import copy
 import os
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any, Dict
 
 import pytest
 
@@ -35,10 +35,8 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     # set the cwd to the temporary project dir
     # ensure no real .env file interferes with tests
     # patch ``setuptools.find_package`` to return package as existing
-    monkeypatch.setattr("os.getcwd", lambda: os.path.join(tmp_path, REPO))
-    monkeypatch.setattr(
-        "dotenv.find_dotenv", lambda: os.path.join(os.getcwd(), ".env")
-    )
+    monkeypatch.setattr("os.getcwd", lambda: str(tmp_path / REPO))
+    monkeypatch.setattr("dotenv.find_dotenv", lambda: str(Path.cwd() / ".env"))
     monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [REPO])
 
     # patch pyaud attributes
@@ -48,11 +46,10 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     # set config file to test config within the temporary home dir
     monkeypatch.setattr("pyaud.modules.get_branch", lambda: "master")
     monkeypatch.setattr(
-        "pyaud.config.CONFIGDIR",
-        os.path.join(tmp_path, ".config", pyaud.__name__),
+        "pyaud.config.CONFIGDIR", tmp_path / ".config" / pyaud.__name__
     )
-    logfile = os.path.join(
-        tmp_path, ".cache", pyaud.__name__, "log", f"{pyaud.__name__}.log"
+    logfile = Path(
+        tmp_path / ".cache" / pyaud.__name__ / "log" / f"{pyaud.__name__}.log"
     )
 
     # load default key-value pairs
@@ -63,17 +60,15 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     monkeypatch.setenv("PYAUD_GH_EMAIL", GH_EMAIL)
     monkeypatch.setenv("PYAUD_GH_TOKEN", GH_TOKEN)
     monkeypatch.setenv("CODECOV_TOKEN", "")
-    monkeypatch.setenv(
-        "PYAUD_GH_REMOTE", os.path.join(os.path.expanduser("~"), "origin.git")
-    )
+    monkeypatch.setenv("PYAUD_GH_REMOTE", str(Path.home() / "origin.git"))
 
     # prepare test locations
     # ======================
     # create test directories
-    # ~/.cache/pyaud/log/pyaud.utils.log needs to exist before running
+    # ~/.cache/pyaud/log/pyaud.log needs to exist before running
     # ``logging.config.dictConfig(config: Dict[str, Any])``
-    os.makedirs(os.getcwd())
-    os.makedirs(os.path.dirname(logfile))
+    Path.cwd().mkdir()
+    logfile.parent.mkdir(parents=True)
 
     # initialize repository
     # =====================
@@ -84,7 +79,7 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     # override log file path to point to test repository
     # loglevel to DEBUG
     default_config: Dict[str, Any] = copy.deepcopy(pyaud.config.DEFAULT_CONFIG)
-    default_config["logging"]["handlers"]["default"]["filename"] = logfile
+    default_config["logging"]["handlers"]["default"]["filename"] = str(logfile)
     default_config["logging"]["root"]["level"] = pyaud.config.DEBUG
     monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
 
@@ -98,9 +93,7 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
             "init": {"defaultBranch": "master"},
         }
     )
-    with open(
-        os.path.join(os.path.expanduser("~"), ".gitconfig"), "w"
-    ) as fout:
+    with open(Path.home() / ".gitconfig", "w") as fout:
         config.write(fout)
 
     # setup singletons
@@ -230,19 +223,17 @@ def fixture_make_tree() -> Any:
     :return: Function for using this fixture.
     """
 
-    def _make_tree(
-        root: Union[bytes, str, os.PathLike], obj: Dict[Any, Any]
-    ) -> None:
+    def _make_tree(root: Path, obj: Dict[Any, Any]) -> None:
         for key, value in obj.items():
-            fullpath = os.path.join(root, key)
+            fullpath = root / key
             if isinstance(value, dict):
-                os.makedirs(fullpath, exist_ok=True)
+                fullpath.mkdir(exist_ok=True)
                 _make_tree(fullpath, value)
 
             elif isinstance(value, str):
                 os.symlink(value, fullpath)
             else:
-                Path(str(fullpath)).touch()
+                fullpath.touch()
 
     return _make_tree
 
@@ -250,10 +241,9 @@ def fixture_make_tree() -> Any:
 @pytest.fixture(name="make_test_file")
 def fixture_make_test_file() -> None:
     """Create a test file with 20."""
-    testdir = os.path.join(os.getcwd(), pyaud.environ.TESTS)
-    os.makedirs(testdir)
-    testfile = os.path.join(testdir, "_test.py")
-    with open(testfile, "w") as fout:
+    file = Path.cwd() / pyaud.environ.TESTS / "_test.py"
+    file.parent.mkdir()
+    with open(file, "w") as fout:
         for num in range(20):
             fout.write(f"def test_{num}():\n    pass\n")
 
@@ -281,9 +271,9 @@ def fixture_patch_sp_print_called(patch_sp_call: Any) -> Any:
     :return:                Function for using this fixture.
     """
 
-    def _patch_sp_print_called():
-        def _call(self, *args, **_):
-            print(f"{self} {' '.join(args)}")
+    def _patch_sp_print_called() -> Any:
+        def _call(self: pyaud.utils.Subprocess, *args: str, **_: Any) -> None:
+            print(f"{self} {' '.join(str(i) for i in args)}")
 
         return patch_sp_call(_call)
 

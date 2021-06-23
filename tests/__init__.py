@@ -2,15 +2,15 @@
 
 Imports from ``tests.static`` and ``tests.utils``
 """
-import os
 import re
+from pathlib import Path
 from typing import Any, Tuple
 
 import pyaud.config
 
 from . import files
 
-REAL_REPO = os.path.dirname(os.path.dirname(__file__))
+REAL_REPO = Path(__file__).parent.parent
 FILES = "file.py"
 PUSHING_SKIPPED = "Pushing skipped"
 REPO = "repo"
