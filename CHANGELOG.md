@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v1.3.0...HEAD)
 ------------------------------------------------------------------------
 ### Added
+- Adds support for Toml config
 - Adds `docformatter` for docstring formatting
 - Adds `flynt` for f-string formatting
 - `PyAuditError` added for non-subprocess errors

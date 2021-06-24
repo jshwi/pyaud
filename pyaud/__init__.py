@@ -177,6 +177,7 @@ def main() -> None:
     parser = _Parser(utils.colors.cyan.get(__name__))
     os.environ["PROJECT_DIR"] = parser.args.path
     environ.load_namespace()
+    config.load_config()
     parser.set_loglevel()
     utils.tree.populate()
     MODULES[parser.args.module](

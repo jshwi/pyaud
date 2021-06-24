@@ -23,6 +23,7 @@ readmetester = "==1.0.0"
 sphinx = "==3.4.3"
 sphinxcontrib-fulltoc = "==1.2.0"
 sphinxcontrib-programoutput = "==0.16"
+toml = "==0.10.2"
 vulture = "==2.3"
 
 [dev-packages]

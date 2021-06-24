@@ -8,7 +8,7 @@ from pathlib import Path
 from subprocess import CalledProcessError
 from typing import Any, Callable, List
 
-from .config import ConfigParser
+from .config import toml
 from .environ import NAME, TempEnvVar
 from .utils import (
     EnterDir,
@@ -75,8 +75,7 @@ def make_clean(**kwargs: bool) -> int:
     :param kwargs:  Additional keyword arguments for ``git clean``.
     :return:        Exit status.
     """
-    _config = ConfigParser()
-    exclude = _config.getlist("CLEAN", "exclude")
+    exclude = toml["clean"]["exclude"]
     with Git(os.environ["PROJECT_DIR"]) as git:
         return git.clean(  # type: ignore
             "-fdx", *[f"--exclude={e}" for e in exclude], **kwargs

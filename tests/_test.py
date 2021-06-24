@@ -3,6 +3,8 @@ tests._test
 ===========
 """
 # pylint: disable=too-many-lines,too-many-arguments,cell-var-from-loop
+import configparser
+import copy
 import datetime
 import filecmp
 import os
@@ -1597,3 +1599,112 @@ def test_gen_default_remote(monkeypatch: Any) -> None:
         os.environ["PYAUD_GH_REMOTE"]
         == f"https://{GH_NAME}:{GH_TOKEN}@github.com/{GH_NAME}/{REPO}.git"
     )
+
+
+def test_mapping_class() -> None:
+    """Get coverage on ``Mapping`` abstract methods."""
+    pyaud.config.toml.clear()
+    assert repr(pyaud.config.toml) == "<_Toml {}>"
+    pyaud.config.toml.update({"key": "value"})
+    assert len(pyaud.config.toml) == 1
+    for key in pyaud.config.toml:
+        assert key == "key"
+
+    del pyaud.config.toml["key"]
+    assert "key" not in pyaud.config.toml
+
+
+def test_toml() -> None:
+    """Assert "$HOME/.config/pyaud.toml" is created and loaded.
+
+    Create "$HOME/.pyaudrc" and "$PROJECT_DIR/.pyaudrc" load them,
+    ensuring that each level up overrides changes from lower level
+    configs whilst, keeping the remaining changes. Create
+    "$PROJECT_DIR/pyproject.toml" and test the same, which will override
+    all previous configs.
+    """
+    # base config is created and loaded
+    # =================================
+    test_default: Dict[Any, Any] = copy.deepcopy(pyaud.config.DEFAULT_CONFIG)
+    assert dict(pyaud.config.toml) == test_default
+    project_rc = os.path.join(os.environ["PROJECT_DIR"], pyaud.config.RCFILE)
+    pyproject_path = os.path.join(
+        os.environ["PROJECT_DIR"], pyaud.config.PYPROJECT
+    )
+
+    # instantiate a new dict object
+    # =============================
+    # preserve the test default config
+    home_rcfile = dict(test_default)
+    home_rcfile["clean"]["exclude"].append("_build")
+    with open(
+        os.path.join(os.path.expanduser("~"), pyaud.config.RCFILE), "w"
+    ) as fout:
+        pyaud.config.toml.dump(fout, home_rcfile)
+
+    # reset the dict to the test default
+    # ==================================
+    # test the the changes made to clean are inherited through the
+    # config hierarchy but not configured in this dict
+    project_rcfile = dict(test_default)
+    with open(os.path.join(project_rc), "w") as fout:
+        pyaud.config.toml.dump(fout, project_rcfile)
+
+    # load "$HOME/.pyaudrc" and then "$PROJECT_DIR/.pyaudrc"
+    # ======================================================
+    # override "$HOME/.pyaudrc"
+    pyaud.config.load_config()
+    subtotal: Dict[str, Any] = dict(home_rcfile)
+    assert dict(pyaud.config.toml) == subtotal
+
+    # load pyproject.toml
+    # ===================
+    # pyproject.toml tools start with [tool.<PACKAGE_REPO>]
+    pyproject_dict = {"tool": {pyaud.__name__: test_default}}
+    with open(pyproject_path, "w") as fout:
+        pyaud.config.toml.dump(fout, pyproject_dict)
+
+
+def test_config_ini_integration() -> None:
+    """Test config ini edits override global toml."""
+    tomlfile = os.path.join(pyaud.config.CONFIGDIR, pyaud.config.TOMLFILE)
+    inifile = os.path.join(pyaud.config.CONFIGDIR, f"{pyaud.__name__}.ini")
+    config_parser = configparser.ConfigParser()
+
+    # write default test ini file
+    # ===========================
+    default_ini_config = dict(
+        CLEAN={"exclude": "*.egg*,\n  .mypy_cache,\n  .env,\n  instance,"}
+    )
+    config_parser.read_dict(default_ini_config)
+    with open(inifile, "w") as fout:
+        config_parser.write(fout)
+
+    # ini ``CLEAN`` matches toml ``clean``
+    # ====================================
+    pyaud.config.configure_global()
+    with open(tomlfile) as fin:
+        assert (
+            '[clean]\nexclude = ["*.egg*", ".mypy_cache", ".env", "instance"]'
+        ) in fin.read()
+
+    # remove toml to write global again
+    # =================================
+    os.remove(tomlfile)
+
+    # write updated test ini file
+    # ===========================
+    default_ini_config["CLEAN"] = {
+        "exclude": "*.egg*,\n  .env,\n  instance,\n  .coverage"
+    }
+    config_parser.read_dict(default_ini_config)
+    with open(inifile, "w") as fout:
+        config_parser.write(fout)
+
+    # ini ``CLEAN`` matches toml ``clean``
+    # ====================================
+    pyaud.config.configure_global()
+    with open(tomlfile) as fin:
+        assert (
+            '[clean]\nexclude = ["*.egg*", ".env", "instance", ".coverage"]'
+        ) in fin.read()

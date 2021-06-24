@@ -24,8 +24,13 @@ pyaud
 
 Automate quality-check of Python package with bundled utils
 
-Configuration of settings can be made with the following ini syntax file:
-    | ~/.config/pyaud/pyaud.ini
+Configuration of settings can be made with the following toml syntax files:
+    | ~/.config/pyaud/pyaud.toml
+    | ~/.pyaudrc
+    | .pyaudrc
+    | pyproject.toml
+
+or environment variables (overriding in this order)
 
 Default environment variables:
 
@@ -54,6 +59,18 @@ Example config:
               .env,
               instance,
               .coverage
+
+.. code-block:: toml
+
+    [clean]
+    exclude = ["*.egg*", ".mypy_cache", ".env", "instance"]
+
+Prefix each key with ``tool.pyaud`` when using pyproject.toml
+
+.. code-block:: toml
+
+    [tool.pyaud.clean]
+    exclude = ["*.egg*", ".mypy_cache", ".env", "instance"]
 
 Commandline arguments:
 

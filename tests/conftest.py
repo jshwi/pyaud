@@ -81,10 +81,6 @@ def fixture_mock_environment(
     )
     monkeypatch.setenv("CODECOV_SLUG", f"{GH_NAME}/{REPO}")
     monkeypatch.setenv("PYAUD_LOG_LEVEL", "DEBUG")
-    monkeypatch.setenv("PYAUD_PKG", REPO)
-    monkeypatch.setenv(
-        "PYAUD_CONFIG_FILE", os.path.join(tmp_path, ".config", "config.ini")
-    )
     monkeypatch.setenv(
         "PYAUD_LOGFILE",
         os.path.join(
@@ -109,6 +105,10 @@ def fixture_mock_environment(
     # replace default config with changes values from above
     # set config file to test config within the temporary home dir
     monkeypatch.setattr("pyaud.modules.get_branch", lambda: "master")
+    monkeypatch.setattr(
+        "pyaud.config.CONFIGDIR",
+        os.path.join(tmp_path, ".config", pyaud.utils.__name__),
+    )
 
     # load default key-value pairs
     # ============================
@@ -156,7 +156,10 @@ def fixture_mock_environment(
     # setup singletons
     # ================
     pyaud.utils.tree.clear()
+    pyaud.config.toml.clear()
     pyaud.utils.tree.populate()
+    pyaud.config.configure_global()
+    pyaud.config.load_config()
 
 
 @pytest.fixture(name="nocolorcapsys")

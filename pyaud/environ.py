@@ -35,7 +35,6 @@ def load_namespace() -> None:
     project_dir = os.environ["PROJECT_DIR"]
     pkg = find_package()
     pkg_path = str(os.path.join(os.environ["PROJECT_DIR"], pkg))
-    config_dir = os.path.join(appdirs.user_config_dir(NAME), pkg)
     log_dir = os.path.join(appdirs.user_log_dir(NAME))
     docs = os.path.join(project_dir, "docs")
     docs_build = os.path.join(docs, "_build")
@@ -43,7 +42,6 @@ def load_namespace() -> None:
         PYAUD_PKG=pkg,
         PYAUD_PKG_PATH=pkg_path,
         PYAUD_DOCS=docs,
-        PYAUD_CONFIG_FILE=os.path.join(config_dir, "config.ini"),
         PYAUD_COVERAGE_XML=os.path.join(project_dir, "coverage.xml"),
         PYAUD_DOCS_CONF=os.path.join(docs, "conf.py"),
         PYAUD_PIPFILE_LOCK=os.path.join(project_dir, "Pipfile.lock"),
@@ -61,13 +59,7 @@ def load_namespace() -> None:
         PYLINTRC=os.path.join(project_dir, ".pylintrc"),
         MYPY_CACHE_DIR=os.path.join(os.environ["PROJECT_DIR"], ".mypy_cache"),
     )
-    for _dir in (log_dir, config_dir):
-        try:
-            os.makedirs(_dir)
-
-        except FileExistsError:
-            pass
-
+    os.makedirs(log_dir, exist_ok=True)
     dotenv.load_dotenv(dotenv.find_dotenv(), override=True)
     if "PYAUD_GH_REMOTE" not in os.environ:
         os.environ[
