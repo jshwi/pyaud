@@ -1,5 +1,5 @@
 _.clone  # unused method (pyaud/utils.py:183)
-_.dump_list  # unused method (pyaud/config.py:146)
+_.dump_list  # unused method (pyaud/config.py:147)
 exc_tb  # unused variable (pyaud/environ.py:92)
 exc_tb  # unused variable (pyaud/utils.py:224)
 exc_tb  # unused variable (pyaud/utils.py:272)

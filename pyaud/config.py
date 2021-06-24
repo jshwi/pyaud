@@ -7,6 +7,7 @@ Config module for ini parsing.
 import copy
 import logging.config as logging_config
 import os
+import shutil
 from collections.abc import MutableMapping
 from configparser import ConfigParser as _ConfigParser
 from typing import Any, Dict, Iterator, List, Optional, TextIO
@@ -218,11 +219,22 @@ def configure_global() -> None:
     the default settings configured.
     """
     configfile = os.path.join(CONFIGDIR, TOMLFILE)
+    backupfile = os.path.join(CONFIGDIR, f".{TOMLFILE}.bak")
     default_config = copy.deepcopy(DEFAULT_CONFIG)
     config = ConfigParser()
     if os.path.isfile(configfile):
-        with open(configfile) as fin:
-            toml.load(fin)
+        while True:
+            with open(configfile) as fin:
+                try:
+                    toml.load(fin)
+                    shutil.copyfile(configfile, backupfile)
+                    break
+
+                except toml_decoder.TomlDecodeError:
+                    if os.path.isfile(backupfile):
+                        os.rename(backupfile, configfile)
+                    else:
+                        break
 
     for key in default_config:
         if key not in toml:

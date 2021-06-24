@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support for ini config is deprecated
 
 ### Fixed
+- Restores configfile if it becomes corrupted
 - Applies exclusions to non-reduced file paths
 - `pyaud imports` displays success message
 - `pyaud whitelist` sorts whitelist.py

@@ -1806,3 +1806,103 @@ def test_toml_no_override_all(monkeypatch: Any) -> None:
     logging_config.dictConfig(pyaud.config.toml["logging"])
     pyaud.config.DEFAULT_CONFIG["logging"]["root"]["level"] = "INFO"
     assert dict(pyaud.config.toml) == pyaud.config.DEFAULT_CONFIG
+
+
+# noinspection DuplicatedCode
+def test_backup_toml() -> None:
+    """Test backing up of toml config in case file is corrupted."""
+    configfile = os.path.join(pyaud.config.CONFIGDIR, pyaud.config.TOMLFILE)
+    backupfile = os.path.join(
+        pyaud.config.CONFIGDIR, f".{pyaud.config.TOMLFILE}.bak"
+    )
+
+    def _corrupt_file(_configfile_contents: str) -> None:
+        # make a non-parsable change to the configfile (corrupt it)
+        _lines = _configfile_contents.splitlines()
+        _string = 'format = "%(asctime)s %(levelname)s %(name)s %(message)s"'
+        for _count, _line in enumerate(list(_lines)):
+            if _line == _string:
+                _lines.insert(_count, _string[-6:])
+
+        with open(configfile, "w") as _fout:
+            _fout.write("\n".join(_lines))
+
+    # initialisation
+    # ==============
+    # originally there is no backup file (not until configure_global is
+    # run)
+    default_config = dict(pyaud.config.toml)
+    assert not os.path.isfile(backupfile)
+
+    # assert corrupt configfile with no backup will simply reset
+    with open(configfile) as fin:
+        configfile_contents = fin.read()
+
+    _corrupt_file(configfile_contents)
+    pyaud.config.configure_global()
+    with open(configfile) as fin:
+        pyaud.config.toml.load(fin)
+
+    # assert corrupt configfile is no same as default
+    assert dict(pyaud.config.toml) == default_config
+
+    # create backupfile
+    pyaud.config.configure_global()
+    assert os.path.isfile(backupfile)
+
+    # ensure backupfile is a copy of the original config file
+    # (overridden at every initialisation in the case of a change)
+    with open(configfile) as cfin, open(backupfile) as bfin:
+        configfile_contents = cfin.read()
+        backupfile_contents = bfin.read()
+
+    assert configfile_contents == backupfile_contents
+
+    # change to config
+    # ================
+    # this setting, by default, is True
+    pyaud.config.toml["logging"]["disable_existing_loggers"] = False
+    with open(configfile, "w") as fout:
+        pyaud.config.toml.dump(fout)
+
+    # now that there is a change the backup should be different to the
+    # original until configure_global is run again
+    # read configfile as only that file has been changed
+    with open(configfile) as fin:
+        configfile_contents = fin.read()
+
+    assert configfile_contents != backupfile_contents
+    pyaud.config.configure_global()
+
+    # read both, as both have been changed
+    with open(configfile) as cfin, open(backupfile) as bfin:
+        configfile_contents = cfin.read()
+        backupfile_contents = bfin.read()
+
+    assert configfile_contents == backupfile_contents
+
+    # resolve corrupt file
+    # ====================
+    _corrupt_file(configfile_contents)
+
+    # read configfile as only that file has been changed
+    with open(configfile) as fin:
+        configfile_contents = fin.read()
+
+    # only configfile is corrupt, so check backup is not the same
+    assert configfile_contents != backupfile_contents
+
+    # resolve corruption
+    # ==================
+    pyaud.config.configure_global()
+    with open(configfile) as cfin, open(backupfile) as bfin:
+        configfile_contents = cfin.read()
+        backupfile_contents = bfin.read()
+
+    # configfile should equal the backup file and all changes should be
+    # retained
+    assert configfile_contents == backupfile_contents
+    with open(configfile) as fin:
+        pyaud.config.toml.load(fin)
+
+    assert pyaud.config.toml["logging"]["disable_existing_loggers"] is False
