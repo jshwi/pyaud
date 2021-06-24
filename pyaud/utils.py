@@ -387,25 +387,6 @@ def write_command(
     return _decorator
 
 
-class EnterDir:
-    """Change to the selected directory.
-
-    Once actions are complete return to the previous directory.
-
-    :param new_path: Enter the directory to temporarily change to
-    """
-
-    def __init__(self, new_path: Union[bytes, str, os.PathLike]) -> None:
-        self.saved_path = os.getcwd()
-        self.enter_path = os.path.expanduser(new_path)
-
-    def __enter__(self) -> None:
-        os.chdir(self.enter_path)
-
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        os.chdir(self.saved_path)
-
-
 def deploy_docs() -> None:
     """Series of functions for deploying docs."""
     gh_remote = os.environ["PYAUD_GH_REMOTE"]

@@ -11,7 +11,6 @@ from typing import Any, Callable, List
 from .config import generate_rcfile, toml
 from .environ import NAME, TempEnvVar
 from .utils import (
-    EnterDir,
     Git,
     HashCap,
     LineSwitch,
@@ -88,16 +87,14 @@ def make_coverage(**kwargs: bool) -> int:
     :param kwargs:  Pass keyword arguments to ``pytest`` and ``call``.
     :return:        Exit status.
     """
-    with EnterDir(os.environ["PROJECT_DIR"]):
-        coverage = Subprocess("coverage")
-        args = [f"--cov={e}" for e in tree.reduce()]
-        returncode = make_tests(*args, **kwargs)
-        if not returncode:
-            with TempEnvVar(kwargs, suppress=True):
-                return coverage.call("xml", **kwargs)
+    coverage = Subprocess("coverage")
+    returncode = make_tests(*[f"--cov={e}" for e in tree.reduce()], **kwargs)
+    if not returncode:
+        with TempEnvVar(kwargs, suppress=True):
+            return coverage.call("xml", **kwargs)
 
-        print("No coverage to report")
-        return 0
+    print("No coverage to report")
+    return 0
 
 
 def make_deploy(**kwargs: bool) -> int:
@@ -306,17 +303,16 @@ def make_tests(*args: str, **kwargs: bool) -> int:
     :param kwargs:  Pass keyword arguments to ``call``.
     :return:        Exit status.
     """
-    with EnterDir(os.environ["PROJECT_DIR"]):
-        tests = os.environ["PYAUD_TESTS"]
-        project_dir = os.environ["PROJECT_DIR"]
-        patterns = ("test_*.py", "*_test.py")
-        rglob = [p for a in patterns for p in Path(project_dir).rglob(a)]
-        pytest = Subprocess("pytest")
-        if os.path.isdir(tests) and rglob:
-            return pytest.call(*args, **kwargs)
+    tests = os.environ["PYAUD_TESTS"]
+    project_dir = os.environ["PROJECT_DIR"]
+    patterns = ("test_*.py", "*_test.py")
+    rglob = [p for a in patterns for p in Path(project_dir).rglob(a)]
+    pytest = Subprocess("pytest")
+    if os.path.isdir(tests) and rglob:
+        return pytest.call(*args, **kwargs)
 
-        print("No tests found")
-        return 1
+    print("No tests found")
+    return 1
 
 
 @write_command("PYAUD_TOC", required="PYAUD_DOCS")
