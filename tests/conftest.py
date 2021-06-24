@@ -3,6 +3,7 @@ tests.conftest
 ==============
 """
 # pylint: disable=too-many-arguments,too-many-locals,too-few-public-methods
+import copy
 import os
 from configparser import ConfigParser
 from pathlib import Path
@@ -79,14 +80,6 @@ def fixture_mock_environment(
     monkeypatch.setenv(
         "PROJECT_DIR", os.path.join(os.path.expanduser("~"), REPO)
     )
-    monkeypatch.setenv("CODECOV_SLUG", f"{GH_NAME}/{REPO}")
-    monkeypatch.setenv("PYAUD_LOG_LEVEL", "DEBUG")
-    monkeypatch.setenv(
-        "PYAUD_LOGFILE",
-        os.path.join(
-            tmp_path, ".cache", pyaud.utils.__name__, f"{pyaud.__name__}.log"
-        ),
-    )
 
     # patch 3rd party attributes
     # ==========================
@@ -108,6 +101,13 @@ def fixture_mock_environment(
     monkeypatch.setattr(
         "pyaud.config.CONFIGDIR",
         os.path.join(tmp_path, ".config", pyaud.utils.__name__),
+    )
+    logfile = os.path.join(
+        tmp_path,
+        ".cache",
+        pyaud.utils.__name__,
+        "log",
+        f"{pyaud.__name__}.log",
     )
 
     # load default key-value pairs
@@ -132,11 +132,21 @@ def fixture_mock_environment(
     # ~/.cache/pyaud/log/pyaud.utils.log needs to exist before running
     # ``logging.config.dictConfig(config: Dict[str, Any])``
     os.makedirs(os.environ["PROJECT_DIR"])
+    os.makedirs(os.path.dirname(logfile))
 
     # initialize repository
     # =====================
     with pyaud.utils.Git(os.environ["PROJECT_DIR"]) as git:
         git.init(devnull=True)  # type: ignore
+
+    # prepare default config
+    # ======================
+    # override log file path to point to test repository
+    # loglevel to DEBUG
+    default_config: Dict[str, Any] = copy.deepcopy(pyaud.config.DEFAULT_CONFIG)
+    default_config["logging"]["handlers"]["default"]["filename"] = logfile
+    default_config["logging"]["root"]["level"] = pyaud.config.DEBUG
+    monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
 
     # create ~/.gitconfig
     # ===================
@@ -160,6 +170,7 @@ def fixture_mock_environment(
     pyaud.utils.tree.populate()
     pyaud.config.configure_global()
     pyaud.config.load_config()
+    pyaud.config.configure_logging()
 
 
 @pytest.fixture(name="nocolorcapsys")

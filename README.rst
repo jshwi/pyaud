@@ -57,6 +57,25 @@ Example config:
     [clean]
     exclude = ["*.egg*", ".mypy_cache", ".env", "instance"]
 
+    [logging]
+    version = 1
+    disable_existing_loggers = true
+
+    [logging.root]
+    level = "INFO"
+    handlers = ["default"]
+    propagate = false
+
+    [logging.formatters.standard]
+    format = "%(asctime)s %(levelname)s %(name)s %(message)s"
+
+    [logging.handlers.default]
+    class = "logging.handlers.TimedRotatingFileHandler"
+    formatter = "standard"
+    when = "d"
+    backupCount = 60
+    filename = "~/.cache/pyaud/log/pyaud.log"
+
 Prefix each key with ``tool.pyaud`` when using pyproject.toml
 
 .. code-block:: toml

@@ -8,7 +8,6 @@ import os
 from collections.abc import MutableMapping
 from typing import Any
 
-import appdirs
 import dotenv
 import setuptools
 
@@ -35,7 +34,6 @@ def load_namespace() -> None:
     project_dir = os.environ["PROJECT_DIR"]
     pkg = find_package()
     pkg_path = str(os.path.join(os.environ["PROJECT_DIR"], pkg))
-    log_dir = os.path.join(appdirs.user_log_dir(NAME))
     docs = os.path.join(project_dir, "docs")
     docs_build = os.path.join(docs, "_build")
     os.environ.update(
@@ -50,7 +48,6 @@ def load_namespace() -> None:
         PYAUD_TESTS=os.path.join(project_dir, "tests"),
         PYAUD_WHITELIST=os.path.join(project_dir, "whitelist.py"),
         PYAUD_TOC=os.path.join(docs, f"{pkg}.rst"),
-        PYAUD_LOGFILE=os.path.join(log_dir, f"{pkg}.log"),
         PYAUD_GH_NAME=os.environ.get("GITHUB_REPOSITORY_OWNER", ""),
         PYAUD_GH_EMAIL=os.environ.get("PYAUD_GH_EMAIL", ""),
         PYAUD_GH_TOKEN=os.environ.get("PYAUD_GH_TOKEN", ""),
@@ -59,7 +56,6 @@ def load_namespace() -> None:
         PYLINTRC=os.path.join(project_dir, ".pylintrc"),
         MYPY_CACHE_DIR=os.path.join(os.environ["PROJECT_DIR"], ".mypy_cache"),
     )
-    os.makedirs(log_dir, exist_ok=True)
     dotenv.load_dotenv(dotenv.find_dotenv(), override=True)
     if "PYAUD_GH_REMOTE" not in os.environ:
         os.environ[

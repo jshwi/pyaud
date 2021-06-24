@@ -7,6 +7,8 @@ import configparser
 import copy
 import datetime
 import filecmp
+import logging
+import logging.config as logging_config
 import os
 from pathlib import Path
 from subprocess import CalledProcessError
@@ -19,16 +21,21 @@ import pyaud
 
 from . import (
     CONFPY,
+    CRITICAL,
+    DEBUG,
+    ERROR,
     FILES,
     GH_EMAIL,
     GH_NAME,
     GH_TOKEN,
+    INFO,
     INIT,
     INITIAL_COMMIT,
     NO_ISSUES,
     PUSHING_SKIPPED,
     REAL_REPO,
     REPO,
+    WARNING,
     PyaudTestError,
     files,
 )
@@ -1089,41 +1096,34 @@ def test_temp_env_var(iskey: bool, key: str) -> None:
         assert key not in os.environ
 
 
-@pytest.mark.parametrize(
-    "default", ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", None]
-)
-def test_loglevel(main: Any, default: Optional[str]) -> None:
+@pytest.mark.parametrize("default", [CRITICAL, ERROR, WARNING, INFO, DEBUG])
+@pytest.mark.parametrize("flag", ["", "-v", "-vv", "-vvv", "-vvvv"])
+def test_loglevel(main: Any, default: str, flag: str) -> None:
     """Test the right loglevel is set when parsing the commandline.
 
     :param main:    Patch package entry point.
-    :param default: Default loglevel.
+    :param default: Default loglevel configuration.
+    :param flag:    Verbosity level commandline flag.
     """
-    levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-    default_index = 1 if default is None else levels.index(default)
-    module_arg = "unused"
-    del os.environ["PYAUD_LOG_LEVEL"]
-
-    def _increment(_int: int) -> str:
-        inc = default_index - _int
-        if inc <= 0:
-            return "DEBUG"
-
-        return levels[inc]
-
-    mapping = {
-        "": _increment(0),
-        "-v": _increment(1),
-        "-vv": _increment(2),
-        "-vvv": _increment(3),
-        "-vvvv": _increment(4),
+    levels = {
+        "": [CRITICAL, ERROR, WARNING, INFO, DEBUG],
+        "-v": [ERROR, WARNING, INFO, DEBUG, DEBUG],
+        "-vv": [WARNING, INFO, DEBUG, DEBUG, DEBUG],
+        "-vvv": [INFO, DEBUG, DEBUG, DEBUG, DEBUG],
+        "-vvvv": [DEBUG, DEBUG, DEBUG, DEBUG, DEBUG],
     }
+    pyaud.config.toml["logging"]["root"]["level"] = default
+    with open(
+        os.path.join(pyaud.config.CONFIGDIR, pyaud.config.TOMLFILE), "w"
+    ) as fout:
+        pyaud.config.toml.dump(fout)
 
-    for key, value in mapping.items():
-        if default is not None:
-            os.environ["PYAUD_LOG_LEVEL"] = default
-
-        main(module_arg, key)
-        assert os.environ["PYAUD_LOG_LEVEL"] == value
+    pyaud.config.configure_global()
+    main("unused", flag)
+    assert (
+        logging.getLevelName(logging.root.level)
+        == levels[flag][levels[""].index(default)]
+    )
 
 
 def test_isort_imports(nocolorcapsys: Any) -> None:
@@ -1623,6 +1623,10 @@ def test_toml() -> None:
     # preserve the test default config
     home_rcfile = dict(test_default)
     home_rcfile["clean"]["exclude"].append("_build")
+    home_rcfile["logging"]["handlers"]["default"].update(
+        {"class": "logging.handlers.StreamHandler"}
+    )
+    home_rcfile["logging"]["version"] = 2
     with open(
         os.path.join(os.path.expanduser("~"), pyaud.config.RCFILE), "w"
     ) as fout:
@@ -1633,6 +1637,7 @@ def test_toml() -> None:
     # test the the changes made to clean are inherited through the
     # config hierarchy but not configured in this dict
     project_rcfile = dict(test_default)
+    project_rcfile["logging"]["version"] = 3
     with open(os.path.join(project_rc), "w") as fout:
         pyaud.config.toml.dump(fout, project_rcfile)
 
@@ -1641,14 +1646,30 @@ def test_toml() -> None:
     # override "$HOME/.pyaudrc"
     pyaud.config.load_config()
     subtotal: Dict[str, Any] = dict(home_rcfile)
+    subtotal["logging"]["version"] = 3
+    subtotal["logging"]["handlers"]["default"][
+        "filename"
+    ] = os.path.expanduser(
+        subtotal["logging"]["handlers"]["default"]["filename"]
+    )
     assert dict(pyaud.config.toml) == subtotal
 
     # load pyproject.toml
     # ===================
     # pyproject.toml tools start with [tool.<PACKAGE_REPO>]
     pyproject_dict = {"tool": {pyaud.__name__: test_default}}
+    changes = {"clean": {"exclude": []}, "logging": {"version": 4}}
+    pyproject_dict["tool"][pyaud.__name__].update(changes)
     with open(pyproject_path, "w") as fout:
         pyaud.config.toml.dump(fout, pyproject_dict)
+
+    # load "$HOME/.pyaudrc" and then "$PROJECT_DIR/.pyaudrc"
+    # ======================================================
+    # override "$HOME/.pyaudrc"
+    pyaud.config.load_config()
+    subtotal["clean"]["exclude"] = []
+    subtotal["logging"]["version"] = 4
+    assert dict(pyaud.config.toml) == subtotal
 
 
 def test_config_ini_integration() -> None:
@@ -1707,3 +1728,66 @@ def test_make_generate_rcfile(nocolorcapsys: Any):
         nocolorcapsys.stdout().strip()
         == pyaud.config.toml.dumps(pyaud.config.DEFAULT_CONFIG).strip()
     )
+
+
+def test_toml_no_override_all(monkeypatch: Any) -> None:
+    """Confirm error not raised for entire key being overridden.
+
+     Test for when implementing hierarchical config loading.
+
+        def configure(self):
+            '''Do the configuration.'''
+
+            config = self.config
+            if 'version' not in config:
+    >           raise ValueError("dictionary doesn't specify a version")
+    E           ValueError: dictionary doesn't specify a version
+
+    :param monkeypatch:     Mock patch environment and attributes.
+    """
+    monkeypatch.setattr(
+        "pyaud.config.DEFAULT_CONFIG",
+        copy.deepcopy(pyaud.config.DEFAULT_CONFIG),
+    )
+    pyaud.config.toml.clear()
+    pyaud.config.load_config()  # base key-values
+    with open(
+        os.path.join(pyaud.config.CONFIGDIR, pyaud.config.TOMLFILE)
+    ) as fin:
+        pyaud.config.toml.load(fin)  # base key-values
+
+    assert dict(pyaud.config.toml) == pyaud.config.DEFAULT_CONFIG
+    with open(
+        os.path.join(os.path.expanduser("~"), pyaud.config.RCFILE), "w"
+    ) as fout:
+        pyaud.config.toml.dump(fout, {"logging": {"root": {"level": "INFO"}}})
+
+    # should override:
+    # {
+    #      "version": 1,
+    #      "disable_existing_loggers": True,
+    #      "formatters": {...},
+    #      "handlers": {...},
+    #      "root": {
+    #          "level": "DEBUG", "handlers": [...], "propagate": False,
+    #      },
+    # },
+    # with:
+    # {
+    #      "version": 1,
+    #      "disable_existing_loggers": True,
+    #      "formatters": {...},
+    #      "handlers": {...},
+    #      "root": {
+    #          "level": "INFO", "handlers": [...], "propagate": False,
+    #      },
+    # },
+    # and not reduce it to:
+    # {"root": {"level": "INFO"}}
+    pyaud.config.load_config()
+
+    # this here would raise a ``ValueError`` if not working as expected,
+    # so on it's own is an assertion
+    logging_config.dictConfig(pyaud.config.toml["logging"])
+    pyaud.config.DEFAULT_CONFIG["logging"]["root"]["level"] = "INFO"
+    assert dict(pyaud.config.toml) == pyaud.config.DEFAULT_CONFIG

@@ -156,17 +156,6 @@ class _Parser(ArgumentParser):
 
         return self._returncode
 
-    def set_loglevel(self) -> None:
-        """Override ``LOGLEVEL`` environment variable."""
-        levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-        levels_index = 1
-        if "PYAUD_LOG_LEVEL" in os.environ:
-            levels_index = levels.index(os.environ["PYAUD_LOG_LEVEL"])
-
-        os.environ["PYAUD_LOG_LEVEL"] = levels[
-            max(0, levels_index - self.args.verbose)
-        ]
-
 
 def main() -> None:
     """Module entry point.
@@ -178,7 +167,7 @@ def main() -> None:
     os.environ["PROJECT_DIR"] = parser.args.path
     environ.load_namespace()
     config.load_config()
-    parser.set_loglevel()
+    config.configure_logging(parser.args.verbose)
     utils.tree.populate()
     MODULES[parser.args.module](
         clean=parser.args.clean,

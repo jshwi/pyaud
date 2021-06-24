@@ -6,6 +6,8 @@ import os
 import re
 from typing import Any, Tuple
 
+import pyaud.config
+
 from . import files
 
 REAL_REPO = os.path.dirname(os.path.dirname(__file__))
@@ -19,6 +21,11 @@ INITIAL_COMMIT = "Initial commit"
 NO_ISSUES = "Success: no issues found in 1 source files"
 INIT = "__init__.py"
 CONFPY = "conf.py"
+DEBUG = pyaud.config.DEBUG
+INFO = pyaud.config.INFO
+WARNING = pyaud.config.WARNING
+ERROR = pyaud.config.ERROR
+CRITICAL = pyaud.config.CRITICAL
 
 
 class PyaudTestError(Exception):

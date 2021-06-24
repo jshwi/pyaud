@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import functools
 import logging
-import logging.handlers as logging_handlers
 import os
 import shutil
 import sys
@@ -43,7 +42,6 @@ class Subprocess:
         self.commands = commands
         self._call = functools.partial(self.run, self.exe)
         self.stdout: Optional[str] = None
-        self.logger = get_logger(self.exe)
         self._set_attrs()
 
     def call(
@@ -55,7 +53,7 @@ class Subprocess:
         :param kwargs:  Command's keyword arguments.
         :return:        Exit status.
         """
-        self.logger.debug("called with %s", args)
+        logging.getLogger(self.exe).debug("called with %s", args)
         return self._call(*args, **kwargs)
 
     def _capture(self, line: str) -> None:
@@ -90,7 +88,7 @@ class Subprocess:
 
     def _handle_stderr(self, pipeline: Popen) -> None:
         for line in iter(pipeline.stderr.readline, b""):  # type: ignore
-            getattr(self.logger, self.loglevel)(
+            getattr(logging.getLogger(self.exe), self.loglevel)(
                 line.decode("utf-8", "ignore").strip()
             )
 
@@ -130,7 +128,9 @@ class Subprocess:
         """
         returncode = self.open_process(exe, *args, **kwargs)
         if returncode and not kwargs.get("suppress", False):
-            self.logger.error("returned non-zero exit status %s", returncode)
+            logging.getLogger(self.exe).error(
+                "returned non-zero exit status %s", returncode
+            )
             raise CalledProcessError(
                 returncode, f"{self.exe} {' '.join(args)}"
             )
@@ -349,41 +349,6 @@ def get_branch() -> Optional[str]:
             return git.stdout.strip()
 
         return None
-
-
-def get_logger(logname: str) -> logging.Logger:
-    """Get package logger.
-
-    Set the name of ``~/.cache/pyaud/log/*/<logfile>.log``. Get the new
-    or already existing ``Logging`` object by ``logname`` with
-    ``logging.getLogger``. Prevent multiple handlers from pointing to
-    the same logging object at once by setting ``propagate`` to False.
-    Log to files using ``TimedRotatingFileHandler`` with a daily rotate.
-    If any handlers already exist within a logging object remove the
-    handler and update so multiple handlers do not log at once and cause
-    unnecessary duplicates in logfiles.
-
-    :param logname: Name to be logged to file
-    :return:        Logging object.
-    """
-
-    logfile = os.path.join(os.environ["PYAUD_LOGFILE"])
-    logger = logging.getLogger(logname)
-    logger.propagate = False
-    filehandler = logging_handlers.TimedRotatingFileHandler(
-        logfile, when="d", interval=1, backupCount=60
-    )
-    formatter = logging.Formatter(
-        fmt="%(asctime)s %(levelname)-8s %(name)s %(message)s",
-        datefmt="%Y-%m-%dT%H:%M:%S",
-    )
-    logger.setLevel(os.environ["PYAUD_LOG_LEVEL"])
-    if logger.hasHandlers():
-        logger.handlers.clear()
-
-    filehandler.setFormatter(formatter)
-    logger.addHandler(filehandler)
-    return logger
 
 
 def write_command(

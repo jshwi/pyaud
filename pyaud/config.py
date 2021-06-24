@@ -5,6 +5,7 @@ pyaud.config
 Config module for ini parsing.
 """
 import copy
+import logging.config as logging_config
 import os
 from collections.abc import MutableMapping
 from configparser import ConfigParser as _ConfigParser
@@ -20,8 +21,35 @@ RCFILE = f".{NAME}rc"
 TOMLFILE = f"{NAME}.toml"
 PYPROJECT = "pyproject.toml"
 CONFIGDIR = appdirs.user_config_dir(NAME)
-DEFAULT_CONFIG = dict(
-    clean={"exclude": ["*.egg*", ".mypy_cache", ".env", "instance"]}
+DEBUG = "DEBUG"
+INFO = "INFO"
+WARNING = "WARNING"
+ERROR = "ERROR"
+CRITICAL = "CRITICAL"
+LEVELS = [DEBUG, INFO, WARNING, ERROR, CRITICAL]
+DEFAULT_CONFIG: Dict[str, Any] = dict(
+    clean={"exclude": ["*.egg*", ".mypy_cache", ".env", "instance"]},
+    logging={
+        "version": 1,
+        "disable_existing_loggers": True,
+        "formatters": {
+            "standard": {
+                "format": "%(asctime)s %(levelname)s %(name)s %(message)s"
+            }
+        },
+        "handlers": {
+            "default": {
+                "class": "logging.handlers.TimedRotatingFileHandler",
+                "formatter": "standard",
+                "when": "d",
+                "backupCount": 60,
+                "filename": os.path.join(
+                    appdirs.user_log_dir(NAME), f"{NAME}.log"
+                ),
+            }
+        },
+        "root": {"level": "INFO", "handlers": ["default"], "propagate": False},
+    },
 )
 
 
@@ -225,6 +253,32 @@ def load_config():
 def generate_rcfile():
     """Print default config file in ``Toml`` format."""
     print(toml.dumps(DEFAULT_CONFIG), end="")
+
+
+def configure_logging(verbose: int = 0) -> None:
+    """Set loglevel via commandline.
+
+    Override environment variable if loglevel has already been set.
+
+    :param verbose: Level to raise log verbosity by.
+    """
+    config = toml["logging"]
+
+    # create logging dir and it's parents if they do not exist already
+    os.makedirs(
+        os.path.dirname(
+            os.path.expanduser(config["handlers"]["default"]["filename"])
+        ),
+        exist_ok=True,
+    )
+
+    # tweak loglevel if commandline argument is provided
+    config["root"]["level"] = LEVELS[
+        max(0, LEVELS.index(config["root"]["level"]) - verbose)
+    ]
+
+    # load values to ``logging``
+    logging_config.dictConfig(toml["logging"])
 
 
 toml = _Toml()
