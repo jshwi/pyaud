@@ -3,7 +3,6 @@ conftest
 ==============
 """
 import os
-import sys
 from pathlib import Path
 from typing import Any, Dict, Union
 
@@ -220,49 +219,26 @@ def fixture_nocolorcapsys(capsys):
     return NoColorCapsys(capsys)
 
 
-@pytest.fixture(name="patch_argv")
-def fixture_patch_argv(monkeypatch):
-    """Function for passing mock commandline arguments to ``sys.argv``.
+@pytest.fixture(name="main")
+def fixture_main(monkeypatch):
+    """Function for passing mock ``pyaud.main`` commandline arguments
+    to package's main function.
 
     :param monkeypatch: ``pytest`` fixture for mocking attributes.
     :return:            Function for using this fixture.
     """
 
-    def _argv(*args):
-        args = [__name__, "--path", pyaud.environ.env["PROJECT_DIR"], *args]
-        monkeypatch.setattr(sys, "argv", args)
-
-    return _argv
-
-
-@pytest.fixture(name="parser")
-def fixture_parser(patch_argv):
-    """Function for passing mock commandline arguments to ``Parser``
-    class.
-
-    :param patch_argv:  Set args with ``sys.argv``
-    :return:            Function for using this fixture.
-    """
-
-    def _parser(*args):
-        patch_argv(*args)
-        return pyaud.Parser(__name__)
-
-    return _parser
-
-
-@pytest.fixture(name="main")
-def fixture_main(patch_argv):
-    """Function for passing mock ``pyaud.main`` commandline arguments
-    to package's main function.
-
-    :param patch_argv:  Set args with ``sys.argv``
-    :return:            Function for using this fixture.
-    """
-
-    def _main(*args):
-        """Run pyaud.main with custom args."""
-        patch_argv(*args)
+    def _main(*args: str) -> None:
+        """Run main with custom args."""
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                pyaud.__name__,
+                "--path",
+                pyaud.environ.env["PROJECT_DIR"],
+                *args,
+            ],
+        )
         pyaud.main()
 
     return _main

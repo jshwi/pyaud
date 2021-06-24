@@ -22,7 +22,7 @@ MODULES = {
 }
 
 
-class Parser(ArgumentParser):
+class _Parser(ArgumentParser):
     """Inherited ``argparse.ArgumentParser`` object for the package.
     Assign positional argument to ``self.module``. If there is a
     positional argument accompanying the ``modules`` argument assign it
@@ -168,7 +168,7 @@ def main() -> None:
     selected choice from the dictionary of functions which matches the
     key.
     """
-    parser = Parser(utils.colors.cyan.get(__name__))
+    parser = _Parser(utils.colors.cyan.get(__name__))
     environ.env.store["PROJECT_DIR"] = parser.args.path
     environ.env.update(
         dict(
