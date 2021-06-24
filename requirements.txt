@@ -18,6 +18,7 @@ colorama==0.4.4
 coverage[toml]==5.3.1
 cryptography==3.4.7
 decorator==5.0.9
+docformatter==1.4
 docopt==0.6.2
 docutils==0.17.1
 execnet==1.9.0
@@ -93,6 +94,7 @@ traitlets==5.0.5
 twine==3.3.0
 typed-ast==1.4.3
 typing-extensions==3.10.0.0
+untokenize==0.1.1
 urllib3==1.26.6
 vulture==2.3
 wcwidth==0.2.5

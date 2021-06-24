@@ -6,7 +6,7 @@ import os
 import shutil
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Any, Callable, List, Union
+from typing import Any, Callable, List, Tuple, Union
 
 from .config import ConfigParser
 from .environ import NAME, TempEnvVar, env
@@ -39,6 +39,7 @@ def make_audit(**kwargs: Union[bool, str]) -> int:
     """
     audit_modules: List[Callable[..., Any]] = [
         make_format,
+        make_format_docs,
         make_format_str,
         make_imports,
         make_typecheck,
@@ -495,3 +496,21 @@ def make_format_str(**kwargs: bool) -> int:
         raise PyAuditError(
             f"{flynt.exe} {tuple([str(i) for i in args])}"
         ) from err
+
+
+@check_command
+def make_format_docs(**kwargs: bool) -> int:
+    """Format docstrings with ``docformatter``.
+
+    :param kwargs: Keyword arguments (later implemented).
+    """
+    docformatter = Subprocess("docformatter")
+    args: Tuple[str, ...] = ("--recursive", "--wrap-summaries", "72")
+    paths = pyitems.items
+    try:
+        return docformatter.call("--check", *args, *paths, **kwargs)
+
+    except CalledProcessError as err:
+        args = ("--in-place", *args)
+        docformatter.call(*args, *paths, **kwargs)
+        raise PyAuditError(f"{docformatter.exe} {args}") from err

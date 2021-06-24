@@ -237,6 +237,7 @@ def test_suppress(
     pyaud.utils.pyitems.get_files()
     audit_modules = [
         "make_format",
+        "make_format_docs",
         "make_format_str",
         "make_imports",
         "make_typecheck",
@@ -309,6 +310,7 @@ def test_audit_modules(
     """
     audit_modules = [
         "make_format",
+        "make_format_docs",
         "make_format_str",
         "make_imports",
         "make_typecheck",
@@ -1036,6 +1038,7 @@ def test_parser(
         "docs",
         "files",
         "format",
+        "format-docs",
         "format-str",
         "lint",
         "requirements",
@@ -1313,8 +1316,9 @@ def test_readme(main: Any, nocolorcapsys: Any) -> None:
         ("format", "black", files.UNFORMATTED),
         ("imports", "isort", files.IMPORTS_UNSORTED),
         ("format-str", "flynt", files.FORMAT_STR_FUNCS_PRE),
+        ("format-docs", "docformatter", files.DOCFORMATTER_EXAMPLE),
     ],
-    ids=["format", "imports", "format-str"],
+    ids=["format", "imports", "format-str", "format-docs"],
 )
 def test_py_audit_error(
     main: Any, make_tree: Any, module: str, process: str, content: str
@@ -1649,3 +1653,39 @@ def test_help(
 
     # index 0 returns stdout from ``readouterr`` and 1 returns stderr
     assert any(i in nocolorcapsys.readouterr()[index] for i in expected)
+
+
+def test_make_format_docs_fail() -> None:
+    """Test ``make_format`` when it fails.
+
+    Ensure process fails when unformatted docstrings are found.
+    """
+    with open(
+        os.path.join(os.environ["PROJECT_DIR"], "files.py"), "w"
+    ) as fout:
+        fout.write(files.DOCFORMATTER_EXAMPLE)
+
+    pyaud.utils.pyitems.get_files()
+    with pytest.raises(pyaud.utils.PyAuditError):
+        pyaud.modules.make_format_docs()
+
+
+def test_make_format_docs_suppress(nocolorcapsys: Any) -> None:
+    """Test ``make_format`` when running with ``-s/--suppress``.
+
+    Ensure process announces it failed but does not actually return a
+    non-zero exit-status.
+
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    """
+    path = os.path.join(pyaud.environ.env["PROJECT_DIR"], FILES)
+    with open(path, "w") as fout:
+        fout.write(files.DOCFORMATTER_EXAMPLE)
+
+    pyaud.utils.pyitems.get_files()
+    pyaud.modules.make_format_docs(suppress=True)
+    assert (
+        nocolorcapsys.stderr().strip()
+        == "Failed: returned non-zero exit status 3"
+    )
