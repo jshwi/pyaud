@@ -81,25 +81,26 @@ Commandline arguments:
       -v, --verbose   incrementally increase logging verbosity
       --path PATH     set alternative path to present working dir
     ------------------------------------------------------------------------
-    audit        -- Run all modules for complete package audit
-    clean        -- Remove all unversioned package files recursively
-    coverage     -- Run package unit-tests with `pytest` and `coverage`
-    deploy       -- Deploy package documentation and test coverage
-    deploy-cov   -- Upload coverage data to `Codecov`
-    deploy-docs  -- Deploy package documentation to `gh-pages`
-    docs         -- Compile package documentation with `Sphinx`
-    files        -- Audit project data files
-    format       -- Audit code against `Black`
-    format-docs  -- Format docstrings with `docformatter`
-    format-str   -- Format f-strings with `flynt`
-    imports      -- Audit imports with `isort`
-    lint         -- Lint code with `pylint`
-    readme       -- Parse, test, and assert RST code-blocks
-    requirements -- Audit requirements.txt with Pipfile.lock
-    tests        -- Run the package unit-tests with `pytest`
-    toc          -- Audit docs/<NAME>.rst toc-file
-    typecheck    -- Typecheck code with `mypy`
-    unused       -- Audit unused code with `vulture`
-    whitelist    -- Check whitelist.py file with `vulture`
+    audit           -- Run all modules for complete package audit
+    clean           -- Remove all unversioned package files recursively
+    coverage        -- Run package unit-tests with `pytest` and `coverage`
+    deploy          -- Deploy package documentation and test coverage
+    deploy-cov      -- Upload coverage data to `Codecov`
+    deploy-docs     -- Deploy package documentation to `gh-pages`
+    docs            -- Compile package documentation with `Sphinx`
+    files           -- Audit project data files
+    format          -- Audit code against `Black`
+    format-docs     -- Format docstrings with `docformatter`
+    format-str      -- Format f-strings with `flynt`
+    generate-rcfile -- Print rcfile to stdout
+    imports         -- Audit imports with `isort`
+    lint            -- Lint code with `pylint`
+    readme          -- Parse, test, and assert RST code-blocks
+    requirements    -- Audit requirements.txt with Pipfile.lock
+    tests           -- Run the package unit-tests with `pytest`
+    toc             -- Audit docs/<NAME>.rst toc-file
+    typecheck       -- Typecheck code with `mypy`
+    unused          -- Audit unused code with `vulture`
+    whitelist       -- Check whitelist.py file with `vulture`
 
 *The word `function` and `module` are used interchangeably in this package*

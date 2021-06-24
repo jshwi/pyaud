@@ -8,7 +8,7 @@ from pathlib import Path
 from subprocess import CalledProcessError
 from typing import Any, Callable, List
 
-from .config import toml
+from .config import generate_rcfile, toml
 from .environ import NAME, TempEnvVar
 from .utils import (
     EnterDir,
@@ -515,3 +515,11 @@ def make_format_docs(**kwargs: bool) -> int:
         args = ("--in-place", *args)
         docformatter.call(*args, **kwargs)
         raise PyAuditError(f"{docformatter.exe} {args}") from err
+
+
+def make_generate_rcfile(**__: bool) -> None:
+    """Print rcfile to stdout.
+
+    Print rcfile to stdout so it may be piped to chosen filepath.
+    """
+    generate_rcfile()

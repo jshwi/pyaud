@@ -1694,3 +1694,16 @@ def test_config_ini_integration() -> None:
         assert (
             '[clean]\nexclude = ["*.egg*", ".env", "instance", ".coverage"]'
         ) in fin.read()
+
+
+def test_make_generate_rcfile(nocolorcapsys: Any):
+    """Test for correct output when running ``generate-rcfile``.
+
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    """
+    pyaud.modules.make_generate_rcfile()
+    assert (
+        nocolorcapsys.stdout().strip()
+        == pyaud.config.toml.dumps(pyaud.config.DEFAULT_CONFIG).strip()
+    )

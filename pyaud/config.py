@@ -133,6 +133,18 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
 
     _encoder = _TomlArrayEncoder()
 
+    def _format_dump(self, obj: Dict[str, Any]) -> Dict[str, Any]:
+        for key, value in obj.items():
+            if isinstance(value, dict):
+                value = self._format_dump(value)
+
+            if isinstance(value, str):
+                value = value.replace(os.path.expanduser("~"), "~")
+
+            obj[key] = value
+
+        return obj
+
     def dump(self, fout: TextIO, obj: Optional[MutableMapping] = None) -> str:
         """Native ``dump`` method to include encoder.
 
@@ -141,7 +153,20 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
         :return:        str object in toml encoded form.
         """
         return toml_encoder.dump(
-            dict(self) if obj is None else obj, fout, encoder=self._encoder
+            self._format_dump(dict(self) if obj is None else dict(obj)),
+            fout,
+            encoder=self._encoder,
+        )
+
+    def dumps(self, obj: Optional[MutableMapping] = None) -> str:
+        """Native ``dump(from)s(tr)`` method to include encoder.
+
+        :param obj: Mutable mapping dict-like object.
+        :return:    str object in toml encoded form.
+        """
+        return toml_encoder.dumps(
+            self._format_dump(dict(self) if obj is None else dict(obj)),
+            encoder=self._encoder,
         )
 
     def load(self, fin: TextIO, *args: Any) -> None:
@@ -195,6 +220,11 @@ def load_config():
         if os.path.isfile(file):
             with open(file) as fin:
                 toml.load(fin, "tool", NAME)
+
+
+def generate_rcfile():
+    """Print default config file in ``Toml`` format."""
+    print(toml.dumps(DEFAULT_CONFIG), end="")
 
 
 toml = _Toml()
