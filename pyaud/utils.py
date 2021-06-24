@@ -432,7 +432,7 @@ def get_logger(logname: str) -> logging.Logger:
                         ``logger.<[debug, info, warning, etc.]>(msg)``
     """
 
-    logfile = os.path.join(env["LOG_DIR"], env["PKG"] + ".log")
+    logfile = os.path.join(env["LOG_DIR"], f"{env['PKG']}.log")
     logger = logging.getLogger(logname)
     logger.propagate = False
     filehandler = logging_handlers.TimedRotatingFileHandler(

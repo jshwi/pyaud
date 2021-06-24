@@ -295,7 +295,7 @@ def fixture_patch_sp_call(monkeypatch):
             if func:
                 func()
             else:
-                print(self.exe + " " + " ".join(args))
+                print(f"{self.exe} {' '.join(args)}")
 
             return returncode
 

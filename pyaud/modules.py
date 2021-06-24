@@ -70,7 +70,7 @@ def make_clean(**kwargs: Union[bool, str]) -> int:
     exclude = _config.getlist("CLEAN", "exclude")
     with Git(os.environ["PROJECT_DIR"]) as git:
         return git.clean(  # type: ignore
-            "-fdx", *["--exclude=" + e for e in exclude], **kwargs
+            "-fdx", *[f"--exclude={e}" for e in exclude], **kwargs
         )
 
 
@@ -81,7 +81,7 @@ def make_coverage(**kwargs: Union[bool, str]) -> int:
     """
     with EnterDir(env["PROJECT_DIR"]):
         coverage = Subprocess("coverage")
-        args = ["--cov=" + e for e in pyitems.items if os.path.isdir(e)]
+        args = [f"--cov={e}" for e in pyitems.items if os.path.isdir(e)]
         returncode = make_tests(*args, **kwargs)
         if not returncode:
             return coverage.call("xml", suppress=True, **kwargs)
@@ -175,7 +175,7 @@ def make_deploy_docs(**kwargs: Union[bool, str]) -> int:
         else:
             print("The following is not set:")
             for null_val in null_vals:
-                print("- " + null_val)
+                print(f"- {null_val}")
 
             print()
             print("Pushing skipped")
@@ -290,7 +290,7 @@ def make_requirements(**kwargs: Union[bool, str]) -> int:
         for content in contents:
             if content not in newlines:
                 newlines.append(content)
-                fout.write(content.split(";")[0] + "\n")
+                fout.write(f"{content.split(';')[0]}\n")
 
     return 0
 
@@ -340,7 +340,7 @@ def make_toc(**kwargs: Union[bool, str]) -> int:
             fout.write(f"{env['PKG']}\n{len(env['PKG']) * '='}\n\n")
             for content in contents:
                 if any(a in content for a in toc_attrs):
-                    fout.write(content + "\n")
+                    fout.write(f"{content}\n")
 
         modules = (
             os.path.join(env["DOCS"], f"{env['PKG']}.src.rst"),
@@ -407,7 +407,7 @@ def make_whitelist(**kwargs: Union[bool, str]) -> int:
     stdout.sort()
     with open(env["WHITELIST"], "w") as fout:
         for line in stdout:
-            fout.write(line.replace(env["PROJECT_DIR"] + os.sep, "") + "\n")
+            fout.write(f"{line.replace(env['PROJECT_DIR'] + os.sep, '')}\n")
 
     return 0
 

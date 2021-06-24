@@ -165,7 +165,7 @@ def load_namespace() -> None:
             REQUIREMENTS=os.path.join(project_dir, "requirements.txt"),
             TESTS=os.path.join(project_dir, "tests"),
             WHITELIST=os.path.join(project_dir, "whitelist.py"),
-            TOC=os.path.join(docs, pkg + ".rst"),
+            TOC=os.path.join(docs, f"{pkg}.rst"),
         )
     )
     for _dir in (log_dir, config_dir):

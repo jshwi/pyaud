@@ -1744,7 +1744,7 @@ CODE_BLOCK_TEMPLATE = """
     'Hello, world!'
 ..
 """
-SUCCESS = "\n{}\nSuccess!".format(80 * "-")
+SUCCESS = f"\n{80 * '-'}\nSuccess!"
 CODE_BLOCK_EXPECTED = (
     '\ncode-block 1\n. >>> print("Hello, world!")\nHello, world!\n{}'.format(
         SUCCESS

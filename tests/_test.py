@@ -158,7 +158,7 @@ def test_make_deploy_all(call_status, monkeypatch, nocolorcapsys):
     out = nocolorcapsys.stdout().splitlines()
     for deploy_module in deploy_modules:
         assert (
-            deploy_module.replace("make_", NAME + " ").replace("_", "-") in out
+            deploy_module.replace("make_", f"{NAME} ").replace("_", "-") in out
         )
 
 
@@ -176,7 +176,7 @@ def test_make_deploy_all_fail(call_status, monkeypatch, nocolorcapsys):
 
     pyaud.modules.make_deploy()
     out = nocolorcapsys.stdout().splitlines()
-    assert deploy_module.replace("make_", NAME + " ").replace("_", "-") in out
+    assert deploy_module.replace("make_", f"{NAME} ").replace("_", "-") in out
 
 
 def test_make_docs_no_docs(nocolorcapsys):
@@ -426,7 +426,7 @@ def test_audit_modules(
 
     main("audit", *args)
     output = [i for i in nocolorcapsys.stdout().splitlines() if i != ""]
-    expected = [i.replace("make_", NAME + " ") for i in audit_modules]
+    expected = [i.replace("make_", f"{NAME} ") for i in audit_modules]
     assert all([i in output for i in expected])
     assert output[0] == first
     assert output[-1] == last
@@ -612,7 +612,7 @@ def test_find_pylintrc_file(patch_sp_call, nocolorcapsys, is_file):
     :param is_file:         File exists: True or False.
     """
     patch_sp_call()
-    expected = "--rcfile=" + pyaud.environ.env["PYLINTRC"]
+    expected = f"--rcfile={pyaud.environ.env['PYLINTRC']}"
     if is_file:
         Path(pyaud.environ.env["PYLINTRC"]).touch()
         pyaud.utils.pyitems.get_files()
@@ -670,7 +670,7 @@ def test_module_help(main, nocolorcapsys):
 
     out = nocolorcapsys.stdout().splitlines()
     for key in pyaud.MODULES:
-        assert "pyaud " + key.replace("_", "-") in out
+        assert f"pyaud {key.replace('_', '-')}" in out
 
 
 def test_module_not_valid(main, nocolorcapsys):
@@ -780,7 +780,7 @@ def test_pipe_to_file():
     """
     gitdir = os.path.join(pyaud.environ.env["PROJECT_DIR"], ".git") + os.sep
     piped_file = os.path.join(pyaud.environ.env["PROJECT_DIR"], "pipe.txt")
-    expected = "Initialized empty Git repository in " + gitdir
+    expected = f"Initialized empty Git repository in {gitdir}"
     with pyaud.utils.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
         git.init(file=piped_file)
 
@@ -820,7 +820,7 @@ def test_validate_env(validate_env):
     real_tests = os.path.join(REAL_REPO, "tests")
     pyaud.environ.env["TESTS"] = real_tests
     expected = (
-        "environment not properly set: PYAUD_TEST_TESTS == " + real_tests
+        f"environment not properly set: PYAUD_TEST_TESTS == {real_tests}"
     )
     with pytest.raises(PyaudTestError) as err:
         validate_env()
@@ -919,7 +919,7 @@ def test_readme_replace():
     readme = "README"
     readme_underline = len(readme) * "="
     with open(pyaud.environ.env["README_RST"], "w") as fout:
-        fout.write(repo + "\n" + repo_underline + "\n")
+        fout.write(f"{repo}\n{repo_underline}\n")
 
     _test_file_index(repo, repo_underline)
     with pyaud.utils.LineSwitch(
@@ -1181,7 +1181,7 @@ def test_parser(monkeypatch, nocolorcapsys, track_called, call_status, main):
     )
     for call in calls:
         main(call)
-        module = "make_" + call.replace("-", "_")
+        module = f"make_{call.replace('-', '_')}"
         assert nocolorcapsys.stdout().strip() == module
 
 
