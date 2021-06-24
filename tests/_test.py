@@ -1330,7 +1330,7 @@ def test_temp_env_var(iskey, key):
     else:
         assert key not in os.environ
 
-    with pyaud.environ.TempEnvVar(key, "True"):
+    with pyaud.environ.TempEnvVar(os.environ, **{key: "True"}):
         assert key in os.environ and os.environ[key] == "True"
 
     if iskey:
@@ -1499,3 +1499,11 @@ def test_format_str(main, nocolorcapsys):
     assert all(i in out for i in expected)
     with open(os.path.join(path, FILES)) as fin:
         assert fin.read() == files.FORMAT_STR_FUNCS_POST
+
+
+def test_del_key_in_context():
+    """Confirm there is no error raised when deleting temp key-value."""
+    obj = {}
+    with pyaud.environ.TempEnvVar(obj, key="value"):
+        assert obj["key"] == "value"
+        del obj["key"]

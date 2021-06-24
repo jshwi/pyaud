@@ -85,7 +85,8 @@ def make_coverage(**kwargs: Union[bool, str]) -> int:
         args = [f"--cov={e}" for e in pyitems.items if os.path.isdir(e)]
         returncode = make_tests(*args, **kwargs)
         if not returncode:
-            return coverage.call("xml", suppress=True, **kwargs)
+            with TempEnvVar(kwargs, suppress=True):
+                return coverage.call("xml", **kwargs)
 
         print("No coverage to report")
         return 0
@@ -253,7 +254,7 @@ def make_lint(**kwargs: Union[bool, str]) -> int:
 
     :param kwargs: Additional keyword arguments for ``pylint``.
     """
-    with TempEnvVar("PYCHARM_HOSTED", "True"):
+    with TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
         args = list(pyitems.items)
         pylint = Subprocess("pylint")
         if os.path.isfile(env["PYLINTRC"]):
@@ -396,9 +397,9 @@ def make_whitelist(**kwargs: Union[bool, str]) -> int:
     # append whitelist exceptions for each individual module
     for item in pyitems.items:
         if os.path.exists(item):  # type: ignore
-            vulture.call(
-                item, "--make-whitelist", capture=True, suppress=True, **kwargs
-            )
+            with TempEnvVar(kwargs, suppress=True):
+                vulture.call(item, "--make-whitelist", capture=True, **kwargs)
+
             if vulture.stdout:
                 lines.extend(vulture.stdout.splitlines())
 
@@ -443,7 +444,7 @@ def make_imports(**kwargs: Union[bool, str]) -> int:
 
 def make_readme() -> None:
     """Parse, test, and assert RST code-blocks."""
-    with TempEnvVar("PYCHARM_HOSTED", "True"):
+    with TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
         readmtester = Subprocess("readmetester")
         if os.path.isfile(env["README_RST"]):
             readmtester.call(env["README_RST"])
