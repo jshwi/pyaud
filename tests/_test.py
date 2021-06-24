@@ -1671,6 +1671,21 @@ def test_toml() -> None:
     subtotal["logging"]["version"] = 4
     assert dict(pyaud.config.toml) == subtotal
 
+    # load optional rcfile
+    # ====================
+    # this will override all others when passed to the commandline
+    pos = {"audit": {"modules": ["files", "format", "format-docs"]}}
+    opt_rc = os.path.join(os.environ["PROJECT_DIR"], "opt_rc")
+    with open(opt_rc, "w") as fout:
+        pyaud.config.toml.dump(fout, pos)
+
+    # load "$HOME/.pyaudrc" and then "$Path.cwd()/.pyaudrc"
+    # ======================================================
+    # override "$HOME/.pyaudrc"
+    pyaud.config.load_config(opt_rc)
+    subtotal["audit"] = {"modules": ["files", "format", "format-docs"]}
+    assert dict(pyaud.config.toml) == subtotal
+
 
 def test_config_ini_integration() -> None:
     """Test config ini edits override global toml."""

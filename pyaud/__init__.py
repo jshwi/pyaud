@@ -84,6 +84,11 @@ class _Parser(ArgumentParser):
             default=os.getcwd(),
             help="set alternative path to present working dir",
         )
+        self.add_argument(
+            "--rcfile",
+            action="store",
+            help="select file to override config hierarchy",
+        )
 
         # pos argument following [modules] argument
         self.add_argument("pos", nargs="?", default=None, help=SUPPRESS)
@@ -166,7 +171,7 @@ def main() -> None:
     parser = _Parser(utils.colors.cyan.get(__name__))
     os.environ["PROJECT_DIR"] = parser.args.path
     environ.load_namespace()
-    config.load_config()
+    config.load_config(parser.args.rcfile)
     config.configure_logging(parser.args.verbose)
     utils.tree.populate()
     MODULES[parser.args.module](

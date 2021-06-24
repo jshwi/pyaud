@@ -90,18 +90,19 @@ Commandline arguments:
 
 .. code-block:: console
 
-    usage: pyaud [-h] [-c] [-d] [-s] [-v] [--path PATH] MODULE
+    usage: pyaud [-h] [-c] [-d] [-s] [-v] [--path PATH] [--rcfile RCFILE] MODULE
 
     positional arguments:
-      MODULE          choice of module: [modules] to list all
+      MODULE           choice of module: [modules] to list all
 
     optional arguments:
-      -h, --help      show this help message and exit
-      -c, --clean     clean unversioned files prior to any process
-      -d, --deploy    include test and docs deployment after audit
-      -s, --suppress  continue without stopping for errors
-      -v, --verbose   incrementally increase logging verbosity
-      --path PATH     set alternative path to present working dir
+      -h, --help       show this help message and exit
+      -c, --clean      clean unversioned files prior to any process
+      -d, --deploy     include test and docs deployment after audit
+      -s, --suppress   continue without stopping for errors
+      -v, --verbose    incrementally increase logging verbosity
+      --path PATH      set alternative path to present working dir
+      --rcfile RCFILE  select file to override config hierarchy
     ------------------------------------------------------------------------
     audit           -- Run all modules for complete package audit
     clean           -- Remove all unversioned package files recursively

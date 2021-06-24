@@ -237,14 +237,20 @@ def configure_global() -> None:
         toml.dump(fout)
 
 
-def load_config():
-    """Load configs in order, each one overriding the previous."""
+def load_config(opt: Optional[str] = None):
+    """Load configs in order, each one overriding the previous.
+
+    :param opt: Optional extra path which will override all others.
+    """
     files = [
         os.path.join(CONFIGDIR, TOMLFILE),
         os.path.join(os.path.expanduser("~"), RCFILE),
         os.path.join(os.environ["PROJECT_DIR"], RCFILE),
         os.path.join(os.environ["PROJECT_DIR"], PYPROJECT),
     ]
+    if opt is not None:
+        files.append(opt)
+
     for file in files:
         if os.path.isfile(file):
             with open(file) as fin:
