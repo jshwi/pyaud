@@ -6,7 +6,7 @@ import os
 import shutil
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable, List, Union
 
 from .config import ConfigParser
 from .environ import NAME, TempEnvVar, env
@@ -20,7 +20,7 @@ from .utils import (
     check_command,
     colors,
     deploy_docs,
-    pyitems,
+    tree,
     write_command,
 )
 
@@ -90,7 +90,7 @@ def make_coverage(**kwargs: Union[bool, str]) -> int:
     """
     with EnterDir(env["PROJECT_DIR"]):
         coverage = Subprocess("coverage")
-        args = [f"--cov={e}" for e in pyitems.items if os.path.isdir(e)]
+        args = [f"--cov={e}" for e in tree.reduce()]
         returncode = make_tests(*args, **kwargs)
         if not returncode:
             with TempEnvVar(kwargs, suppress=True):
@@ -254,7 +254,7 @@ def make_format(**kwargs: Union[bool, str]) -> int:
     :return:        Exit status.
     """
     black = Subprocess("black", loglevel="debug")
-    args = pyitems.items
+    args = tree.reduce()
     try:
         return black.call("--check", *args, **kwargs)
 
@@ -271,7 +271,7 @@ def make_lint(**kwargs: Union[bool, str]) -> int:
     :return:        Exit status.
     """
     with TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
-        args = list(pyitems.items)
+        args = tree.reduce()
         pylint = Subprocess("pylint")
         if os.path.isfile(env["PYLINTRC"]):
             args.append(f"--rcfile={env['PYLINTRC']}")
@@ -383,7 +383,7 @@ def make_typecheck(**kwargs: Union[bool, str]) -> int:
     cache_dir = os.path.join(env["PROJECT_DIR"], ".mypy_cache")
     os.environ["MYPY_CACHE_DIR"] = cache_dir
     mypy = Subprocess("mypy")
-    return mypy.call("--ignore-missing-imports", *pyitems.items, **kwargs)
+    return mypy.call("--ignore-missing-imports", *tree.reduce(), **kwargs)
 
 
 @check_command
@@ -395,7 +395,7 @@ def make_unused(**kwargs: Union[bool, str]) -> int:
     :param kwargs:  Pass keyword arguments to ``call``.
     :return:        Exit status.
     """
-    args = list(pyitems.items)
+    args = tree.reduce()
     if os.path.isfile(env["WHITELIST"]):
         args.append(env["WHITELIST"])
 
@@ -417,7 +417,7 @@ def make_whitelist(**kwargs: Union[bool, str]) -> int:
     vulture = Subprocess("vulture")
 
     # append whitelist exceptions for each individual module
-    for item in pyitems.items:
+    for item in tree.reduce():
         if os.path.exists(item):  # type: ignore
             with TempEnvVar(kwargs, suppress=True):
                 vulture.call(item, "--make-whitelist", capture=True, **kwargs)
@@ -449,7 +449,7 @@ def make_imports(**kwargs: Union[bool, str]) -> int:
     changed = []
     isort = Subprocess("isort")
     black = Subprocess("black")
-    for item in pyitems.files:
+    for item in tree:
         if os.path.isfile(item):
             with HashCap(item) as cap:
                 isort.call(item, capture=True, **kwargs)
@@ -461,7 +461,7 @@ def make_imports(**kwargs: Union[bool, str]) -> int:
                     print(isort.stdout.strip())
 
     if changed:
-        raise PyAuditError(f"{isort.exe} {tuple(changed)}")
+        raise PyAuditError(f"{make_imports.__name__} {tuple(changed)}")
 
     return 0
 
@@ -485,7 +485,7 @@ def make_format_str(**kwargs: bool) -> int:
     :return:        Exit status.
     """
     flynt = Subprocess("flynt")
-    args = ("--line-length", "72", "--transform-concats", *pyitems.items)
+    args = ("--line-length", "72", "--transform-concats", *tree.reduce())
     try:
         return flynt.call(
             "--dry-run", "--fail-on-change", *args, devnull=True, **kwargs
@@ -493,9 +493,7 @@ def make_format_str(**kwargs: bool) -> int:
 
     except CalledProcessError as err:
         flynt.call(*args, **kwargs)
-        raise PyAuditError(
-            f"{flynt.exe} {tuple([str(i) for i in args])}"
-        ) from err
+        raise PyAuditError(f"{flynt.exe} {args}") from err
 
 
 @check_command
@@ -505,12 +503,11 @@ def make_format_docs(**kwargs: bool) -> int:
     :param kwargs: Keyword arguments (later implemented).
     """
     docformatter = Subprocess("docformatter")
-    args: Tuple[str, ...] = ("--recursive", "--wrap-summaries", "72")
-    paths = pyitems.items
+    args = ("--recursive", "--wrap-summaries", "72", *tree.reduce())
     try:
-        return docformatter.call("--check", *args, *paths, **kwargs)
+        return docformatter.call("--check", *args, **kwargs)
 
     except CalledProcessError as err:
         args = ("--in-place", *args)
-        docformatter.call(*args, *paths, **kwargs)
+        docformatter.call(*args, **kwargs)
         raise PyAuditError(f"{docformatter.exe} {args}") from err

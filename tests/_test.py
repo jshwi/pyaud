@@ -43,8 +43,8 @@ def test_no_files_found(nocolorcapsys: Any) -> None:
 @pytest.mark.parametrize(
     "module,expected",
     [
-        ("make_unused", "Success: no issues found in 2 source files"),
-        ("make_tests", "Success: no issues found in 2 source files"),
+        ("make_unused", "Success: no issues found in 1 source files"),
+        ("make_tests", "Success: no issues found in 1 source files"),
     ],
     ids=["files", "tests"],
 )
@@ -69,11 +69,11 @@ def test_success_output(
                                 exit-code.
     :param module:              Function to test.
     """
-    make_tree(
-        pyaud.environ.env["PROJECT_DIR"], {"docs": {CONFPY: None}, FILES: None}
-    )
-    pyaud.utils.pyitems.get_files()
-    pyaud.utils.pyitems.get_file_paths()
+    make_tree(pyaud.environ.env["PROJECT_DIR"], {"docs": {CONFPY: None}})
+    with pyaud.utils.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
+        git.add(".")  # type: ignore
+
+    pyaud.utils.tree.populate()
     monkeypatch.setattr(
         f"pyaud.modules.{module}",
         pyaud.utils.check_command(call_status(module)),
@@ -130,8 +130,7 @@ def test_make_audit_error(monkeypatch: Any, nocolorcapsys: Any) -> None:
     monkeypatch.setattr(
         "pyaud.utils.Subprocess.open_process", lambda *_, **__: 1
     )
-    Path(pyaud.environ.env["PROJECT_DIR"], FILES).touch()
-    pyaud.utils.pyitems.get_files()
+    pyaud.utils.tree.append(FILES)
     with pytest.raises(CalledProcessError):
         pyaud.modules.make_audit()
 
@@ -234,7 +233,10 @@ def test_suppress(
     make_tree(
         pyaud.environ.env["PROJECT_DIR"], {FILES: None, "docs": {CONFPY: None}}
     )
-    pyaud.utils.pyitems.get_files()
+    with pyaud.utils.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
+        git.add(".")  # type: ignore
+
+    pyaud.utils.tree.populate()
     audit_modules = [
         "make_format",
         "make_format_docs",
@@ -460,7 +462,7 @@ def test_make_format() -> None:
     with open(file, "w") as fout:
         fout.write(files.UNFORMATTED)
 
-    pyaud.utils.pyitems.get_files()
+    pyaud.utils.tree.append(file)
     with pytest.raises(pyaud.utils.PyAuditError):
         pyaud.modules.make_format()
 
@@ -478,16 +480,15 @@ def test_find_pylintrc_file(
     :param is_file:                 File exists: True or False.
     """
     path = pyaud.environ.env["PYLINTRC"]
-    Path(pyaud.environ.env["PROJECT_DIR"], FILES).touch()
+    pyaud.utils.tree.append(Path(pyaud.environ.env["PROJECT_DIR"], FILES))
     patch_sp_print_called()
     expected = f"--rcfile={path}"
     if is_file:
         Path(path).touch()
-        pyaud.utils.pyitems.get_files()
         pyaud.modules.make_lint()
         assert expected in nocolorcapsys.stdout()
     else:
-        pyaud.utils.pyitems.get_files()
+        pyaud.utils.tree.populate()
         assert expected not in nocolorcapsys.stdout()
 
 
@@ -799,11 +800,14 @@ def test_get_pyfiles(
         os.makedirs(os.path.dirname(make_file))
 
     Path(make_file).touch()
-    pyaud.utils.pyitems.get_files()
+    with pyaud.utils.Git(project_dir) as git:
+        git.add(".")  # type: ignore
+
+    pyaud.utils.tree.populate()
     if assert_true:
-        assert make_item in pyaud.utils.pyitems.items
+        assert make_item in pyaud.utils.tree.reduce()
     else:
-        assert make_item not in pyaud.utils.pyitems.items
+        assert make_item not in pyaud.utils.tree.reduce()
 
 
 def test_pyitems_exclude_venv(make_tree: Any) -> None:
@@ -814,7 +818,6 @@ def test_pyitems_exclude_venv(make_tree: Any) -> None:
     :param make_tree: Create directory tree from dict mapping.
     """
     project_dir = pyaud.environ.env["PROJECT_DIR"]
-    package = pyaud.environ.env["PKG_PATH"]
     make_tree(
         project_dir,
         {
@@ -830,13 +833,14 @@ def test_pyitems_exclude_venv(make_tree: Any) -> None:
             },
         },
     )
-    pyaud.utils.pyitems.get_files()
-    assert set(pyaud.utils.pyitems.items) == {
-        package,
-        os.path.join(project_dir, "venv"),
-    }
-    pyaud.utils.pyitems.exclude_virtualenv()
-    assert set(pyaud.utils.pyitems.items) == {package}
+
+    # add venv to .gitignore
+    with open(os.path.join(project_dir, ".gitignore"), "w") as fout:
+        fout.write("venv\n")
+
+    pyaud.utils.tree.clear()
+    pyaud.utils.tree.populate()
+    assert set(pyaud.utils.tree.reduce()) == set()
 
 
 def test_append_whitelist(
@@ -856,7 +860,7 @@ def test_append_whitelist(
     Path(pyaud.environ.env["PROJECT_DIR"], FILES).touch()
     patch_sp_print_called()
     Path(whitelist).touch()
-    pyaud.utils.pyitems.get_files()
+    pyaud.utils.tree.populate()
     pyaud.modules.make_unused()
     assert whitelist in nocolorcapsys.stdout()
 
@@ -869,9 +873,8 @@ def test_mypy_expected(patch_sp_print_called: Any, nocolorcapsys: Any) -> None:
     :param nocolorcapsys:           Capture system output while
                                     stripping ANSI color codes.
     """
-    path = os.path.join(pyaud.environ.env["PROJECT_DIR"], FILES)
-    Path(path).touch()
-    pyaud.utils.pyitems.get_files()
+    path = Path(pyaud.environ.env["PROJECT_DIR"], FILES)
+    pyaud.utils.tree.append(path)
     patch_sp_print_called()
     pyaud.modules.make_typecheck()
     assert f"mypy --ignore-missing-imports {path}" in nocolorcapsys.stdout()
@@ -999,11 +1002,14 @@ def test_make_whitelist(
             "pyaud": {"src": {"__init__.py": None, "modules.py": None}},
         },
     )
-    pyaud.modules.pyitems.get_files()
+    with pyaud.utils.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
+        git.init(devnull=True)  # type: ignore
+        git.add(".")  # type: ignore
+
+    pyaud.utils.tree.populate()
     patch_sp_output(
         files.Whitelist.be8a443_tests, files.Whitelist.be8a443_pyaud
     )
-    pyaud.modules.pyitems.get_files()
     pyaud.modules.make_whitelist()
     assert nocolorcapsys.stdout() == (
         f"Updating ``{path}``\ncreated ``whitelist.py``\n"
@@ -1061,33 +1067,6 @@ def test_parser(
         assert nocolorcapsys.stdout().strip() == module
 
 
-def test_remove_unversioned() -> None:
-    """Test files not under version controls are not included.
-
-    Test that when a file is not under version control and the
-    ``pyitems.exclude_unversioned`` method  is called unversioned files
-    are removed from ``pyitems.items`` list.
-    """
-    path = pyaud.environ.env["PROJECT_DIR"]
-    with pyaud.utils.Git(pyaud.environ.env["PROJECT_DIR"]) as git:
-        git.init(devnull=True)  # type: ignore
-
-    file = os.path.join(path, FILES)
-    Path(file).touch()
-    pyaud.utils.pyitems.get_files()
-    assert file in pyaud.utils.pyitems.items
-    pyaud.utils.pyitems.exclude_unversioned()
-    assert file not in pyaud.utils.pyitems.items
-    with pyaud.utils.Git(path) as git:
-        git.add(".")  # type: ignore
-        git.commit("-m", "committing file.py")  # type: ignore
-
-    pyaud.utils.pyitems.get_files()
-    assert file in pyaud.utils.pyitems.items
-    pyaud.utils.pyitems.exclude_unversioned()
-    assert file in pyaud.utils.pyitems.items
-
-
 def test_namespace_assignment_environ_file() -> None:
     """Ensure none of the below items are leaked.
 
@@ -1138,39 +1117,6 @@ def test_arg_order_clone(
     )
 
 
-def test_out_of_range_unversioned(
-    tmp_path: Path, main: Any, patch_sp_call: Any
-) -> None:
-    """Test that ``items`` populates.
-
-    Test for when running on a path outside the user's "$PWD". If not
-    properly populated an IndexError like the following would be raised:
-
-        File "/*/**/python3.8/site-packages/pyaud/src/__init__.py",
-        line 62, in exclude_unversioned
-        self.items.pop(count)
-        IndexError: pop index out of range
-
-    :param tmp_path:        Create and return temporary directory.
-    :param main:            Patch package entry point.
-    :param patch_sp_call:   Patch ``Subprocess.call``.
-    """
-    other_dir = os.path.join(tmp_path, "other")
-    os.makedirs(other_dir)
-    project_clone = os.path.join(tmp_path, "pyaud")
-    with pyaud.utils.Git(project_clone) as git:
-        git.clone(REAL_REPO)  # type: ignore
-    patch_sp_call(lambda *_, **__: None)
-    items = [
-        os.path.join(project_clone, "pyaud"),
-        os.path.join(project_clone, "tests"),
-    ]
-    with pyaud.utils.EnterDir(other_dir):
-        main("lint", "--path", "../pyaud")
-        for item in items:
-            assert item in pyaud.utils.pyitems.items
-
-
 def test_pylint_colorized(capsys: Any) -> None:
     """Test that color codes are produced with ``process.PIPE``.
 
@@ -1181,12 +1127,11 @@ def test_pylint_colorized(capsys: Any) -> None:
 
     :param capsys: Capture sys output.
     """
-    with open(
-        os.path.join(pyaud.environ.env["PROJECT_DIR"], FILES), "w"
-    ) as fout:
+    path = os.path.join(pyaud.environ.env["PROJECT_DIR"], FILES)
+    with open(path, "w") as fout:
         fout.write("import this_package_does_not_exist")
 
-    pyaud.utils.pyitems.get_files()
+    pyaud.utils.tree.append(path)
     pyaud.modules.make_lint(suppress=True)
     output = capsys.readouterr()[0]
     assert all(
@@ -1273,8 +1218,7 @@ def test_isort_imports(nocolorcapsys: Any) -> None:
     with open(path, "w") as fout:
         fout.write(files.IMPORTS_UNSORTED)
 
-    pyaud.utils.pyitems.get_files()
-    pyaud.utils.pyitems.get_file_paths()
+    pyaud.utils.tree.append(path)
     with pytest.raises(pyaud.utils.PyAuditError):
         pyaud.modules.make_imports()
 
@@ -1314,7 +1258,7 @@ def test_readme(main: Any, nocolorcapsys: Any) -> None:
     "module,process,content",
     [
         ("format", "black", files.UNFORMATTED),
-        ("imports", "isort", files.IMPORTS_UNSORTED),
+        ("imports", "make_imports", files.IMPORTS_UNSORTED),
         ("format-str", "flynt", files.FORMAT_STR_FUNCS_PRE),
         ("format-docs", "docformatter", files.DOCFORMATTER_EXAMPLE),
     ],
@@ -1344,7 +1288,7 @@ def test_py_audit_error(
         git.init()  # type: ignore
         git.add(".")  # type: ignore
 
-    pyaud.utils.pyitems.get_files()
+    pyaud.utils.tree.populate()
     with pytest.raises(pyaud.utils.PyAuditError) as err:
         main(module)
 
@@ -1368,7 +1312,7 @@ def test_format_str(main: Any, nocolorcapsys: Any) -> None:
         git.init()  # type: ignore
         git.add(".")  # type: ignore
 
-    pyaud.utils.pyitems.get_files()
+    pyaud.utils.tree.populate()
     with pytest.raises(pyaud.utils.PyAuditError):
         main("format-str")
 
@@ -1613,8 +1557,9 @@ def test_make_format_success(
     :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
                                     announce what is called.
     """
-    Path(os.path.join(pyaud.environ.env["PROJECT_DIR"], FILES)).touch()
-    pyaud.utils.pyitems.get_files()
+    pyaud.utils.tree.append(
+        os.path.join(pyaud.environ.env["PROJECT_DIR"], FILES)
+    )
     patch_sp_print_called()
     pyaud.modules.make_format()
     nocolorcapsys.readouterr()
@@ -1660,12 +1605,11 @@ def test_make_format_docs_fail() -> None:
 
     Ensure process fails when unformatted docstrings are found.
     """
-    with open(
-        os.path.join(os.environ["PROJECT_DIR"], "files.py"), "w"
-    ) as fout:
+    file = os.path.join(pyaud.environ.env["PROJECT_DIR"], FILES)
+    with open(file, "w") as fout:
         fout.write(files.DOCFORMATTER_EXAMPLE)
 
-    pyaud.utils.pyitems.get_files()
+    pyaud.utils.tree.append(file)
     with pytest.raises(pyaud.utils.PyAuditError):
         pyaud.modules.make_format_docs()
 
@@ -1683,9 +1627,20 @@ def test_make_format_docs_suppress(nocolorcapsys: Any) -> None:
     with open(path, "w") as fout:
         fout.write(files.DOCFORMATTER_EXAMPLE)
 
-    pyaud.utils.pyitems.get_files()
+    pyaud.utils.tree.append(path)
     pyaud.modules.make_format_docs(suppress=True)
     assert (
         nocolorcapsys.stderr().strip()
         == "Failed: returned non-zero exit status 3"
     )
+
+
+def test_seq() -> None:
+    """Get coverage on ``Seq`` abstract methods."""
+    pyaud.utils.tree.append("key")
+    assert pyaud.utils.tree[0] == "key"
+    pyaud.utils.tree[0] = "value"
+    assert pyaud.utils.tree[0] == "value"
+    del pyaud.utils.tree[0]
+    assert not pyaud.utils.tree
+    assert repr(pyaud.utils.tree) == "<_Tree []>"

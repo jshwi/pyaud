@@ -143,7 +143,8 @@ def fixture_mock_environment(
 
     # setup singletons
     # ================
-    pyaud.utils.pyitems.get_files()
+    pyaud.utils.tree.clear()
+    pyaud.utils.tree.populate()
 
 
 @pytest.fixture(name="nocolorcapsys")

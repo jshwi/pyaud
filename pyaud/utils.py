@@ -12,6 +12,7 @@ import logging.handlers as logging_handlers
 import os
 import shutil
 import sys
+from collections.abc import MutableSequence
 from pathlib import Path
 from subprocess import PIPE, CalledProcessError, Popen
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union
@@ -23,73 +24,6 @@ from .environ import env
 
 colors = Color()
 colors.populate_colors()
-
-
-class PythonItems:
-    """Scan a directory fo Python files.
-
-    :param exclude: Files to exclude from indexing.
-    """
-
-    def __init__(self, *exclude: str) -> None:
-        self.exclude = exclude
-        self.items: List[str] = []
-        self.files: List[str] = []
-
-    def exclude_virtualenv(self) -> None:
-        """Remove virtualenv dir."""
-        venv_contents = [
-            "bin",
-            "include",
-            "lib",
-            "lib64",
-            "pyvenv.cfg",
-            "share",
-            "src",
-        ]
-        for count, item in enumerate(list(self.items)):
-            if os.path.isdir(item):
-                contents = os.listdir(item)
-                if all(os.path.basename(e) in contents for e in venv_contents):
-                    self.items.pop(count)
-
-    def exclude_unversioned(self) -> None:
-        """Remove unversioned files from list."""
-        for count, item in enumerate(list(self.items)):
-            with Git(os.environ["PROJECT_DIR"], loglevel="debug") as git:
-                returncode = git.ls_files(  # type: ignore
-                    "--error-unmatch", item, devnull=True, suppress=True
-                )
-                if returncode:
-                    self.items.pop(count)
-
-    def get_files(self) -> None:
-        """Get all relevant python files starting from project root."""
-        self.items.clear()
-        for glob_path in Path(env["PROJECT_DIR"]).rglob("*.py"):
-            if glob_path.name in self.exclude:
-                continue
-
-            path = Path(glob_path)
-            while str(path.parent) != env["PROJECT_DIR"]:
-                path = path.parent
-
-            # ensure there are no duplicate entries
-            # ensure that any subdirectories of a parent are not added
-            if path not in self.items and not any(
-                str(path) in str(p) or str(p) in str(path) for p in self.items
-            ):
-                self.items.append(str(path))
-
-    def get_file_paths(self) -> None:
-        """Get all python file paths starting from project root."""
-        self.files.clear()
-        for glob_path in Path(env["PROJECT_DIR"]).rglob("*.py"):
-            if glob_path.name not in self.exclude:
-                self.files.append(str(glob_path))
-
-
-pyitems = PythonItems("whitelist.py", "conf.py", "setup.py")
 
 
 class Subprocess:
@@ -386,7 +320,7 @@ def check_command(func: Callable[..., int]) -> Callable[..., None]:
 
     @functools.wraps(func)
     def _wrapper(**kwargs: bool) -> None:
-        if not pyitems.items:
+        if not tree.reduce():
             print("No files found")
         else:
             returncode = func(**kwargs)
@@ -398,7 +332,7 @@ def check_command(func: Callable[..., int]) -> Callable[..., None]:
             else:
                 colors.green.bold.print(
                     "Success: no issues found in {} source files".format(
-                        len(pyitems.files)
+                        len(tree)
                     )
                 )
 
@@ -575,3 +509,82 @@ class PyAuditError(Exception):
 
     def __init__(self, cmd: Optional[str]) -> None:
         super().__init__(f"{cmd} did not pass all checks")
+
+
+class _MutableSequence(MutableSequence):  # pylint: disable=too-many-ancestors
+    """Inherit to replicate subclassing of ``list`` objects."""
+
+    def __init__(self) -> None:
+        self._list: List[Any] = list()
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} {self._list}>"
+
+    def __len__(self) -> int:
+        return self._list.__len__()
+
+    def __delitem__(self, key: Any) -> None:
+        self._list.__delitem__(key)
+
+    def __setitem__(self, index: Any, value: Any) -> None:
+        self._list.__setitem__(index, value)
+
+    def __getitem__(self, index: Any) -> Any:
+        return self._list.__getitem__(index)
+
+    def insert(self, index: int, value: str) -> None:
+        """Insert values into ``_list`` object.
+
+        :param index:   ``list`` index to insert ``value``.
+        :param value:   Value to insert into list.
+        """
+        self._list.insert(index, value)
+
+
+class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
+    """Index all Python files in project.
+
+    :param exclude: Files to exclude.
+    """
+
+    def __init__(self, *exclude: str) -> None:
+        super().__init__()
+        self._exclude = exclude
+
+    def populate(self) -> None:
+        """Populate object with repository index.
+
+        Exclude items not in version-control.
+        """
+        project_dir = Path(os.environ["PROJECT_DIR"])
+        for path in [str(p) for p in project_dir.rglob("*.py")]:
+            if os.path.basename(path) not in self._exclude:
+                with Git(os.environ["PROJECT_DIR"], loglevel="debug") as git:
+                    if not git.ls_files(  # type: ignore
+                        "--error-unmatch", path, devnull=True, suppress=True
+                    ):
+                        self.append(path)
+
+    def reduce(self) -> List[str]:
+        """Get all relevant python files starting from project root.
+
+        :return:    List of project's Python file index, reduced to
+                    their root, relative to $PROJECT_DIR. Contains no
+                    duplicate items so $PROJECT_DIR/dir/file1.py and
+                    $PROJECT_DIR/dir/file2.py become
+                    $PROJECT_DIR/dir but PROJECT_DIR/file1.py
+                    and $PROJECT_DIR/file2.py remain as they are.
+        """
+        project_dir = os.environ["PROJECT_DIR"]
+        return list(
+            set(
+                os.path.join(
+                    project_dir,
+                    os.path.relpath(p, project_dir).split(os.sep)[0],
+                )
+                for p in self
+            )
+        )
+
+
+tree = _Tree("whitelist.py", "conf.py", "setup.py")
