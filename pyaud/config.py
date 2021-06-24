@@ -50,6 +50,7 @@ DEFAULT_CONFIG: Dict[str, Any] = dict(
         },
         "root": {"level": "INFO", "handlers": ["default"], "propagate": False},
     },
+    indexing={"exclude": ["whitelist.py", "conf.py", "setup.py"]},
 )
 
 

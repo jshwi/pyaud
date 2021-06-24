@@ -5,6 +5,9 @@ exclude = ["*.egg*", ".mypy_cache", ".env", "instance"]
 version = 1
 disable_existing_loggers = true
 
+[indexing]
+exclude = ["whitelist.py", "conf.py", "setup.py"]
+
 [logging.root]
 level = "DEBUG"
 handlers = ["default"]

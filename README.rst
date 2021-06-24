@@ -61,6 +61,9 @@ Example config:
     version = 1
     disable_existing_loggers = true
 
+    [indexing]
+    exclude = ["whitelist.py", "conf.py", "setup.py"]
+
     [logging.root]
     level = "INFO"
     handlers = ["default"]

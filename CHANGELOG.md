@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v1.3.0...HEAD)
 ------------------------------------------------------------------------
 ### Added
+- Adds `indexing` key to config
 - Adds `logging` key to config
 - Adds `generate-rcfile` positional argument
 - Adds support for Toml config

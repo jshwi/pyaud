@@ -19,6 +19,8 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 import pyblake2
 from object_colors import Color
 
+from .config import toml
+
 colors = Color()
 colors.populate_colors()
 
@@ -553,4 +555,4 @@ class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
         )
 
 
-tree = _Tree("whitelist.py", "conf.py", "setup.py")
+tree = _Tree(*toml["indexing"]["exclude"])
