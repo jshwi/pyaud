@@ -62,7 +62,7 @@ Commandline arguments:
     usage: pyaud [-h] [-c] [-d] [-s] [-v] [--path PATH] MODULE
 
     positional arguments:
-      MODULE          choice of module: ``modules`` to list all options
+      MODULE          choice of module: [modules] to list all
 
     optional arguments:
       -h, --help      show this help message and exit
@@ -72,25 +72,25 @@ Commandline arguments:
       -v, --verbose   incrementally increase logging verbosity
       --path PATH     set alternative path to present working dir
     ------------------------------------------------------------------------
-    audit                   Run all checks
-    clean                   Remove all unversioned files unless excluded
-    coverage                Run ``pytest`` with ``coverage``
-    deploy                  Deploy code coverage and documentation
-    deploy-cov              Deploy code coverage to ``codecov.io``
-    deploy-docs             Deploy ``Sphinx`` docs to ``gh-pages``
-    docs                    Compile documentation with ``Sphinx``
-    files                   Run ``requirements``, ``toc``, and ``whitelist``
-    format                  Format all Python project files with ``Black``
-    format-docs             Format docstrings with ``docformatter``
-    format-str              Format f-strings with ``flynt``
-    imports                 Sort imports with ``isort``
-    lint                    Show possible corrections with ``pylint``
-    readme                  tests code-blocks in README.rst
-    requirements            Create requirements.txt from Pipfile.lock
-    tests                   Run unittests with ``pytest``
-    toc                     Update docs/<PACKAGENAME>.rst
-    typecheck               Inspect files for type errors with ``mypy``
-    unused                  Inspect files for unused code with ``vulture``
-    whitelist               Update ``vulture`` whitelist.py
+    audit        -- Run all modules for complete package audit
+    clean        -- Remove all unversioned package files recursively
+    coverage     -- Run package unit-tests with `pytest` and `coverage`
+    deploy       -- Deploy package documentation and test coverage
+    deploy-cov   -- Upload coverage data to `Codecov`
+    deploy-docs  -- Deploy package documentation to `gh-pages`
+    docs         -- Compile package documentation with `Sphinx`
+    files        -- Audit project data files
+    format       -- Audit code against `Black`
+    format-docs  -- Format docstrings with `docformatter`
+    format-str   -- Format f-strings with `flynt`
+    imports      -- Audit imports with `isort`
+    lint         -- Lint code with `pylint`
+    readme       -- Parse, test, and assert RST code-blocks
+    requirements -- Audit requirements.txt with Pipfile.lock
+    tests        -- Run the package unit-tests with `pytest`
+    toc          -- Audit docs/<NAME>.rst toc-file
+    typecheck    -- Typecheck code with `mypy`
+    unused       -- Audit unused code with `vulture`
+    whitelist    -- Check whitelist.py file with `vulture`
 
 *The word `function` and `module` are used interchangeably in this package*

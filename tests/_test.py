@@ -1624,9 +1624,9 @@ def test_make_format_success(
     "arg,index,expected",
     [
         ("", 0, pyaud.MODULES.keys()),
-        ("audit", 0, ("Run all modules for complete package audit.",)),
-        ("all", 0, tuple([f"pyaud {i}" for i in pyaud.MODULES.keys()])),
-        ("not-a-module", 1, ("No such module: ``not-a-module``",)),
+        ("audit", 0, ("audit -- Run all modules for complete package audit",)),
+        ("all", 0, pyaud.MODULES.keys()),
+        ("not-a-module", 1, ("No such module: not-a-module",)),
     ],
     ids=["no-pos", "module", "all-modules", "invalid-pos"],
 )

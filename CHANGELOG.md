@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `PyAuditError` added for non-subprocess errors
 
 ### Changed
+- Updates help for commandline
 - Improves `pyaud format` error handling
 - Sets `Black` loglevel to debug
 - Sets `Git` loglevel to debug

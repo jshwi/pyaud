@@ -3,12 +3,11 @@
 The word ``function`` and ``module`` are used interchangeably in this
 package.
 """
-import contextlib
 import inspect
+import json
 import os
 import sys
 from argparse import SUPPRESS, ArgumentParser
-from typing import Any, Callable, Dict, Optional
 
 from . import config, environ, modules, utils
 
@@ -38,13 +37,12 @@ class _Parser(ArgumentParser):
 
     def __init__(self, prog: str) -> None:
         super().__init__(prog=prog)
-        self.module_list = list(MODULES)
+        self._modules = dict(MODULES)
+        self._returncode = 0
         self._add_arguments()
         self.args = self.parse_args()
-        self.module = self.args.module
-
-        if self.module == "modules":
-            self._print_module_help()
+        if self.args.module == "modules":
+            sys.exit(self._module_help())
 
         self.path = os.path.abspath(self.args.path)
 
@@ -52,10 +50,9 @@ class _Parser(ArgumentParser):
         self.add_argument(
             "module",
             metavar="MODULE",
-            choices=self.module_list + ["modules"],
-            help="choice of module: ``modules`` to list all options",
+            choices=[*MODULES, "modules"],
+            help="choice of module: [modules] to list all",
         )
-        self.add_argument("positional", nargs="?", default=None, help=SUPPRESS)
         self.add_argument(
             "-c",
             "--clean",
@@ -88,66 +85,76 @@ class _Parser(ArgumentParser):
             help="set alternative path to present working dir",
         )
 
-    def _list_modules(self) -> None:
-        utils.colors.yellow.print(
-            f"``{__name__} modules MODULE`` for more on each module or "
-            f"``{__name__} modules all``"
-        )
-        print(
-            "\nMODULES = [\n"
-            + "\n".join([f"    {m}," for m in self.module_list])
-            + "\n]"
-        )
+        # pos argument following [modules] argument
+        self.add_argument("pos", nargs="?", default=None, help=SUPPRESS)
 
-    def _populate_functions(self) -> Dict[str, Callable[..., Any]]:
-        funcs = {}
-        try:
-            funcs.update({self.args.positional: MODULES[self.args.positional]})
+    def _print_module_docs(self):
+        # iterate over ``modules`` object to print documentation on
+        # particular module or all modules, depending on argument passed
+        # to commandline
+        print()
+        for key in sorted(self._modules):
 
-        except KeyError:
-            if self.args.positional == "all":
-                funcs.update(dict(MODULES))
-
-        return funcs
+            # keep a tab width of at least 1 space between key and
+            # documentation
+            # if all modules are printed adjust by the longest key
+            tab = len(max(self._modules, key=len)) + 1
+            doc = inspect.getdoc(self._modules[key])
+            if doc is not None:
+                print(
+                    "{}-- {}".format(
+                        key.ljust(tab),
+                        doc.splitlines()[0][:-1].replace("``", "`"),
+                    )
+                )
 
     @staticmethod
-    def _get_docs(func: Callable[..., Any]) -> str:
-        docs = []
-        docstring: Optional[str] = func.__doc__
-        if docstring is not None:
-            for line in docstring.splitlines():
-                line = line.lstrip()
-                if line and line[0] == ":":
-                    break
+    def _print_module_summary():
+        # print summary of module use if no module is selected or an
+        # invalid module name os provided
+        utils.colors.yellow.print(
+            f"{__name__} modules [<module> | all] for more on each module\n"
+        )
+        print(
+            "MODULES = {}".format(
+                json.dumps(list(MODULES), indent=4, sort_keys=True)
+            )
+        )
 
-                docs.append(line)
+    def _print_err(self):
+        # announce selected module does not exist
+        self._returncode = 0
+        utils.colors.red.print(
+            f"No such module: {self.args.pos}", file=sys.stderr
+        )
 
-        return "\n".join(docs)
-
-    def _print_module_info(self) -> None:
-        funcs = self._populate_functions()
-        if funcs:
-            for key, value in funcs.items():
-                print()
-                utils.colors.cyan.bold.print(f"pyaud {key}")
-                print(self._get_docs(value))
-        else:
-            with contextlib.redirect_stdout(sys.stderr):
-                utils.colors.red.print(
-                    f"No such module: ``{self.args.positional}``"
-                )
-                self._list_modules()
-                sys.exit(1)
-
-        sys.exit(0)
-
-    def _print_module_help(self) -> None:
+    def _module_help(self) -> int:
         self.print_usage()
-        if self.args.positional:
-            self._print_module_info()
 
-        self._list_modules()
-        sys.exit(0)
+        # module is selected or all has been entered
+        if self.args.pos in (*self._modules, "all"):
+
+            # specific module has been entered for help output
+            # filter the remaining modules from ``modules`` object
+            if self.args.pos in self._modules:
+                positional = {self.args.pos: self._modules[self.args.pos]}
+                self._modules.clear()
+                self._modules.update(positional)
+
+            self._print_module_docs()
+
+        # print module help summary if no argument to module has been
+        # provided or argument has been provided but is not a valid
+        # choice
+        else:
+
+            # argument has been provided which is not a valid option
+            if self.args.pos is not None:
+                self._print_err()
+
+            self._print_module_summary()
+
+        return self._returncode
 
     def set_loglevel(self) -> None:
         """Override ``LOGLEVEL`` environment variable."""
