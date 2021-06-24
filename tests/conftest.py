@@ -195,10 +195,7 @@ def fixture_main(monkeypatch: Any) -> Any:
 
     def _main(*args: str) -> None:
         """Run main with custom args."""
-        monkeypatch.setattr(
-            "sys.argv",
-            [pyaud.__name__, "--path", os.environ["PROJECT_DIR"], *args],
-        )
+        monkeypatch.setattr("sys.argv", [pyaud.__name__, *args])
         pyaud.main()
 
     return _main

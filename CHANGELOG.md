@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Patches "$HOME" for setting ~/.gitconfig in tests
 
 ### Removed
+- Remove: removes `---path PATH` flag
 - Remove: removes `PyaudEnvironmentError` for `EnvironmentError
 - Removes json from `Environ.__repr__`
 

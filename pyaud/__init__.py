@@ -5,7 +5,6 @@ package.
 """
 import inspect
 import json
-import os
 import sys
 from argparse import SUPPRESS, ArgumentParser
 
@@ -44,8 +43,6 @@ class _Parser(ArgumentParser):
         if self.args.module == "modules":
             sys.exit(self._module_help())
 
-        self.path = os.path.abspath(self.args.path)
-
     def _add_arguments(self) -> None:
         self.add_argument(
             "module",
@@ -77,12 +74,6 @@ class _Parser(ArgumentParser):
             action="count",
             default=0,
             help="incrementally increase logging verbosity",
-        )
-        self.add_argument(
-            "--path",
-            action="store",
-            default=os.getcwd(),
-            help="set alternative path to present working dir",
         )
         self.add_argument(
             "--rcfile",
@@ -169,7 +160,6 @@ def main() -> None:
     dictionary of functions which matches the key.
     """
     parser = _Parser(utils.colors.cyan.get(__name__))
-    os.environ["PROJECT_DIR"] = parser.args.path
     environ.load_namespace()
     config.load_config(parser.args.rcfile)
     config.configure_logging(parser.args.verbose)

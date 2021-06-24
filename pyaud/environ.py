@@ -31,7 +31,8 @@ def find_package() -> str:
 
 def load_namespace() -> None:
     """Load key-value pairs."""
-    project_dir = os.environ["PROJECT_DIR"]
+    project_dir = os.environ.get("PROJECT_DIR", os.getcwd())
+    os.environ["PROJECT_DIR"] = project_dir
     pkg = find_package()
     pkg_path = str(os.path.join(os.environ["PROJECT_DIR"], pkg))
     docs = os.path.join(project_dir, "docs")
