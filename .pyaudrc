@@ -1,0 +1,2 @@
+[clean]
+exclude = ["*.egg*", ".mypy_cache", ".env", "instance"]
