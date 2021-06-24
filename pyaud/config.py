@@ -28,10 +28,6 @@ DEFAULT_CONFIG = dict(
 class ConfigParser(_ConfigParser):  # pylint: disable=too-many-ancestors
     """ConfigParser inherited class with some tweaks."""
 
-    default = dict(
-        CLEAN={"exclude": "*.egg*,\n  .mypy_cache,\n  .env,\n  instance,"}
-    )
-
     def __init__(self) -> None:
         super().__init__(default_section="")
         self.configfile = os.path.join(CONFIGDIR, f"{NAME}.ini")
@@ -44,14 +40,8 @@ class ConfigParser(_ConfigParser):  # pylint: disable=too-many-ancestors
                 self[section][key] = os.path.expandvars(self[section][key])
 
     def _resolve(self) -> None:
-        while True:
-            if os.path.isfile(self.configfile):
-                self._read_proxy()
-                break
-
-            self.read_dict(self.default)
-            with open(self.configfile, "w") as fout:
-                self.write(fout)
+        if os.path.isfile(self.configfile):
+            self._read_proxy()
 
     def getlist(self, section: str, key: str) -> List[str]:
         """Return a comma separated ini list as a Python list.
@@ -62,7 +52,13 @@ class ConfigParser(_ConfigParser):  # pylint: disable=too-many-ancestors
         :return:        Python list parsed from command separated
                         values.
         """
-        return [e.strip() for e in self[section][key].split(",") if e != ""]
+        retval = []
+        if section in self:
+            retval.extend(
+                [e.strip() for e in self[section][key].split(",") if e != ""]
+            )
+
+        return retval
 
 
 class _MutableMapping(MutableMapping):  # pylint: disable=too-many-ancestors
@@ -169,6 +165,7 @@ def configure_global() -> None:
     """
     configfile = os.path.join(CONFIGDIR, TOMLFILE)
     default_config = copy.deepcopy(DEFAULT_CONFIG)
+    config = ConfigParser()
     if os.path.isfile(configfile):
         with open(configfile) as fin:
             toml.load(fin)
@@ -177,12 +174,11 @@ def configure_global() -> None:
         if key not in toml:
             toml[key] = default_config[key]
 
-    os.makedirs(os.path.dirname(configfile), exist_ok=True)
-    config = ConfigParser()
     exclude = config.getlist("CLEAN", "exclude")
     if exclude:
         toml["clean"]["exclude"] = exclude
 
+    os.makedirs(os.path.dirname(configfile), exist_ok=True)
     with open(configfile, "w") as fout:
         toml.dump(fout)
 

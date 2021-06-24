@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sets `Black` loglevel to debug
 - Sets `Git` loglevel to debug
 
+### Deprecated
+- Support for ini config is deprecated
+
 ### Fixed
 - Applies exclusions to non-reduced file paths
 - `pyaud imports` displays success message

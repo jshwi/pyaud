@@ -52,14 +52,6 @@ Environment variables should be placed in an .env file in project root:
 
 Example config:
 
-.. code-block:: ini
-
-    [CLEAN]
-    exclude = *.egg*,
-              .env,
-              instance,
-              .coverage
-
 .. code-block:: toml
 
     [clean]

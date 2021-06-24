@@ -658,20 +658,6 @@ def test_find_package(tmpdir: Any, monkeypatch: Any) -> None:
     assert str(err.value) == "Unable to find a Python package"
 
 
-def test_config() -> None:
-    """Test that the config properly parses a comma separated list.
-
-    Test config can resolve paths by expanding environment variables.
-    """
-    config = pyaud.config.ConfigParser()
-    assert config.getlist("CLEAN", "exclude") == [
-        "*.egg*",
-        ".mypy_cache",
-        ".env",
-        "instance",
-    ]
-
-
 @pytest.mark.parametrize(
     "change,expected",
     [(False, True), (True, False)],
