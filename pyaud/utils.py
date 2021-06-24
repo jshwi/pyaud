@@ -20,8 +20,6 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 import pyblake2
 from object_colors import Color
 
-from .environ import env
-
 colors = Color()
 colors.populate_colors()
 
@@ -130,9 +128,8 @@ class Subprocess:
         :raises CalledProcessError: If error occurs in subprocess.
         :return:                    Exit status.
         """
-        suppress = kwargs.get("suppress", env["SUPPRESS"])
         returncode = self.open_process(exe, *args, **kwargs)
-        if returncode and not suppress:
+        if returncode and not kwargs.get("suppress", False):
             self.logger.error("returned non-zero exit status %s", returncode)
             raise CalledProcessError(
                 returncode, f"{self.exe} {' '.join(args)}"
@@ -344,7 +341,7 @@ def get_branch() -> Optional[str]:
 
     :return: Name of branch or None if on a branch with no parent.
     """
-    with Git(env["PROJECT_DIR"], loglevel="debug") as git:
+    with Git(os.environ["PROJECT_DIR"], loglevel="debug") as git:
         git.symbolic_ref(  # type: ignore
             "--short", "HEAD", capture=True, suppress=True
         )
@@ -370,7 +367,7 @@ def get_logger(logname: str) -> logging.Logger:
     :return:        Logging object.
     """
 
-    logfile = os.path.join(env["LOG_DIR"], f"{env['PKG']}.log")
+    logfile = os.path.join(os.environ["PYAUD_LOGFILE"])
     logger = logging.getLogger(logname)
     logger.propagate = False
     filehandler = logging_handlers.TimedRotatingFileHandler(
@@ -380,7 +377,7 @@ def get_logger(logname: str) -> logging.Logger:
         fmt="%(asctime)s %(levelname)-8s %(name)s %(message)s",
         datefmt="%Y-%m-%dT%H:%M:%S",
     )
-    logger.setLevel(env["LOG_LEVEL"])
+    logger.setLevel(os.environ["PYAUD_LOG_LEVEL"])
     if logger.hasHandlers():
         logger.handlers.clear()
 
@@ -403,8 +400,8 @@ def write_command(
     def _decorator(func: Callable[..., int]) -> Callable[..., None]:
         @functools.wraps(func)
         def _wrapper(*args: str, **kwargs: Union[bool, str]) -> None:
-            if not required or os.path.exists(env[str(required)]):
-                _file = env[str(file)]
+            if not required or os.path.exists(os.environ[str(required)]):
+                _file = os.environ[str(file)]
                 print(f"Updating ``{_file}``")
                 with HashCap(_file) as cap:
                     func(*args, **kwargs)
@@ -442,12 +439,10 @@ class EnterDir:
         os.chdir(self.saved_path)
 
 
-def deploy_docs(url: Union[bool, str]) -> None:
-    """Series of functions for deploying docs.
-
-    :param url: URL to push documentation to.
-    """
-    with Git(env["PROJECT_DIR"]) as git:
+def deploy_docs() -> None:
+    """Series of functions for deploying docs."""
+    gh_remote = os.environ["PYAUD_GH_REMOTE"]
+    with Git(os.environ["PROJECT_DIR"]) as git:
         git.add(".")  # type: ignore
         git.diff_index("--cached", "HEAD", capture=True)  # type: ignore
         stashed = False
@@ -455,7 +450,7 @@ def deploy_docs(url: Union[bool, str]) -> None:
             git.stash(devnull=True)  # type: ignore
             stashed = True
 
-        shutil.move(os.path.join(env["DOCS_BUILD"], "html"), ".")
+        shutil.move(os.path.join(os.environ["BUILDDIR"], "html"), ".")
         shutil.copy("README.rst", os.path.join("html", "README.rst"))
 
         git.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
@@ -463,8 +458,12 @@ def deploy_docs(url: Union[bool, str]) -> None:
             git.checkout(git.stdout.strip())  # type: ignore
 
         git.checkout("--orphan", "gh-pages")  # type: ignore
-        git.config("--global", "user.name", env["GH_NAME"])  # type: ignore
-        git.config("--global", "user.email", env["GH_EMAIL"])  # type: ignore
+        git.config(  # type: ignore
+            "--global", "user.name", os.environ["PYAUD_GH_NAME"]
+        )
+        git.config(  # type: ignore
+            "--global", "user.email", os.environ["PYAUD_GH_EMAIL"]
+        )
         shutil.rmtree("docs")
         git.rm("-rf", ".", devnull=True)  # type: ignore
         git.clean("-fdx", "--exclude=html", devnull=True)  # type: ignore
@@ -477,9 +476,11 @@ def deploy_docs(url: Union[bool, str]) -> None:
             "-m", '"[ci skip] Publishes updated documentation"', devnull=True
         )
         git.remote("rm", "origin")  # type: ignore
-        git.remote("add", "origin", url)  # type: ignore
+        git.remote("add", "origin", gh_remote)  # type: ignore
         git.fetch()  # type: ignore
-        git.ls_remote("--heads", url, "gh-pages", capture=True)  # type: ignore
+        git.ls_remote(  # type: ignore
+            "--heads", gh_remote, "gh-pages", capture=True
+        )
         remote_exists = git.stdout
         git.diff(  # type: ignore
             "gh-pages", "origin/gh-pages", suppress=True, capture=True

@@ -6,10 +6,10 @@ import os
 import shutil
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Any, Callable, List, Union
+from typing import Any, Callable, List
 
 from .config import ConfigParser
-from .environ import NAME, TempEnvVar, env
+from .environ import NAME, TempEnvVar
 from .utils import (
     EnterDir,
     Git,
@@ -20,12 +20,13 @@ from .utils import (
     check_command,
     colors,
     deploy_docs,
+    get_branch,
     tree,
     write_command,
 )
 
 
-def make_audit(**kwargs: Union[bool, str]) -> int:
+def make_audit(**kwargs: bool) -> int:
     """Run all modules for complete package audit.
 
     :param kwargs:  Pass keyword arguments to audit submodule.
@@ -49,10 +50,10 @@ def make_audit(**kwargs: Union[bool, str]) -> int:
         make_readme,
         make_docs,
     ]
-    if env.get("CLEAN"):
+    if kwargs.get("clean", False):
         audit_modules.insert(0, make_clean)
 
-    if env.get("DEPLOY"):
+    if kwargs.get("deploy", False):
         audit_modules.append(make_deploy)
 
     for audit_module in audit_modules:
@@ -68,7 +69,7 @@ def make_audit(**kwargs: Union[bool, str]) -> int:
     return 0
 
 
-def make_clean(**kwargs: Union[bool, str]) -> int:
+def make_clean(**kwargs: bool) -> int:
     """Remove all unversioned package files recursively.
 
     :param kwargs:  Additional keyword arguments for ``git clean``.
@@ -82,13 +83,13 @@ def make_clean(**kwargs: Union[bool, str]) -> int:
         )
 
 
-def make_coverage(**kwargs: Union[bool, str]) -> int:
+def make_coverage(**kwargs: bool) -> int:
     """Run package unit-tests with ``pytest`` and ``coverage``.
 
     :param kwargs:  Pass keyword arguments to ``pytest`` and ``call``.
     :return:        Exit status.
     """
-    with EnterDir(env["PROJECT_DIR"]):
+    with EnterDir(os.environ["PROJECT_DIR"]):
         coverage = Subprocess("coverage")
         args = [f"--cov={e}" for e in tree.reduce()]
         returncode = make_tests(*args, **kwargs)
@@ -100,7 +101,7 @@ def make_coverage(**kwargs: Union[bool, str]) -> int:
         return 0
 
 
-def make_deploy(**kwargs: Union[bool, str]) -> int:
+def make_deploy(**kwargs: bool) -> int:
     """Deploy package documentation and test coverage.
 
     :param kwargs:  Keyword arguments for ``deploy_module``.
@@ -123,7 +124,7 @@ def make_deploy(**kwargs: Union[bool, str]) -> int:
     return 0
 
 
-def make_deploy_cov(**kwargs: Union[bool, str]) -> int:
+def make_deploy_cov(**kwargs: bool) -> int:
     """Upload coverage data to ``Codecov``.
 
     If no file exists otherwise announce that no file has been created
@@ -135,17 +136,10 @@ def make_deploy_cov(**kwargs: Union[bool, str]) -> int:
     :return:        Exit status.
     """
     codecov = Subprocess("codecov")
-    if os.path.isfile(env["COVERAGE_XML"]):
-        if env["CODECOV_TOKEN"]:
-            return codecov.call(
-                "--file",
-                env["COVERAGE_XML"],
-                "--token",
-                env["CODECOV_TOKEN"],
-                "--slug",
-                env["CODECOV_SLUG"],
-                **kwargs,
-            )
+    coverage_xml = os.environ["PYAUD_COVERAGE_XML"]
+    if os.path.isfile(coverage_xml):
+        if os.environ["CODECOV_TOKEN"] != "":
+            return codecov.call("--file", coverage_xml, **kwargs)
 
         print("CODECOV_TOKEN not set")
     else:
@@ -154,7 +148,7 @@ def make_deploy_cov(**kwargs: Union[bool, str]) -> int:
     return 0
 
 
-def make_deploy_docs(**kwargs: Union[bool, str]) -> int:
+def make_deploy_docs(**kwargs: bool) -> int:
     """Deploy package documentation to ``gh-pages``.
 
     Check that the branch is being pushed as master (or other branch
@@ -162,31 +156,17 @@ def make_deploy_docs(**kwargs: Union[bool, str]) -> int:
     ``gh-pages`` to the orphaned branch - otherwise do nothing and
     announce.
 
-    :key url:   Remote origin URL.
-    :return:    Exit status.
+    :param kwargs:  Pass keyword arguments to ``make_docs``.
+    :return:        Exit status.
     """
-    if env["BRANCH"] == "master":
-        git_credentials = ["GH_NAME", "GH_EMAIL", "GH_TOKEN"]
-        null_vals = [k for k in git_credentials if env[k] is None]
+    if get_branch() == "master":
+        git_credentials = ["PYAUD_GH_NAME", "PYAUD_GH_EMAIL", "PYAUD_GH_TOKEN"]
+        null_vals = [k for k in git_credentials if os.environ[k] == ""]
         if not null_vals:
-            url = kwargs.get(
-                "url",
-                (
-                    "https://"
-                    + env["GH_NAME"]
-                    + ":"
-                    + env["GH_TOKEN"]
-                    + "@github.com/"
-                    + env["GH_NAME"]
-                    + "/"
-                    + env["PKG"]
-                    + ".git"
-                ),
-            )
-            if not os.path.isdir(env["DOCS_BUILD_HTML"]):
+            if not os.path.isdir(os.path.join(os.environ["BUILDDIR"], "html")):
                 make_docs(**kwargs)
 
-            deploy_docs(url)
+            deploy_docs()
         else:
             print("The following is not set:")
             for null_val in null_vals:
@@ -201,7 +181,7 @@ def make_deploy_docs(**kwargs: Union[bool, str]) -> int:
     return 0
 
 
-def make_docs(**kwargs: Union[bool, str]) -> None:
+def make_docs(**kwargs: bool) -> None:
     """Compile package documentation with ``Sphinx``.
 
     This is so the hyperlink isn't exactly the same as the package
@@ -215,20 +195,28 @@ def make_docs(**kwargs: Union[bool, str]) -> None:
 
     readme_rst = "README"
     underline = len(readme_rst) * "="
-    if os.path.isdir(env["DOCS_BUILD"]):
-        shutil.rmtree(env["DOCS_BUILD"])
+    if os.path.isdir(os.environ["BUILDDIR"]):
+        shutil.rmtree(os.environ["BUILDDIR"])
 
     sphinx_build = Subprocess("sphinx-build")
-    if os.path.isdir(env["DOCS"]):
-        with LineSwitch(env["README_RST"], {0: readme_rst, 1: underline}):
-            command = ["-M", "html", env["DOCS"], env["DOCS_BUILD"], "-W"]
+    if os.path.isdir(os.environ["PYAUD_DOCS"]):
+        with LineSwitch(
+            os.environ["PYAUD_README_RST"], {0: readme_rst, 1: underline}
+        ):
+            command = [
+                "-M",
+                "html",
+                os.environ["PYAUD_DOCS"],
+                os.environ["BUILDDIR"],
+                "-W",
+            ]
             sphinx_build.call(*command, **kwargs)
             colors.green.bold.print("Build successful")
     else:
         print("No docs found")
 
 
-def make_files(**kwargs: Union[bool, str]) -> int:
+def make_files(**kwargs: bool) -> int:
     """Audit project data files.
 
     Make ``docs/<APPNAME>.rst``, ``whitelist.py``, and
@@ -247,7 +235,7 @@ def make_files(**kwargs: Union[bool, str]) -> int:
 
 
 @check_command
-def make_format(**kwargs: Union[bool, str]) -> int:
+def make_format(**kwargs: bool) -> int:
     """Audit code against ``Black``.
 
     :param kwargs:  Pass keyword arguments to ``call``.
@@ -264,7 +252,7 @@ def make_format(**kwargs: Union[bool, str]) -> int:
 
 
 @check_command
-def make_lint(**kwargs: Union[bool, str]) -> int:
+def make_lint(**kwargs: bool) -> int:
     """Lint code with ``pylint``.
 
     :param kwargs:  Pass keyword arguments to ``call``.
@@ -273,14 +261,11 @@ def make_lint(**kwargs: Union[bool, str]) -> int:
     with TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
         args = tree.reduce()
         pylint = Subprocess("pylint")
-        if os.path.isfile(env["PYLINTRC"]):
-            args.append(f"--rcfile={env['PYLINTRC']}")
-
         return pylint.call("--output-format=colorized", *args, **kwargs)
 
 
-@write_command("REQUIREMENTS", required="PIPFILE_LOCK")
-def make_requirements(**kwargs: Union[bool, str]) -> int:
+@write_command("PYAUD_REQUIREMENTS", required="PYAUD_PIPFILE_LOCK")
+def make_requirements(**kwargs: bool) -> int:
     """Audit requirements.txt with Pipfile.lock.
 
     :param kwargs:  Pass keyword arguments to ``call``.
@@ -291,10 +276,12 @@ def make_requirements(**kwargs: Union[bool, str]) -> int:
 
     # get the stdout for both production and development packages
     p2req = Subprocess("pipfile2req")
-    p2req.call(env["PIPFILE_LOCK"], capture=True, **kwargs)
+    p2req.call(os.environ["PYAUD_PIPFILE_LOCK"], capture=True, **kwargs)
 
     prod_stdout = p2req.stdout
-    p2req.call(env["PIPFILE_LOCK"], "--dev", capture=True, **kwargs)
+    p2req.call(
+        os.environ["PYAUD_PIPFILE_LOCK"], "--dev", capture=True, **kwargs
+    )
 
     dev_stdout = p2req.stdout
     for stdout in prod_stdout, dev_stdout:
@@ -304,7 +291,7 @@ def make_requirements(**kwargs: Union[bool, str]) -> int:
     # write to file and then use sed to remove the additional
     # information following the semi-colon
     contents.sort()
-    with open(env["REQUIREMENTS"], "w") as fout:
+    with open(os.environ["PYAUD_REQUIREMENTS"], "w") as fout:
         for content in contents:
             if content not in newlines:
                 newlines.append(content)
@@ -313,16 +300,16 @@ def make_requirements(**kwargs: Union[bool, str]) -> int:
     return 0
 
 
-def make_tests(*args: str, **kwargs: Union[bool, str]) -> int:
+def make_tests(*args: str, **kwargs: bool) -> int:
     """Run the package unit-tests with ``pytest``.
 
     :param args:    Additional positional arguments for ``pytest``.
     :param kwargs:  Pass keyword arguments to ``call``.
     :return:        Exit status.
     """
-    with EnterDir(env["PROJECT_DIR"]):
-        tests = env["TESTS"]
-        project_dir = env["PROJECT_DIR"]
+    with EnterDir(os.environ["PROJECT_DIR"]):
+        tests = os.environ["PYAUD_TESTS"]
+        project_dir = os.environ["PROJECT_DIR"]
         patterns = ("test_*.py", "*_test.py")
         rglob = [p for a in patterns for p in Path(project_dir).rglob(a)]
         pytest = Subprocess("pytest")
@@ -333,8 +320,8 @@ def make_tests(*args: str, **kwargs: Union[bool, str]) -> int:
         return 1
 
 
-@write_command("TOC", required="DOCS")
-def make_toc(**kwargs: Union[bool, str]) -> int:
+@write_command("PYAUD_TOC", required="PYAUD_DOCS")
+def make_toc(**kwargs: bool) -> int:
     """Audit docs/<NAME>.rst toc-file.
 
     :param kwargs:  Pass keyword arguments to ``call``.
@@ -347,21 +334,32 @@ def make_toc(**kwargs: Union[bool, str]) -> int:
         "   :undoc-members:",
         "   :show-inheritance:",
     ]
-    if os.path.isfile(env["DOCS_CONF"]):
+    if os.path.isfile(os.environ["PYAUD_DOCS_CONF"]):
         apidoc = Subprocess("sphinx-apidoc")
-        apidoc.call("-o", env["DOCS"], env["PKG_PATH"], "-f", **kwargs)
-        with open(env["TOC"]) as fin:
+        apidoc.call(
+            "-o",
+            os.environ["PYAUD_DOCS"],
+            os.environ["PYAUD_PKG_PATH"],
+            "-f",
+            **kwargs,
+        )
+        with open(os.environ["PYAUD_TOC"]) as fin:
             contents = fin.read().splitlines()
 
-        with open(env["TOC"], "w") as fout:
-            fout.write(f"{env['PKG']}\n{len(env['PKG']) * '='}\n\n")
+        with open(os.environ["PYAUD_TOC"], "w") as fout:
+            fout.write(
+                f"{os.environ['PYAUD_PKG']}\n"
+                f"{len(os.environ['PYAUD_PKG']) * '='}\n\n"
+            )
             for content in contents:
                 if any(a in content for a in toc_attrs):
                     fout.write(f"{content}\n")
 
         modules = (
-            os.path.join(env["DOCS"], f"{env['PKG']}.src.rst"),
-            os.path.join(env["DOCS"], "modules.rst"),
+            os.path.join(
+                os.environ["PYAUD_DOCS"], f"{os.environ['PYAUD_PKG']}.src.rst"
+            ),
+            os.path.join(os.environ["PYAUD_DOCS"], "modules.rst"),
         )
         for module in modules:
             if os.path.isfile(module):
@@ -371,7 +369,7 @@ def make_toc(**kwargs: Union[bool, str]) -> int:
 
 
 @check_command
-def make_typecheck(**kwargs: Union[bool, str]) -> int:
+def make_typecheck(**kwargs: bool) -> int:
     """Typecheck code with ``mypy``.
 
     Check that there are no errors between the files and their
@@ -380,14 +378,12 @@ def make_typecheck(**kwargs: Union[bool, str]) -> int:
     :param kwargs:  Pass keyword arguments to ``call``.
     :return:        Exit status.
     """
-    cache_dir = os.path.join(env["PROJECT_DIR"], ".mypy_cache")
-    os.environ["MYPY_CACHE_DIR"] = cache_dir
     mypy = Subprocess("mypy")
     return mypy.call("--ignore-missing-imports", *tree.reduce(), **kwargs)
 
 
 @check_command
-def make_unused(**kwargs: Union[bool, str]) -> int:
+def make_unused(**kwargs: bool) -> int:
     """Audit unused code with ``vulture``.
 
     Create whitelist first with --fix.
@@ -396,15 +392,15 @@ def make_unused(**kwargs: Union[bool, str]) -> int:
     :return:        Exit status.
     """
     args = tree.reduce()
-    if os.path.isfile(env["WHITELIST"]):
-        args.append(env["WHITELIST"])
+    if os.path.isfile(os.environ["PYAUD_WHITELIST"]):
+        args.append(os.environ["PYAUD_WHITELIST"])
 
     vulture = Subprocess("vulture")
     return vulture.call(*args, **kwargs)
 
 
-@write_command("WHITELIST")
-def make_whitelist(**kwargs: Union[bool, str]) -> int:
+@write_command("PYAUD_WHITELIST")
+def make_whitelist(**kwargs: bool) -> int:
     """Check whitelist.py file with ``vulture``.
 
     This will consider all unused code an exception so resolve code that
@@ -429,15 +425,17 @@ def make_whitelist(**kwargs: Union[bool, str]) -> int:
     # file and not append
     stdout = [i for i in "\n".join(lines).splitlines() if i != ""]
     stdout.sort()
-    with open(env["WHITELIST"], "w") as fout:
+    with open(os.environ["PYAUD_WHITELIST"], "w") as fout:
         for line in stdout:
-            fout.write(f"{line.replace(env['PROJECT_DIR'] + os.sep, '')}\n")
+            fout.write(
+                f"{line.replace(os.environ['PROJECT_DIR'] + os.sep, '')}\n"
+            )
 
     return 0
 
 
 @check_command
-def make_imports(**kwargs: Union[bool, str]) -> int:
+def make_imports(**kwargs: bool) -> int:
     """Audit imports with ``isort``.
 
     ``Black`` and ``isort`` clash in some areas when it comes to
@@ -456,7 +454,9 @@ def make_imports(**kwargs: Union[bool, str]) -> int:
                 black.call(item, devnull=True, **kwargs)
 
             if not cap.compare:
-                changed.append(os.path.relpath(item, env["PROJECT_DIR"]))
+                changed.append(
+                    os.path.relpath(item, os.environ["PROJECT_DIR"])
+                )
                 if isort.stdout is not None:
                     print(isort.stdout.strip())
 
@@ -466,12 +466,17 @@ def make_imports(**kwargs: Union[bool, str]) -> int:
     return 0
 
 
-def make_readme() -> None:
-    """Parse, test, and assert RST code-blocks."""
+def make_readme(**kwargs: bool) -> None:
+    """Parse, test, and assert RST code-blocks.
+
+    :key suppress:  Suppress error and continue running even with a
+                    non-zero exit status.
+    :return:        Subprocess exit status.
+    """
     with TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
         readmtester = Subprocess("readmetester")
-        if os.path.isfile(env["README_RST"]):
-            readmtester.call(env["README_RST"])
+        if os.path.isfile(os.environ["PYAUD_README_RST"]):
+            readmtester.call(os.environ["PYAUD_README_RST"], **kwargs)
         else:
             print("No README.rst found in project root")
 

@@ -17,7 +17,6 @@ GH_EMAIL = "test_email.com"
 GH_TOKEN = "token"
 INITIAL_COMMIT = "Initial commit"
 NO_ISSUES = "Success: no issues found in 1 source files"
-ORIGIN = "origin.git"
 INIT = "__init__.py"
 CONFPY = "conf.py"
 

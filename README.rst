@@ -33,15 +33,15 @@ or environment variables (overriding in this order)
 
 .. code-block:: shell
 
-    WHITELIST       = "whitelist.py"
-    COVERAGE_XML    = "coverage.xml"
-    REQUIREMENTS    = "requirements.txt"
-    DOCS_BUILD      = "docs/_build"
-    GH_NAME         = ""
-    GH_EMAIL        = ""
-    GH_TOKEN        = ""
-    GH_REMOTE       = ""
-    CODECOV_TOKEN   = ""
+    PYAUD_WHITELIST     = "whitelist.py"
+    PYAUD_COVERAGE_XML  = "coverage.xml"
+    PYAUD_REQUIREMENTS  = "requirements.txt"
+    BUILDDIR            = "docs/_build"
+    PYAUD_GH_NAME       = ""
+    PYAUD_GH_EMAIL      = ""
+    PYAUD_GH_TOKEN      = ""
+    PYAUD_GH_REMOTE     = ""
+    CODECOV_TOKEN       = ""
 
 Environment variables should be placed in an .env file in project root:
 

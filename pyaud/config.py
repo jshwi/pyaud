@@ -8,8 +8,6 @@ import os
 from configparser import ConfigParser as _ConfigParser
 from typing import List
 
-from .environ import env
-
 
 class ConfigParser(_ConfigParser):  # pylint: disable=too-many-ancestors
     """ConfigParser inherited class with some tweaks."""
@@ -20,7 +18,7 @@ class ConfigParser(_ConfigParser):  # pylint: disable=too-many-ancestors
 
     def __init__(self) -> None:
         super().__init__(default_section="")
-        self.configfile = env["CONFIG_FILE"]
+        self.configfile = os.environ["PYAUD_CONFIG_FILE"]
         self._resolve()
 
     def _read_proxy(self) -> None:

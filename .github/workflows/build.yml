@@ -10,9 +10,9 @@ jobs:
     name: build
     runs-on: ubuntu-18.04
     env:
-      GH_NAME: jshwi
-      GH_EMAIL: stephen@jshwisolutions.com
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      PYAUD_GH_NAME: jshwi
+      PYAUD_GH_EMAIL: stephen@jshwisolutions.com
+      PYAUD_GH_TOKEN: ${{ secrets.PYAUD_GH_TOKEN }}
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       CODECOV_SLUG: jshwi/pyaud
 

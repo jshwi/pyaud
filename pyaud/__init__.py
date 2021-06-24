@@ -160,10 +160,10 @@ class _Parser(ArgumentParser):
         """Override ``LOGLEVEL`` environment variable."""
         levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         levels_index = 1
-        if "LOG_LEVEL" in environ.env:
-            levels_index = levels.index(environ.env["LOG_LEVEL"])
+        if "PYAUD_LOG_LEVEL" in os.environ:
+            levels_index = levels.index(os.environ["PYAUD_LOG_LEVEL"])
 
-        environ.env["LOG_LEVEL"] = levels[
+        os.environ["PYAUD_LOG_LEVEL"] = levels[
             max(0, levels_index - self.args.verbose)
         ]
 
@@ -175,17 +175,12 @@ def main() -> None:
     dictionary of functions which matches the key.
     """
     parser = _Parser(utils.colors.cyan.get(__name__))
-    environ.env.store["PROJECT_DIR"] = parser.args.path
-    environ.env.update(
-        dict(
-            PROJECT_DIR=parser.path,
-            CLEAN=parser.args.clean,
-            SUPPRESS=parser.args.suppress,
-            DEPLOY=parser.args.deploy,
-        )
-    )
+    os.environ["PROJECT_DIR"] = parser.args.path
     environ.load_namespace()
     parser.set_loglevel()
     utils.tree.populate()
-    environ.env["BRANCH"] = utils.get_branch()
-    MODULES[parser.args.module]()
+    MODULES[parser.args.module](
+        clean=parser.args.clean,
+        suppress=parser.args.suppress,
+        deploy=parser.args.deploy,
+    )

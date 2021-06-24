@@ -65,6 +65,7 @@ setuptools.setup(
         "pylint==2.6.0",
         "pytest-cov==2.11.1",
         "pytest==6.2.1",
+        "python-dotenv==0.16.0",
         "readmetester==1.0.0",
         "sphinx==3.4.3",
         "sphinxcontrib-fulltoc==1.2.0",
