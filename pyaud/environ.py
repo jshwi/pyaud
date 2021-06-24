@@ -15,10 +15,6 @@ NAME = __name__.split(".")[0]
 NAMESPACE = NAME.upper()
 
 
-class PyaudEnvironmentError(EnvironmentError):
-    """Raise a ``PyaudValueError`` for EnvironmentError in process."""
-
-
 class Environ(MutableMapping):
     """Dictionary class to take the place of ``os.``. Converts
     strings when settings and to the correct type when getting. Prefixes
@@ -90,7 +86,7 @@ def find_package():
     )
 
     if not package:
-        raise PyaudEnvironmentError("Unable to find a Python package")
+        raise EnvironmentError("Unable to find a Python package")
 
     return package[0]
 

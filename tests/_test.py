@@ -863,7 +863,7 @@ def test_find_package(
         assert pyaud.environ.find_package() == "repo"
 
     else:
-        with pytest.raises(pyaud.environ.PyaudEnvironmentError) as err:
+        with pytest.raises(EnvironmentError) as err:
             pyaud.environ.find_package()
 
         assert str(err.value) == "Unable to find a Python package"
