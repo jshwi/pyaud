@@ -206,6 +206,7 @@ def test_suppress(nocolorcapsys, monkeypatch, call_status, make_project_tree):
     pyaud.utils.pyitems.get_files()
     audit_modules = [
         "make_format",
+        "make_format_str",
         "make_imports",
         "make_typecheck",
         "make_unused",
@@ -412,6 +413,7 @@ def test_audit_modules(
     """
     audit_modules = [
         "make_format",
+        "make_format_str",
         "make_typecheck",
         "make_unused",
         "make_lint",
@@ -426,7 +428,9 @@ def test_audit_modules(
 
     main("audit", *args)
     output = [i for i in nocolorcapsys.stdout().splitlines() if i != ""]
-    expected = [i.replace("make_", f"{NAME} ") for i in audit_modules]
+    expected = [
+        i.replace("make_", f"{NAME} ").replace("_", "-") for i in audit_modules
+    ]
     assert all([i in output for i in expected])
     assert output[0] == first
     assert output[-1] == last
@@ -1164,6 +1168,7 @@ def test_parser(monkeypatch, nocolorcapsys, track_called, call_status, main):
         "docs",
         "files",
         "format",
+        "format-str",
         "lint",
         "requirements",
         "tests",
@@ -1431,8 +1436,9 @@ def test_readme(nocolorcapsys, main, make_readme):
     [
         ("format", "black", files.UNFORMATTED),
         ("imports", "isort", files.IMPORTS_UNSORTED),
+        ("format-str", "flynt", files.FORMAT_STR_FUNCS_PRE),
     ],
-    ids=["format", "imports"],
+    ids=["format", "imports", "format-str"],
 )
 def test_py_audit_error(main, make_tree, module, process, content):
     """Test ``PyAuditError`` message.
@@ -1463,3 +1469,35 @@ def test_py_audit_error(main, make_tree, module, process, content):
     stderr = str(err.value)
     assert all(i in stderr for i in (process, "did not pass all checks"))
     assert "Path" not in stderr
+
+
+def test_format_str(main, nocolorcapsys):
+    """Test failing audit when f-strings can be created with ``flynt``.
+
+    :param main:            Patch package entry point.
+    :param nocolorcapsys:   Capture system output while stripping ANSI
+                            color codes.
+    """
+    path = pyaud.environ.env["PROJECT_DIR"]
+    with open(os.path.join(path, FILES), "w") as fout:
+        fout.write(files.FORMAT_STR_FUNCS_PRE)
+
+    with pyaud.utils.Git(path) as git:
+        git.init()  # type: ignore
+        git.add(".")  # type: ignore
+
+    pyaud.utils.pyitems.get_files()
+    with pytest.raises(pyaud.utils.PyAuditError):
+        main("format-str")
+
+    expected = (
+        "Files modified:                            1",
+        "Character count reduction:                 10 (2.04%)",
+        "`.format(...)` calls attempted:            1/1 (100.0%)",
+        "String concatenations attempted:           1/1 (100.0%)",
+        "F-string expressions created:              2",
+    )
+    out = nocolorcapsys.stdout()
+    assert all(i in out for i in expected)
+    with open(os.path.join(path, FILES)) as fin:
+        assert fin.read() == files.FORMAT_STR_FUNCS_POST

@@ -1808,3 +1808,35 @@ UNFORMATTED = """
 def reformat_this() -> None:
    print('black will make sure this is double quoted')
 """
+FORMAT_STR_FUNCS_PRE = """
+def _print_module_docs():
+    for key, value in self._modules.items():
+        tab = len(max(self._modules, key=len)) + 1
+        doc = inspect.getdoc(value)
+        if doc is not None:
+            print("{}-- {}".format(key.ljust(tab), doc.splitlines()[0][:-1]))
+
+
+def make_deploy_docs(**kwargs: bool) -> None:
+    null_vals = ["env", "vars"]
+    if get_branch() != "master":
+        print("The following is not set:")
+        for null_val in null_vals:
+            print("- " + null_val)
+"""
+FORMAT_STR_FUNCS_POST = """
+def _print_module_docs():
+    for key, value in self._modules.items():
+        tab = len(max(self._modules, key=len)) + 1
+        doc = inspect.getdoc(value)
+        if doc is not None:
+            print(f"{key.ljust(tab)}-- {doc.splitlines()[0][:-1]}")
+
+
+def make_deploy_docs(**kwargs: bool) -> None:
+    null_vals = ["env", "vars"]
+    if get_branch() != "master":
+        print("The following is not set:")
+        for null_val in null_vals:
+            print(f"- {null_val}")
+"""

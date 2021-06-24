@@ -81,6 +81,7 @@ Commandline arguments:
     docs                    Compile documentation with ``Sphinx``
     files                   Run ``requirements``, ``toc``, and ``whitelist``
     format                  Format all Python project files with ``Black``
+    format-str              Format f-strings with ``flynt``
     imports                 Sort imports with ``isort``
     lint                    Show possible corrections with ``pylint``
     readme                  tests code-blocks in README.rst

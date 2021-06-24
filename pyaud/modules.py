@@ -33,6 +33,7 @@ def make_audit(**kwargs: Union[bool, str]) -> int:
     """
     audit_modules: List[Callable[..., Any]] = [
         make_format,
+        make_format_str,
         make_imports,
         make_typecheck,
         make_unused,
@@ -448,3 +449,25 @@ def make_readme() -> None:
             readmtester.call(env["README_RST"])
         else:
             print("No README.rst found in project root")
+
+
+@check_command
+def make_format_str(**kwargs: bool) -> int:
+    """Format f-strings with ``flynt``.
+
+    :param kwargs:  Pass keyword arguments to ``call``.
+    :key fix:       Do not raise error - fix problem instead.
+    :return:        Exit status.
+    """
+    flynt = Subprocess("flynt")
+    args = ("--line-length", "72", "--transform-concats", *pyitems.items)
+    try:
+        return flynt.call(
+            "--dry-run", "--fail-on-change", *args, devnull=True, **kwargs
+        )
+
+    except CalledProcessError as err:
+        flynt.call(*args, **kwargs)
+        raise PyAuditError(
+            f"{flynt.exe} {tuple([str(i) for i in args])}"
+        ) from err
