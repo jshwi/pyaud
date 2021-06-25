@@ -20,7 +20,7 @@ import pyblake2
 from object_colors import Color
 
 from .config import toml
-from .environ import TempEnvVar
+from .environ import DOCS, README, TempEnvVar
 
 colors = Color()
 colors.populate_colors()
@@ -340,8 +340,10 @@ def write_command(
     def _decorator(func: Callable[..., int]) -> Callable[..., None]:
         @functools.wraps(func)
         def _wrapper(*args: str, **kwargs: Union[bool, str]) -> None:
-            if not required or os.path.exists(os.environ[str(required)]):
-                _file = os.environ[str(file)]
+            if not required or os.path.exists(
+                os.path.join(os.getcwd(), os.environ[str(required)])
+            ):
+                _file = os.path.join(os.getcwd(), os.environ[str(file)])
                 print(f"Updating ``{_file}``")
                 with HashCap(_file) as cap:
                     func(*args, **kwargs)
@@ -363,6 +365,7 @@ def write_command(
 def deploy_docs() -> None:
     """Series of functions for deploying docs."""
     gh_remote = os.environ["PYAUD_GH_REMOTE"]
+    root_html = os.path.join(os.path.join(os.getcwd(), "html"))
     git.add(".")  # type: ignore
     git.diff_index("--cached", "HEAD", capture=True)  # type: ignore
     stashed = False
@@ -371,12 +374,10 @@ def deploy_docs() -> None:
         stashed = True
 
     shutil.move(
-        os.path.join(os.getcwd(), "docs", "_build", "html"),
-        os.path.join(os.getcwd(), "html"),
+        os.path.join(os.getcwd(), os.environ["BUILDDIR"], "html"), root_html
     )
     shutil.copy(
-        os.path.join(os.getcwd(), "README.rst"),
-        os.path.join(os.getcwd(), "html", "README.rst"),
+        os.path.join(os.getcwd(), README), os.path.join(root_html, README)
     )
     git.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
     stdout = git.stdout()
@@ -390,16 +391,15 @@ def deploy_docs() -> None:
     git.config(  # type: ignore
         "--global", "user.email", os.environ["PYAUD_GH_EMAIL"]
     )
-    shutil.rmtree(os.path.join(os.getcwd(), "docs"))
+    shutil.rmtree(os.path.join(os.getcwd(), DOCS))
     git.rm("-rf", ".", devnull=True)  # type: ignore
     git.clean("-fdx", "--exclude=html", devnull=True)  # type: ignore
-    for file in os.listdir(os.path.join(os.getcwd(), "html")):
+    for file in os.listdir(root_html):
         shutil.move(
-            os.path.join(os.getcwd(), "html", file),
-            os.path.join(os.getcwd(), file),
+            os.path.join(root_html, file), os.path.join(os.getcwd(), file)
         )
 
-    shutil.rmtree(os.path.join(os.getcwd(), "html"))
+    shutil.rmtree(root_html)
     git.add(".")  # type: ignore
     git.commit(  # type: ignore
         "-m", '"[ci skip] Publishes updated documentation"', devnull=True

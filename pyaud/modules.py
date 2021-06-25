@@ -9,7 +9,16 @@ from subprocess import CalledProcessError
 from typing import Any, Callable, List
 
 from .config import generate_rcfile, toml
-from .environ import NAME, TempEnvVar
+from .environ import (
+    DOCS,
+    DOCS_CONF,
+    NAME,
+    PIPFILE_LOCK,
+    README,
+    TESTS,
+    TempEnvVar,
+    find_package,
+)
 from .utils import (
     HashCap,
     LineSwitch,
@@ -131,7 +140,7 @@ def make_deploy_cov(**kwargs: bool) -> int:
     :return:        Exit status.
     """
     codecov = Subprocess("codecov")
-    coverage_xml = os.environ["PYAUD_COVERAGE_XML"]
+    coverage_xml = os.path.join(os.getcwd(), os.environ["PYAUD_COVERAGE_XML"])
     if os.path.isfile(coverage_xml):
         if os.environ["CODECOV_TOKEN"] != "":
             return codecov.call("--file", coverage_xml, **kwargs)
@@ -158,7 +167,9 @@ def make_deploy_docs(**kwargs: bool) -> int:
         git_credentials = ["PYAUD_GH_NAME", "PYAUD_GH_EMAIL", "PYAUD_GH_TOKEN"]
         null_vals = [k for k in git_credentials if os.environ[k] == ""]
         if not null_vals:
-            if not os.path.isdir(os.path.join(os.environ["BUILDDIR"], "html")):
+            if not os.path.isdir(
+                os.path.join(os.getcwd(), os.environ["BUILDDIR"], "html")
+            ):
                 make_docs(**kwargs)
 
             deploy_docs()
@@ -190,19 +201,20 @@ def make_docs(**kwargs: bool) -> None:
 
     readme_rst = "README"
     underline = len(readme_rst) * "="
-    if os.path.isdir(os.environ["BUILDDIR"]):
-        shutil.rmtree(os.environ["BUILDDIR"])
+    build_dir = os.path.join(os.getcwd(), os.environ["BUILDDIR"])
+    if os.path.isdir(build_dir):
+        shutil.rmtree(build_dir)
 
     sphinx_build = Subprocess("sphinx-build")
-    if os.path.isdir(os.environ["PYAUD_DOCS"]):
+    if os.path.isdir(os.path.join(os.getcwd(), DOCS)):
         with LineSwitch(
-            os.environ["PYAUD_README_RST"], {0: readme_rst, 1: underline}
+            os.path.join(os.getcwd(), README), {0: readme_rst, 1: underline}
         ):
             command = [
                 "-M",
                 "html",
-                os.environ["PYAUD_DOCS"],
-                os.environ["BUILDDIR"],
+                os.path.join(os.getcwd(), DOCS),
+                build_dir,
                 "-W",
             ]
             sphinx_build.call(*command, **kwargs)
@@ -267,15 +279,21 @@ def make_requirements(**kwargs: bool) -> int:
     :return:        Exit status.
     """
     # get the stdout for both production and development packages
+    pipfile_lock_path = os.path.join(os.getcwd(), PIPFILE_LOCK)
+    requirements_path = os.path.join(
+        os.getcwd(), os.environ["PYAUD_REQUIREMENTS"]
+    )
+
+    # get the stdout for both production and development packages
     p2req = Subprocess("pipfile2req", capture=True)
-    p2req.call(os.environ["PYAUD_PIPFILE_LOCK"], **kwargs)
-    p2req.call(os.environ["PYAUD_PIPFILE_LOCK"], "--dev", **kwargs)
+    p2req.call(pipfile_lock_path, **kwargs)
+    p2req.call(pipfile_lock_path, "--dev", **kwargs)
 
     # write to file and then use sed to remove the additional
     # information following the semi-colon
     stdout = list(set("\n".join(p2req.stdout()).splitlines()))
     stdout.sort()
-    with open(os.environ["PYAUD_REQUIREMENTS"], "w") as fout:
+    with open(requirements_path, "w") as fout:
         for content in stdout:
             fout.write(f"{content.split(';')[0]}\n")
 
@@ -289,11 +307,11 @@ def make_tests(*args: str, **kwargs: bool) -> int:
     :param kwargs:  Pass keyword arguments to ``call``.
     :return:        Exit status.
     """
-    tests = os.environ["PYAUD_TESTS"]
+    tests = Path.cwd() / TESTS
     patterns = ("test_*.py", "*_test.py")
-    rglob = [p for a in patterns for p in Path.cwd().rglob(a)]
+    rglob = [p for a in patterns for p in tests.rglob(a)]
     pytest = Subprocess("pytest")
-    if os.path.isdir(tests) and rglob:
+    if rglob:
         return pytest.call(*args, **kwargs)
 
     print("No tests found")
@@ -307,35 +325,38 @@ def make_toc(**kwargs: bool) -> int:
     :param kwargs:  Pass keyword arguments to ``call``.
     :return:        Exit status.
     """
-    kwargs["devnull"] = True
     toc_attrs = [
         ".. automodule::",
         "   :members:",
         "   :undoc-members:",
         "   :show-inheritance:",
     ]
-    if os.path.isfile(os.environ["PYAUD_DOCS_CONF"]):
-        apidoc = Subprocess("sphinx-apidoc", devnull=True)
+    package = find_package()
+    docspath = os.path.join(os.getcwd(), DOCS)
+    tocpath = os.path.join(docspath, f"{package}.rst")
+    if os.path.isfile(os.path.join(os.getcwd(), DOCS_CONF)):
+        apidoc = Subprocess("sphinx-apidoc")
         apidoc.call(
-            "-o", os.environ["PYAUD_DOCS"], os.environ["PYAUD_PKG_PATH"], "-f"
+            "-o",
+            docspath,
+            os.path.join(os.getcwd(), package),
+            "-f",
+            devnull=True,
+            **kwargs,
         )
-        with open(os.environ["PYAUD_TOC"]) as fin:
+
+        with open(tocpath) as fin:
             contents = fin.read().splitlines()
 
-        with open(os.environ["PYAUD_TOC"], "w") as fout:
-            fout.write(
-                f"{os.environ['PYAUD_PKG']}\n"
-                f"{len(os.environ['PYAUD_PKG']) * '='}\n\n"
-            )
+        with open(tocpath, "w") as fout:
+            fout.write(f"{package}\n{len(package) * '='}\n\n")
             for content in contents:
                 if any(a in content for a in toc_attrs):
                     fout.write(f"{content}\n")
 
         modules = (
-            os.path.join(
-                os.environ["PYAUD_DOCS"], f"{os.environ['PYAUD_PKG']}.src.rst"
-            ),
-            os.path.join(os.environ["PYAUD_DOCS"], "modules.rst"),
+            os.path.join(docspath, f"{package}.src.rst"),
+            os.path.join(docspath, "modules.rst"),
         )
         for module in modules:
             if os.path.isfile(module):
@@ -367,9 +388,10 @@ def make_unused(**kwargs: bool) -> int:
     :param kwargs:  Pass keyword arguments to ``call``.
     :return:        Exit status.
     """
+    whitelist = os.path.join(os.getcwd(), os.environ["PYAUD_WHITELIST"])
     args = tree.reduce()
-    if os.path.isfile(os.environ["PYAUD_WHITELIST"]):
-        args.append(os.environ["PYAUD_WHITELIST"])
+    if os.path.isfile(whitelist):
+        args.append(whitelist)
 
     vulture = Subprocess("vulture")
     return vulture.call(*args, **kwargs)
@@ -397,7 +419,9 @@ def make_whitelist(**kwargs: bool) -> int:
     # file and not append
     stdout = [i for i in "\n".join(vulture.stdout()).splitlines() if i != ""]
     stdout.sort()
-    with open(os.environ["PYAUD_WHITELIST"], "w") as fout:
+    with open(
+        os.path.join(os.getcwd(), os.environ["PYAUD_WHITELIST"]), "w"
+    ) as fout:
         for line in stdout:
             fout.write(f"{line.replace(os.getcwd() + os.sep, '')}\n")
 
@@ -443,8 +467,8 @@ def make_readme(**kwargs: bool) -> None:
     """
     with TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
         readmtester = Subprocess("readmetester")
-        if os.path.isfile(os.environ["PYAUD_README_RST"]):
-            readmtester.call(os.environ["PYAUD_README_RST"], **kwargs)
+        if os.path.isfile(os.path.join(os.getcwd(), README)):
+            readmtester.call(os.path.join(os.getcwd(), README), **kwargs)
         else:
             print("No README.rst found in project root")
 

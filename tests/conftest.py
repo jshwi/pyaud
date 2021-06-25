@@ -250,7 +250,7 @@ def fixture_make_tree() -> Any:
 @pytest.fixture(name="make_test_file")
 def fixture_make_test_file() -> None:
     """Create a test file with 20."""
-    testdir = os.environ["PYAUD_TESTS"]
+    testdir = os.path.join(os.getcwd(), pyaud.environ.TESTS)
     os.makedirs(testdir)
     testfile = os.path.join(testdir, "_test.py")
     with open(testfile, "w") as fout:

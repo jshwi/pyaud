@@ -116,7 +116,9 @@ def test_write_command(
     for content in contents:
 
         def mock_write_whitelist() -> None:
-            with open(os.environ["PYAUD_WHITELIST"], "w") as fout:
+            with open(
+                os.path.join(os.getcwd(), os.environ["PYAUD_WHITELIST"]), "w"
+            ) as fout:
                 fout.write(content)
 
         monkeypatch.setattr(
@@ -376,7 +378,8 @@ def test_make_docs_toc_fail(monkeypatch: Any, make_tree: Any) -> None:
     assert str(err.value) == (
         "Command 'sphinx-apidoc -o {} {} -f' "
         "returned non-zero exit status 1.".format(
-            os.environ["PYAUD_DOCS"], os.environ["PYAUD_PKG_PATH"]
+            os.path.join(os.getcwd(), pyaud.environ.DOCS),
+            os.path.join(os.getcwd(), REPO),
         )
     )
 
@@ -390,8 +393,8 @@ def test_make_docs_rm_cache(
     :param call_status:     Patch function to return specific exit-code.
     :param make_tree:       Create directory tree from dict mapping.
     """
-    builddir = os.environ["BUILDDIR"]
-    readme = os.environ["PYAUD_README_RST"]
+    builddir = os.path.join(os.getcwd(), os.environ["BUILDDIR"])
+    readme = os.path.join(os.getcwd(), pyaud.environ.README)
 
     # disable call to ``Subprocess`` to only create ./docs/_build
     # directory so tests can continue
@@ -477,8 +480,8 @@ def test_pipfile2req_commands(
     :param nocolorcapsys:           Capture system output while
                                     stripping ANSI color codes.
     """
-    requirements = os.environ["PYAUD_REQUIREMENTS"]
-    pipfile_lock = os.environ["PYAUD_PIPFILE_LOCK"]
+    requirements = os.path.join(os.getcwd(), os.environ["PYAUD_REQUIREMENTS"])
+    pipfile_lock = os.path.join(os.getcwd(), pyaud.environ.PIPFILE_LOCK)
     with open(pipfile_lock, "w") as fout:
         fout.write(files.PIPFILE_LOCK)
 
@@ -512,7 +515,7 @@ def test_get_branch_initial_commit() -> None:
     Test when run from a commit with no parent commits i.e. initial
     commit.
     """
-    Path(os.environ["PYAUD_README_RST"]).touch()
+    Path(os.getcwd(), pyaud.environ.README).touch()
     pyaud.utils.git.add(".")  # type: ignore
     pyaud.utils.git.commit("-m", INITIAL_COMMIT)  # type: ignore
     pyaud.utils.git.rev_list(  # type: ignore
@@ -553,7 +556,8 @@ def test_clean_exclude(
         "-m", "Initial commit", devnull=True
     )
     for exclusion in exclude:
-        Path(Path.cwd() / exclusion).touch()
+        obj = os.path.join(os.getcwd(), exclusion)
+        Path(obj).touch()
 
     main("clean")
     assert nocolorcapsys.stdout() == expected
@@ -576,17 +580,6 @@ def test_pipe_to_file() -> None:
         )
 
 
-def test_del_item() -> None:
-    """Test __delitem__ in ``Environ``."""
-    os.environ["PYAUD_ITEM"] = "del this"
-    assert "PYAUD_ITEM" in os.environ
-    assert os.environ["PYAUD_ITEM"] == "del this"
-    del os.environ["PYAUD_ITEM"]
-    assert "PYAUD_ITEM" not in os.environ
-    del os.environ["PYAUD_PKG"]
-    assert "PYAUD_PKG" not in os.environ
-
-
 def test_find_package(monkeypatch: Any) -> None:
     """Test error is raised if no Python file exists in project root.
 
@@ -595,10 +588,11 @@ def test_find_package(monkeypatch: Any) -> None:
     cwd = os.getcwd()
     monkeypatch.undo()
     monkeypatch.setattr("os.getcwd", lambda: cwd)
+    monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [])
     with pytest.raises(EnvironmentError) as err:
-        pyaud.environ.load_namespace()
+        pyaud.environ.find_package()
 
-    assert str(err.value) == "Unable to find a Python package"
+    assert str(err.value) == "no packages found"
 
 
 @pytest.mark.parametrize(
@@ -613,7 +607,7 @@ def test_hash_file(make_tree: Any, change: Any, expected: Any) -> None:
     :param change:      True or False: Change the file.
     :param expected:    Expected result from ``cap.compare``.
     """
-    path = os.environ["PYAUD_TOC"]
+    path = os.path.join(os.getcwd(), pyaud.utils.DOCS, f"{REPO}.rst")
     make_tree(os.getcwd(), {"docs": {os.path.basename(path): None}})
     with pyaud.utils.HashCap(path) as cap:
         if change:
@@ -625,7 +619,7 @@ def test_hash_file(make_tree: Any, change: Any, expected: Any) -> None:
 
 def test_readme_replace() -> None:
     """Test that ``LineSwitch`` properly edits a file."""
-    path = os.environ["PYAUD_README_RST"]
+    path = os.path.join(os.getcwd(), pyaud.environ.README)
 
     def _test_file_index(title: str, underline: str) -> None:
         with open(path) as fin:
@@ -736,8 +730,9 @@ def test_append_whitelist(
     :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
                                     announce what is called.
     """
-    whitelist = os.environ["PYAUD_WHITELIST"]
-    Path(os.getcwd(), FILES).touch()
+    project_dir = os.getcwd()
+    whitelist = os.path.join(project_dir, os.environ["PYAUD_WHITELIST"])
+    Path(project_dir, FILES).touch()
     patch_sp_print_called()
     Path(whitelist).touch()
     pyaud.utils.tree.populate()
@@ -824,8 +819,9 @@ def test_make_toc(patch_sp_print_called: Any, make_tree: Any) -> None:
     :param make_tree:               Create directory tree from dict
                                     mapping.
     """
-    path = os.environ["PYAUD_TOC"]
+    project_dir = os.getcwd()
     modules = "modules.rst"
+    path = os.path.join(project_dir, pyaud.utils.DOCS, f"{REPO}.rst")
     make_tree(os.getcwd(), {"docs": {modules: None, CONFPY: None}})
     with open(path, "w") as fout:
         assert fout.write(files.DEFAULT_TOC)
@@ -835,7 +831,9 @@ def test_make_toc(patch_sp_print_called: Any, make_tree: Any) -> None:
     with open(path) as fin:
         assert fin.read() == files.ALTERED_TOC
 
-    assert not os.path.isfile(os.path.join(os.environ["PYAUD_DOCS"], modules))
+    assert not os.path.isfile(
+        os.path.join(project_dir, pyaud.utils.DOCS, modules)
+    )
 
 
 def test_make_requirements(patch_sp_output: Any, nocolorcapsys: Any) -> None:
@@ -848,8 +846,10 @@ def test_make_requirements(patch_sp_output: Any, nocolorcapsys: Any) -> None:
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    path = os.environ["PYAUD_REQUIREMENTS"]
-    with open(os.environ["PYAUD_PIPFILE_LOCK"], "w") as fout:
+    path = os.path.join(os.getcwd(), os.environ["PYAUD_REQUIREMENTS"])
+    with open(
+        os.path.join(os.getcwd(), pyaud.environ.PIPFILE_LOCK), "w"
+    ) as fout:
         fout.write(files.PIPFILE_LOCK)
 
     patch_sp_output(files.PIPFILE2REQ_PROD, files.PIPFILE2REQ_DEV)
@@ -875,7 +875,7 @@ def test_make_whitelist(
     :param make_tree:           Create directory tree from dict mapping.
     """
     project_dir = os.getcwd()
-    whitelist = os.environ["PYAUD_WHITELIST"]
+    whitelist = os.path.join(project_dir, os.environ["PYAUD_WHITELIST"])
     make_tree(
         project_dir,
         {
@@ -1058,7 +1058,7 @@ def test_readme(main: Any, nocolorcapsys: Any) -> None:
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    path = os.environ["PYAUD_README_RST"]
+    path = os.path.join(os.getcwd(), pyaud.environ.README)
     main("readme")
     assert (
         nocolorcapsys.stdout().strip() == "No README.rst found in project root"
@@ -1208,18 +1208,19 @@ def test_deploy_master(monkeypatch: Any, nocolorcapsys: Any) -> None:
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    path = os.environ["PYAUD_README_RST"]
+    project_dir = os.getcwd()
+    readme = os.path.join(project_dir, pyaud.environ.README)
     monkeypatch.setattr(
         "pyaud.modules.make_docs",
         lambda *_, **__: os.makedirs(
-            os.path.join(os.environ["BUILDDIR"], "html")
+            os.path.join(project_dir, os.environ["BUILDDIR"], "html")
         ),
     )
-    Path(path).touch()  # force stash
+    Path(readme).touch()  # force stash
     pyaud.utils.git.add(".", devnull=True)  # type: ignore
     pyaud.utils.git.commit("-m", INITIAL_COMMIT, devnull=True)  # type: ignore
 
-    with open(path, "w") as fout:
+    with open(readme, "w") as fout:
         fout.write(files.README_RST)
 
     pyaud.modules.make_deploy_docs()
@@ -1276,10 +1277,10 @@ def test_deploy_master_param(
     monkeypatch.setattr(
         "pyaud.modules.make_docs",
         lambda *_, **__: os.makedirs(
-            os.path.join(os.environ["BUILDDIR"], "html")
+            os.path.join(path, os.environ["BUILDDIR"], "html")
         ),
     )
-    with open(os.environ["PYAUD_README_RST"], "w") as fout:
+    with open(os.path.join(path, pyaud.environ.README), "w") as fout:
         fout.write(files.README_RST)
 
     Path(path, FILES).touch()
@@ -1307,12 +1308,12 @@ def test_deploy_cov_report_token(
     :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
                                     announce what is called.
     """
-    Path(os.environ["PYAUD_COVERAGE_XML"]).touch()
+    Path(os.getcwd(), os.environ["PYAUD_COVERAGE_XML"]).touch()
     patch_sp_print_called()
     monkeypatch.setenv("CODECOV_TOKEN", "token")
     pyaud.modules.make_deploy_cov()
     out = nocolorcapsys.stdout()
-    assert all(e in out for e in ["codecov", "--file"])
+    assert all(e in out for e in ["<Subprocess (codecov)>", "--file"])
 
 
 def test_deploy_cov_no_token(nocolorcapsys: Any) -> None:
@@ -1324,7 +1325,7 @@ def test_deploy_cov_no_token(nocolorcapsys: Any) -> None:
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    Path(os.environ["PYAUD_COVERAGE_XML"]).touch()
+    Path(os.getcwd(), os.environ["PYAUD_COVERAGE_XML"]).touch()
     pyaud.modules.make_deploy_cov()
     out = nocolorcapsys.stdout()
     assert all(e in out for e in ["CODECOV_TOKEN not set"])
