@@ -24,6 +24,7 @@ vulture = "==2.3"
 
 [dev-packages]
 bump2version = "==1.0.1"
+grip = "==4.5.2"
 ipython = "==7.19.0"
 prompt-toolkit = "==3.0.13"
 pyaud = {editable = true, path = "."}
