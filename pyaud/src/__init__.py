@@ -241,7 +241,9 @@ class Git(Subprocess):
         "symbolic-ref",
     )
 
-    def __init__(self, repo: Union[str, os.PathLike], loglevel="info") -> None:
+    def __init__(
+        self, repo: Union[str, os.PathLike], loglevel="debug"
+    ) -> None:
         super().__init__("git", commands=self.commands, loglevel=loglevel)
         self.enter_path = repo
         self.saved_path = os.getcwd()

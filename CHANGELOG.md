@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v1.3.0...HEAD)
 ------------------------------------------------------------------------
+### Changed
+- Sets `Git` loglevel to debug
+
 ### Fixed
 - Applies exclusions to non-reduced file paths
 - `pyaud imports` displays success message
