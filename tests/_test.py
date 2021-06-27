@@ -6,7 +6,6 @@ tests._test
 import configparser
 import copy
 import datetime
-import filecmp
 import logging
 import logging.config as logging_config
 import os
@@ -140,7 +139,7 @@ def test_make_audit_error(monkeypatch: Any, nocolorcapsys: Any) -> None:
                             color codes.
     """
     monkeypatch.setattr(
-        "pyaud.utils.Subprocess.open_process", lambda *_, **__: 1
+        "pyaud.utils.Subprocess._open_process", lambda *_, **__: 1
     )
     pyaud.utils.tree.append(FILES)
     with pytest.raises(CalledProcessError):
@@ -164,7 +163,7 @@ def test_call_coverage_xml(
     patch_sp_print_called()
     monkeypatch.setattr("pyaud.modules.make_tests", lambda *_, **__: 0)
     pyaud.modules.make_coverage()
-    assert nocolorcapsys.stdout().strip() == "coverage xml"
+    assert nocolorcapsys.stdout().strip() == "<Subprocess (coverage)> xml"
 
 
 def test_make_deploy_all(
@@ -374,7 +373,7 @@ def test_make_docs_toc_fail(monkeypatch: Any, make_tree: Any) -> None:
     """
     make_tree(os.environ["PROJECT_DIR"], {"docs": {CONFPY: None}})
     monkeypatch.setattr(
-        "pyaud.utils.Subprocess.open_process", lambda *_, **__: 1
+        "pyaud.utils.Subprocess._open_process", lambda *_, **__: 1
     )
     with pytest.raises(CalledProcessError) as err:
         pyaud.modules.make_docs()
@@ -497,8 +496,8 @@ def test_pipfile2req_commands(
         e in out
         for e in (
             f"Updating ``{requirements}``",
-            f"pipfile2req {pipfile_lock}",
-            f"pipfile2req {pipfile_lock} --dev",
+            f"<Subprocess (pipfile2req)> {pipfile_lock}",
+            f"<Subprocess (pipfile2req)> {pipfile_lock} --dev",
             f"created ``{os.path.basename(requirements)}``",
         )
     )
@@ -527,7 +526,7 @@ def test_get_branch_initial_commit() -> None:
         git.add(".")  # type: ignore
         git.commit("-m", INITIAL_COMMIT)  # type: ignore
         git.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
-        git.checkout(git.stdout.strip())  # type: ignore
+        git.checkout(git.stdout()[0])  # type: ignore
 
     assert pyaud.utils.get_branch() is None
 
@@ -587,17 +586,6 @@ def test_git_context_no_artifact(tmp_path: Path) -> None:
 
     # ensure ``tmprepo`` has been removed
     assert not os.path.isdir(tmprepo)
-
-
-def test_git_clone(tmp_path: Path) -> None:
-    """Test that the ``Git`` class can properly clone a repo.
-
-    :param tmp_path: Create and return temporary directory.
-    """
-    with pyaud.utils.Git(os.path.join(tmp_path, "cloned_repo")) as git:
-        git.clone(REAL_REPO)
-
-    assert filecmp.dircmp(REAL_REPO, os.environ["PROJECT_DIR"])
 
 
 def test_pipe_to_file() -> None:
@@ -825,7 +813,10 @@ def test_mypy_expected(patch_sp_print_called: Any, nocolorcapsys: Any) -> None:
     pyaud.utils.tree.append(path)
     patch_sp_print_called()
     pyaud.modules.make_typecheck()
-    assert f"mypy --ignore-missing-imports {path}" in nocolorcapsys.stdout()
+    assert (
+        f"<Subprocess (mypy)> --ignore-missing-imports {path}"
+        in nocolorcapsys.stdout()
+    )
 
 
 @pytest.mark.parametrize(
@@ -834,10 +825,10 @@ def test_mypy_expected(patch_sp_print_called: Any, nocolorcapsys: Any) -> None:
         ({"tests": {}}, "No tests found"),
         ({"tests": {"test.py": None}}, "No tests found"),
         ({"tests": {"filename.py": None}}, "No tests found"),
-        ({"tests": {"_test.py": None}}, "pytest"),
-        ({"tests": {"test_.py": None}}, "pytest"),
-        ({"tests": {"three_test.py": None}}, "pytest"),
-        ({"tests": {"test_four.py": None}}, "pytest"),
+        ({"tests": {"_test.py": None}}, "<Subprocess (pytest)>"),
+        ({"tests": {"test_.py": None}}, "<Subprocess (pytest)>"),
+        ({"tests": {"three_test.py": None}}, "<Subprocess (pytest)>"),
+        ({"tests": {"test_four.py": None}}, "<Subprocess (pytest)>"),
     ],
     ids=(
         "tests",
@@ -1038,7 +1029,9 @@ def test_arg_order_clone(
 
     assert (
         nocolorcapsys.stdout().strip()
-        == f"git clone --depth 1 --branch v1.1.0 {REAL_REPO} {path}"
+        == "<Git (git)> clone --depth 1 --branch v1.1.0 {} {}".format(
+            REAL_REPO, path
+        )
     )
 
 
@@ -1601,7 +1594,7 @@ def test_mapping_class() -> None:
 
 
 def test_toml() -> None:
-    """Assert "$HOME/.config/pyaud.toml" is created and loaded.
+    """Assert "$HOME/.config/pyaud.utils.toml" is created and loaded.
 
     Create "$HOME/.pyaudrc" and "$PROJECT_DIR/.pyaudrc" load them,
     ensuring that each level up overrides changes from lower level

@@ -28,96 +28,92 @@ colors.populate_colors()
 class Subprocess:
     """Object oriented Subprocess.
 
+    ``exe`` is a mandatory argument used to construct the subprocess
+    executable. Default ``file``, ``capture``, and ``devnull`` values
+    can be set when instantiating the object and overridden later when
+    using ``call``.
+
+
     :param exe:         Subprocess executable.
-    :param loglevel:    Level to log the application under.
-    :param commands:    Any additional commands to set as attributes.
+    :key loglevel:      Loglevel for non-error logging.
+    :param commands:    List of positional arguments to set as
+                        attributes if not None.
+    :key file:          File path to write stream to if not None.
+    :key capture:       Collect output array.
+    :key log:           Pipe stdout to logging instead of console.
+    :key devnull:       Send output to /dev/null.
     """
 
     def __init__(
         self,
         exe: str,
         loglevel: str = "error",
-        commands: Optional[Iterable] = None,
+        commands: Optional[Iterable[str]] = None,
+        **kwargs: Union[bool, str],
     ) -> None:
-        self.exe = exe
-        self.loglevel = loglevel
-        self.commands = commands
-        self._call = functools.partial(self.run, self.exe)
-        self.stdout: Optional[str] = None
-        self._set_attrs()
+        self._exe = exe
+        self._loglevel = loglevel
+        if commands is not None:
+            for command in commands:
+                setattr(
+                    self,
+                    command.replace("-", "_"),
+                    functools.partial(self.call, command),
+                )
 
-    def call(
-        self, *args: Union[bytes, str, os.PathLike], **kwargs: Union[bool, str]
-    ) -> int:
-        """Call command.
+        self._kwargs = kwargs
+        self._stdout: List[str] = []
 
-        :param args:    Command's positional arguments.
-        :param kwargs:  Command's keyword arguments.
-        :return:        Exit status.
-        """
-        logging.getLogger(self.exe).debug("called with %s", args)
-        return self._call(*args, **kwargs)
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} ({self._exe})>"
 
-    def _capture(self, line: str) -> None:
-        if self.stdout is not None:
-            self.stdout += line
-        else:
-            self.stdout = line
+    def _handle_stdout(
+        self, pipeline: Popen, **kwargs: Union[bool, str]
+    ) -> None:
+        if pipeline.stdout is not None:
+            for line in iter(pipeline.stdout.readline, b""):
+                line = line.decode("utf-8", "ignore")
+                file = kwargs.get("file", self._kwargs.get("file", None))
+                if file is not None:
+                    with open(file, "a+") as fout:
+                        fout.write(line)
 
-    def _set_attrs(self) -> None:
-        if self.commands:
-            for command in self.commands:
-                func = functools.partial(self.call, command)
-                _name = command.replace("-", "_")
-                setattr(self, _name, func)
+                elif kwargs.get("capture", self._kwargs.get("capture", False)):
+                    self._stdout.append(line.strip())
 
-    def _handle_stdout(self, pipeline: Popen, **kwargs: str) -> None:
-        self.stdout = None
-        file = kwargs.get("file", None)
-        capture = kwargs.get("capture", False)
-        devnull = kwargs.get("devnull", False)
-        for line in iter(lambda: pipeline.stdout.read(1), b""):  # type: ignore
-            line = line.decode("utf-8", "ignore")
-            if capture:
-                self._capture(line)
+                elif kwargs.get("devnull", self._kwargs.get("devnull", False)):
+                    with open(os.devnull, "w") as fout:
+                        fout.write(line)
 
-            elif file:
-                with open(file, "a+") as fout:
-                    fout.write(line)
-
-            elif not devnull:
-                sys.stdout.write(line)
+                else:
+                    sys.stdout.write(line)
 
     def _handle_stderr(self, pipeline: Popen) -> None:
         for line in iter(pipeline.stderr.readline, b""):  # type: ignore
-            getattr(logging.getLogger(self.exe), self.loglevel)(
+            getattr(logging.getLogger(self._exe), self._loglevel)(
                 line.decode("utf-8", "ignore").strip()
             )
 
-    def open_process(self, exe: str, *args: str, **kwargs: str) -> int:
-        """Open process with ``subprocess.Popen``.
-
-        Pipe stream depending on the keyword arguments provided. Log
-        errors to file regardless. Wait for process to finish and return
-        it's exit-code.
-
-        :param exe:     Subprocess executable.
-        :param args:    Series of commands.
-        :key file:      File path to write stream to.
-        :key devnull:   Suppress output.
-        :key capture:   Pipe stream to self.
-        :key suppress:  Suppress errors and continue running.
-        :return:        Exit status.
-        """
-        pipeline = Popen([exe, *args], stdout=PIPE, stderr=PIPE)
+    def _open_process(self, *args: str, **kwargs: Union[bool, str]) -> int:
+        # open process with ``subprocess.Popen``
+        # pipe stream depending on the keyword arguments provided
+        # Log errors to file regardless
+        # wait for process to finish and return it's exit-code
+        pipeline = Popen([self._exe, *args], stdout=PIPE, stderr=PIPE)
         self._handle_stdout(pipeline, **kwargs)
         self._handle_stderr(pipeline)
         return pipeline.wait()
 
-    def run(self, exe: str, *args: str, **kwargs: str) -> int:
-        """Call subprocess run and manipulate error resolve.
+    def call(self, *args: Any, **kwargs: Any) -> int:
+        """Call command. Open process with ``subprocess.Popen``.
 
-        :param exe:                 Subprocess executable.
+        Pipe stream depending on the keyword arguments provided to
+        instance constructor or overridden through this method. If a
+        file path is provided it will take precedence over the other
+        options, then capture and then finally devnull. Log errors to
+        file regardless. Wait for process to finish and return it's
+        exit-code.
+
         :param args:                Positional str arguments.
         :key file:                  File path to write stream to if not
                                     None.
@@ -128,16 +124,28 @@ class Subprocess:
         :raises CalledProcessError: If error occurs in subprocess.
         :return:                    Exit status.
         """
-        returncode = self.open_process(exe, *args, **kwargs)
+        args = tuple([str(i) for i in args])
+        logging.getLogger(self._exe).debug("called with %s", args)
+        returncode = self._open_process(*args, **kwargs)
         if returncode and not kwargs.get("suppress", False):
-            logging.getLogger(self.exe).error(
+            logging.getLogger(self._exe).error(
                 "returned non-zero exit status %s", returncode
             )
             raise CalledProcessError(
-                returncode, f"{self.exe} {' '.join(args)}"
+                returncode, f"{self._exe} {' '.join(args)}"
             )
 
         return returncode
+
+    def stdout(self) -> List[str]:
+        """Consume accrued stdout by returning the lines of output.
+
+        Assign new container to ``_stdout``.
+
+        :return: List of captured stdout.
+        """
+        captured, self._stdout = self._stdout, []
+        return captured
 
 
 class Git(Subprocess):
@@ -173,9 +181,14 @@ class Git(Subprocess):
     )
 
     def __init__(
-        self, repo: Union[str, os.PathLike], loglevel="debug"
+        self,
+        repo: Union[str, os.PathLike] = os.getcwd(),
+        loglevel: str = "debug",
+        **kwargs: Any,
     ) -> None:
-        super().__init__("git", commands=self.commands, loglevel=loglevel)
+        super().__init__(
+            "git", commands=self.commands, loglevel=loglevel, **kwargs
+        )
         self.enter_path = repo
         self.saved_path = os.getcwd()
         self.already_existed = os.path.isdir(repo)
@@ -343,12 +356,12 @@ def get_branch() -> Optional[str]:
 
     :return: Name of branch or None if on a branch with no parent.
     """
-    with Git(os.environ["PROJECT_DIR"], loglevel="debug") as git:
-        git.symbolic_ref(  # type: ignore
-            "--short", "HEAD", capture=True, suppress=True
-        )
-        if git.stdout is not None:
-            return git.stdout.strip()
+    with Git(os.environ["PROJECT_DIR"], loglevel="debug", capture=True) as git:
+        git.symbolic_ref("--short", "HEAD", suppress=True)  # type: ignore
+
+        stdout = git.stdout()
+        if stdout:
+            return stdout[-1]
 
         return None
 
@@ -394,7 +407,7 @@ def deploy_docs() -> None:
         git.add(".")  # type: ignore
         git.diff_index("--cached", "HEAD", capture=True)  # type: ignore
         stashed = False
-        if git.stdout is not None:
+        if git.stdout():
             git.stash(devnull=True)  # type: ignore
             stashed = True
 
@@ -402,8 +415,9 @@ def deploy_docs() -> None:
         shutil.copy("README.rst", os.path.join("html", "README.rst"))
 
         git.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
-        if git.stdout is not None:
-            git.checkout(git.stdout.strip())  # type: ignore
+        stdout = git.stdout()
+        if stdout:
+            git.checkout(stdout[-1])  # type: ignore
 
         git.checkout("--orphan", "gh-pages")  # type: ignore
         git.config(  # type: ignore
@@ -429,11 +443,13 @@ def deploy_docs() -> None:
         git.ls_remote(  # type: ignore
             "--heads", gh_remote, "gh-pages", capture=True
         )
-        remote_exists = git.stdout
+        result = git.stdout()
+        remote_exists = None if not result else result[-1]
         git.diff(  # type: ignore
             "gh-pages", "origin/gh-pages", suppress=True, capture=True
         )
-        remote_diff = git.stdout
+        result = git.stdout()
+        remote_diff = None if not result else result[-1]
         if remote_exists is not None and remote_diff is None:
             colors.green.print("No difference between local branch and remote")
             print("Pushing skipped")

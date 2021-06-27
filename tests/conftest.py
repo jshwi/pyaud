@@ -277,8 +277,9 @@ def fixture_patch_sp_output(patch_sp_call: Any) -> Any:
         def _call(self: pyaud.utils.Subprocess, *_: Any, **__: Any) -> None:
             """Mock call to to do nothing except send the expected
             stdout to self."""
-            self.stdout = ""
-            self.stdout += _stdout.pop()
+            self._stdout.append(  # pylint: disable=protected-access
+                _stdout.pop()
+            )
 
         patch_sp_call(_call)
 
@@ -326,11 +327,11 @@ def fixture_init_remote() -> None:
 
     :return: Function for using this fixture.
     """
-    with pyaud.utils.Git(os.environ["PYAUD_GH_REMOTE"]) as git:
-        git.init("--bare", ".", devnull=True)  # type: ignore
+    with pyaud.utils.Git(os.environ["PYAUD_GH_REMOTE"], devnull=True) as git:
+        git.init("--bare", ".")  # type: ignore
 
-    with pyaud.utils.Git(os.environ["PROJECT_DIR"]) as git:
-        git.remote("add", "origin", "origin", devnull=True)  # type: ignore
+    with pyaud.utils.Git(os.environ["PROJECT_DIR"], devnull=True) as git:
+        git.remote("add", "origin", "origin")  # type: ignore
 
 
 @pytest.fixture(name="patch_sp_print_called")
@@ -342,9 +343,9 @@ def fixture_patch_sp_print_called(patch_sp_call: Any) -> Any:
     :return:                Function for using this fixture.
     """
 
-    def _patch_sp_print_called() -> Any:
-        def _call(self: pyaud.utils.Subprocess, *args: str, **_: Any) -> None:
-            print(f"{self.exe} {' '.join(str(i) for i in args)}")
+    def _patch_sp_print_called():
+        def _call(self, *args, **_):
+            print(f"{self} {' '.join(args)}")
 
         return patch_sp_call(_call)
 

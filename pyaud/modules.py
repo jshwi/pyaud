@@ -244,7 +244,7 @@ def make_format(**kwargs: bool) -> int:
 
     except CalledProcessError as err:
         black.call(*args, **kwargs)
-        raise PyAuditError(f"{black.exe} {args}") from err
+        raise PyAuditError(f"{black} {args}") from err
 
 
 @check_command
@@ -267,31 +267,18 @@ def make_requirements(**kwargs: bool) -> int:
     :param kwargs:  Pass keyword arguments to ``call``.
     :return:        Exit status.
     """
-    newlines = []
-    contents = []
-
     # get the stdout for both production and development packages
-    p2req = Subprocess("pipfile2req")
-    p2req.call(os.environ["PYAUD_PIPFILE_LOCK"], capture=True, **kwargs)
-
-    prod_stdout = p2req.stdout
-    p2req.call(
-        os.environ["PYAUD_PIPFILE_LOCK"], "--dev", capture=True, **kwargs
-    )
-
-    dev_stdout = p2req.stdout
-    for stdout in prod_stdout, dev_stdout:
-        if stdout:
-            contents.extend(stdout.splitlines())
+    p2req = Subprocess("pipfile2req", capture=True)
+    p2req.call(os.environ["PYAUD_PIPFILE_LOCK"], **kwargs)
+    p2req.call(os.environ["PYAUD_PIPFILE_LOCK"], "--dev", **kwargs)
 
     # write to file and then use sed to remove the additional
     # information following the semi-colon
-    contents.sort()
+    stdout = list(set("\n".join(p2req.stdout()).splitlines()))
+    stdout.sort()
     with open(os.environ["PYAUD_REQUIREMENTS"], "w") as fout:
-        for content in contents:
-            if content not in newlines:
-                newlines.append(content)
-                fout.write(f"{content.split(';')[0]}\n")
+        for content in stdout:
+            fout.write(f"{content.split(';')[0]}\n")
 
     return 0
 
@@ -330,13 +317,9 @@ def make_toc(**kwargs: bool) -> int:
         "   :show-inheritance:",
     ]
     if os.path.isfile(os.environ["PYAUD_DOCS_CONF"]):
-        apidoc = Subprocess("sphinx-apidoc")
+        apidoc = Subprocess("sphinx-apidoc", devnull=True)
         apidoc.call(
-            "-o",
-            os.environ["PYAUD_DOCS"],
-            os.environ["PYAUD_PKG_PATH"],
-            "-f",
-            **kwargs,
+            "-o", os.environ["PYAUD_DOCS"], os.environ["PYAUD_PKG_PATH"], "-f"
         )
         with open(os.environ["PYAUD_TOC"]) as fin:
             contents = fin.read().splitlines()
@@ -404,21 +387,17 @@ def make_whitelist(**kwargs: bool) -> int:
     :param kwargs:  Pass keyword arguments to ``call``.
     :return:        Exit status.
     """
-    lines = []
-    vulture = Subprocess("vulture")
+    vulture = Subprocess("vulture", capture=True)
 
     # append whitelist exceptions for each individual module
     for item in tree.reduce():
-        if os.path.exists(item):  # type: ignore
+        if os.path.exists(item):
             with TempEnvVar(kwargs, suppress=True):
-                vulture.call(item, "--make-whitelist", capture=True, **kwargs)
-
-            if vulture.stdout:
-                lines.extend(vulture.stdout.splitlines())
+                vulture.call(item, "--make-whitelist", **kwargs)
 
     # clear contents of instantiated ``TextIO' object to write a new
     # file and not append
-    stdout = [i for i in "\n".join(lines).splitlines() if i != ""]
+    stdout = [i for i in "\n".join(vulture.stdout()).splitlines() if i != ""]
     stdout.sort()
     with open(os.environ["PYAUD_WHITELIST"], "w") as fout:
         for line in stdout:
@@ -440,20 +419,20 @@ def make_imports(**kwargs: bool) -> int:
     data to user.
     """
     changed = []
-    isort = Subprocess("isort")
-    black = Subprocess("black")
+    isort = Subprocess("isort", capture=True)
+    black = Subprocess("black", loglevel="debug", devnull=True)
     for item in tree:
         if os.path.isfile(item):
             with HashCap(item) as cap:
-                isort.call(item, capture=True, **kwargs)
-                black.call(item, devnull=True, **kwargs)
+                isort.call(item, **kwargs)
+                black.call(item, **kwargs)
 
             if not cap.compare:
                 changed.append(
                     os.path.relpath(item, os.environ["PROJECT_DIR"])
                 )
-                if isort.stdout is not None:
-                    print(isort.stdout.strip())
+                for stdout in isort.stdout():
+                    print(stdout)
 
     if changed:
         raise PyAuditError(f"{make_imports.__name__} {tuple(changed)}")
@@ -493,7 +472,7 @@ def make_format_str(**kwargs: bool) -> int:
 
     except CalledProcessError as err:
         flynt.call(*args, **kwargs)
-        raise PyAuditError(f"{flynt.exe} {args}") from err
+        raise PyAuditError(f"{flynt} {args}") from err
 
 
 @check_command
@@ -510,7 +489,7 @@ def make_format_docs(**kwargs: bool) -> int:
     except CalledProcessError as err:
         args = ("--in-place", *args)
         docformatter.call(*args, **kwargs)
-        raise PyAuditError(f"{docformatter.exe} {args}") from err
+        raise PyAuditError(f"{docformatter} {args}") from err
 
 
 def make_generate_rcfile(**__: bool) -> None:
