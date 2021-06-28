@@ -19,10 +19,10 @@ from .environ import (
     TempEnvVar,
     find_package,
 )
+from .exceptions import PyAuditError
 from .plugins import register
 from .utils import (
     LineSwitch,
-    PyAuditError,
     Subprocess,
     check_command,
     colors,

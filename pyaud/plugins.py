@@ -6,8 +6,8 @@ Main module used for public API.
 """
 from typing import Any, Callable
 
+from .exceptions import NameConflictError
 from .objects import MutableMapping
-from .utils import NameConflictError
 
 
 class _Plugins(MutableMapping):  # pylint: disable=too-many-ancestors

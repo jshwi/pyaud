@@ -379,7 +379,7 @@ def test_make_format() -> None:
         fout.write(files.UNFORMATTED)
 
     pyaud.utils.tree.append(file)
-    with pytest.raises(pyaud.utils.PyAuditError):
+    with pytest.raises(pyaud.exceptions.PyAuditError):
         pyaud.modules.make_format()
 
 
@@ -993,7 +993,7 @@ def test_py_audit_error(
 
     pyaud.utils.git.add(".")  # type: ignore
     pyaud.utils.tree.populate()
-    with pytest.raises(pyaud.utils.PyAuditError) as err:
+    with pytest.raises(pyaud.exceptions.PyAuditError) as err:
         main(module)
 
     stderr = str(err.value)
@@ -1266,7 +1266,7 @@ def test_make_format_docs_fail() -> None:
         fout.write(files.DOCFORMATTER_EXAMPLE)
 
     pyaud.utils.tree.append(path)
-    with pytest.raises(pyaud.utils.PyAuditError):
+    with pytest.raises(pyaud.exceptions.PyAuditError):
         pyaud.modules.make_format_docs()
 
 
@@ -1659,7 +1659,7 @@ def test_isort_and_black() -> None:
         fout.write(files.BEFORE_ISORT)
 
     pyaud.utils.tree.append(path)
-    with pytest.raises(pyaud.utils.PyAuditError):
+    with pytest.raises(pyaud.exceptions.PyAuditError):
         pyaud.modules.make_imports()
 
 
@@ -1725,7 +1725,7 @@ def test_make_unused_fail() -> None:
         fout.write(files.UNFORMATTED)  # also an unused function
 
     pyaud.utils.tree.append(Path.cwd() / FILES)
-    with pytest.raises(pyaud.utils.PyAuditError) as err:
+    with pytest.raises(pyaud.exceptions.PyAuditError) as err:
         pyaud.modules.make_unused()
 
     assert str(
@@ -1807,7 +1807,7 @@ def test_register_plugin_name_conflict_error() -> None:
     def plugin_one():  # pylint: disable=unused-variable
         """Nothing to do."""
 
-    with pytest.raises(pyaud.utils.NameConflictError) as err:
+    with pytest.raises(pyaud.exceptions.NameConflictError) as err:
 
         @pyaud.plugins.register(name=unique)
         def plugin_two():  # pylint: disable=unused-variable

@@ -426,17 +426,6 @@ def deploy_docs() -> None:
     git.branch("-D", "gh-pages", devnull=True)  # type: ignore
 
 
-class PyAuditError(Exception):
-    """Raise for audit failures that aren't failed subprocesses.
-
-    :param cmd: Optional str. If no argument provided the value will be
-                None.
-    """
-
-    def __init__(self, cmd: Optional[str]) -> None:
-        super().__init__(f"{cmd} did not pass all checks")
-
-
 class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
     """Index all Python files in project.
 
@@ -477,17 +466,6 @@ class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
                 project_dir / p.relative_to(project_dir).parts[0] for p in self
             )
         )
-
-
-class NameConflictError(Exception):
-    """Raise if adding plugin who's name is not unique.
-
-    :param plugin:  Plugin which could not be registered.
-    :param name:    Name which clashes with another.
-    """
-
-    def __init__(self, plugin: str, name: str) -> None:
-        super().__init__(f"plugin name conflict at {plugin}: '{name}'")
 
 
 tree = _Tree(*toml["indexing"]["exclude"])
