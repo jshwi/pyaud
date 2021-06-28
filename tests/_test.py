@@ -101,7 +101,7 @@ def test_make_audit_error(monkeypatch: Any, nocolorcapsys: Any) -> None:
     )
     pyaud.utils.tree.append(Path.cwd() / FILES)
     with pytest.raises(CalledProcessError):
-        pyaud.audit()
+        pyaud.main.audit()
 
     assert nocolorcapsys.stdout().strip() == "pyaud format"
 
@@ -201,7 +201,7 @@ def test_suppress(
     """
     make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
     pyaud.utils.tree.append(Path.cwd() / FILES)
-    mocked_modules = copy.deepcopy(pyaud.MODULES)
+    mocked_modules = copy.deepcopy(pyaud.main.MODULES)
     audit_modules = pyaud.config.DEFAULT_CONFIG["audit"]["modules"]
     for audit_module in audit_modules:
         mocked_modules[audit_module] = pyaud.utils.check_command(
@@ -209,7 +209,7 @@ def test_suppress(
         )
 
     monkeypatch.setattr(PYAUD_MODULES, mocked_modules)
-    pyaud.audit(suppress=True)
+    pyaud.main.audit(suppress=True)
     assert len(
         [
             i
@@ -265,7 +265,7 @@ def test_audit_modules(
     :param first:           Expected first function executed.
     :param last:            Expected last function executed.
     """
-    mocked_modules = copy.deepcopy(pyaud.MODULES)
+    mocked_modules = copy.deepcopy(pyaud.main.MODULES)
     modules = list(pyaud.config.DEFAULT_CONFIG["audit"]["modules"])
     modules.extend(add)
     for module in modules:
@@ -841,7 +841,7 @@ def test_parser(
         PYAUD_MODULES,
         {
             k: track_called(call_status(v.__name__, 0))
-            for k, v in pyaud.MODULES.items()
+            for k, v in pyaud.main.MODULES.items()
         },
     )
     for call in calls:
@@ -1230,9 +1230,9 @@ def test_make_format_success(
 @pytest.mark.parametrize(
     "arg,index,expected",
     [
-        ("", 0, pyaud.MODULES.keys()),
+        ("", 0, pyaud.main.MODULES.keys()),
         ("audit", 0, ("audit -- Read from [audit] key in config",)),
-        ("all", 0, pyaud.MODULES.keys()),
+        ("all", 0, pyaud.main.MODULES.keys()),
         ("not-a-module", 1, ("No such module: not-a-module",)),
     ],
     ids=["no-pos", "module", "all-modules", "invalid-pos"],
@@ -1788,18 +1788,18 @@ def test_custom_modules(
                             Optionally returns non-zero exit code (0 by
                             default).
     """
-    mocked_modules = copy.deepcopy(pyaud.MODULES)
+    mocked_modules = copy.deepcopy(pyaud.main.MODULES)
     modules = list(pyaud.config.DEFAULT_CONFIG["audit"]["modules"])
     random.shuffle(modules)
     pyaud.config.toml["audit"]["modules"] = modules
     for module in modules:
         mocked_modules[module] = call_status(f"make_{module}")
 
-    monkeypatch.setattr("pyaud.MODULES", mocked_modules)
+    monkeypatch.setattr("pyaud.main.MODULES", mocked_modules)
 
     # make ``load_config`` do nothing so it does not override the toml
     # config above
-    monkeypatch.setattr("pyaud.config.load_config", lambda *_: None)
+    monkeypatch.setattr("pyaud.main.load_config", lambda *_: None)
     main("audit")
     out = [i for i in nocolorcapsys.stdout().splitlines() if i != ""]
     assert out == [f"pyaud {i}" for i in modules]
