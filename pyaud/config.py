@@ -8,16 +8,16 @@ import copy
 import logging.config as logging_config
 import os
 import shutil
-from collections.abc import MutableMapping
 from configparser import ConfigParser as _ConfigParser
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, TextIO, Union
+from typing import Any, Dict, List, MutableMapping, Optional, TextIO, Union
 
 import appdirs
 import toml.decoder as toml_decoder
 import toml.encoder as toml_encoder
 
 from .environ import NAME
+from .objects import MutableMapping as _MutableMapping
 
 RCFILE = f".{NAME}rc"
 TOMLFILE = f"{NAME}.toml"
@@ -98,52 +98,6 @@ class ConfigParser(_ConfigParser):  # pylint: disable=too-many-ancestors
             )
 
         return retval
-
-
-class _MutableMapping(MutableMapping):  # pylint: disable=too-many-ancestors
-    """Inherit to replicate subclassing of ``dict`` objects."""
-
-    def __init__(self) -> None:
-        self._dict: Dict[str, Any] = dict()
-
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {self._dict}>"
-
-    def __len__(self) -> int:
-        return self._dict.__len__()
-
-    def __delitem__(self, key: Any) -> None:
-        self._dict.__delitem__(key)
-
-    def __setitem__(self, index: Any, value: Any) -> None:
-        self._dict = self._nested_update(self._dict, {index: value})
-
-    def __getitem__(self, index: Any) -> Any:
-        return self._dict.__getitem__(index)
-
-    def __iter__(self) -> Iterator:
-        return iter(self._dict)
-
-    def _nested_update(
-        self, obj: Dict[str, Any], update: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        # add to __setitem__ to ensure that no entire dict keys with
-        # missing nested keys overwrite all other values
-        # run recursively to cover all nested objects if value is a dict
-        # if value is a str pass through ``Path.expanduser()`` to
-        # translate paths prefixed with ``~/`` for ``/home/<user>``
-        # if value is all else assign it to obj key
-        # return obj for recursive assigning of nested dicts
-        for key, value in update.items():
-            if isinstance(value, dict):
-                value = self._nested_update(obj.get(key, {}), value)
-
-            elif isinstance(value, str):
-                value = str(Path(value).expanduser())
-
-            obj[key] = value
-
-        return obj
 
 
 class _TomlArrayEncoder(toml_encoder.TomlEncoder):

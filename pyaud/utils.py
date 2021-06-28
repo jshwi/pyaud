@@ -11,7 +11,6 @@ import logging
 import os
 import shutil
 import sys
-from collections.abc import MutableSequence
 from pathlib import Path
 from subprocess import PIPE, CalledProcessError, Popen
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
@@ -21,6 +20,7 @@ from object_colors import Color
 
 from .config import toml
 from .environ import DOCS, README, TempEnvVar
+from .objects import MutableSequence as _MutableSequence
 
 colors = Color()
 colors.populate_colors()
@@ -435,36 +435,6 @@ class PyAuditError(Exception):
 
     def __init__(self, cmd: Optional[str]) -> None:
         super().__init__(f"{cmd} did not pass all checks")
-
-
-class _MutableSequence(MutableSequence):  # pylint: disable=too-many-ancestors
-    """Inherit to replicate subclassing of ``list`` objects."""
-
-    def __init__(self) -> None:
-        self._list: List[Any] = list()
-
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {self._list}>"
-
-    def __len__(self) -> int:
-        return self._list.__len__()
-
-    def __delitem__(self, key: Any) -> None:
-        self._list.__delitem__(key)
-
-    def __setitem__(self, index: Any, value: Any) -> None:
-        self._list.__setitem__(index, value)
-
-    def __getitem__(self, index: Any) -> Any:
-        return self._list.__getitem__(index)
-
-    def insert(self, index: int, value: str) -> None:
-        """Insert values into ``_list`` object.
-
-        :param index:   ``list`` index to insert ``value``.
-        :param value:   Value to insert into list.
-        """
-        self._list.insert(index, value)
 
 
 class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
