@@ -1781,10 +1781,6 @@ make_files  # unused function (pyaud/src/modules.py:205)
         return "{}\n".format("\n".join(seq))
 
 
-UNFORMATTED = """
-def reformat_this() -> None:
-   print('black will make sure this is double quoted')
-"""
 FORMAT_STR_FUNCS_PRE = """
 def _print_module_docs():
     for key, value in self._modules.items():

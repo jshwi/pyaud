@@ -48,9 +48,6 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     monkeypatch.setattr(
         "pyaud.config.CONFIGDIR", tmp_path / ".config" / pyaud.__name__
     )
-    logfile = Path(
-        tmp_path / ".cache" / pyaud.__name__ / "log" / f"{pyaud.__name__}.log"
-    )
 
     # load default key-value pairs
     # ============================
@@ -68,7 +65,6 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     # ~/.cache/pyaud/log/pyaud.log needs to exist before running
     # ``logging.config.dictConfig(config: Dict[str, Any])``
     Path.cwd().mkdir()
-    logfile.parent.mkdir(parents=True)
 
     # initialize repository
     # =====================
@@ -79,7 +75,6 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     # override log file path to point to test repository
     # loglevel to DEBUG
     default_config: Dict[str, Any] = copy.deepcopy(pyaud.config.DEFAULT_CONFIG)
-    default_config["logging"]["handlers"]["default"]["filename"] = str(logfile)
     default_config["logging"]["root"]["level"] = DEBUG
     monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
 
@@ -236,16 +231,6 @@ def fixture_make_tree() -> Any:
                 fullpath.touch()
 
     return _make_tree
-
-
-@pytest.fixture(name="make_test_file")
-def fixture_make_test_file() -> None:
-    """Create a test file with 20."""
-    file = Path.cwd() / pyaud.environ.TESTS / "_test.py"
-    file.parent.mkdir()
-    with open(file, "w") as fout:
-        for num in range(20):
-            fout.write(f"def test_{num}():\n    pass\n")
 
 
 @pytest.fixture(name="init_remote")

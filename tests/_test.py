@@ -51,47 +51,6 @@ def test_no_files_found(nocolorcapsys: Any) -> None:
     assert nocolorcapsys.stdout().strip() == "No files found"
 
 
-@pytest.mark.usefixtures("make_test_file")
-@pytest.mark.parametrize(
-    "module,expected",
-    [
-        ("make_unused", "Success: no issues found in 1 source files"),
-        ("make_tests", "Success: no issues found in 1 source files"),
-    ],
-    ids=["files", "tests"],
-)
-def test_success_output(
-    nocolorcapsys: Any,
-    monkeypatch: Any,
-    make_tree: Any,
-    call_status: Any,
-    module: str,
-    expected: str,
-) -> None:
-    """Test the output returned from ``check_command`` decorator.
-
-    Test decorator matches the function being used. Changed the
-    parametrized ``func`` __name__ to match the mocked module.
-
-    :param nocolorcapsys:       Capture system output while stripping
-                                ANSI color codes.
-    :param monkeypatch:         Mock patch environment and attributes.
-    :param make_tree:           Create directory tree from dict mapping.
-    :param call_status:         Patch function to return specific
-                                exit-code.
-    :param module:              Function to test.
-    """
-    make_tree(Path.cwd(), {"docs": {CONFPY: None}})
-    pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.tree.populate()
-    monkeypatch.setattr(
-        f"pyaud.modules.{module}",
-        pyaud.utils.check_command(call_status(module)),
-    )
-    getattr(pyaud.modules, module)()
-    assert nocolorcapsys.stdout().strip() == expected
-
-
 @pytest.mark.parametrize(
     "contents,expected",
     [
