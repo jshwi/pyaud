@@ -9,43 +9,40 @@ from pathlib import Path
 from subprocess import CalledProcessError
 
 import pyaud
-from pyaud.config import generate_rcfile, toml
-from pyaud.environ import NAME, PIPFILE_LOCK, TempEnvVar, find_package
-from pyaud.exceptions import PyAuditError
-from pyaud.plugins import check_command, plugins, register, write_command
-from pyaud.utils import Subprocess, colors, get_branch, git, tree
 
 from .utils import DOCS, README, LineSwitch, deploy_docs
 
 
-@register(name="clean")
+@pyaud.plugins.register(name="clean")
 def make_clean(**kwargs: bool) -> None:
     """Remove all unversioned package files recursively.
 
-    :param kwargs:  Additional keyword arguments for ``git clean``.
+    :param kwargs:  Additional keyword arguments for ``pyaud.utils.git clean``.
     """
-    exclude = toml["clean"]["exclude"]
-    return git.clean(  # type: ignore
+    exclude = pyaud.config.toml["clean"]["exclude"]
+    return pyaud.utils.git.clean(  # type: ignore
         "-fdx", *[f"--exclude={e}" for e in exclude], **kwargs
     )
 
 
-@register(name="coverage")
+@pyaud.plugins.register(name="coverage")
 def make_coverage(**kwargs: bool) -> None:
     """Run package unit-tests with ``pytest`` and ``coverage``.
 
     :param kwargs:  Pass keyword arguments to ``pytest`` and ``call``.
     """
-    coverage = Subprocess("coverage")
-    returncode = make_tests(*[f"--cov={e}" for e in tree.reduce()], **kwargs)
+    coverage = pyaud.utils.Subprocess("coverage")
+    returncode = make_tests(
+        *[f"--cov={e}" for e in pyaud.utils.tree.reduce()], **kwargs
+    )
     if not returncode:
-        with TempEnvVar(kwargs, suppress=True):
+        with pyaud.environ.TempEnvVar(kwargs, suppress=True):
             coverage.call("xml", **kwargs)
     else:
         print("No coverage to report")
 
 
-@register(name="deploy")
+@pyaud.plugins.register(name="deploy")
 def make_deploy(**kwargs: bool) -> None:
     """Deploy package documentation and test coverage.
 
@@ -54,17 +51,17 @@ def make_deploy(**kwargs: bool) -> None:
 
     deploy_modules = [make_deploy_cov, make_deploy_docs]
     for deploy_module in deploy_modules:
-        colors.cyan.bold.print(
+        pyaud.utils.colors.cyan.bold.print(
             "\n{}".format(
-                deploy_module.__name__.replace("make_", f"{NAME} ").replace(
-                    "_", "-"
-                )
+                deploy_module.__name__.replace(
+                    "make_", f"{pyaud.__name__} "
+                ).replace("_", "-")
             )
         )
         deploy_module(**kwargs)
 
 
-@register(name="deploy-cov")
+@pyaud.plugins.register(name="deploy-cov")
 def make_deploy_cov(**kwargs: bool) -> None:
     """Upload coverage data to ``Codecov``.
 
@@ -75,7 +72,7 @@ def make_deploy_cov(**kwargs: bool) -> None:
 
     :param kwargs: Pass keyword arguments to ``call``.
     """
-    codecov = Subprocess("codecov")
+    codecov = pyaud.utils.Subprocess("codecov")
     coverage_xml = Path.cwd() / os.environ["PYAUD_COVERAGE_XML"]
     if coverage_xml.is_file():
         if os.environ["CODECOV_TOKEN"] != "":
@@ -86,7 +83,7 @@ def make_deploy_cov(**kwargs: bool) -> None:
         print("No coverage report found")
 
 
-@register(name="deploy-docs")
+@pyaud.plugins.register(name="deploy-docs")
 def make_deploy_docs(**kwargs: bool) -> None:
     """Deploy package documentation to ``gh-pages``.
 
@@ -97,7 +94,7 @@ def make_deploy_docs(**kwargs: bool) -> None:
 
     :param kwargs: Pass keyword arguments to ``make_docs``.
     """
-    if get_branch() == "master":
+    if pyaud.utils.get_branch() == "master":
         git_credentials = ["PYAUD_GH_NAME", "PYAUD_GH_EMAIL", "PYAUD_GH_TOKEN"]
         null_vals = [k for k in git_credentials if os.environ[k] == ""]
         if not null_vals:
@@ -113,11 +110,11 @@ def make_deploy_docs(**kwargs: bool) -> None:
             print()
             print("Pushing skipped")
     else:
-        colors.green.print("Documentation not for master")
+        pyaud.utils.colors.green.print("Documentation not for master")
         print("Pushing skipped")
 
 
-@register(name="docs")
+@pyaud.plugins.register(name="docs")
 def make_docs(**kwargs: bool) -> None:
     """Compile package documentation with ``Sphinx``.
 
@@ -136,17 +133,17 @@ def make_docs(**kwargs: bool) -> None:
     if build_dir.is_dir():
         shutil.rmtree(build_dir)
 
-    sphinx_build = Subprocess("sphinx-build")
+    sphinx_build = pyaud.utils.Subprocess("sphinx-build")
     if Path(Path.cwd() / DOCS).is_dir() and Path(Path.cwd(), README).is_file():
         with LineSwitch(Path.cwd() / README, {0: readme_rst, 1: underline}):
             command = ["-M", "html", Path.cwd() / DOCS, build_dir, "-W"]
             sphinx_build.call(*command, **kwargs)
-            colors.green.bold.print("Build successful")
+            pyaud.utils.colors.green.bold.print("Build successful")
     else:
         print("No docs found")
 
 
-@register(name="files")
+@pyaud.plugins.register(name="files")
 def make_files(**kwargs: bool) -> None:
     """Audit project data files.
 
@@ -161,8 +158,8 @@ def make_files(**kwargs: bool) -> None:
         func(**kwargs)
 
 
-@register(name="format")
-@check_command
+@pyaud.plugins.register(name="format")
+@pyaud.plugins.check_command
 def make_format(**kwargs: bool) -> int:
     """Audit code against ``Black``.
 
@@ -170,8 +167,8 @@ def make_format(**kwargs: bool) -> int:
     :key fix:       Do not raise error - fix problem instead.
     :return:        Exit status.
     """
-    black = Subprocess("black", loglevel="debug")
-    args = tree.reduce()
+    black = pyaud.utils.Subprocess("black", loglevel="debug")
+    args = pyaud.utils.tree.reduce()
     try:
         return black.call("--check", *args, **kwargs)
 
@@ -180,25 +177,29 @@ def make_format(**kwargs: bool) -> int:
         if kwargs.get("fix", False):
             return black.call(*args, **kwargs)
 
-        raise PyAuditError(f"{black} {tuple([str(p) for p in args])}") from err
+        raise pyaud.exceptions.PyAuditError(
+            f"{black} {tuple([str(p) for p in args])}"
+        ) from err
 
 
-@register(name="lint")
-@check_command
+@pyaud.plugins.register(name="lint")
+@pyaud.plugins.check_command
 def make_lint(**kwargs: bool) -> int:
     """Lint code with ``pylint``.
 
     :param kwargs:  Pass keyword arguments to ``call``.
     :return:        Exit status.
     """
-    with TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
-        args = tree.reduce()
-        pylint = Subprocess("pylint")
+    with pyaud.environ.TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
+        args = pyaud.utils.tree.reduce()
+        pylint = pyaud.utils.Subprocess("pylint")
         return pylint.call("--output-format=colorized", *args, **kwargs)
 
 
-@register(name="requirements")
-@write_command("PYAUD_REQUIREMENTS", required="PYAUD_PIPFILE_LOCK")
+@pyaud.plugins.register(name="requirements")
+@pyaud.plugins.write_command(
+    "PYAUD_REQUIREMENTS", required="PYAUD_PIPFILE_LOCK"
+)
 def make_requirements(**kwargs: bool) -> None:
     """Audit requirements.txt with Pipfile.lock.
 
@@ -206,11 +207,11 @@ def make_requirements(**kwargs: bool) -> None:
     :key fix:       Do not raise error - fix problem instead.
     """
     # get the stdout for both production and development packages
-    pipfile_lock_path = Path.cwd() / PIPFILE_LOCK
+    pipfile_lock_path = Path.cwd() / "Pipfile.lock"
     requirements_path = Path.cwd() / os.environ["PYAUD_REQUIREMENTS"]
 
     # get the stdout for both production and development packages
-    p2req = Subprocess("pipfile2req", capture=True)
+    p2req = pyaud.utils.Subprocess("pipfile2req", capture=True)
     p2req.call(pipfile_lock_path, **kwargs)
     p2req.call(pipfile_lock_path, "--dev", **kwargs)
 
@@ -223,7 +224,7 @@ def make_requirements(**kwargs: bool) -> None:
             fout.write(f"{content.split(';')[0]}\n")
 
 
-@register(name="tests")
+@pyaud.plugins.register(name="tests")
 def make_tests(*args: str, **kwargs: bool) -> int:
     """Run the package unit-tests with ``pytest``.
 
@@ -233,10 +234,10 @@ def make_tests(*args: str, **kwargs: bool) -> int:
     """
     tests = Path.cwd() / "tests"
     patterns = ("test_*.py", "*_test.py")
-    pytest = Subprocess("pytest")
+    pytest = pyaud.utils.Subprocess("pytest")
     rglob = [
         f
-        for f in tree
+        for f in pyaud.utils.tree
         for p in patterns
         if f.match(p) and str(tests) in str(f)
     ]
@@ -247,8 +248,8 @@ def make_tests(*args: str, **kwargs: bool) -> int:
     return 1
 
 
-@register(name="toc")
-@write_command("PYAUD_TOC", required="PYAUD_DOCS")
+@pyaud.plugins.register(name="toc")
+@pyaud.plugins.write_command("PYAUD_TOC", required="PYAUD_DOCS")
 def make_toc(**kwargs: bool) -> None:
     """Audit docs/<NAME>.rst toc-file.
 
@@ -262,11 +263,11 @@ def make_toc(**kwargs: bool) -> None:
         "   :undoc-members:",
         "   :show-inheritance:",
     ]
-    package = find_package()
+    package = pyaud.environ.find_package()
     docspath = Path.cwd() / DOCS
     tocpath = docspath / f"{package}.rst"
     if Path(Path.cwd() / DOCS / "conf.py").is_file():
-        apidoc = Subprocess("sphinx-apidoc")
+        apidoc = pyaud.utils.Subprocess("sphinx-apidoc")
         apidoc.call(
             "-o", docspath, Path.cwd() / package, "-f", devnull=True, **kwargs
         )
@@ -288,8 +289,8 @@ def make_toc(**kwargs: bool) -> None:
                 os.remove(module)
 
 
-@register(name="typecheck")
-@check_command
+@pyaud.plugins.register(name="typecheck")
+@pyaud.plugins.check_command
 def make_typecheck(**kwargs: bool) -> int:
     """Typecheck code with ``mypy``.
 
@@ -299,12 +300,14 @@ def make_typecheck(**kwargs: bool) -> int:
     :param kwargs:  Pass keyword arguments to ``call``.
     :return:        Exit status.
     """
-    mypy = Subprocess("mypy")
-    return mypy.call("--ignore-missing-imports", *tree.reduce(), **kwargs)
+    mypy = pyaud.utils.Subprocess("mypy")
+    return mypy.call(
+        "--ignore-missing-imports", *pyaud.utils.tree.reduce(), **kwargs
+    )
 
 
-@register(name="unused")
-@check_command
+@pyaud.plugins.register(name="unused")
+@pyaud.plugins.check_command
 def make_unused(**kwargs: bool) -> int:
     """Audit unused code with ``vulture``.
 
@@ -315,8 +318,8 @@ def make_unused(**kwargs: bool) -> int:
     :return:        Exit status.
     """
     whitelist = Path.cwd() / os.environ["PYAUD_WHITELIST"]
-    args = tree.reduce()
-    vulture = Subprocess("vulture")
+    args = pyaud.utils.tree.reduce()
+    vulture = pyaud.utils.Subprocess("vulture")
     while True:
         try:
             if whitelist.is_file():
@@ -329,13 +332,13 @@ def make_unused(**kwargs: bool) -> int:
                 make_whitelist(**kwargs)
                 return 0
 
-            raise PyAuditError(
+            raise pyaud.exceptions.PyAuditError(
                 f"{vulture} {tuple([str(i) for i in args])}"
             ) from err
 
 
-@register(name="whitelist")
-@write_command("PYAUD_WHITELIST")
+@pyaud.plugins.register(name="whitelist")
+@pyaud.plugins.write_command("PYAUD_WHITELIST")
 def make_whitelist(**kwargs: bool) -> None:
     """Check whitelist.py file with ``vulture``.
 
@@ -346,12 +349,12 @@ def make_whitelist(**kwargs: bool) -> None:
     :key fix:       Do not raise error - fix problem instead.
     :return:        Exit status.
     """
-    vulture = Subprocess("vulture", capture=True)
+    vulture = pyaud.utils.Subprocess("vulture", capture=True)
 
     # append whitelist exceptions for each individual module
-    for item in tree.reduce():
+    for item in pyaud.utils.tree.reduce():
         if item.exists():
-            with TempEnvVar(kwargs, suppress=True):
+            with pyaud.utils.TempEnvVar(kwargs, suppress=True):
                 vulture.call(item, "--make-whitelist", **kwargs)
 
     # clear contents of instantiated ``TextIO' object to write a new
@@ -363,8 +366,8 @@ def make_whitelist(**kwargs: bool) -> None:
             fout.write(f"{line.replace(str(Path.cwd()) + os.sep, '')}\n")
 
 
-@register(name="imports")
-@check_command
+@pyaud.plugins.register(name="imports")
+@pyaud.plugins.check_command
 def make_imports(**kwargs: bool) -> int:
     """Audit imports with ``isort``.
 
@@ -385,9 +388,9 @@ def make_imports(**kwargs: bool) -> int:
     :key fix:       Do not raise error - fix problem instead.
     :return:        Exit status.
     """
-    isort = Subprocess("isort", devnull=True)
-    black = Subprocess("black", loglevel="debug", devnull=True)
-    for item in tree:
+    isort = pyaud.utils.Subprocess("isort", devnull=True)
+    black = pyaud.utils.Subprocess("black", loglevel="debug", devnull=True)
+    for item in pyaud.utils.tree:
         if item.is_file():
 
             # collect original file's contents
@@ -419,34 +422,34 @@ def make_imports(**kwargs: bool) -> int:
                         fout.write(result)
 
                 else:
-                    raise PyAuditError(
+                    raise pyaud.exceptions.PyAuditError(
                         "{} {}".format(
                             make_imports.__name__,
-                            tuple([str(p) for p in tree.reduce()]),
+                            tuple([str(p) for p in pyaud.utils.tree.reduce()]),
                         )
                     )
 
     return 0
 
 
-@register(name="readme")
+@pyaud.plugins.register(name="readme")
 def make_readme(**kwargs: bool) -> None:
     """Parse, test, and assert RST code-blocks.
 
     :key suppress:  Suppress error and continue running even with a
                     non-zero exit status.
-    :return:        Subprocess exit status.
+    :return:        pyaud.utils.Subprocess exit status.
     """
-    with TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
-        readmtester = Subprocess("readmetester")
+    with pyaud.environ.TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
+        readmtester = pyaud.utils.Subprocess("readmetester")
         if Path(Path.cwd() / README).is_file():
             readmtester.call(Path.cwd() / README, **kwargs)
         else:
             print("No README.rst found in project root")
 
 
-@register(name="format-str")
-@check_command
+@pyaud.plugins.register(name="format-str")
+@pyaud.plugins.check_command
 def make_format_str(**kwargs: bool) -> int:
     """Format f-strings with ``flynt``.
 
@@ -454,8 +457,13 @@ def make_format_str(**kwargs: bool) -> int:
     :key fix:       Do not raise error - fix problem instead.
     :return:        Exit status.
     """
-    flynt = Subprocess("flynt")
-    args = ("--line-length", "72", "--transform-concats", *tree.reduce())
+    flynt = pyaud.utils.Subprocess("flynt")
+    args = (
+        "--line-length",
+        "72",
+        "--transform-concats",
+        *pyaud.utils.tree.reduce(),
+    )
     try:
         return flynt.call(
             "--dry-run", "--fail-on-change", *args, devnull=True, **kwargs
@@ -465,11 +473,13 @@ def make_format_str(**kwargs: bool) -> int:
         if kwargs.get("fix", False):
             return flynt.call(*args, **kwargs)
 
-        raise PyAuditError(f"{flynt} {tuple([str(p) for p in args])}") from err
+        raise pyaud.exceptions.PyAuditError(
+            f"{flynt} {tuple([str(p) for p in args])}"
+        ) from err
 
 
-@register(name="format-docs")
-@check_command
+@pyaud.plugins.register(name="format-docs")
+@pyaud.plugins.check_command
 def make_format_docs(**kwargs: bool) -> int:
     """Format docstrings with ``docformatter``.
 
@@ -477,8 +487,13 @@ def make_format_docs(**kwargs: bool) -> int:
     :key fix:       Do not raise error - fix problem instead.
     :return:        Exit status.
     """
-    docformatter = Subprocess("docformatter")
-    args = ("--recursive", "--wrap-summaries", "72", *tree.reduce())
+    docformatter = pyaud.utils.Subprocess("docformatter")
+    args = (
+        "--recursive",
+        "--wrap-summaries",
+        "72",
+        *pyaud.utils.tree.reduce(),
+    )
     try:
         return docformatter.call("--check", *args, **kwargs)
 
@@ -487,21 +502,21 @@ def make_format_docs(**kwargs: bool) -> int:
         if kwargs.get("fix", False):
             return docformatter.call(*args, **kwargs)
 
-        raise PyAuditError(
+        raise pyaud.exceptions.PyAuditError(
             f"{docformatter} {tuple([str(p) for p in args])}"
         ) from err
 
 
-@register(name="generate-rcfile")
+@pyaud.plugins.register(name="generate-rcfile")
 def make_generate_rcfile(**__: bool) -> None:
     """Print rcfile to stdout.
 
     Print rcfile to stdout so it may be piped to chosen filepath.
     """
-    generate_rcfile()
+    pyaud.config.generate_rcfile()
 
 
-@register(name="audit")
+@pyaud.plugins.register(name="audit")
 def audit(**kwargs: bool) -> None:
     """Read from [audit] key in config.
 
@@ -514,7 +529,7 @@ def audit(**kwargs: bool) -> None:
                     audit.
     :return:        Exit status.
     """
-    funcs = toml["audit"]["modules"]
+    funcs = pyaud.config.toml["audit"]["modules"]
     if kwargs.get("clean", False):
         funcs.insert(0, "clean")
 
@@ -522,6 +537,6 @@ def audit(**kwargs: bool) -> None:
         funcs.append("deploy")
 
     for func in funcs:
-        if func in plugins:
-            colors.cyan.bold.print(f"\n{pyaud.__name__} {func}")
-            plugins[func](**kwargs)
+        if func in pyaud.plugins.plugins:
+            pyaud.utils.colors.cyan.bold.print(f"\n{pyaud.__name__} {func}")
+            pyaud.plugins.plugins[func](**kwargs)

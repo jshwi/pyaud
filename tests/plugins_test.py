@@ -21,9 +21,9 @@ from . import (
     INIT,
     INITIAL_COMMIT,
     NO_ISSUES,
-    PLUGINS_MODULES_PLUGINS,
     PUSHING_SKIPPED,
     PYAUD_MODULES,
+    PYAUD_PLUGINS_PLUGINS,
     README,
     REPO,
     SP_OPEN_PROC,
@@ -425,7 +425,7 @@ def test_audit_modules(
     for module in modules:
         mocked_modules[module] = call_status(module)
 
-    monkeypatch.setattr(PLUGINS_MODULES_PLUGINS, mocked_modules)
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_modules)
     main("audit", *args)
     output = [i for i in nocolorcapsys.stdout().splitlines() if i != ""]
     assert all([f"pyaud {i}" in output for i in modules])
@@ -801,7 +801,7 @@ def test_deploy_not_master(
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    monkeypatch.setattr("plugins.modules.get_branch", lambda: "not_master")
+    monkeypatch.setattr("pyaud.utils.get_branch", lambda: "not_master")
     main("deploy-docs")
     out = [i.strip() for i in nocolorcapsys.stdout().splitlines()]
     assert all(
@@ -1221,7 +1221,7 @@ def test_custom_modules(
     for module in modules:
         mocked_modules[module] = call_status(module)
 
-    monkeypatch.setattr(PLUGINS_MODULES_PLUGINS, mocked_modules)
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_modules)
 
     # make ``load_config`` do nothing so it does not override the toml
     # config above

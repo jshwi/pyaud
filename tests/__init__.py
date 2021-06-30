@@ -29,7 +29,7 @@ PYAUD_MODULES = "pyaud.main.plugins"
 SP_OPEN_PROC = "pyaud.utils.Subprocess._open_process"
 OS_GETCWD = "os.getcwd"
 README = Path("README.rst")
-PLUGINS_MODULES_PLUGINS = "plugins.modules.plugins"
+PYAUD_PLUGINS_PLUGINS = "pyaud.plugins.plugins"
 
 
 class NoColorCapsys:
