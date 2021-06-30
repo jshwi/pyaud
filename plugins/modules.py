@@ -14,32 +14,37 @@ from .utils import DOCS, README, LineSwitch, deploy_docs
 
 
 @pyaud.plugins.register(name="clean")
-def make_clean(**kwargs: bool) -> None:
-    """Remove all unversioned package files recursively.
+class Clean(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
+    """Remove all unversioned package files recursively."""
 
-    :param kwargs:  Additional keyword arguments for ``pyaud.utils.git clean``.
-    """
-    exclude = pyaud.config.toml["clean"]["exclude"]
-    return pyaud.utils.git.clean(  # type: ignore
-        "-fdx", *[f"--exclude={e}" for e in exclude], **kwargs
-    )
+    def action(self, *args: Any, **kwargs: bool) -> int:
+        exclude = pyaud.config.toml["clean"]["exclude"]
+        return pyaud.utils.git.clean(  # type: ignore
+            "-fdx", *[f"--exclude={e}" for e in exclude], **kwargs
+        )
 
 
 @pyaud.plugins.register(name="coverage")
-def make_coverage(**kwargs: bool) -> None:
-    """Run package unit-tests with ``pytest`` and ``coverage``.
+class Coverage(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
+    """Run package unit-tests with ``pytest`` and ``coverage``."""
 
-    :param kwargs:  Pass keyword arguments to ``pytest`` and ``call``.
-    """
-    coverage = pyaud.utils.Subprocess("coverage")
-    returncode = make_tests(
-        *[f"--cov={e}" for e in pyaud.utils.files.reduce()], **kwargs
-    )
-    if not returncode:
-        with pyaud.environ.TempEnvVar(kwargs, suppress=True):
-            coverage.call("xml", **kwargs)
-    else:
-        print("No coverage to report")
+    coverage = "coverage"
+
+    @property
+    def exe(self) -> List[str]:
+        return [self.coverage]
+
+    def action(self, *args: Any, **kwargs: bool) -> Any:
+        returncode = pyaud.plugins.plugins["tests"](
+            *[f"--cov={e}" for e in pyaud.utils.files.reduce()],
+            *args,
+            **kwargs,
+        )
+        if not returncode:
+            with pyaud.utils.TempEnvVar(kwargs, suppress=True):
+                self.subprocess[self.coverage].call("xml", *args, **kwargs)
+        else:
+            print("No coverage to report")
 
 
 @pyaud.plugins.register(name="deploy")
@@ -56,85 +61,110 @@ def make_deploy(*args: Any, **kwargs: bool) -> None:
 
 
 @pyaud.plugins.register(name="deploy-cov")
-def make_deploy_cov(**kwargs: bool) -> None:
+class DeployCov(  # pylint: disable=too-few-public-methods
+    pyaud.plugins.Action
+):
     """Upload coverage data to ``Codecov``.
 
     If no file exists otherwise announce that no file has been created
     yet. If no ``CODECOV_TOKEN`` environment variable has been exported
     or defined in ``.env`` announce that no authorization token has been
     created yet.
-
-    :param kwargs: Pass keyword arguments to ``call``.
     """
-    codecov = pyaud.utils.Subprocess("codecov")
-    coverage_xml = Path.cwd() / os.environ["PYAUD_COVERAGE_XML"]
-    if coverage_xml.is_file():
-        if os.environ["CODECOV_TOKEN"] != "":
-            codecov.call("--file", Path.cwd() / coverage_xml, **kwargs)
+
+    codecov = "codecov"
+
+    @property
+    def exe(self) -> List[str]:
+        return [self.codecov]
+
+    def action(self, *args: Any, **kwargs: bool) -> Any:
+        coverage_xml = Path.cwd() / os.environ["PYAUD_COVERAGE_XML"]
+        if coverage_xml.is_file():
+            if os.environ["CODECOV_TOKEN"] != "":
+                self.subprocess[self.codecov].call(
+                    "--file", Path.cwd() / coverage_xml, **kwargs
+                )
+            else:
+                print("CODECOV_TOKEN not set")
         else:
-            print("CODECOV_TOKEN not set")
-    else:
-        print("No coverage report found")
+            print("No coverage report found")
 
 
 @pyaud.plugins.register(name="deploy-docs")
-def make_deploy_docs(**kwargs: bool) -> None:
+class DeployDocs(
+    pyaud.plugins.Action
+):  # pylint: disable=too-few-public-methods
     """Deploy package documentation to ``gh-pages``.
 
     Check that the branch is being pushed as master (or other branch
     for tests). If the correct branch is the one in use deploy.
     ``gh-pages`` to the orphaned branch - otherwise do nothing and
     announce.
-
-    :param kwargs: Pass keyword arguments to ``make_docs``.
     """
-    if pyaud.utils.get_branch() == "master":
-        git_credentials = ["PYAUD_GH_NAME", "PYAUD_GH_EMAIL", "PYAUD_GH_TOKEN"]
-        null_vals = [k for k in git_credentials if os.environ[k] == ""]
-        if not null_vals:
-            if not Path(Path.cwd() / os.environ["BUILDDIR"] / "html").is_dir():
-                make_docs(**kwargs)
 
-            deploy_docs()
+    def action(self, *args: Any, **kwargs: bool) -> Any:
+        if pyaud.utils.get_branch() == "master":
+            git_credentials = [
+                "PYAUD_GH_NAME",
+                "PYAUD_GH_EMAIL",
+                "PYAUD_GH_TOKEN",
+            ]
+            null_vals = [k for k in git_credentials if os.environ[k] == ""]
+            if not null_vals:
+                if not Path(
+                    Path.cwd() / os.environ["BUILDDIR"] / "html"
+                ).is_dir():
+                    pyaud.plugins.plugins["docs"](**kwargs)
+
+                deploy_docs()
+            else:
+                print("The following is not set:")
+                for null_val in null_vals:
+                    print(f"- {null_val}")
+
+                print()
+                print("Pushing skipped")
         else:
-            print("The following is not set:")
-            for null_val in null_vals:
-                print(f"- {null_val}")
-
-            print()
+            pyaud.utils.colors.green.print("Documentation not for master")
             print("Pushing skipped")
-    else:
-        pyaud.utils.colors.green.print("Documentation not for master")
-        print("Pushing skipped")
 
 
 @pyaud.plugins.register(name="docs")
-def make_docs(**kwargs: bool) -> None:
+class Docs(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
     """Compile package documentation with ``Sphinx``.
 
     This is so the hyperlink isn't exactly the same as the package
     documentation. Build the ``Sphinx`` html documentation. Return the
     README's title to what it originally was.
-
-    :param kwargs:  Pass keyword arguments to ``call``.
-    :return:        Exit status.
     """
-    make_toc(**kwargs)
 
-    readme_rst = "README"
-    underline = len(readme_rst) * "="
-    build_dir = Path.cwd() / os.environ["BUILDDIR"]
-    if build_dir.is_dir():
-        shutil.rmtree(build_dir)
+    sphinx_build = "sphinx-build"
 
-    sphinx_build = pyaud.utils.Subprocess("sphinx-build")
-    if Path(Path.cwd() / DOCS).is_dir() and Path(Path.cwd(), README).is_file():
-        with LineSwitch(Path.cwd() / README, {0: readme_rst, 1: underline}):
-            command = ["-M", "html", Path.cwd() / DOCS, build_dir, "-W"]
-            sphinx_build.call(*command, **kwargs)
-            pyaud.utils.colors.green.bold.print("Build successful")
-    else:
-        print("No docs found")
+    @property
+    def exe(self) -> List[str]:
+        return [self.sphinx_build]
+
+    def action(self, *args: Any, **kwargs: bool) -> Any:
+        make_toc(**kwargs)
+        readme_rst = "README"
+        underline = len(readme_rst) * "="
+        build_dir = Path.cwd() / os.environ["BUILDDIR"]
+        if build_dir.is_dir():
+            shutil.rmtree(build_dir)
+
+        if (
+            Path(Path.cwd() / DOCS).is_dir()
+            and Path(Path.cwd(), README).is_file()
+        ):
+            with LineSwitch(
+                Path.cwd() / README, {0: readme_rst, 1: underline}
+            ):
+                command = ["-M", "html", Path.cwd() / DOCS, build_dir, "-W"]
+                self.subprocess[self.sphinx_build].call(*command, **kwargs)
+                pyaud.utils.colors.green.bold.print("Build successful")
+        else:
+            print("No docs found")
 
 
 @pyaud.plugins.register(name="files")
@@ -225,27 +255,29 @@ def make_requirements(**kwargs: bool) -> None:
 
 
 @pyaud.plugins.register(name="tests")
-def make_tests(*args: str, **kwargs: bool) -> int:
-    """Run the package unit-tests with ``pytest``.
+class Tests(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
+    """Run the package unit-tests with ``pytest``."""
 
-    :param args:    Additional positional arguments for ``pytest``.
-    :param kwargs:  Pass keyword arguments to ``call``.
-    :return:        Exit status.
-    """
-    tests = Path.cwd() / "tests"
-    patterns = ("test_*.py", "*_test.py")
-    pytest = pyaud.utils.Subprocess("pytest")
-    rglob = [
-        f
-        for f in pyaud.utils.files
-        for p in patterns
-        if f.match(p) and str(tests) in str(f)
-    ]
-    if rglob:
-        return pytest.call(*args, **kwargs)
+    pytest = "pytest"
 
-    print("No tests found")
-    return 1
+    @property
+    def exe(self) -> List[str]:
+        return [self.pytest]
+
+    def action(self, *args: Any, **kwargs: bool) -> Any:
+        tests = Path.cwd() / "tests"
+        patterns = ("test_*.py", "*_test.py")
+        rglob = [
+            f
+            for f in pyaud.utils.files
+            for p in patterns
+            if f.match(p) and str(tests) in str(f)
+        ]
+        if rglob:
+            return self.subprocess[self.pytest].call(*args, **kwargs)
+
+        print("No tests found")
+        return 1
 
 
 @pyaud.plugins.register(name="toc")
@@ -433,17 +465,24 @@ def make_imports(**kwargs: bool) -> int:
 
 
 @pyaud.plugins.register(name="readme")
-def make_readme(**kwargs: bool) -> None:
-    """Parse, test, and assert RST code-blocks.
+class Readme(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
+    """Parse, test, and assert RST code-blocks."""
 
-    :key suppress:  Suppress error and continue running even with a
-                    non-zero exit status.
-    :return:        pyaud.utils.Subprocess exit status.
-    """
-    with pyaud.environ.TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
-        readmtester = pyaud.utils.Subprocess("readmetester")
+    readmetester = "readmetester"
+
+    @property
+    def env(self) -> Dict[str, str]:
+        return {"PYCHARM_HOSTED": "True"}
+
+    @property
+    def exe(self) -> List[str]:
+        return [self.readmetester]
+
+    def action(self, *args, **kwargs):
         if Path(Path.cwd() / README).is_file():
-            readmtester.call(Path.cwd() / README, **kwargs)
+            self.subprocess[self.readmetester].call(
+                Path.cwd() / README, *args, **kwargs
+            )
         else:
             print("No README.rst found in project root")
 
@@ -505,35 +544,34 @@ class FormatDocs(pyaud.plugins.Fix):
 
 
 @pyaud.plugins.register(name="generate-rcfile")
-def make_generate_rcfile(**__: bool) -> None:
+class GenerateRCFile(
+    pyaud.plugins.Action
+):  # pylint: disable=too-few-public-methods
     """Print rcfile to stdout.
 
     Print rcfile to stdout so it may be piped to chosen filepath.
     """
-    pyaud.config.generate_rcfile()
+
+    def action(self, *args: Any, **kwargs: bool) -> Any:
+        pyaud.config.generate_rcfile()
 
 
-@pyaud.plugins.register(name="audit")
-def audit(**kwargs: bool) -> None:
-    """Read from [audit] key in config.
+@pyaud.plugins.register("audit")
+class Audit(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
 
-    :param kwargs:  Pass keyword arguments to audit submodule.
-    :key clean:     Insert clean module to the beginning of module list
-                    to remove all unversioned files before executing
-                    rest of audit.
-    :key deploy:    Append deploy modules (docs and coverage) to end of
-                    modules list to deploy package data after executing
-                    audit.
-    :return:        Exit status.
-    """
-    funcs = pyaud.config.toml["audit"]["modules"]
-    if kwargs.get("clean", False):
-        funcs.insert(0, "clean")
+    """Read from [audit] key in config."""
 
-    if kwargs.get("deploy", False):
-        funcs.append("deploy")
+    def action(self, *args, **kwargs):
+        funcs = pyaud.config.toml["audit"]["modules"]
+        if kwargs.get("clean", False):
+            funcs.insert(0, "clean")
 
-    for func in funcs:
-        if func in pyaud.plugins.plugins:
-            pyaud.utils.colors.cyan.bold.print(f"\n{pyaud.__name__} {func}")
-            pyaud.plugins.plugins[func](**kwargs)
+        if kwargs.get("deploy", False):
+            funcs.append("deploy")
+
+        for func in funcs:
+            if func in pyaud.plugins.plugins:
+                pyaud.utils.colors.cyan.bold.print(
+                    f"\n{pyaud.__name__} {func}"
+                )
+                pyaud.plugins.plugins[func](**kwargs)

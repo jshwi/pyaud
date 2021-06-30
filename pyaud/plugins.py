@@ -270,17 +270,54 @@ class Fix(Audit):
                 raise self.audit_error() from err
 
 
+class Action(Plugin):  # pylint: disable=too-few-public-methods
+    """Blueprint for writing generic plugins.
+
+    Called within context of defined environment variables.
+    If no environment variables are defined nothing will change.
+
+    :raises CalledProcessError: Will always be raised if something
+                                fails that is not to do with the
+                                action condition.
+
+                                Will be excepted and reraised as
+                                ``AuditError`` if the action fails.
+
+    :raises AuditError:         Raised from ``CalledProcessError``
+                                if action fails.
+
+    :return:                    Any value and type can be returned.
+    """
+
+    @abstractmethod
+    def action(self, *args: Any, **kwargs: bool) -> Any:
+        """All logic to be written within this method.
+
+        :param args:    Args that can be passed from other plugins.
+        :param kwargs:  Boolean flags for subprocesses.
+        :return:        Any value and type can be returned.
+        """
+
+    def __call__(self, *args: Any, **kwargs: bool) -> Any:
+        with TempEnvVar(os.environ, **self.env):
+            try:
+                return self.action(*args, **kwargs)
+
+            except CalledProcessError as err:
+                raise self.audit_error() from err
+
+
 # array of plugins
-PLUGINS = [Audit, Fix]
+PLUGINS = [Audit, Fix, Action]
 
 # array of plugin names
 PLUGIN_NAMES = [t.__name__ for t in PLUGINS]
 
 # array of plugin types before instantiation
-PluginType = Union[Type[Audit], Type[Fix]]
+PluginType = Union[Type[Audit], Type[Fix], Type[Action]]
 
 # array of plugin types after instantiation
-PluginInstance = Union[Audit, Fix]
+PluginInstance = Union[Audit, Fix, Action]
 
 
 class _Plugins(MutableMapping):  # pylint: disable=too-many-ancestors

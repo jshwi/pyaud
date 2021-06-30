@@ -8,7 +8,6 @@ import datetime
 import os
 import random
 from pathlib import Path
-from subprocess import CalledProcessError
 from typing import Any, List, Tuple
 
 import pytest
@@ -119,7 +118,9 @@ def test_call_coverage_xml(
                                     stripping ANSI color codes.
     """
     patch_sp_print_called()
-    monkeypatch.setattr("plugins.modules.make_tests", lambda *_, **__: 0)
+    mocked_plugins = dict(pyaud.plugins.plugins)
+    mocked_plugins["tests"] = lambda *_, **__: 0
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_plugins)
     main("coverage")
     assert nocolorcapsys.stdout().strip() == "<Subprocess (coverage)> xml"
 
@@ -246,15 +247,10 @@ def test_make_docs_toc_fail(
     """
     make_tree(Path.cwd(), {"docs": {CONFPY: None}})
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
-    with pytest.raises(CalledProcessError) as err:
+    with pytest.raises(pyaud.exceptions.PyAuditError) as err:
         main("docs")
 
-    assert str(err.value) == (
-        "Command 'sphinx-apidoc -o {} {} -f' "
-        "returned non-zero exit status 1.".format(
-            Path.cwd() / pyaud.environ.DOCS, Path.cwd() / REPO
-        )
-    )
+    assert str(err.value) == "pyaud docs did not pass all checks"
 
 
 def test_make_docs_rm_cache(
@@ -849,12 +845,13 @@ def test_deploy_master(
     """
     project_dir = Path.cwd()
     readme = project_dir / README
-    monkeypatch.setattr(
-        "plugins.modules.make_docs",
-        lambda *_, **__: Path(
-            Path.cwd() / os.environ["BUILDDIR"] / "html"
-        ).mkdir(parents=True),
-    )
+    mock_plugins = dict(pyaud.plugins.plugins)
+
+    def _docs(*_: Any, **__: Any):
+        Path(Path.cwd() / os.environ["BUILDDIR"] / "html").mkdir(parents=True)
+
+    mock_plugins["docs"] = _docs
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mock_plugins)
     readme.touch()  # force stash
     pyaud.utils.git.add(".")  # type: ignore
     pyaud.utils.git.commit("-m", INITIAL_COMMIT, devnull=True)  # type: ignore
@@ -918,12 +915,13 @@ def test_deploy_master_param(
     :param expected:        Expected stdout result.
     """
     path = Path.cwd()
-    monkeypatch.setattr(
-        "plugins.modules.make_docs",
-        lambda *_, **__: Path(path / os.environ["BUILDDIR"] / "html").mkdir(
-            parents=True
-        ),
-    )
+    mock_plugins = dict(pyaud.plugins.plugins)
+
+    def _docs(*_: Any, **__: Any) -> None:
+        Path(path / os.environ["BUILDDIR"] / "html").mkdir(parents=True)
+
+    mock_plugins["docs"] = _docs
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mock_plugins)
     with open(path / README, "w") as fout:
         fout.write(files.README_RST)
 
