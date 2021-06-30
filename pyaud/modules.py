@@ -20,17 +20,15 @@ from .environ import (
     find_package,
 )
 from .exceptions import PyAuditError
-from .plugins import register
+from .plugins import check_command, register, write_command
 from .utils import (
     LineSwitch,
     Subprocess,
-    check_command,
     colors,
     deploy_docs,
     get_branch,
     git,
     tree,
-    write_command,
 )
 
 

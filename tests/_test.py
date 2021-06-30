@@ -83,7 +83,9 @@ def test_write_command(
 
         monkeypatch.setattr(
             "pyaud.modules.make_whitelist",
-            pyaud.utils.write_command("PYAUD_WHITELIST")(mock_write_whitelist),
+            pyaud.plugins.write_command("PYAUD_WHITELIST")(
+                mock_write_whitelist
+            ),
         )
         pyaud.modules.make_whitelist()
 
