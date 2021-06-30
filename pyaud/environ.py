@@ -25,7 +25,9 @@ def find_package() -> str:
 
     :return: Relative path to the package.
     """
-    packages = setuptools.find_packages(where=Path.cwd(), exclude=["tests"])
+    packages = setuptools.find_packages(
+        where=Path.cwd(), exclude=["plugins", "tests"]
+    )
     if not packages:
         raise EnvironmentError("no packages found")
 
