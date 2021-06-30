@@ -7,16 +7,10 @@ import json
 import sys
 from argparse import SUPPRESS, ArgumentParser
 
-from . import modules
 from .config import configure_logging, load_config, toml
 from .environ import NAME, load_namespace
+from .plugins import plugins, register
 from .utils import colors, tree
-
-MODULES = {
-    k.replace("make_", "").replace("_", "-"): v
-    for k, v in inspect.getmembers(modules, inspect.isfunction)
-    if k.startswith("make_")
-}
 
 
 class _Parser(ArgumentParser):
@@ -36,7 +30,7 @@ class _Parser(ArgumentParser):
 
     def __init__(self, prog: str) -> None:
         super().__init__(prog=prog)
-        self._modules = dict(MODULES)
+        self._modules = dict(plugins)
         self._returncode = 0
         self._add_arguments()
         self.args = self.parse_args()
@@ -47,7 +41,7 @@ class _Parser(ArgumentParser):
         self.add_argument(
             "module",
             metavar="MODULE",
-            choices=[*MODULES, "modules"],
+            choices=[*plugins, "modules"],
             help="choice of module: [modules] to list all",
         )
         self.add_argument(
@@ -118,8 +112,8 @@ class _Parser(ArgumentParser):
             f"{NAME} modules [<module> | all] for more on each module\n"
         )
         print(
-            "MODULES = {}".format(
-                json.dumps(list(MODULES), indent=4, sort_keys=True)
+            "modules = {}".format(
+                json.dumps(list(plugins), indent=4, sort_keys=True)
             )
         )
 
@@ -157,6 +151,7 @@ class _Parser(ArgumentParser):
         return self._returncode
 
 
+@register(name="audit")
 def audit(**kwargs: bool) -> None:
     """Read from [audit] key in config.
 
@@ -177,9 +172,9 @@ def audit(**kwargs: bool) -> None:
         funcs.append("deploy")
 
     for func in funcs:
-        if func in MODULES:
+        if func in plugins:
             colors.cyan.bold.print(f"\n{NAME} {func}")
-            MODULES[func](**kwargs)
+            plugins[func](**kwargs)
 
 
 def main() -> None:
@@ -188,13 +183,12 @@ def main() -> None:
     Parse commandline arguments and run the selected choice from the
     dictionary of functions which matches the key.
     """
-    MODULES[audit.__name__] = audit
     parser = _Parser(colors.cyan.get(NAME))
     load_namespace()
     load_config(parser.args.rcfile)
     configure_logging(parser.args.verbose)
     tree.populate()
-    MODULES[parser.args.module](
+    plugins[parser.args.module](
         clean=parser.args.clean,
         suppress=parser.args.suppress,
         deploy=parser.args.deploy,

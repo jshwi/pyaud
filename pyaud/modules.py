@@ -19,6 +19,7 @@ from .environ import (
     TempEnvVar,
     find_package,
 )
+from .plugins import register
 from .utils import (
     LineSwitch,
     PyAuditError,
@@ -33,6 +34,7 @@ from .utils import (
 )
 
 
+@register(name="clean")
 def make_clean(**kwargs: bool) -> None:
     """Remove all unversioned package files recursively.
 
@@ -44,6 +46,7 @@ def make_clean(**kwargs: bool) -> None:
     )
 
 
+@register(name="coverage")
 def make_coverage(**kwargs: bool) -> None:
     """Run package unit-tests with ``pytest`` and ``coverage``.
 
@@ -58,6 +61,7 @@ def make_coverage(**kwargs: bool) -> None:
         print("No coverage to report")
 
 
+@register(name="deploy")
 def make_deploy(**kwargs: bool) -> None:
     """Deploy package documentation and test coverage.
 
@@ -76,6 +80,7 @@ def make_deploy(**kwargs: bool) -> None:
         deploy_module(**kwargs)
 
 
+@register(name="deploy-cov")
 def make_deploy_cov(**kwargs: bool) -> None:
     """Upload coverage data to ``Codecov``.
 
@@ -97,6 +102,7 @@ def make_deploy_cov(**kwargs: bool) -> None:
         print("No coverage report found")
 
 
+@register(name="deploy-docs")
 def make_deploy_docs(**kwargs: bool) -> None:
     """Deploy package documentation to ``gh-pages``.
 
@@ -127,6 +133,7 @@ def make_deploy_docs(**kwargs: bool) -> None:
         print("Pushing skipped")
 
 
+@register(name="docs")
 def make_docs(**kwargs: bool) -> None:
     """Compile package documentation with ``Sphinx``.
 
@@ -155,6 +162,7 @@ def make_docs(**kwargs: bool) -> None:
         print("No docs found")
 
 
+@register(name="files")
 def make_files(**kwargs: bool) -> None:
     """Audit project data files.
 
@@ -169,6 +177,7 @@ def make_files(**kwargs: bool) -> None:
         func(**kwargs)
 
 
+@register(name="format")
 @check_command
 def make_format(**kwargs: bool) -> int:
     """Audit code against ``Black``.
@@ -190,6 +199,7 @@ def make_format(**kwargs: bool) -> int:
         raise PyAuditError(f"{black} {tuple([str(p) for p in args])}") from err
 
 
+@register(name="lint")
 @check_command
 def make_lint(**kwargs: bool) -> int:
     """Lint code with ``pylint``.
@@ -203,6 +213,7 @@ def make_lint(**kwargs: bool) -> int:
         return pylint.call("--output-format=colorized", *args, **kwargs)
 
 
+@register(name="requirements")
 @write_command("PYAUD_REQUIREMENTS", required="PYAUD_PIPFILE_LOCK")
 def make_requirements(**kwargs: bool) -> None:
     """Audit requirements.txt with Pipfile.lock.
@@ -228,6 +239,7 @@ def make_requirements(**kwargs: bool) -> None:
             fout.write(f"{content.split(';')[0]}\n")
 
 
+@register(name="tests")
 def make_tests(*args: str, **kwargs: bool) -> int:
     """Run the package unit-tests with ``pytest``.
 
@@ -251,6 +263,7 @@ def make_tests(*args: str, **kwargs: bool) -> int:
     return 1
 
 
+@register(name="toc")
 @write_command("PYAUD_TOC", required="PYAUD_DOCS")
 def make_toc(**kwargs: bool) -> None:
     """Audit docs/<NAME>.rst toc-file.
@@ -291,6 +304,7 @@ def make_toc(**kwargs: bool) -> None:
                 os.remove(module)
 
 
+@register(name="typecheck")
 @check_command
 def make_typecheck(**kwargs: bool) -> int:
     """Typecheck code with ``mypy``.
@@ -305,6 +319,7 @@ def make_typecheck(**kwargs: bool) -> int:
     return mypy.call("--ignore-missing-imports", *tree.reduce(), **kwargs)
 
 
+@register(name="unused")
 @check_command
 def make_unused(**kwargs: bool) -> int:
     """Audit unused code with ``vulture``.
@@ -335,6 +350,7 @@ def make_unused(**kwargs: bool) -> int:
             ) from err
 
 
+@register(name="whitelist")
 @write_command("PYAUD_WHITELIST")
 def make_whitelist(**kwargs: bool) -> None:
     """Check whitelist.py file with ``vulture``.
@@ -363,6 +379,7 @@ def make_whitelist(**kwargs: bool) -> None:
             fout.write(f"{line.replace(str(Path.cwd()) + os.sep, '')}\n")
 
 
+@register(name="imports")
 @check_command
 def make_imports(**kwargs: bool) -> int:
     """Audit imports with ``isort``.
@@ -428,6 +445,7 @@ def make_imports(**kwargs: bool) -> int:
     return 0
 
 
+@register(name="readme")
 def make_readme(**kwargs: bool) -> None:
     """Parse, test, and assert RST code-blocks.
 
@@ -443,6 +461,7 @@ def make_readme(**kwargs: bool) -> None:
             print("No README.rst found in project root")
 
 
+@register(name="format-str")
 @check_command
 def make_format_str(**kwargs: bool) -> int:
     """Format f-strings with ``flynt``.
@@ -465,6 +484,7 @@ def make_format_str(**kwargs: bool) -> int:
         raise PyAuditError(f"{flynt} {tuple([str(p) for p in args])}") from err
 
 
+@register(name="format-docs")
 @check_command
 def make_format_docs(**kwargs: bool) -> int:
     """Format docstrings with ``docformatter``.
@@ -488,6 +508,7 @@ def make_format_docs(**kwargs: bool) -> int:
         ) from err
 
 
+@register(name="generate-rcfile")
 def make_generate_rcfile(**__: bool) -> None:
     """Print rcfile to stdout.
 

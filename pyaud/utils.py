@@ -479,5 +479,16 @@ class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
         )
 
 
+class NameConflictError(Exception):
+    """Raise if adding plugin who's name is not unique.
+
+    :param plugin:  Plugin which could not be registered.
+    :param name:    Name which clashes with another.
+    """
+
+    def __init__(self, plugin: str, name: str) -> None:
+        super().__init__(f"plugin name conflict at {plugin}: '{name}'")
+
+
 tree = _Tree(*toml["indexing"]["exclude"])
 git = _Git()

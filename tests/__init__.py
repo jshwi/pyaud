@@ -25,7 +25,8 @@ INFO = LEVELS[1]
 WARNING = LEVELS[2]
 ERROR = LEVELS[3]
 CRITICAL = LEVELS[4]
-PYAUD_MODULES = "pyaud.main.MODULES"
+PYAUD_MODULES = "pyaud.main.plugins"
+SP_OPEN_PROC = "pyaud.utils.Subprocess._open_process"
 
 
 class NoColorCapsys:

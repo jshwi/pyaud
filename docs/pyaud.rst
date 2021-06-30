@@ -21,6 +21,10 @@ pyaud
    :members:
    :undoc-members:
    :show-inheritance:
+.. automodule:: pyaud.plugins
+   :members:
+   :undoc-members:
+   :show-inheritance:
 .. automodule:: pyaud.utils
    :members:
    :undoc-members:

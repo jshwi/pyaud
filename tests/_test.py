@@ -36,6 +36,7 @@ from . import (
     PYAUD_MODULES,
     REAL_REPO,
     REPO,
+    SP_OPEN_PROC,
     WARNING,
     files,
 )
@@ -96,9 +97,7 @@ def test_make_audit_error(monkeypatch: Any, nocolorcapsys: Any) -> None:
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    monkeypatch.setattr(
-        "pyaud.utils.Subprocess._open_process", lambda *_, **__: 1
-    )
+    monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     pyaud.utils.tree.append(Path.cwd() / FILES)
     with pytest.raises(CalledProcessError):
         pyaud.main.audit()
@@ -189,34 +188,31 @@ def test_make_docs_no_docs(nocolorcapsys: Any) -> None:
 
 
 def test_suppress(
-    monkeypatch: Any, nocolorcapsys: Any, call_status: Any, make_tree: Any
+    main: Any, monkeypatch: Any, nocolorcapsys: Any, make_tree: Any
 ) -> None:
     """Test that audit proceeds through errors with ``--suppress``.
 
+    :param main:            Patch package entry point.
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     :param monkeypatch:     Mock patch environment and attributes.
-    :param call_status:     Patch function to return specific exit-code.
     :param make_tree:       Create directory tree from dict mapping.
     """
     make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
     pyaud.utils.tree.append(Path.cwd() / FILES)
-    mocked_modules = copy.deepcopy(pyaud.main.MODULES)
-    audit_modules = pyaud.config.DEFAULT_CONFIG["audit"]["modules"]
-    for audit_module in audit_modules:
-        mocked_modules[audit_module] = pyaud.utils.check_command(
-            call_status(f"make_{audit_module}", 1)
+    fix_modules = 6
+    monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
+    main("audit", "--suppress")
+    assert (
+        len(
+            [
+                i
+                for i in nocolorcapsys.stderr().splitlines()
+                if "Failed: returned non-zero exit status" in i
+            ]
         )
-
-    monkeypatch.setattr(PYAUD_MODULES, mocked_modules)
-    pyaud.main.audit(suppress=True)
-    assert len(
-        [
-            i
-            for i in nocolorcapsys.stderr().splitlines()
-            if "Failed: returned non-zero exit status" in i
-        ]
-    ) == len(audit_modules)
+        == fix_modules
+    )
 
 
 @pytest.mark.parametrize(
@@ -265,11 +261,11 @@ def test_audit_modules(
     :param first:           Expected first function executed.
     :param last:            Expected last function executed.
     """
-    mocked_modules = copy.deepcopy(pyaud.main.MODULES)
+    mocked_modules = dict(pyaud.plugins.plugins)
     modules = list(pyaud.config.DEFAULT_CONFIG["audit"]["modules"])
     modules.extend(add)
     for module in modules:
-        mocked_modules[module] = call_status(f"make_{module}")
+        mocked_modules[module] = call_status(module)
 
     monkeypatch.setattr(PYAUD_MODULES, mocked_modules)
     main("audit", *args)
@@ -304,9 +300,7 @@ def test_make_docs_toc_fail(monkeypatch: Any, make_tree: Any) -> None:
     :param make_tree:   Create directory tree from dict mapping.
     """
     make_tree(Path.cwd(), {"docs": {CONFPY: None}})
-    monkeypatch.setattr(
-        "pyaud.utils.Subprocess._open_process", lambda *_, **__: 1
-    )
+    monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     with pytest.raises(CalledProcessError) as err:
         pyaud.modules.make_docs()
 
@@ -841,7 +835,7 @@ def test_parser(
         PYAUD_MODULES,
         {
             k: track_called(call_status(v.__name__, 0))
-            for k, v in pyaud.main.MODULES.items()
+            for k, v in pyaud.plugins.plugins.items()
         },
     )
     for call in calls:
@@ -1230,9 +1224,9 @@ def test_make_format_success(
 @pytest.mark.parametrize(
     "arg,index,expected",
     [
-        ("", 0, pyaud.main.MODULES.keys()),
+        ("", 0, pyaud.plugins.plugins.keys()),
         ("audit", 0, ("audit -- Read from [audit] key in config",)),
-        ("all", 0, pyaud.main.MODULES.keys()),
+        ("all", 0, pyaud.plugins.plugins.keys()),
         ("not-a-module", 1, ("No such module: not-a-module",)),
     ],
     ids=["no-pos", "module", "all-modules", "invalid-pos"],
@@ -1788,14 +1782,14 @@ def test_custom_modules(
                             Optionally returns non-zero exit code (0 by
                             default).
     """
-    mocked_modules = copy.deepcopy(pyaud.main.MODULES)
+    mocked_modules = dict(pyaud.plugins.plugins)
     modules = list(pyaud.config.DEFAULT_CONFIG["audit"]["modules"])
     random.shuffle(modules)
     pyaud.config.toml["audit"]["modules"] = modules
     for module in modules:
-        mocked_modules[module] = call_status(f"make_{module}")
+        mocked_modules[module] = call_status(module)
 
-    monkeypatch.setattr("pyaud.main.MODULES", mocked_modules)
+    monkeypatch.setattr(PYAUD_MODULES, mocked_modules)
 
     # make ``load_config`` do nothing so it does not override the toml
     # config above
@@ -1803,3 +1797,20 @@ def test_custom_modules(
     main("audit")
     out = [i for i in nocolorcapsys.stdout().splitlines() if i != ""]
     assert out == [f"pyaud {i}" for i in modules]
+
+
+def test_register_plugin_name_conflict_error() -> None:
+    """Test ``NameConflictError`` is raised when same name provided."""
+    unique = "test-register-plugin-name-conflict-error"
+
+    @pyaud.plugins.register(name=unique)
+    def plugin_one():  # pylint: disable=unused-variable
+        """Nothing to do."""
+
+    with pytest.raises(pyaud.utils.NameConflictError) as err:
+
+        @pyaud.plugins.register(name=unique)
+        def plugin_two():  # pylint: disable=unused-variable
+            """Nothing to do."""
+
+    assert str(err.value) == f"plugin name conflict at plugin_two: '{unique}'"
