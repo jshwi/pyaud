@@ -48,16 +48,13 @@ class Coverage(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
 
 
 @pyaud.plugins.register(name="deploy")
-def make_deploy(*args: Any, **kwargs: bool) -> None:
-    """Deploy package documentation and test coverage.
+class Deploy(  # pylint: disable=too-few-public-methods
+    pyaud.plugins.Parametrize
+):
+    """Deploy package documentation and test coverage."""
 
-    :param kwargs: Keyword arguments for ``deploy_module``.
-    """
-
-    deploy_modules = ["deploy-cov", "deploy-docs"]
-    for deploy_module in deploy_modules:
-        pyaud.utils.colors.cyan.bold.print(f"{pyaud.__name__} {deploy_module}")
-        pyaud.plugins.plugins[deploy_module](*args, **kwargs)
+    def plugins(self) -> List[str]:
+        return ["deploy-docs", "deploy-cov"]
 
 
 @pyaud.plugins.register(name="deploy-cov")
@@ -168,18 +165,18 @@ class Docs(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
 
 
 @pyaud.plugins.register(name="files")
-def make_files(**kwargs: bool) -> None:
+class Files(
+    pyaud.plugins.Parametrize
+):  # pylint: disable=too-few-public-methods
     """Audit project data files.
 
     Make ``docs/<APPNAME>.rst``, ``whitelist.py``, and
     ``requirements.txt`` if none already exist, update them if they do
     and changes are needed or pass if nothing needs to be done.
-
-    :param kwargs:  Pass keyword arguments to ``func``.
-    :return:        Exit status.
     """
-    for func in (make_requirements, make_toc, make_whitelist):
-        func(**kwargs)
+
+    def plugins(self) -> List[str]:
+        return ["requirements", "toc", "whitelist"]
 
 
 @pyaud.plugins.register(name="format")

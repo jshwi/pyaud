@@ -174,23 +174,6 @@ def fixture_patch_sp_call(monkeypatch: Any) -> Any:
     return _patch_sp_call
 
 
-@pytest.fixture(name="track_called")
-def fixture_track_called() -> Any:
-    """Decorate a mocked function to print what was called.
-
-    :return: Function for using this fixture.
-    """
-
-    def _track_called(func: Any) -> Any:
-        def _track(*_: Any, **__: Any) -> Any:
-            print(func.__name__)
-            return func()
-
-        return _track
-
-    return _track_called
-
-
 @pytest.fixture(name="patch_sp_output")
 def fixture_patch_sp_output(patch_sp_call: Any) -> Any:
     """Patch ``Subprocess``.

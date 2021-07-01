@@ -292,11 +292,7 @@ def test_make_docs_rm_cache(
 
 
 def test_make_files(
-    main: Any,
-    monkeypatch: Any,
-    call_status: Any,
-    nocolorcapsys: Any,
-    track_called: Any,
+    main: Any, monkeypatch: Any, call_status: Any, nocolorcapsys: Any
 ) -> None:
     """Test correct commands are executed when running ``make_files``.
 
@@ -306,16 +302,15 @@ def test_make_files(
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    file_funcs = "make_toc", "make_whitelist", "make_requirements"
-    for file_func in file_funcs:
-        monkeypatch.setattr(
-            f"plugins.modules.{file_func}",
-            track_called(call_status(file_func)),
-        )
+    monkeypatch.setattr(
+        "pyaud.plugins.plugins",
+        {k: call_status(k, 0) for k in pyaud.plugins.plugins},
+    )
+
     main("files")
     assert (
         nocolorcapsys.stdout()
-        == "make_requirements\nmake_toc\nmake_whitelist\n"
+        == "\npyaud requirements\n\npyaud toc\n\npyaud whitelist\n"
     )
 
 

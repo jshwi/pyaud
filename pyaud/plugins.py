@@ -13,7 +13,7 @@ from pathlib import Path
 from subprocess import CalledProcessError
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-from .environ import DEFAULT_PLUGINS, SITE_PLUGINS, TempEnvVar
+from .environ import DEFAULT_PLUGINS, NAME, SITE_PLUGINS, TempEnvVar
 from .exceptions import NameConflictError, PyAuditError
 from .objects import MutableMapping
 from .utils import HashCap, Subprocess, colors, files
@@ -307,17 +307,50 @@ class Action(Plugin):  # pylint: disable=too-few-public-methods
                 raise self.audit_error() from err
 
 
+class Parametrize(Plugin):  # pylint: disable=too-few-public-methods
+    """Define a list of strings to call multiple plugins.
+
+    :raises CalledProcessError: Will always be raised if something
+                                fails that is not to do with the
+                                called plugin's condition.
+
+                                Will be excepted and reraised as
+                                ``AuditError`` if the called plugin
+                                fails and the called plugin does not
+                                specify a ``fix`` method or the
+                                ``-f/--fix`` flag is not passed to the
+                                commandline.
+
+    :raises AuditError:         Raised from ``CalledProcessError``
+                                if called plugin fails and no ``fix``
+                                method is specified or the ``-f/--fix``
+                                flag is not passed to the commandline.
+    """
+
+    @abstractmethod
+    def plugins(self) -> List[str]:
+        """List of plugin names to run.
+
+        :return: List of plugin names, as defined in ``@register``.
+        """
+
+    def __call__(self, *args: Any, **kwargs: bool) -> None:
+        for name in self.plugins():
+            colors.cyan.bold.print(f"\n{NAME} {name}")
+            plugins[name](*args, **kwargs)
+
+
 # array of plugins
-PLUGINS = [Audit, Fix, Action]
+PLUGINS = [Audit, Fix, Action, Parametrize]
 
 # array of plugin names
 PLUGIN_NAMES = [t.__name__ for t in PLUGINS]
 
 # array of plugin types before instantiation
-PluginType = Union[Type[Audit], Type[Fix], Type[Action]]
+PluginType = Union[Type[Audit], Type[Fix], Type[Action], Type[Parametrize]]
 
 # array of plugin types after instantiation
-PluginInstance = Union[Audit, Fix, Action]
+PluginInstance = Union[Audit, Fix, Action, Parametrize]
 
 
 class _Plugins(MutableMapping):  # pylint: disable=too-many-ancestors
