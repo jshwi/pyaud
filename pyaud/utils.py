@@ -307,6 +307,18 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
             )
         )
 
+    def args(self, reduce: bool = False) -> Tuple[str, ...]:
+        """Return tuple suitable to be run with starred expression.
+
+        :param reduce:  :func:`~pyaud.utils._Tree.reduce`
+        :return:        Tuple of `Path` objects or str repr.
+        """
+        paths = list(self)
+        if reduce:
+            paths = self.reduce()
+
+        return tuple([str(p) for p in paths])
+
 
 files = _Files(*toml["indexing"]["exclude"])
 git = _Git()

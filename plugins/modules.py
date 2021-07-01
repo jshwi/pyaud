@@ -333,7 +333,7 @@ def make_unused(**kwargs: bool) -> int:
                 return 0
 
             raise pyaud.exceptions.PyAuditError(
-                f"{vulture} {tuple([str(i) for i in args])}"
+                f"{vulture} {pyaud.utils.files.args(reduce=True)}"
             ) from err
 
 
@@ -425,9 +425,7 @@ def make_imports(**kwargs: bool) -> int:
                     raise pyaud.exceptions.PyAuditError(
                         "{} {}".format(
                             make_imports.__name__,
-                            tuple(
-                                [str(p) for p in pyaud.utils.files.reduce()]
-                            ),
+                            pyaud.utils.files.args(reduce=True),
                         )
                     )
 
@@ -505,7 +503,7 @@ def make_format_docs(**kwargs: bool) -> int:
             return docformatter.call(*args, **kwargs)
 
         raise pyaud.exceptions.PyAuditError(
-            f"{docformatter} {tuple([str(p) for p in args])}"
+            f"{docformatter} {pyaud.utils.files.args(reduce=True)}"
         ) from err
 
 

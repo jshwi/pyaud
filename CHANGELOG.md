@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v2.0.0...HEAD)
 ------------------------------------------------------------------------
 ### Added
+- Adds `pyaud.utils.files.args`
 - Adds `plugins`
 - Adds `pyaud.exceptions`
 - Adds `pyaud.plugins`
