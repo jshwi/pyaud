@@ -49,42 +49,6 @@ def check_command(func: Callable[..., int]) -> Callable[..., None]:
     return _wrapper
 
 
-def write_command(
-    file: Union[bytes, str, os.PathLike],
-    required: Optional[Union[bytes, str, os.PathLike]] = None,
-) -> Callable[..., Any]:
-    """Run the routine common with all functions manipulating files.
-
-    :param file:        File which is to be written to.
-    :param required:    Any required files.
-    :return:            Wrapped function.
-    """
-
-    def _decorator(func: Callable[..., int]) -> Callable[..., None]:
-        @functools.wraps(func)
-        def _wrapper(*args: str, **kwargs: Union[bool, str]) -> None:
-            if (
-                not required
-                or Path(Path.cwd() / os.environ[str(required)]).exists()
-            ):
-                _file = Path.cwd() / os.environ[str(file)]
-                print(f"Updating ``{_file}``")
-                with HashCap(_file) as cap:
-                    func(*args, **kwargs)
-
-                if cap.new:
-                    print(f"created ``{_file.name}``")
-
-                elif cap.compare:
-                    print(f"``{_file.name}`` is already up to date")
-                else:
-                    print(f"updated ``{_file.name}``")
-
-        return _wrapper
-
-    return _decorator
-
-
 class _SubprocessFactory(MutableMapping):  # pylint: disable=too-many-ancestors
     """Instantiate collection of ``Subprocess`` objects."""
 
@@ -340,17 +304,69 @@ class Parametrize(Plugin):  # pylint: disable=too-few-public-methods
             plugins[name](*args, **kwargs)
 
 
+class Write(Plugin):
+    """Blueprint for writing file manipulation processes.
+
+    Announce:
+
+        - If the file did not exist and a file has been created
+        - If the file did exist and the file has not been changed
+        - If the file did exist and the file has been changed
+    """
+
+    def required(self) -> Optional[Path]:
+        """Pre-requisite for working on file (if there is one).
+
+        :return: Path object, otherwise None.
+        """
+
+    @property
+    @abstractmethod
+    def path(self) -> Path:
+        """Path to file, absolute or relative, that will be worked on.
+
+        :return: Returned value needs to be a Path object.
+        """
+
+    def write(self, *args: Any, **kwargs: bool) -> Any:
+        """All write logic to be written within this method.
+
+        :param args:    Args that can be passed from other plugins.
+        :param kwargs:  Boolean flags for subprocesses.
+        """
+
+    def __call__(self, *args: Any, **kwargs: bool) -> None:
+        if (
+            self.required() is None  # type: ignore
+            or self.required().exists()  # type: ignore
+        ):
+            path = Path(self.path)
+            print(f"Updating ``{path}``")
+            with HashCap(path) as cap:
+                self.write(*args, **kwargs)
+
+            if cap.new:
+                print(f"created ``{path.name}``")
+
+            elif cap.compare:
+                print(f"``{path.name}`` is already up to date")
+            else:
+                print(f"updated ``{path.name}``")
+
+
 # array of plugins
-PLUGINS = [Audit, Fix, Action, Parametrize]
+PLUGINS = [Audit, Fix, Action, Parametrize, Write]
 
 # array of plugin names
 PLUGIN_NAMES = [t.__name__ for t in PLUGINS]
 
 # array of plugin types before instantiation
-PluginType = Union[Type[Audit], Type[Fix], Type[Action], Type[Parametrize]]
+PluginType = Union[
+    Type[Audit], Type[Fix], Type[Action], Type[Parametrize], Type[Write]
+]
 
 # array of plugin types after instantiation
-PluginInstance = Union[Audit, Fix, Action, Parametrize]
+PluginInstance = Union[Audit, Fix, Action, Parametrize, Write]
 
 
 class _Plugins(MutableMapping):  # pylint: disable=too-many-ancestors

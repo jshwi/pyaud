@@ -6,7 +6,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pyaud
 
@@ -143,7 +143,7 @@ class Docs(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
         return [self.sphinx_build]
 
     def action(self, *args: Any, **kwargs: bool) -> Any:
-        make_toc(**kwargs)
+        pyaud.plugins.plugins["toc"](*args, **kwargs)
         readme_rst = "README"
         underline = len(readme_rst) * "="
         build_dir = Path.cwd() / os.environ["BUILDDIR"]
@@ -224,31 +224,42 @@ class Lint(pyaud.plugins.Audit):
 
 
 @pyaud.plugins.register(name="requirements")
-@pyaud.plugins.write_command(
-    "PYAUD_REQUIREMENTS", required="PYAUD_PIPFILE_LOCK"
-)
-def make_requirements(**kwargs: bool) -> None:
-    """Audit requirements.txt with Pipfile.lock.
+class Requirements(pyaud.plugins.Write):
+    """Audit requirements.txt with Pipfile.lock."""
 
-    :param kwargs:  Pass keyword arguments to ``call``.
-    :key fix:       Do not raise error - fix problem instead.
-    """
-    # get the stdout for both production and development packages
-    pipfile_lock_path = Path.cwd() / "Pipfile.lock"
-    requirements_path = Path.cwd() / os.environ["PYAUD_REQUIREMENTS"]
+    p2req = "pipfile2req"
 
-    # get the stdout for both production and development packages
-    p2req = pyaud.utils.Subprocess("pipfile2req", capture=True)
-    p2req.call(pipfile_lock_path, **kwargs)
-    p2req.call(pipfile_lock_path, "--dev", **kwargs)
+    @property
+    def exe(self) -> List[str]:
+        return [self.p2req]
 
-    # write to file and then use sed to remove the additional
-    # information following the semi-colon
-    stdout = list(set("\n".join(p2req.stdout()).splitlines()))
-    stdout.sort()
-    with open(requirements_path, "w") as fout:
-        for content in stdout:
-            fout.write(f"{content.split(';')[0]}\n")
+    @property
+    def path(self) -> Path:
+        return Path.cwd() / os.environ["PYAUD_REQUIREMENTS"]
+
+    def required(self) -> Path:
+        return Path.cwd() / "Pipfile.lock"
+
+    def write(self, *args: Any, **kwargs: bool) -> Any:
+        # get the stdout for both production and development packages
+
+        # get the stdout for both production and development packages
+        self.subprocess[self.p2req].call(
+            self.required(), *args, capture=True, **kwargs
+        )
+        self.subprocess[self.p2req].call(
+            self.required(), "--dev", *args, capture=True, **kwargs
+        )
+
+        # write to file and then use sed to remove the additional
+        # information following the semi-colon
+        stdout = list(
+            set("\n".join(self.subprocess[self.p2req].stdout()).splitlines())
+        )
+        stdout.sort()
+        with open(self.path, "w") as fout:
+            for content in stdout:
+                fout.write(f"{content.split(';')[0]}\n")
 
 
 @pyaud.plugins.register(name="tests")
@@ -278,44 +289,60 @@ class Tests(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
 
 
 @pyaud.plugins.register(name="toc")
-@pyaud.plugins.write_command("PYAUD_TOC", required="PYAUD_DOCS")
-def make_toc(**kwargs: bool) -> None:
-    """Audit docs/<NAME>.rst toc-file.
+class Toc(pyaud.plugins.Write):
+    """Audit docs/<NAME>.rst toc-file."""
 
-    :param kwargs:  Pass keyword arguments to ``call``.
-    :key fix:       Do not raise error - fix problem instead.
-    :return:        Exit status.
-    """
-    toc_attrs = [
-        ".. automodule::",
-        "   :members:",
-        "   :undoc-members:",
-        "   :show-inheritance:",
-    ]
-    package = pyaud.environ.find_package()
-    docspath = Path.cwd() / DOCS
-    tocpath = docspath / f"{package}.rst"
-    if Path(Path.cwd() / DOCS / "conf.py").is_file():
-        apidoc = pyaud.utils.Subprocess("sphinx-apidoc")
-        apidoc.call(
-            "-o", docspath, Path.cwd() / package, "-f", devnull=True, **kwargs
-        )
+    sphinx_apidoc = "sphinx-apidoc"
 
-        contents = []
-        if tocpath.is_file():
-            with open(tocpath) as fin:
-                contents.extend(fin.read().splitlines())
+    @property
+    def exe(self) -> List[str]:
+        return [self.sphinx_apidoc]
 
-        with open(tocpath, "w") as fout:
-            fout.write(f"{package}\n{len(package) * '='}\n\n")
-            for content in contents:
-                if any(a in content for a in toc_attrs):
-                    fout.write(f"{content}\n")
+    @property
+    def path(self) -> Path:
+        return Path.cwd() / DOCS / f"{pyaud.environ.find_package()}.rst"
 
-        modules = (docspath / f"{package}.src.rst", docspath / "modules.rst")
-        for module in modules:
-            if module.is_file():
-                os.remove(module)
+    def required(self) -> Optional[Path]:
+        return Path.cwd() / DOCS
+
+    def write(self, *args: Any, **kwargs: bool) -> Any:
+        toc_attrs = [
+            ".. automodule::",
+            "   :members:",
+            "   :undoc-members:",
+            "   :show-inheritance:",
+        ]
+        package = pyaud.environ.find_package()
+        docspath = Path.cwd() / DOCS
+        if Path(Path.cwd() / DOCS / "conf.py").is_file():
+            self.subprocess[self.sphinx_apidoc].call(
+                "-o",
+                docspath,
+                Path.cwd() / package,
+                "-f",
+                *args,
+                devnull=True,
+                **kwargs,
+            )
+
+            contents = []
+            if self.path.is_file():
+                with open(self.path) as fin:
+                    contents.extend(fin.read().splitlines())
+
+            with open(self.path, "w") as fout:
+                fout.write(f"{package}\n{len(package) * '='}\n\n")
+                for content in contents:
+                    if any(a in content for a in toc_attrs):
+                        fout.write(f"{content}\n")
+
+            modules = (
+                docspath / f"{package}.src.rst",
+                docspath / "modules.rst",
+            )
+            for module in modules:
+                if module.is_file():
+                    os.remove(module)
 
 
 @pyaud.plugins.register(name="typecheck")
@@ -363,37 +390,50 @@ class Unused(pyaud.plugins.Fix):
         return self.subprocess[self.vulture].call(*args, **kwargs)
 
     def fix(self, *args: Any, **kwargs: bool) -> Any:
-        make_whitelist(**kwargs)
+        pyaud.plugins.plugins["whitelist"](*args, **kwargs)
         return self.audit(*args, **kwargs)
 
 
 @pyaud.plugins.register(name="whitelist")
-@pyaud.plugins.write_command("PYAUD_WHITELIST")
-def make_whitelist(**kwargs: bool) -> None:
+class Whitelist(pyaud.plugins.Write):
     """Check whitelist.py file with ``vulture``.
 
     This will consider all unused code an exception so resolve code that
     is not to be excluded from the ``vulture`` search first.
-
-    :param kwargs:  Pass keyword arguments to ``call``.
-    :key fix:       Do not raise error - fix problem instead.
-    :return:        Exit status.
     """
-    vulture = pyaud.utils.Subprocess("vulture", capture=True)
 
-    # append whitelist exceptions for each individual module
-    for item in pyaud.utils.files.reduce():
-        if item.exists():
+    vulture = "vulture"
+
+    @property
+    def exe(self) -> List[str]:
+        return [self.vulture]
+
+    @property
+    def path(self) -> Path:
+        return Path.cwd() / os.environ["PYAUD_WHITELIST"]
+
+    def write(self, *args: Any, **kwargs: bool) -> Any:
+
+        # append whitelist exceptions for each individual module
+        for item in pyaud.utils.files.reduce():
             with pyaud.utils.TempEnvVar(kwargs, suppress=True):
-                vulture.call(item, "--make-whitelist", **kwargs)
+                self.subprocess[self.vulture].call(
+                    item, "--make-whitelist", *args, capture=True, **kwargs
+                )
 
-    # clear contents of instantiated ``TextIO' object to write a new
-    # file and not append
-    stdout = [i for i in "\n".join(vulture.stdout()).splitlines() if i != ""]
-    stdout.sort()
-    with open(Path.cwd() / os.environ["PYAUD_WHITELIST"], "w") as fout:
-        for line in stdout:
-            fout.write(f"{line.replace(str(Path.cwd()) + os.sep, '')}\n")
+        # clear contents of instantiated ``TextIO' object to write a new
+        # file and not append
+        stdout = [
+            i
+            for i in "\n".join(
+                self.subprocess[self.vulture].stdout()
+            ).splitlines()
+            if i != ""
+        ]
+        stdout.sort()
+        with open(self.path, "w") as fout:
+            for line in stdout:
+                fout.write(f"{line.replace(str(Path.cwd()) + os.sep, '')}\n")
 
 
 @pyaud.plugins.register(name="imports")

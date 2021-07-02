@@ -22,7 +22,6 @@ from . import (
     INITIAL_COMMIT,
     NO_ISSUES,
     PUSHING_SKIPPED,
-    PYAUD_MODULES,
     PYAUD_PLUGINS_PLUGINS,
     README,
     REPO,
@@ -76,11 +75,9 @@ def test_write_command(
             with open(Path.cwd() / os.environ["PYAUD_WHITELIST"], "w") as fout:
                 fout.write(content)
 
-        mocked_plugins = dict(pyaud.plugins.plugins)
-        mocked_plugins["whitelist"] = pyaud.plugins.write_command(
-            "PYAUD_WHITELIST"
-        )(mock_write_whitelist)
-        monkeypatch.setattr(PYAUD_MODULES, mocked_plugins)
+        monkeypatch.setattr(
+            "plugins.modules.Whitelist.write", mock_write_whitelist
+        )
         main("whitelist")
 
     assert expected in nocolorcapsys.stdout()
@@ -273,7 +270,9 @@ def test_make_docs_rm_cache(
         return 0
 
     # patch ``make_toc`` and ``Subprocess.call``
-    monkeypatch.setattr("plugins.modules.make_toc", call_status("make_toc"))
+    mocked_plugins = dict(pyaud.plugins.plugins)
+    mocked_plugins["toc"] = call_status("toc")
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_plugins)
     monkeypatch.setattr("pyaud.utils.Subprocess.call", _call)
     make_tree(Path.cwd(), {"docs": {CONFPY: None, "readme.rst": None}})
     with open(readme, "w") as fout:
