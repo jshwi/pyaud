@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v2.0.0...HEAD)
 ------------------------------------------------------------------------
+### Fixed
+- Fixes loading of `PYAUD_GH_NAME`
+
 ### Removed
 - Removes loglevel constants from `pyaud.config`
 

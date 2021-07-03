@@ -39,7 +39,9 @@ def load_namespace() -> None:
         PYAUD_COVERAGE_XML="coverage.xml",
         PYAUD_REQUIREMENTS="requirements.txt",
         BUILDDIR=str(DOCS / "_build"),
-        PYAUD_GH_NAME=os.environ.get("GITHUB_REPOSITORY_OWNER", ""),
+        PYAUD_GH_NAME=os.environ.get(
+            "PYAUD_GH_NAME", os.environ.get("GITHUB_REPOSITORY_OWNER", "")
+        ),
         PYAUD_GH_EMAIL=os.environ.get("PYAUD_GH_EMAIL", ""),
         PYAUD_GH_TOKEN=os.environ.get("PYAUD_GH_TOKEN", ""),
         CODECOV_TOKEN=os.environ.get("CODECOV_TOKEN", ""),
