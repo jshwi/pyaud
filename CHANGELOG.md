@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v2.0.0...HEAD)
 ------------------------------------------------------------------------
+### Added
+- Adds `pyaud.utils.Subprocess.args`
+
 ### Fixed
 - Fixes errors raised for missing project files
 - Fixes loading of `PYAUD_GH_NAME`

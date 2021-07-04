@@ -14,7 +14,7 @@ import sys
 from collections.abc import MutableSequence
 from pathlib import Path
 from subprocess import PIPE, CalledProcessError, Popen
-from typing import Any, Callable, Dict, Iterable, List, Optional, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import pyblake2
 from object_colors import Color
@@ -64,6 +64,7 @@ class Subprocess:
 
         self._kwargs = kwargs
         self._stdout: List[str] = []
+        self.args: Tuple[str, ...] = ()
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} ({self._exe})>"
@@ -125,15 +126,15 @@ class Subprocess:
         :raises CalledProcessError: If error occurs in subprocess.
         :return:                    Exit status.
         """
-        args = tuple([str(i) for i in args])
-        logging.getLogger(self._exe).debug("called with %s", args)
-        returncode = self._open_process(*args, **kwargs)
+        self.args = tuple([str(i) for i in args])
+        logging.getLogger(self._exe).debug("called with %s", self.args)
+        returncode = self._open_process(*self.args, **kwargs)
         if returncode and not kwargs.get("suppress", False):
             logging.getLogger(self._exe).error(
                 "returned non-zero exit status %s", returncode
             )
             raise CalledProcessError(
-                returncode, f"{self._exe} {' '.join(args)}"
+                returncode, f"{self._exe} {' '.join(self.args)}"
             )
 
         return returncode
