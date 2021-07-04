@@ -14,7 +14,7 @@ from typing import Any, Callable, List, Optional, Union
 from .environ import DEFAULT_PLUGINS, SITE_PLUGINS
 from .exceptions import NameConflictError
 from .objects import MutableMapping
-from .utils import HashCap, colors, tree
+from .utils import HashCap, colors, files
 
 _plugin_paths: List[Path] = [DEFAULT_PLUGINS, SITE_PLUGINS]
 
@@ -28,7 +28,7 @@ def check_command(func: Callable[..., int]) -> Callable[..., None]:
 
     @functools.wraps(func)
     def _wrapper(**kwargs: bool) -> None:
-        if not tree.reduce():
+        if not files.reduce():
             print("No files found")
         else:
             returncode = func(**kwargs)
@@ -40,7 +40,7 @@ def check_command(func: Callable[..., int]) -> Callable[..., None]:
             else:
                 colors.green.bold.print(
                     "Success: no issues found in {} source files".format(
-                        len(tree)
+                        len(files)
                     )
                 )
 

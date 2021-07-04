@@ -99,7 +99,7 @@ def test_make_audit_error(
     monkeypatch.setattr(
         "pyaud.utils.Subprocess._open_process", lambda *_, **__: 1
     )
-    pyaud.utils.tree.append(Path.cwd() / FILES)
+    pyaud.utils.files.append(Path.cwd() / FILES)
     with pytest.raises(CalledProcessError):
         main("audit")
 
@@ -204,7 +204,7 @@ def test_suppress(
     :param make_tree:       Create directory tree from dict mapping.
     """
     make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
-    pyaud.utils.tree.append(Path.cwd() / FILES)
+    pyaud.utils.files.append(Path.cwd() / FILES)
     fix_modules = 6
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     main("audit", "--suppress")
@@ -338,7 +338,7 @@ def test_make_format(main: Any) -> None:
     with open(file, "w") as fout:
         fout.write(files.UNFORMATTED)
 
-    pyaud.utils.tree.append(file)
+    pyaud.utils.files.append(file)
     with pytest.raises(pyaud.exceptions.PyAuditError):
         main("format")
 
@@ -514,7 +514,7 @@ def test_append_whitelist(
     Path(project_dir / FILES).touch()
     patch_sp_print_called()
     whitelist.touch()
-    pyaud.utils.tree.populate()
+    pyaud.utils.files.populate()
     pyaud.plugins.plugins["unused"]()
     main("unused")
     assert str(whitelist) in nocolorcapsys.stdout()
@@ -532,7 +532,7 @@ def test_mypy_expected(
                                     stripping ANSI color codes.
     """
     path = Path(os.getcwd(), FILES)
-    pyaud.utils.tree.append(path)
+    pyaud.utils.files.append(path)
     patch_sp_print_called()
     main("typecheck")
     assert (
@@ -586,7 +586,7 @@ def test_pytest_is_tests(
     :param relpath:                 Relative path to file.
     :param expected:                Expected stdout.
     """
-    pyaud.utils.tree.append(Path.cwd() / relpath)
+    pyaud.utils.files.append(Path.cwd() / relpath)
     patch_sp_print_called()
     main("tests")
     assert nocolorcapsys.stdout().strip() == expected
@@ -670,7 +670,7 @@ def test_make_whitelist(
     )
     pyaud.utils.git.init(devnull=True)  # type: ignore
     pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.tree.populate()
+    pyaud.utils.files.populate()
     patch_sp_output(
         files.Whitelist.be8a443_tests, files.Whitelist.be8a443_pyaud
     )
@@ -697,7 +697,7 @@ def test_pylint_colorized(main: Any, capsys: Any) -> None:
     with open(path, "w") as fout:
         fout.write("import this_package_does_not_exist")
 
-    pyaud.utils.tree.append(path)
+    pyaud.utils.files.append(path)
     main("lint", "--suppress")
     output = capsys.readouterr()[0]
     assert all(
@@ -717,7 +717,7 @@ def test_isort_imports(main: Any, nocolorcapsys: Any) -> None:
     with open(path, "w") as fout:
         fout.write(files.IMPORTS_UNSORTED)
 
-    pyaud.utils.tree.append(path)
+    pyaud.utils.files.append(path)
     main("imports", "--fix")
     with open(path) as fin:
         assert (
@@ -779,7 +779,7 @@ def test_py_audit_error(
         fout.write(content)
 
     pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.tree.populate()
+    pyaud.utils.files.populate()
     with pytest.raises(pyaud.exceptions.PyAuditError) as err:
         main(module)
 
@@ -1012,7 +1012,7 @@ def test_make_format_success(
     :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
                                     announce what is called.
     """
-    pyaud.utils.tree.append(Path.cwd() / FILES)
+    pyaud.utils.files.append(Path.cwd() / FILES)
     patch_sp_print_called()
     main("format")
     nocolorcapsys.readouterr()
@@ -1029,7 +1029,7 @@ def test_make_format_docs_fail(main: Any) -> None:
     with open(path, "w") as fout:
         fout.write(files.DOCFORMATTER_EXAMPLE)
 
-    pyaud.utils.tree.append(path)
+    pyaud.utils.files.append(path)
     with pytest.raises(pyaud.exceptions.PyAuditError):
         main("format-docs")
 
@@ -1049,7 +1049,7 @@ def test_make_format_docs_suppress(main: Any, nocolorcapsys: Any) -> None:
     with open(path, "w") as fout:
         fout.write(files.DOCFORMATTER_EXAMPLE)
 
-    pyaud.utils.tree.append(path)
+    pyaud.utils.files.append(path)
     main("format-docs", "--suppress")
     assert (
         nocolorcapsys.stderr().strip()
@@ -1082,7 +1082,7 @@ def test_isort_and_black(main: Any) -> None:
     with open(path, "w") as fout:
         fout.write(files.BEFORE_ISORT)
 
-    pyaud.utils.tree.append(path)
+    pyaud.utils.files.append(path)
     with pytest.raises(pyaud.exceptions.PyAuditError):
         main("imports")
 
@@ -1100,7 +1100,7 @@ def test_isort_and_black_fix(main: Any, nocolorcapsys: Any) -> None:
     with open(Path.cwd() / FILES, "w") as fout:
         fout.write(files.BEFORE_ISORT)
 
-    pyaud.utils.tree.append(Path.cwd() / FILES)
+    pyaud.utils.files.append(Path.cwd() / FILES)
     main("imports", "--suppress", "--fix")
     out = nocolorcapsys.stdout()
     assert f"Fixed {Path(Path.cwd() / FILES).relative_to(Path.cwd())}" in out
@@ -1114,7 +1114,7 @@ def test_make_format_fix(main: Any) -> None:
     with open(Path.cwd() / FILES, "w") as fout:
         fout.write(files.UNFORMATTED)
 
-    pyaud.utils.tree.append(Path.cwd() / FILES)
+    pyaud.utils.files.append(Path.cwd() / FILES)
     main("format", "--fix")
     with open(Path.cwd() / FILES) as fin:
         assert fin.read().strip() == files.UNFORMATTED.replace("'", '"')
@@ -1130,7 +1130,7 @@ def test_make_unused_fix(main: Any, nocolorcapsys: Any) -> None:
     with open(Path.cwd() / FILES, "w") as fout:
         fout.write(files.UNFORMATTED)  # also an unused function
 
-    pyaud.utils.tree.append(Path.cwd() / FILES)
+    pyaud.utils.files.append(Path.cwd() / FILES)
     main("unused", "--fix")
     assert nocolorcapsys.stdout() == (
         "{}:1: unused function 'reformat_this' (60% confidence)\n"
@@ -1154,7 +1154,7 @@ def test_make_unused_fail(main: Any) -> None:
     with open(Path.cwd() / FILES, "w") as fout:
         fout.write(files.UNFORMATTED)  # also an unused function
 
-    pyaud.utils.tree.append(Path.cwd() / FILES)
+    pyaud.utils.files.append(Path.cwd() / FILES)
     with pytest.raises(pyaud.exceptions.PyAuditError) as err:
         main("unused")
 
@@ -1175,7 +1175,7 @@ def test_make_format_docs_fix(main: Any, nocolorcapsys: Any) -> None:
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    pyaud.utils.tree.append(Path.cwd() / FILES)
+    pyaud.utils.files.append(Path.cwd() / FILES)
     with open(Path.cwd() / FILES, "w") as fout:
         fout.write(files.DOCFORMATTER_EXAMPLE)
 
@@ -1194,7 +1194,7 @@ def test_format_str_fix(main: Any, nocolorcapsys: Any) -> None:
         fout.write(files.FORMAT_STR_FUNCS_PRE)
 
     pyaud.utils.git.add(".", devnull=True)  # type: ignore
-    pyaud.utils.tree.populate()
+    pyaud.utils.files.populate()
     main("format-str", "--fix")
     nocolorcapsys.stdout()
     with open(Path.cwd() / FILES) as fin:

@@ -33,7 +33,7 @@ def make_coverage(**kwargs: bool) -> None:
     """
     coverage = pyaud.utils.Subprocess("coverage")
     returncode = make_tests(
-        *[f"--cov={e}" for e in pyaud.utils.tree.reduce()], **kwargs
+        *[f"--cov={e}" for e in pyaud.utils.files.reduce()], **kwargs
     )
     if not returncode:
         with pyaud.environ.TempEnvVar(kwargs, suppress=True):
@@ -168,7 +168,7 @@ def make_format(**kwargs: bool) -> int:
     :return:        Exit status.
     """
     black = pyaud.utils.Subprocess("black", loglevel="debug")
-    args = pyaud.utils.tree.reduce()
+    args = pyaud.utils.files.reduce()
     try:
         return black.call("--check", *args, **kwargs)
 
@@ -191,7 +191,7 @@ def make_lint(**kwargs: bool) -> int:
     :return:        Exit status.
     """
     with pyaud.environ.TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
-        args = pyaud.utils.tree.reduce()
+        args = pyaud.utils.files.reduce()
         pylint = pyaud.utils.Subprocess("pylint")
         return pylint.call("--output-format=colorized", *args, **kwargs)
 
@@ -237,7 +237,7 @@ def make_tests(*args: str, **kwargs: bool) -> int:
     pytest = pyaud.utils.Subprocess("pytest")
     rglob = [
         f
-        for f in pyaud.utils.tree
+        for f in pyaud.utils.files
         for p in patterns
         if f.match(p) and str(tests) in str(f)
     ]
@@ -302,7 +302,7 @@ def make_typecheck(**kwargs: bool) -> int:
     """
     mypy = pyaud.utils.Subprocess("mypy")
     return mypy.call(
-        "--ignore-missing-imports", *pyaud.utils.tree.reduce(), **kwargs
+        "--ignore-missing-imports", *pyaud.utils.files.reduce(), **kwargs
     )
 
 
@@ -318,7 +318,7 @@ def make_unused(**kwargs: bool) -> int:
     :return:        Exit status.
     """
     whitelist = Path.cwd() / os.environ["PYAUD_WHITELIST"]
-    args = pyaud.utils.tree.reduce()
+    args = pyaud.utils.files.reduce()
     vulture = pyaud.utils.Subprocess("vulture")
     while True:
         try:
@@ -352,7 +352,7 @@ def make_whitelist(**kwargs: bool) -> None:
     vulture = pyaud.utils.Subprocess("vulture", capture=True)
 
     # append whitelist exceptions for each individual module
-    for item in pyaud.utils.tree.reduce():
+    for item in pyaud.utils.files.reduce():
         if item.exists():
             with pyaud.utils.TempEnvVar(kwargs, suppress=True):
                 vulture.call(item, "--make-whitelist", **kwargs)
@@ -390,7 +390,7 @@ def make_imports(**kwargs: bool) -> int:
     """
     isort = pyaud.utils.Subprocess("isort", devnull=True)
     black = pyaud.utils.Subprocess("black", loglevel="debug", devnull=True)
-    for item in pyaud.utils.tree:
+    for item in pyaud.utils.files:
         if item.is_file():
 
             # collect original file's contents
@@ -425,7 +425,9 @@ def make_imports(**kwargs: bool) -> int:
                     raise pyaud.exceptions.PyAuditError(
                         "{} {}".format(
                             make_imports.__name__,
-                            tuple([str(p) for p in pyaud.utils.tree.reduce()]),
+                            tuple(
+                                [str(p) for p in pyaud.utils.files.reduce()]
+                            ),
                         )
                     )
 
@@ -462,7 +464,7 @@ def make_format_str(**kwargs: bool) -> int:
         "--line-length",
         "72",
         "--transform-concats",
-        *pyaud.utils.tree.reduce(),
+        *pyaud.utils.files.reduce(),
     )
     try:
         return flynt.call(
@@ -492,7 +494,7 @@ def make_format_docs(**kwargs: bool) -> int:
         "--recursive",
         "--wrap-summaries",
         "72",
-        *pyaud.utils.tree.reduce(),
+        *pyaud.utils.files.reduce(),
     )
     try:
         return docformatter.call("--check", *args, **kwargs)

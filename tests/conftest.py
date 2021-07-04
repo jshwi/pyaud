@@ -97,9 +97,9 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
 
     # setup singletons
     # ================
-    pyaud.utils.tree.clear()
+    pyaud.utils.files.clear()
     pyaud.config.toml.clear()
-    pyaud.utils.tree.populate()
+    pyaud.utils.files.populate()
     pyaud.config.configure_global()
     pyaud.config.load_config()
     pyaud.config.configure_logging()

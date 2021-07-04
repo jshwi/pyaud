@@ -266,7 +266,7 @@ def get_branch() -> Optional[str]:
     return None
 
 
-class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
+class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
     """Index all Python files in project.
 
     :param exclude: Files to exclude.
@@ -308,5 +308,5 @@ class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
         )
 
 
-tree = _Tree(*toml["indexing"]["exclude"])
+files = _Files(*toml["indexing"]["exclude"])
 git = _Git()

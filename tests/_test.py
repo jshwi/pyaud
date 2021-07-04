@@ -156,11 +156,11 @@ def test_get_pyfiles(
     make_file.parent.mkdir(exist_ok=True, parents=True)
     make_file.touch()
     pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.tree.populate()
+    pyaud.utils.files.populate()
     if assert_true:
-        assert make_item in pyaud.utils.tree.reduce()
+        assert make_item in pyaud.utils.files.reduce()
     else:
-        assert make_item not in pyaud.utils.tree.reduce()
+        assert make_item not in pyaud.utils.files.reduce()
 
 
 def test_pyitems_exclude_venv(make_tree: Any) -> None:
@@ -191,9 +191,9 @@ def test_pyitems_exclude_venv(make_tree: Any) -> None:
     with open(project_dir / ".gitignore", "w") as fout:
         fout.write("venv\n")
 
-    pyaud.utils.tree.clear()
-    pyaud.utils.tree.populate()
-    assert set(pyaud.utils.tree.reduce()) == set()
+    pyaud.utils.files.clear()
+    pyaud.utils.files.populate()
+    assert set(pyaud.utils.files.reduce()) == set()
 
 
 def test_arg_order_clone(
@@ -343,13 +343,13 @@ def test_help(
 
 def test_seq() -> None:
     """Get coverage on ``Seq`` abstract methods."""
-    pyaud.utils.tree.append("key")
-    assert pyaud.utils.tree[0] == "key"
-    pyaud.utils.tree[0] = "value"
-    assert pyaud.utils.tree[0] == "value"
-    del pyaud.utils.tree[0]
-    assert not pyaud.utils.tree
-    assert repr(pyaud.utils.tree) == "<_Tree []>"
+    pyaud.utils.files.append("key")
+    assert pyaud.utils.files[0] == "key"
+    pyaud.utils.files[0] = "value"
+    assert pyaud.utils.files[0] == "value"
+    del pyaud.utils.files[0]
+    assert not pyaud.utils.files
+    assert repr(pyaud.utils.files) == "<_Files []>"
 
 
 def test_temp_env_var_iskey() -> None:

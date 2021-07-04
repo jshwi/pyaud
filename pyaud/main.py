@@ -10,7 +10,7 @@ from argparse import SUPPRESS, ArgumentParser
 from .config import configure_logging, load_config
 from .environ import NAME, load_namespace
 from .plugins import load, plugins
-from .utils import colors, tree
+from .utils import colors, files
 
 
 class _Parser(ArgumentParser):
@@ -162,7 +162,7 @@ def main() -> None:
     load_namespace()
     load_config(parser.args.rcfile)
     configure_logging(parser.args.verbose)
-    tree.populate()
+    files.populate()
     plugins[parser.args.module](
         clean=parser.args.clean,
         suppress=parser.args.suppress,
