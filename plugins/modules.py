@@ -1,6 +1,6 @@
 """
-pyaud.modules
-=============
+plugins.modules
+===============
 """
 import os
 import shutil
@@ -8,20 +8,17 @@ import tempfile
 from pathlib import Path
 from subprocess import CalledProcessError
 
-from .config import generate_rcfile, toml
-from .environ import (
-    DOCS,
+from pyaud.config import generate_rcfile, toml
+from pyaud.environ import (
     DOCS_CONF,
     NAME,
     PIPFILE_LOCK,
-    README,
-    TESTS,
     TempEnvVar,
     find_package,
 )
-from .exceptions import PyAuditError
-from .plugins import check_command, register, write_command
-from .utils import (
+from pyaud.exceptions import PyAuditError
+from pyaud.plugins import check_command, register, write_command
+from pyaud.utils import (
     LineSwitch,
     Subprocess,
     colors,
@@ -30,6 +27,9 @@ from .utils import (
     git,
     tree,
 )
+
+DOCS = Path("docs")
+README = Path("README.rst")
 
 
 @register(name="clean")
@@ -245,7 +245,7 @@ def make_tests(*args: str, **kwargs: bool) -> int:
     :param kwargs:  Pass keyword arguments to ``call``.
     :return:        Exit status.
     """
-    tests = Path.cwd() / TESTS
+    tests = Path.cwd() / "tests"
     patterns = ("test_*.py", "*_test.py")
     pytest = Subprocess("pytest")
     rglob = [

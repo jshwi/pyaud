@@ -5,14 +5,18 @@ pyaud.plugins
 Main module used for public API.
 """
 import functools
+import importlib
 import os
 import sys
 from pathlib import Path
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
+from .environ import DEFAULT_PLUGINS, SITE_PLUGINS
 from .exceptions import NameConflictError
 from .objects import MutableMapping
 from .utils import HashCap, colors, tree
+
+_plugin_paths: List[Path] = [DEFAULT_PLUGINS, SITE_PLUGINS]
 
 
 def check_command(func: Callable[..., int]) -> Callable[..., None]:
@@ -106,3 +110,19 @@ def register(name: str) -> Callable[..., Any]:
         return plugin
 
     return _register
+
+
+def load() -> None:
+    """Import all registered plugins from provided plugin paths."""
+    for plugin_path in _plugin_paths:
+        sys.path.append(str(plugin_path.parent))
+        if plugin_path.is_dir():
+            for path in plugin_path.iterdir():
+                if (
+                    not path.name.startswith("_")
+                    and not path.name.startswith(".")
+                    and path.name.endswith(".py")
+                ):
+                    importlib.import_module(
+                        f"{plugin_path.name}.{path.name.replace('.py', '')}"
+                    )

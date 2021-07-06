@@ -2,3 +2,4 @@
 plugins
 =======
 """
+from . import modules

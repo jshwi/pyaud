@@ -9,7 +9,7 @@ from argparse import SUPPRESS, ArgumentParser
 
 from .config import configure_logging, load_config, toml
 from .environ import NAME, load_namespace
-from .plugins import plugins, register
+from .plugins import load, plugins, register
 from .utils import colors, tree
 
 
@@ -183,6 +183,7 @@ def main() -> None:
     Parse commandline arguments and run the selected choice from the
     dictionary of functions which matches the key.
     """
+    load()
     parser = _Parser(colors.cyan.get(NAME))
     load_namespace()
     load_config(parser.args.rcfile)

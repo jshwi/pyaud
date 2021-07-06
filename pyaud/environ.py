@@ -14,10 +14,12 @@ import setuptools
 
 NAME = __name__.split(".")[0]
 README = Path("README.rst")
-TESTS = Path("tests")
 DOCS = Path("docs")
 DOCS_CONF = DOCS / "conf.py"
 PIPFILE_LOCK = Path("Pipfile.lock")
+PLUGINS = Path("plugins")
+DEFAULT_PLUGINS = Path(__file__).absolute().parent.parent / PLUGINS
+SITE_PLUGINS = Path.cwd() / PLUGINS
 
 
 def find_package() -> str:

@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Adds `pyaud.main`
 - Adds `pyaud.utils.Subprocess.args`
 
+### Changed
+- `pyaud.modules` → `plugins.modules`
+
 ### Fixed
 - Fixes errors raised for missing project files
 - Fixes loading of `PYAUD_GH_NAME`

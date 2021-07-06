@@ -17,10 +17,6 @@ pyaud
    :members:
    :undoc-members:
    :show-inheritance:
-.. automodule:: pyaud.modules
-   :members:
-   :undoc-members:
-   :show-inheritance:
 .. automodule:: pyaud.objects
    :members:
    :undoc-members:

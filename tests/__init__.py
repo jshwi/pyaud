@@ -27,6 +27,7 @@ ERROR = LEVELS[3]
 CRITICAL = LEVELS[4]
 PYAUD_MODULES = "pyaud.main.plugins"
 SP_OPEN_PROC = "pyaud.utils.Subprocess._open_process"
+OS_GETCWD = "os.getcwd"
 
 
 class NoColorCapsys:

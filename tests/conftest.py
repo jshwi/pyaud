@@ -30,6 +30,10 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("CODECOV_SLUG", f"{GH_NAME}/{REPO}")
 
+    # load plugins dir
+    # ================
+    pyaud.plugins.load()
+
     # patch 3rd party attributes
     # ==========================
     # set the cwd to the temporary project dir
@@ -44,7 +48,7 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     # make default testing branch ``master``
     # replace default config with changes values from above
     # set config file to test config within the temporary home dir
-    monkeypatch.setattr("pyaud.modules.get_branch", lambda: "master")
+    monkeypatch.setattr("pyaud.utils.get_branch", lambda: "master")
     monkeypatch.setattr(
         "pyaud.config.CONFIGDIR", tmp_path / ".config" / pyaud.__name__
     )
