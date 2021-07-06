@@ -9,17 +9,17 @@ All exceptions made public for if they need to be reraised or excepted.
 Exceptions are already built into the architecture but can be used in
 new plugins as well.
 """
-from typing import Optional
+from typing import Optional as _Optional
 
 
-class PyAuditError(Exception):
+class AuditError(Exception):
     """Raise for audit failures that aren't failed subprocesses.
 
     :param cmd: Command that failed. If no argument provided the value
                 will be None.
     """
 
-    def __init__(self, cmd: Optional[str]) -> None:
+    def __init__(self, cmd: _Optional[str]) -> None:
         super().__init__(f"{cmd} did not pass all checks")
 
 

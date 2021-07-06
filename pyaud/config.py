@@ -4,26 +4,29 @@ pyaud.config
 
 Config module for ini parsing.
 """
-import copy
-import logging.config as logging_config
-import os
-import shutil
+import copy as _copy
+import logging.config as _logging_config
+import os as _os
+import shutil as _shutil
 from configparser import ConfigParser as _ConfigParser
-from pathlib import Path
-from typing import Any, Dict, List, MutableMapping, Optional, TextIO, Union
+from pathlib import Path as _Path
+from typing import Any as _Any
+from typing import Dict as _Dict
+from typing import List as _List
+from typing import MutableMapping as _ABCMutableMapping
+from typing import Optional as _Optional
+from typing import TextIO as _TextIO
+from typing import Union as _Union
 
-import appdirs
-import toml.decoder as toml_decoder
-import toml.encoder as toml_encoder
+import appdirs as _appdirs
+import toml.decoder as _toml_decoder
+import toml.encoder as _toml_encoder
 
-from .environ import NAME
-from .objects import MutableMapping as _MutableMapping
+from ._environ import NAME as _NAME
+from ._objects import MutableMapping as _MutableMapping
 
-RCFILE = f".{NAME}rc"
-TOMLFILE = f"{NAME}.toml"
-PYPROJECT = "pyproject.toml"
-CONFIGDIR = Path(appdirs.user_config_dir(NAME))
-DEFAULT_CONFIG: Dict[str, Any] = dict(
+CONFIGDIR = _Path(_appdirs.user_config_dir(_NAME))
+DEFAULT_CONFIG: _Dict[str, _Any] = dict(
     clean={"exclude": ["*.egg*", ".mypy_cache", ".env", "instance"]},
     logging={
         "version": 1,
@@ -40,7 +43,7 @@ DEFAULT_CONFIG: Dict[str, Any] = dict(
                 "when": "d",
                 "backupCount": 60,
                 "filename": str(
-                    Path(appdirs.user_log_dir(NAME)) / f"{NAME}.log"
+                    _Path(_appdirs.user_log_dir(_NAME)) / f"{_NAME}.log"
                 ),
             }
         },
@@ -63,26 +66,28 @@ DEFAULT_CONFIG: Dict[str, Any] = dict(
     },
 )
 
+_TOMLFILE = f"{_NAME}.toml"
+
 
 class ConfigParser(_ConfigParser):  # pylint: disable=too-many-ancestors
     """ConfigParser inherited class with some tweaks."""
 
     def __init__(self) -> None:
         super().__init__(default_section="")
-        self.configfile = CONFIGDIR / f"{NAME}.ini"
+        self.configfile = CONFIGDIR / f"{_NAME}.ini"
         self._resolve()
 
     def _read_proxy(self) -> None:
         self.read(self.configfile)
         for section in self.sections():
             for key in self[section]:
-                self[section][key] = os.path.expandvars(self[section][key])
+                self[section][key] = _os.path.expandvars(self[section][key])
 
     def _resolve(self) -> None:
         if self.configfile.is_file():
             self._read_proxy()
 
-    def getlist(self, section: str, key: str) -> List[str]:
+    def getlist(self, section: str, key: str) -> _List[str]:
         """Return a comma separated ini list as a Python list.
 
         :param section: Section containing the key-value pair.
@@ -100,14 +105,14 @@ class ConfigParser(_ConfigParser):  # pylint: disable=too-many-ancestors
         return retval
 
 
-class _TomlArrayEncoder(toml_encoder.TomlEncoder):
+class _TomlArrayEncoder(_toml_encoder.TomlEncoder):
     """Pass to ``toml.encoder`` functions (dump and dumps).
 
     Set rule for string encoding so arrays are collapsed if they exceed
     line limit.
     """
 
-    def dump_list(self, v: Any) -> str:
+    def dump_list(self, v: _Any) -> str:
         """Rule for dumping arrays.
 
         :param v:   Array from toml file.
@@ -126,48 +131,50 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
 
     _encoder = _TomlArrayEncoder()
 
-    def _format_dump(self, obj: Dict[str, Any]) -> Dict[str, Any]:
+    def _format_dump(self, obj: _Dict[str, _Any]) -> _Dict[str, _Any]:
         for key, value in obj.items():
             if isinstance(value, dict):
                 value = self._format_dump(value)
 
             if isinstance(value, str):
-                value = value.replace(str(Path.home()), "~")
+                value = value.replace(str(_Path.home()), "~")
 
             obj[key] = value
 
         return obj
 
-    def dump(self, fout: TextIO, obj: Optional[MutableMapping] = None) -> str:
+    def dump(
+        self, fout: _TextIO, obj: _Optional[_ABCMutableMapping] = None
+    ) -> str:
         """Native ``dump`` method to include encoder.
 
         :param fout:    TextIO file stream.
         :param obj:     Mutable mapping dict-like object.
         :return:        str object in toml encoded form.
         """
-        return toml_encoder.dump(
+        return _toml_encoder.dump(
             self._format_dump(dict(self) if obj is None else dict(obj)),
             fout,
             encoder=self._encoder,
         )
 
-    def dumps(self, obj: Optional[MutableMapping] = None) -> str:
+    def dumps(self, obj: _Optional[_ABCMutableMapping] = None) -> str:
         """Native ``dump(from)s(tr)`` method to include encoder.
 
         :param obj: Mutable mapping dict-like object.
         :return:    str object in toml encoded form.
         """
-        return toml_encoder.dumps(
+        return _toml_encoder.dumps(
             self._format_dump(dict(self) if obj is None else dict(obj)),
             encoder=self._encoder,
         )
 
-    def load(self, fin: TextIO, *args: Any) -> None:
+    def load(self, fin: _TextIO, *args: _Any) -> None:
         """Native ``load (from file)`` method.
 
         :param fin: File stream.
         """
-        obj = toml_decoder.load(fin)
+        obj = _toml_decoder.load(fin)
         for arg in args:
             obj = obj.get(arg, obj)
 
@@ -181,21 +188,21 @@ def configure_global() -> None:
     already exist. Load base config file which may or may not still have
     the default settings configured.
     """
-    configfile = CONFIGDIR / TOMLFILE
-    backupfile = CONFIGDIR / f".{TOMLFILE}.bak"
-    default_config = copy.deepcopy(DEFAULT_CONFIG)
+    configfile = CONFIGDIR / _TOMLFILE
+    backupfile = CONFIGDIR / f".{_TOMLFILE}.bak"
+    default_config = _copy.deepcopy(DEFAULT_CONFIG)
     config = ConfigParser()
     if configfile.is_file():
         while True:
             with open(configfile) as fin:
                 try:
                     toml.load(fin)
-                    shutil.copyfile(configfile, backupfile)
+                    _shutil.copyfile(configfile, backupfile)
                     break
 
-                except toml_decoder.TomlDecodeError:
+                except _toml_decoder.TomlDecodeError:
                     if backupfile.is_file():
-                        os.rename(backupfile, configfile)
+                        _os.rename(backupfile, configfile)
                     else:
                         break
 
@@ -212,29 +219,25 @@ def configure_global() -> None:
         toml.dump(fout)
 
 
-def load_config(opt: Optional[Union[str, os.PathLike]] = None):
+def load_config(opt: _Optional[_Union[str, _os.PathLike]] = None):
     """Load configs in order, each one overriding the previous.
 
     :param opt: Optional extra path which will override all others.
     """
+    rcfile = f".{_NAME}rc"
     files = [
-        CONFIGDIR / TOMLFILE,
-        Path.home() / RCFILE,
-        Path.cwd() / RCFILE,
-        Path.cwd() / PYPROJECT,
+        CONFIGDIR / _TOMLFILE,
+        _Path.home() / rcfile,
+        _Path.cwd() / rcfile,
+        _Path.cwd() / "pyproject.toml",
     ]
     if opt is not None:
-        files.append(Path(opt))
+        files.append(_Path(opt))
 
     for file in files:
         if file.is_file():
             with open(file) as fin:
-                toml.load(fin, "tool", NAME)
-
-
-def generate_rcfile():
-    """Print default config file in ``Toml`` format."""
-    print(toml.dumps(DEFAULT_CONFIG), end="")
+                toml.load(fin, "tool", _NAME)
 
 
 def configure_logging(verbose: int = 0) -> None:
@@ -248,7 +251,7 @@ def configure_logging(verbose: int = 0) -> None:
     config = toml["logging"]
 
     # create logging dir and it's parents if they do not exist already
-    Path(config["handlers"]["default"]["filename"]).expanduser().parent.mkdir(
+    _Path(config["handlers"]["default"]["filename"]).expanduser().parent.mkdir(
         exist_ok=True, parents=True
     )
 
@@ -258,7 +261,7 @@ def configure_logging(verbose: int = 0) -> None:
     ]
 
     # load values to ``logging``
-    logging_config.dictConfig(toml["logging"])
+    _logging_config.dictConfig(toml["logging"])
 
 
 toml = _Toml()

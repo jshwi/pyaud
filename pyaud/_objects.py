@@ -4,15 +4,18 @@ pyaud.objects
 """
 from collections.abc import MutableMapping as _MutableMapping
 from collections.abc import MutableSequence as _MutableSequence
-from pathlib import Path
-from typing import Any, Dict, Iterator, List
+from pathlib import Path as _Path
+from typing import Any as _Any
+from typing import Dict as _Dict
+from typing import Iterator as _Iterator
+from typing import List as _List
 
 
 class MutableSequence(_MutableSequence):  # pylint: disable=too-many-ancestors
     """Inherit to replicate subclassing of ``list`` objects."""
 
     def __init__(self) -> None:
-        self._list: List[Any] = list()
+        self._list: _List[_Any] = list()
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self._list}>"
@@ -20,13 +23,13 @@ class MutableSequence(_MutableSequence):  # pylint: disable=too-many-ancestors
     def __len__(self) -> int:
         return self._list.__len__()
 
-    def __delitem__(self, key: Any) -> None:
+    def __delitem__(self, key: _Any) -> None:
         self._list.__delitem__(key)
 
-    def __setitem__(self, index: Any, value: Any) -> None:
+    def __setitem__(self, index: _Any, value: _Any) -> None:
         self._list.__setitem__(index, value)
 
-    def __getitem__(self, index: Any) -> Any:
+    def __getitem__(self, index: _Any) -> _Any:
         return self._list.__getitem__(index)
 
     def insert(self, index: int, value: str) -> None:
@@ -42,7 +45,7 @@ class MutableMapping(_MutableMapping):  # pylint: disable=too-many-ancestors
     """Inherit to replicate subclassing of ``dict`` objects."""
 
     def __init__(self) -> None:
-        self._dict: Dict[str, Any] = dict()
+        self._dict: _Dict[str, _Any] = dict()
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self._dict}>"
@@ -50,21 +53,21 @@ class MutableMapping(_MutableMapping):  # pylint: disable=too-many-ancestors
     def __len__(self) -> int:
         return self._dict.__len__()
 
-    def __delitem__(self, key: Any) -> None:
+    def __delitem__(self, key: _Any) -> None:
         self._dict.__delitem__(key)
 
-    def __setitem__(self, index: Any, value: Any) -> None:
+    def __setitem__(self, index: _Any, value: _Any) -> None:
         self._dict = self._nested_update(self._dict, {index: value})
 
-    def __getitem__(self, index: Any) -> Any:
+    def __getitem__(self, index: _Any) -> _Any:
         return self._dict.__getitem__(index)
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> _Iterator:
         return iter(self._dict)
 
     def _nested_update(
-        self, obj: Dict[str, Any], update: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, obj: _Dict[str, _Any], update: _Dict[str, _Any]
+    ) -> _Dict[str, _Any]:
         # add to __setitem__ to ensure that no entire dict keys with
         # missing nested keys overwrite all other values
         # run recursively to cover all nested objects if value is a dict
@@ -77,7 +80,7 @@ class MutableMapping(_MutableMapping):  # pylint: disable=too-many-ancestors
                 value = self._nested_update(obj.get(key, {}), value)
 
             elif isinstance(value, str):
-                value = str(Path(value).expanduser())
+                value = str(_Path(value).expanduser())
 
             obj[key] = value
 

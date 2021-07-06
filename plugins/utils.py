@@ -7,10 +7,15 @@ import shutil
 from pathlib import Path
 from typing import Any, Dict
 
+from object_colors import Color
+
 import pyaud
 
 DOCS = Path("docs")
 README = Path("README.rst")
+
+colors = Color()
+colors.populate_colors()
 
 
 class LineSwitch:
@@ -47,70 +52,62 @@ def deploy_docs() -> None:
     """Series of functions for deploying docs."""
     gh_remote = os.environ["PYAUD_GH_REMOTE"]
     root_html = Path.cwd() / "html"
-    pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.git.diff_index(  # type: ignore
-        "--cached", "HEAD", capture=True
-    )
+    pyaud.git.add(".")  # type: ignore
+    pyaud.git.diff_index("--cached", "HEAD", capture=True)  # type: ignore
     stashed = False
-    if pyaud.utils.git.stdout():
-        pyaud.utils.git.stash(devnull=True)  # type: ignore
+    if pyaud.git.stdout():
+        pyaud.git.stash(devnull=True)  # type: ignore
         stashed = True
 
     shutil.move(str(Path.cwd() / os.environ["BUILDDIR"] / "html"), root_html)
     shutil.copy(Path.cwd() / README, root_html / README)
-    pyaud.utils.git.rev_list(  # type: ignore
-        "--max-parents=0", "HEAD", capture=True
-    )
-    stdout = pyaud.utils.git.stdout()
+    pyaud.git.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
+    stdout = pyaud.git.stdout()
     if stdout:
-        pyaud.utils.git.checkout(stdout[-1])  # type: ignore
+        pyaud.git.checkout(stdout[-1])  # type: ignore
 
-    pyaud.utils.git.checkout("--orphan", "gh-pages")  # type: ignore
-    pyaud.utils.git.config(  # type: ignore
+    pyaud.git.checkout("--orphan", "gh-pages")  # type: ignore
+    pyaud.git.config(  # type: ignore
         "--global", "user.name", os.environ["PYAUD_GH_NAME"]
     )
-    pyaud.utils.git.config(  # type: ignore
+    pyaud.git.config(  # type: ignore
         "--global", "user.email", os.environ["PYAUD_GH_EMAIL"]
     )
     shutil.rmtree(Path.cwd() / DOCS)
-    pyaud.utils.git.rm("-rf", Path.cwd(), devnull=True)  # type: ignore
-    pyaud.utils.git.clean(  # type: ignore
-        "-fdx", "--exclude=html", devnull=True
-    )
+    pyaud.git.rm("-rf", Path.cwd(), devnull=True)  # type: ignore
+    pyaud.git.clean("-fdx", "--exclude=html", devnull=True)  # type: ignore
     for file in root_html.rglob("*"):
         shutil.move(str(file), Path.cwd() / file.name)
 
     shutil.rmtree(root_html)
-    pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.git.commit(  # type: ignore
+    pyaud.git.add(".")  # type: ignore
+    pyaud.git.commit(  # type: ignore
         "-m", '"[ci skip] Publishes updated documentation"', devnull=True
     )
-    pyaud.utils.git.remote("rm", "origin")  # type: ignore
-    pyaud.utils.git.remote("add", "origin", gh_remote)  # type: ignore
-    pyaud.utils.git.fetch()  # type: ignore
-    pyaud.utils.git.stdout()
-    pyaud.utils.git.ls_remote(  # type: ignore
+    pyaud.git.remote("rm", "origin")  # type: ignore
+    pyaud.git.remote("add", "origin", gh_remote)  # type: ignore
+    pyaud.git.fetch()  # type: ignore
+    pyaud.git.stdout()
+    pyaud.git.ls_remote(  # type: ignore
         "--heads", gh_remote, "gh-pages", capture=True
     )
-    result = pyaud.utils.git.stdout()
+    result = pyaud.git.stdout()
     remote_exists = None if not result else result[-1]
-    pyaud.utils.git.diff(  # type: ignore
+    pyaud.git.diff(  # type: ignore
         "gh-pages", "origin/gh-pages", suppress=True, capture=True
     )
-    result = pyaud.utils.git.stdout()
+    result = pyaud.git.stdout()
     remote_diff = None if not result else result[-1]
     if remote_exists is not None and remote_diff is None:
-        pyaud.utils.colors.green.print(
-            "No difference between local branch and remote"
-        )
+        colors.green.print("No difference between local branch and remote")
         print("Pushing skipped")
     else:
-        pyaud.utils.colors.green.print("Pushing updated documentation")
-        pyaud.utils.git.push("origin", "gh-pages", "-f")  # type: ignore
+        colors.green.print("Pushing updated documentation")
+        pyaud.git.push("origin", "gh-pages", "-f")  # type: ignore
         print("Documentation Successfully deployed")
 
-    pyaud.utils.git.checkout("master", devnull=True)  # type: ignore
+    pyaud.git.checkout("master", devnull=True)  # type: ignore
     if stashed:
-        pyaud.utils.git.stash("pop", devnull=True)  # type: ignore
+        pyaud.git.stash("pop", devnull=True)  # type: ignore
 
-    pyaud.utils.git.branch("-D", "gh-pages", devnull=True)  # type: ignore
+    pyaud.git.branch("-D", "gh-pages", devnull=True)  # type: ignore

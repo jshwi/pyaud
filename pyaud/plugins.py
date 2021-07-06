@@ -4,61 +4,76 @@ pyaud.plugins
 
 Main module used for public API.
 """
-import functools
-import importlib
-import os
-import sys
-from abc import ABC, abstractmethod
-from pathlib import Path
-from subprocess import CalledProcessError
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+import functools as _functools
+import importlib as _importlib
+import os as _os
+import sys as _sys
+from abc import ABC as _ABC
+from abc import abstractmethod as _abstractmethod
+from pathlib import Path as _Path
+from subprocess import CalledProcessError as _CalledProcessError
+from typing import Any as _Any
+from typing import Callable as _Callable
+from typing import Dict as _Dict
+from typing import List as _List
+from typing import Optional as _Optional
+from typing import Type as _Type
+from typing import Union as _Union
 
-from .environ import DEFAULT_PLUGINS, NAME, SITE_PLUGINS, TempEnvVar
-from .exceptions import NameConflictError, PyAuditError
-from .objects import MutableMapping
-from .utils import HashCap, Subprocess, colors, files
+from . import exceptions as _exceptions
+from ._environ import DEFAULT_PLUGINS as _DEFAULT_PLUGINS
+from ._environ import NAME as _NAME
+from ._environ import SITE_PLUGINS as _SITE_PLUGINS
+from ._environ import TempEnvVar as _TempEnvVar
+from ._objects import MutableMapping as _MutableMapping
+from ._utils import HashCap as _HashCap
+from ._utils import Subprocess as _Subprocess
+from ._utils import colors as _colors
+from ._utils import files as _files
 
-_plugin_paths: List[Path] = [DEFAULT_PLUGINS, SITE_PLUGINS]
+_plugin_paths: _List[_Path] = [_DEFAULT_PLUGINS, _SITE_PLUGINS]
 
 
-def check_command(func: Callable[..., int]) -> Callable[..., None]:
+def _check_command(func: _Callable[..., int]) -> _Callable[..., None]:
     """Run the routine common with all functions in this package.
 
     :param func:    Function to decorate.
     :return:        Wrapped function.
     """
 
-    @functools.wraps(func)
+    @_functools.wraps(func)
     def _wrapper(*args, **kwargs: bool) -> None:
-        if not files.reduce():
+        if not _files.reduce():
             print("No files found")
         else:
             returncode = func(*args, **kwargs)
             if returncode:
-                colors.red.bold.print(
+                _colors.red.bold.print(
                     f"Failed: returned non-zero exit status {returncode}",
-                    file=sys.stderr,
+                    file=_sys.stderr,
                 )
             else:
-                colors.green.bold.print(
+                _colors.green.bold.print(
                     "Success: no issues found in {} source files".format(
-                        len(files)
+                        len(_files)
                     )
                 )
 
     return _wrapper
 
 
-class _SubprocessFactory(MutableMapping):  # pylint: disable=too-many-ancestors
+class _SubprocessFactory(  # pylint: disable=too-many-ancestors
+    _MutableMapping
+):
     """Instantiate collection of ``Subprocess`` objects."""
 
-    def __init__(self, args: List[str]):
+    def __init__(self, args: _List[str]):
         super().__init__()
         for arg in args:
-            self[arg] = Subprocess(arg)
+            self[arg] = _Subprocess(arg)
 
 
-class Plugin(ABC):  # pylint: disable=too-few-public-methods
+class Plugin(_ABC):  # pylint: disable=too-few-public-methods
     """Base class of all plugins.
 
     Raises ``TypeError`` if registered directly.
@@ -75,15 +90,15 @@ class Plugin(ABC):  # pylint: disable=too-few-public-methods
         self.subprocess = _SubprocessFactory(self.exe)
 
     @staticmethod
-    def audit_error() -> PyAuditError:
+    def audit_error() -> _exceptions.AuditError:
         """Raise if checks have failed.
 
         :return: AuditError instantiated with error message.
         """
-        return PyAuditError(" ".join(sys.argv))
+        return _exceptions.AuditError(" ".join(_sys.argv))
 
     @property
-    def env(self) -> Dict[str, str]:
+    def env(self) -> _Dict[str, str]:
         """Return environment which will remain active for run.
 
         :return:    Dict containing any number of str keys and
@@ -92,14 +107,14 @@ class Plugin(ABC):  # pylint: disable=too-few-public-methods
         return {}
 
     @property
-    def exe(self) -> List[str]:
+    def exe(self) -> _List[str]:
         """List of executables to add to ``subprocess`` dict.
 
         :return: List of str object to assign to subprocesses
         """
         return []
 
-    def __call__(self, *args: Any, **kwargs: bool) -> Any:
+    def __call__(self, *args: _Any, **kwargs: bool) -> _Any:
         """Enables calling of all plugin instances."""
 
 
@@ -131,8 +146,8 @@ class Audit(Plugin):
                                 decorator.
     """
 
-    @abstractmethod
-    def audit(self, *args: Any, **kwargs: bool) -> int:
+    @_abstractmethod
+    def audit(self, *args: _Any, **kwargs: bool) -> int:
         """All audit logic to be written within this method.
 
         :param args:    Args that can be passed from other plugins.
@@ -143,13 +158,13 @@ class Audit(Plugin):
                         succeeded or failed.
         """
 
-    @check_command
-    def __call__(self, *args: Any, **kwargs: bool) -> int:
-        with TempEnvVar(os.environ, **self.env):
+    @_check_command
+    def __call__(self, *args: _Any, **kwargs: bool) -> int:
+        with _TempEnvVar(_os.environ, **self.env):
             try:
                 return self.audit(*args, **kwargs)
 
-            except CalledProcessError as err:
+            except _CalledProcessError as err:
                 raise self.audit_error() from err
 
 
@@ -191,8 +206,8 @@ class Fix(Audit):
                                 decorator.
     """
 
-    @abstractmethod
-    def audit(self, *args: Any, **kwargs: bool) -> int:
+    @_abstractmethod
+    def audit(self, *args: _Any, **kwargs: bool) -> int:
         """All audit logic to be written within this method.
 
         :param args:    Args that can be passed from other plugins.
@@ -209,8 +224,8 @@ class Fix(Audit):
                         ``fix`` method, otherwise raise ``AuditError``.
         """
 
-    @abstractmethod
-    def fix(self, *args: Any, **kwargs: bool) -> int:
+    @_abstractmethod
+    def fix(self, *args: _Any, **kwargs: bool) -> int:
         """Run if audit fails but only if running a fix.
 
         :param args:    Args that can be passed from other plugins.
@@ -221,13 +236,13 @@ class Fix(Audit):
                         succeeded or failed.
         """
 
-    @check_command
-    def __call__(self, *args: Any, **kwargs: bool) -> Any:
-        with TempEnvVar(os.environ, **self.env):
+    @_check_command
+    def __call__(self, *args: _Any, **kwargs: bool) -> _Any:
+        with _TempEnvVar(_os.environ, **self.env):
             try:
                 return self.audit(*args, **kwargs)
 
-            except CalledProcessError as err:
+            except _CalledProcessError as err:
                 if kwargs.get("fix", False):
                     return self.fix(**kwargs)
 
@@ -253,8 +268,8 @@ class Action(Plugin):  # pylint: disable=too-few-public-methods
     :return:                    Any value and type can be returned.
     """
 
-    @abstractmethod
-    def action(self, *args: Any, **kwargs: bool) -> Any:
+    @_abstractmethod
+    def action(self, *args: _Any, **kwargs: bool) -> _Any:
         """All logic to be written within this method.
 
         :param args:    Args that can be passed from other plugins.
@@ -262,12 +277,12 @@ class Action(Plugin):  # pylint: disable=too-few-public-methods
         :return:        Any value and type can be returned.
         """
 
-    def __call__(self, *args: Any, **kwargs: bool) -> Any:
-        with TempEnvVar(os.environ, **self.env):
+    def __call__(self, *args: _Any, **kwargs: bool) -> _Any:
+        with _TempEnvVar(_os.environ, **self.env):
             try:
                 return self.action(*args, **kwargs)
 
-            except CalledProcessError as err:
+            except _CalledProcessError as err:
                 raise self.audit_error() from err
 
 
@@ -291,17 +306,17 @@ class Parametrize(Plugin):  # pylint: disable=too-few-public-methods
                                 flag is not passed to the commandline.
     """
 
-    @abstractmethod
-    def plugins(self) -> List[str]:
+    @_abstractmethod
+    def plugins(self) -> _List[str]:
         """List of plugin names to run.
 
         :return: List of plugin names, as defined in ``@register``.
         """
 
-    def __call__(self, *args: Any, **kwargs: bool) -> None:
+    def __call__(self, *args: _Any, **kwargs: bool) -> None:
         for name in self.plugins():
-            colors.cyan.bold.print(f"\n{NAME} {name}")
-            plugins[name](*args, **kwargs)
+            _colors.cyan.bold.print(f"\n{_NAME} {name}")
+            _plugins[name](*args, **kwargs)
 
 
 class Write(Plugin):
@@ -314,35 +329,35 @@ class Write(Plugin):
         - If the file did exist and the file has been changed
     """
 
-    def required(self) -> Optional[Path]:
+    def required(self) -> _Optional[_Path]:
         """Pre-requisite for working on file (if there is one).
 
         :return: Path object, otherwise None.
         """
 
     @property
-    @abstractmethod
-    def path(self) -> Path:
+    @_abstractmethod
+    def path(self) -> _Path:
         """Path to file, absolute or relative, that will be worked on.
 
         :return: Returned value needs to be a Path object.
         """
 
-    def write(self, *args: Any, **kwargs: bool) -> Any:
+    def write(self, *args: _Any, **kwargs: bool) -> _Any:
         """All write logic to be written within this method.
 
         :param args:    Args that can be passed from other plugins.
         :param kwargs:  Boolean flags for subprocesses.
         """
 
-    def __call__(self, *args: Any, **kwargs: bool) -> None:
+    def __call__(self, *args: _Any, **kwargs: bool) -> None:
         if (
             self.required() is None  # type: ignore
             or self.required().exists()  # type: ignore
         ):
-            path = Path(self.path)
+            path = _Path(self.path)
             print(f"Updating ``{path}``")
-            with HashCap(path) as cap:
+            with _HashCap(path) as cap:
                 self.write(*args, **kwargs)
 
             if cap.new:
@@ -389,35 +404,35 @@ class FixFile(Plugin):
                                 process fails error will be raised.
     """
 
-    @abstractmethod
-    def fail_condition(self) -> Optional[bool]:
+    @_abstractmethod
+    def fail_condition(self) -> _Optional[bool]:
         """Condition to trigger non-subprocess failure."""
 
-    @abstractmethod
-    def audit(self, file: Path, **kwargs: bool) -> None:
+    @_abstractmethod
+    def audit(self, file: _Path, **kwargs: bool) -> None:
         """All logic written within this method for each file's audit.
 
         :param file:    Individual file.
         :param kwargs:  Boolean flags for subprocesses.
         """
 
-    @abstractmethod
-    def fix(self, file: Path, **kwargs: bool) -> None:
+    @_abstractmethod
+    def fix(self, file: _Path, **kwargs: bool) -> None:
         """All logic written within this method for each file's fix.
 
         :param file:    Individual file.
         :param kwargs:  Boolean flags for subprocesses.
         """
 
-    @check_command
-    def __call__(self, *args: Any, **kwargs: bool) -> Any:
-        paths = [p for p in files if p.is_file()]
-        for path in paths:
-            self.audit(path, **kwargs)
+    @_check_command
+    def __call__(self, *args, **kwargs: bool) -> _Any:
+        files = [p for p in _files if p.is_file()]
+        for file in files:
+            self.audit(file, **kwargs)
             fail = self.fail_condition()
             if fail is not None and fail:
                 if kwargs.get("fix", False):
-                    self.fix(path, **kwargs)
+                    self.fix(file, **kwargs)
                 else:
                     raise self.audit_error()
 
@@ -432,20 +447,20 @@ PLUGINS = [Audit, Fix, Action, Parametrize, Write, FixFile]
 PLUGIN_NAMES = [t.__name__ for t in PLUGINS]
 
 # array of plugin types before instantiation
-PluginType = Union[
-    Type[Audit],
-    Type[Fix],
-    Type[Action],
-    Type[Parametrize],
-    Type[Write],
-    Type[FixFile],
+PluginType = _Union[
+    _Type[Audit],
+    _Type[Fix],
+    _Type[Action],
+    _Type[Parametrize],
+    _Type[Write],
+    _Type[FixFile],
 ]
 
 # array of plugin types after instantiation
-PluginInstance = Union[Audit, Fix, Action, Parametrize, Write, FixFile]
+PluginInstance = _Union[Audit, Fix, Action, Parametrize, Write, FixFile]
 
 
-class _Plugins(MutableMapping):  # pylint: disable=too-many-ancestors
+class _Plugins(_MutableMapping):  # pylint: disable=too-many-ancestors
     """Holds registered plugins.
 
     Instantiate plugin on running __setitem__.
@@ -459,7 +474,7 @@ class _Plugins(MutableMapping):  # pylint: disable=too-many-ancestors
         # only unique names to be set in `plugins` object
         # if name is not unique raise `NameConflictError`
         if name in self:
-            raise NameConflictError(plugin.__name__, name)
+            raise _exceptions.NameConflictError(plugin.__name__, name)
 
         if (
             not hasattr(plugin, "__bases__")
@@ -473,27 +488,52 @@ class _Plugins(MutableMapping):  # pylint: disable=too-many-ancestors
         super().__setitem__(name, plugin(name))
 
 
-plugins = _Plugins()
+_plugins = _Plugins()
 
 
-def register(name: str) -> Callable[..., PluginInstance]:
+def register(name: str) -> _Callable[..., PluginType]:
     """Register subclassed plugin to collection.
 
     :param name:    Name to register plugin as.
     :return:        Return registered plugin to call.
     """
 
-    def _register(plugin: Any) -> Any:
-        plugins[name] = plugin
+    def _register(plugin: PluginType):
+        _plugins[name] = plugin
         return plugin
 
     return _register
 
 
+def mapping() -> _Dict[str, PluginInstance]:
+    """Get dict of named keys and their corresponding plugin values.
+
+    :return: Mapping of plugins and their unique names.
+    """
+    return dict(_plugins)
+
+
+def registered() -> _List[str]:
+    """Get list of registered plugins.
+
+    :return: List of registered plugins.
+    """
+    return sorted(list(_plugins))
+
+
+def get(name: str) -> PluginInstance:
+    """Get plugins by name.
+
+    :param name:    Unique name of plugin.
+    :return:        Callable plugin instance.
+    """
+    return _plugins[name]
+
+
 def load() -> None:
-    """Import all registered plugins from provided plugin paths."""
+    """Import all registered plugins from provided plugin  paths."""
     for plugin_path in _plugin_paths:
-        sys.path.append(str(plugin_path.parent))
+        _sys.path.append(str(plugin_path.parent))
         if plugin_path.is_dir():
             for path in plugin_path.iterdir():
                 if (
@@ -501,6 +541,6 @@ def load() -> None:
                     and not path.name.startswith(".")
                     and path.name.endswith(".py")
                 ):
-                    importlib.import_module(
+                    _importlib.import_module(
                         f"{plugin_path.name}.{path.name.replace('.py', '')}"
                     )

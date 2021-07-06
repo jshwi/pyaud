@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v2.0.0...HEAD)
 ------------------------------------------------------------------------
 ### Added
+- Adds `pyaud.__all__`
 - Adds `pyaud.plugins.FixFile` abstract base class
 - Adds `pyaud.plugins.Write` abstract base class
 - Adds `pyaud.plugins.Parametrize` abstract base class
@@ -23,6 +24,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Adds `pyaud.utils.Subprocess.args`
 
 ### Changed
+- `pyaud.plugins._plugins` not for external api, `@register` decorator only
+- `pyaud.plugins` → `pyaud.plugins._plugins` (helper functions added)
+- `pyaud.utils` → `pyaud._utils`
+- `pyaud.objects` → `pyaud._objects`
+- `pyaud.main` → `pyaud._main`
+- `pyaud.environ` → `pyaud._environ`
+- `pyaud.utils.tree` → `pyaud.utils.files`
+- `pyaud.main.audit` → `plugins.modules.audit`
 - `pyaud.utils.tree` → `pyaud.utils.files`
 - Moves plugin specific utilities to `plugins.utils`
 - `pyaud.main.audit` → `plugins.modules.audit`

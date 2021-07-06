@@ -17,10 +17,12 @@ import pyaud
 
 from . import (
     CONFPY,
+    DOCS,
     FILES,
     INIT,
     INITIAL_COMMIT,
     NO_ISSUES,
+    PIPFILE_LOCK,
     PUSHING_SKIPPED,
     PYAUD_PLUGINS_PLUGINS,
     README,
@@ -94,8 +96,8 @@ def test_make_audit_error(
                             color codes.
     """
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
-    pyaud.utils.files.append(Path.cwd() / FILES)
-    with pytest.raises(pyaud.exceptions.PyAuditError):
+    pyaud.files.append(Path.cwd() / FILES)
+    with pytest.raises(pyaud.exceptions.AuditError):
         main("audit")
 
     assert nocolorcapsys.stdout().strip() == "pyaud format"
@@ -115,8 +117,8 @@ def test_call_coverage_xml(
                                     stripping ANSI color codes.
     """
     patch_sp_print_called()
-    mocked_plugins = dict(pyaud.plugins.plugins)
-    mocked_plugins["tests"] = lambda *_, **__: 0
+    mocked_plugins = pyaud.plugins.mapping()
+    mocked_plugins["tests"] = lambda *_, **__: 0  # type: ignore
     monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_plugins)
     main("coverage")
     assert nocolorcapsys.stdout().strip() == "<Subprocess (coverage)> xml"
@@ -141,7 +143,7 @@ def test_make_deploy_all(
                             default).
     """
     modules = "deploy-cov", "deploy-docs"
-    mocked_plugins = dict(pyaud.plugins.plugins)
+    mocked_plugins = pyaud.plugins.mapping()
     for module in modules:
         mocked_plugins[module] = call_status(module)
 
@@ -164,9 +166,9 @@ def test_make_deploy_all_fail(
                             color codes.
     """
     deploy_module = "deploy-docs"
-    mocked_plugins = dict(pyaud.plugins.plugins)
-    mocked_plugins[deploy_module] = call_status(deploy_module, 1)
-    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_plugins)
+    mock_plugins = pyaud.plugins.mapping()
+    mock_plugins[deploy_module] = call_status(deploy_module, 1)
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mock_plugins)
     main("deploy")
     out = nocolorcapsys.stdout().splitlines()
     assert f"{pyaud.__name__} {deploy_module}" in out
@@ -198,7 +200,7 @@ def test_suppress(
     :param make_tree:       Create directory tree from dict mapping.
     """
     make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
-    pyaud.utils.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILES)
     fix_modules = 6
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     main("audit", "--suppress")
@@ -244,7 +246,7 @@ def test_make_docs_toc_fail(
     """
     make_tree(Path.cwd(), {"docs": {CONFPY: None}})
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
-    with pytest.raises(pyaud.exceptions.PyAuditError) as err:
+    with pytest.raises(pyaud.exceptions.AuditError) as err:
         main("docs")
 
     assert str(err.value) == "pyaud docs did not pass all checks"
@@ -270,10 +272,10 @@ def test_make_docs_rm_cache(
         return 0
 
     # patch ``make_toc`` and ``Subprocess.call``
-    mocked_plugins = dict(pyaud.plugins.plugins)
+    mocked_plugins = pyaud.plugins.mapping()
     mocked_plugins["toc"] = call_status("toc")
     monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_plugins)
-    monkeypatch.setattr("pyaud.utils.Subprocess.call", _call)
+    monkeypatch.setattr("pyaud._utils.Subprocess.call", _call)
     make_tree(Path.cwd(), {"docs": {CONFPY: None, "readme.rst": None}})
     with open(readme, "w") as fout:
         fout.write(files.README_RST)
@@ -301,10 +303,12 @@ def test_make_files(
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    monkeypatch.setattr(
-        "pyaud.plugins.plugins",
-        {k: call_status(k, 0) for k in pyaud.plugins.plugins},
-    )
+    file_funcs = "requirements", "toc", "whitelist"
+    mocked_modules = pyaud.plugins.mapping()
+    for file_func in file_funcs:
+        mocked_modules[file_func] = call_status(file_func)
+
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_modules)
 
     main("files")
     assert (
@@ -322,8 +326,8 @@ def test_make_format(main: Any) -> None:
     with open(file, "w") as fout:
         fout.write(files.UNFORMATTED)
 
-    pyaud.utils.files.append(file)
-    with pytest.raises(pyaud.exceptions.PyAuditError):
+    pyaud.files.append(file)
+    with pytest.raises(pyaud.exceptions.AuditError):
         main("format")
 
 
@@ -339,7 +343,7 @@ def test_pipfile2req_commands(
                                     stripping ANSI color codes.
     """
     requirements = Path.cwd() / os.environ["PYAUD_REQUIREMENTS"]
-    pipfile_lock = Path.cwd() / pyaud.environ.PIPFILE_LOCK
+    pipfile_lock = Path.cwd() / PIPFILE_LOCK
     with open(pipfile_lock, "w") as fout:
         fout.write(files.PIPFILE_LOCK)
 
@@ -403,7 +407,7 @@ def test_audit_modules(
     :param first:           Expected first function executed.
     :param last:            Expected last function executed.
     """
-    mocked_modules = dict(pyaud.plugins.plugins)
+    mocked_modules = pyaud.plugins.mapping()
     modules = list(pyaud.config.DEFAULT_CONFIG["audit"]["modules"])
     modules.extend(add)
     for module in modules:
@@ -442,11 +446,9 @@ def test_clean_exclude(
     :param expected:        Expected output from ``pyaud clean``.
     """
     Path(Path.cwd() / README).touch()
-    pyaud.utils.git.init(devnull=True)  # type: ignore
-    pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.git.commit(  # type: ignore
-        "-m", "Initial commit", devnull=True
-    )
+    pyaud.git.init(devnull=True)  # type: ignore
+    pyaud.git.add(".")  # type: ignore
+    pyaud.git.commit("-m", "Initial commit", devnull=True)  # type: ignore
     for exclusion in exclude:
         Path(Path.cwd() / exclusion).touch()
 
@@ -498,8 +500,8 @@ def test_append_whitelist(
     Path(project_dir / FILES).touch()
     patch_sp_print_called()
     whitelist.touch()
-    pyaud.utils.files.populate()
-    pyaud.plugins.plugins["unused"]()
+    pyaud.files.populate()
+    pyaud.plugins.get("unused")()
     main("unused")
     assert str(whitelist) in nocolorcapsys.stdout()
 
@@ -516,7 +518,7 @@ def test_mypy_expected(
                                     stripping ANSI color codes.
     """
     path = Path(os.getcwd(), FILES)
-    pyaud.utils.files.append(path)
+    pyaud.files.append(path)
     patch_sp_print_called()
     main("typecheck")
     assert (
@@ -570,7 +572,7 @@ def test_pytest_is_tests(
     :param relpath:                 Relative path to file.
     :param expected:                Expected stdout.
     """
-    pyaud.utils.files.append(Path.cwd() / relpath)
+    pyaud.files.append(Path.cwd() / relpath)
     patch_sp_print_called()
     main("tests")
     assert nocolorcapsys.stdout().strip() == expected
@@ -591,7 +593,7 @@ def test_make_toc(
     """
     project_dir = Path.cwd()
     modules = "modules.rst"
-    path = project_dir / pyaud.environ.DOCS / f"{REPO}.rst"
+    path = project_dir / DOCS / f"{REPO}.rst"
     make_tree(project_dir, {"docs": {modules: None, CONFPY: None}})
     with open(path, "w") as fout:
         assert fout.write(files.DEFAULT_TOC)
@@ -601,7 +603,7 @@ def test_make_toc(
     with open(path) as fin:
         assert fin.read() == files.ALTERED_TOC
 
-    assert not Path(project_dir / pyaud.environ.DOCS / modules).is_file()
+    assert not Path(project_dir / DOCS / modules).is_file()
 
 
 def test_make_requirements(
@@ -618,7 +620,7 @@ def test_make_requirements(
                             color codes.
     """
     path = Path.cwd() / os.environ["PYAUD_REQUIREMENTS"]
-    with open(Path.cwd() / pyaud.environ.PIPFILE_LOCK, "w") as fout:
+    with open(Path.cwd() / PIPFILE_LOCK, "w") as fout:
         fout.write(files.PIPFILE_LOCK)
 
     patch_sp_output(files.PIPFILE2REQ_PROD, files.PIPFILE2REQ_DEV)
@@ -652,13 +654,13 @@ def test_make_whitelist(
             "pyaud": {"src": {"__init__.py": None, "modules.py": None}},
         },
     )
-    pyaud.utils.git.init(devnull=True)  # type: ignore
-    pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.files.populate()
+    pyaud.git.init(devnull=True)  # type: ignore
+    pyaud.git.add(".")  # type: ignore
+    pyaud.files.populate()
     patch_sp_output(
         files.Whitelist.be8a443_tests, files.Whitelist.be8a443_pyaud
     )
-    pyaud.plugins.plugins["whitelist"]()
+    pyaud.plugins.get("whitelist")()
     assert nocolorcapsys.stdout() == (
         f"Updating ``{whitelist}``\ncreated ``{whitelist.name}``\n"
     )
@@ -681,7 +683,7 @@ def test_pylint_colorized(main: Any, capsys: Any) -> None:
     with open(path, "w") as fout:
         fout.write("import this_package_does_not_exist")
 
-    pyaud.utils.files.append(path)
+    pyaud.files.append(path)
     main("lint", "--suppress")
     output = capsys.readouterr()[0]
     assert all(
@@ -701,7 +703,7 @@ def test_isort_imports(main: Any, nocolorcapsys: Any) -> None:
     with open(path, "w") as fout:
         fout.write(files.IMPORTS_UNSORTED)
 
-    pyaud.utils.files.append(path)
+    pyaud.files.append(path)
     main("imports", "--fix")
     with open(path) as fin:
         assert (
@@ -748,7 +750,7 @@ def test_readme(main: Any, nocolorcapsys: Any) -> None:
 def test_py_audit_error(
     main: Any, make_tree: Any, module: str, content: str
 ) -> None:
-    """Test ``PyAuditError`` message.
+    """Test ``AuditError`` message.
 
     :param main:        Patch package entry point.
     :param make_tree:   Create directory tree from dict mapping.
@@ -761,9 +763,9 @@ def test_py_audit_error(
     with open(file, "w") as fout:
         fout.write(content)
 
-    pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.files.populate()
-    with pytest.raises(pyaud.exceptions.PyAuditError) as err:
+    pyaud.git.add(".")  # type: ignore
+    pyaud.files.populate()
+    with pytest.raises(pyaud.exceptions.AuditError) as err:
         main(module)
 
     stderr = str(err.value)
@@ -782,7 +784,7 @@ def test_deploy_not_master(
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    monkeypatch.setattr("pyaud.utils.get_branch", lambda: "not_master")
+    monkeypatch.setattr("pyaud.branch", lambda: "not_master")
     main("deploy-docs")
     out = [i.strip() for i in nocolorcapsys.stdout().splitlines()]
     assert all(
@@ -839,16 +841,16 @@ def test_deploy_master(
     """
     project_dir = Path.cwd()
     readme = project_dir / README
-    mock_plugins = dict(pyaud.plugins.plugins)
+    mock_plugins = pyaud.plugins.mapping()
 
     def _docs(*_: Any, **__: Any):
         Path(Path.cwd() / os.environ["BUILDDIR"] / "html").mkdir(parents=True)
 
-    mock_plugins["docs"] = _docs
+    mock_plugins["docs"] = _docs  # type: ignore
     monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mock_plugins)
     readme.touch()  # force stash
-    pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.git.commit("-m", INITIAL_COMMIT, devnull=True)  # type: ignore
+    pyaud.git.add(".")  # type: ignore
+    pyaud.git.commit("-m", INITIAL_COMMIT, devnull=True)  # type: ignore
 
     with open(readme, "w") as fout:
         fout.write(files.README_RST)
@@ -909,19 +911,19 @@ def test_deploy_master_param(
     :param expected:        Expected stdout result.
     """
     path = Path.cwd()
-    mock_plugins = dict(pyaud.plugins.plugins)
+    mock_plugins = pyaud.plugins.mapping()
 
     def _docs(*_: Any, **__: Any) -> None:
         Path(path / os.environ["BUILDDIR"] / "html").mkdir(parents=True)
 
-    mock_plugins["docs"] = _docs
+    mock_plugins["docs"] = _docs  # type: ignore
     monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mock_plugins)
     with open(path / README, "w") as fout:
         fout.write(files.README_RST)
 
     Path(path, FILES).touch()
-    pyaud.utils.git.add(".", devnull=True)  # type: ignore
-    pyaud.utils.git.commit("-m", INITIAL_COMMIT, devnull=True)  # type: ignore
+    pyaud.git.add(".", devnull=True)  # type: ignore
+    pyaud.git.commit("-m", INITIAL_COMMIT, devnull=True)  # type: ignore
     for _ in range(rounds):
         main("deploy-docs", "--fix")
 
@@ -995,7 +997,7 @@ def test_make_format_success(
     :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
                                     announce what is called.
     """
-    pyaud.utils.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILES)
     patch_sp_print_called()
     main("format")
     nocolorcapsys.readouterr()
@@ -1012,8 +1014,8 @@ def test_make_format_docs_fail(main: Any) -> None:
     with open(path, "w") as fout:
         fout.write(files.DOCFORMATTER_EXAMPLE)
 
-    pyaud.utils.files.append(path)
-    with pytest.raises(pyaud.exceptions.PyAuditError):
+    pyaud.files.append(path)
+    with pytest.raises(pyaud.exceptions.AuditError):
         main("format-docs")
 
 
@@ -1032,7 +1034,7 @@ def test_make_format_docs_suppress(main: Any, nocolorcapsys: Any) -> None:
     with open(path, "w") as fout:
         fout.write(files.DOCFORMATTER_EXAMPLE)
 
-    pyaud.utils.files.append(path)
+    pyaud.files.append(path)
     main("format-docs", "--suppress")
     assert (
         nocolorcapsys.stderr().strip()
@@ -1046,7 +1048,7 @@ def test_make_generate_rcfile(nocolorcapsys: Any):
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    pyaud.plugins.plugins["generate-rcfile"]()
+    pyaud.plugins.get("generate-rcfile")()
     assert (
         nocolorcapsys.stdout().strip()
         == pyaud.config.toml.dumps(pyaud.config.DEFAULT_CONFIG).strip()
@@ -1054,7 +1056,7 @@ def test_make_generate_rcfile(nocolorcapsys: Any):
 
 
 def test_isort_and_black(main: Any) -> None:
-    """Test ``PyAuditError`` is raised.
+    """Test ``AuditError`` is raised.
 
     For failed checks when looking for formatted inputs run through
     ``isort`` and ``Black``.
@@ -1065,8 +1067,8 @@ def test_isort_and_black(main: Any) -> None:
     with open(path, "w") as fout:
         fout.write(files.BEFORE_ISORT)
 
-    pyaud.utils.files.append(path)
-    with pytest.raises(pyaud.exceptions.PyAuditError):
+    pyaud.files.append(path)
+    with pytest.raises(pyaud.exceptions.AuditError):
         main("imports")
 
 
@@ -1083,7 +1085,7 @@ def test_isort_and_black_fix(main: Any, nocolorcapsys: Any) -> None:
     with open(Path.cwd() / FILES, "w") as fout:
         fout.write(files.BEFORE_ISORT)
 
-    pyaud.utils.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILES)
     main("imports", "--suppress", "--fix")
     out = nocolorcapsys.stdout()
     assert f"Fixed {Path(Path.cwd() / FILES).relative_to(Path.cwd())}" in out
@@ -1097,7 +1099,7 @@ def test_make_format_fix(main: Any) -> None:
     with open(Path.cwd() / FILES, "w") as fout:
         fout.write(files.UNFORMATTED)
 
-    pyaud.utils.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILES)
     main("format", "--fix")
     with open(Path.cwd() / FILES) as fin:
         assert fin.read().strip() == files.UNFORMATTED.replace("'", '"')
@@ -1113,7 +1115,7 @@ def test_make_unused_fix(main: Any, nocolorcapsys: Any) -> None:
     with open(Path.cwd() / FILES, "w") as fout:
         fout.write(files.UNFORMATTED)  # also an unused function
 
-    pyaud.utils.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILES)
     main("unused", "--fix")
     assert nocolorcapsys.stdout() == (
         "{}:1: unused function 'reformat_this' (60% confidence)\n"
@@ -1137,8 +1139,8 @@ def test_make_unused_fail(main: Any) -> None:
     with open(Path.cwd() / FILES, "w") as fout:
         fout.write(files.UNFORMATTED)  # also an unused function
 
-    pyaud.utils.files.append(Path.cwd() / FILES)
-    with pytest.raises(pyaud.exceptions.PyAuditError) as err:
+    pyaud.files.append(Path.cwd() / FILES)
+    with pytest.raises(pyaud.exceptions.AuditError) as err:
         main("unused")
 
     assert str(err.value) == "pyaud unused did not pass all checks"
@@ -1154,7 +1156,7 @@ def test_make_format_docs_fix(main: Any, nocolorcapsys: Any) -> None:
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    pyaud.utils.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILES)
     with open(Path.cwd() / FILES, "w") as fout:
         fout.write(files.DOCFORMATTER_EXAMPLE)
 
@@ -1172,8 +1174,8 @@ def test_format_str_fix(main: Any, nocolorcapsys: Any) -> None:
     with open(Path.cwd() / FILES, "w") as fout:
         fout.write(files.FORMAT_STR_FUNCS_PRE)
 
-    pyaud.utils.git.add(".", devnull=True)  # type: ignore
-    pyaud.utils.files.populate()
+    pyaud.git.add(".", devnull=True)  # type: ignore
+    pyaud.files.populate()
     main("format-str", "--fix")
     nocolorcapsys.stdout()
     with open(Path.cwd() / FILES) as fin:
@@ -1193,7 +1195,7 @@ def test_custom_modules(
                             Optionally returns non-zero exit code (0 by
                             default).
     """
-    mocked_modules = dict(pyaud.plugins.plugins)
+    mocked_modules = pyaud.plugins.mapping()
     modules = list(pyaud.config.DEFAULT_CONFIG["audit"]["modules"])
     random.shuffle(modules)
     pyaud.config.toml["audit"]["modules"] = modules
@@ -1204,7 +1206,7 @@ def test_custom_modules(
 
     # make ``load_config`` do nothing so it does not override the toml
     # config above
-    monkeypatch.setattr("pyaud.main.load_config", lambda *_: None)
+    monkeypatch.setattr("pyaud.config.load_config", lambda *_: None)
     main("audit")
     out = [i for i in nocolorcapsys.stdout().splitlines() if i != ""]
     assert out == [f"pyaud {i}" for i in modules]
@@ -1213,9 +1215,9 @@ def test_custom_modules(
 @pytest.mark.parametrize(
     "arg,expected",
     [
-        ("", list(pyaud.plugins.plugins)),
+        ("", pyaud.plugins.registered()),
         ("audit", ["audit -- Read from [audit] key in config"]),
-        ("all", list(pyaud.plugins.plugins)),
+        ("all", pyaud.plugins.registered()),
     ],
     ids=["no-pos", "module", "all-modules"],
 )
@@ -1248,8 +1250,8 @@ def test_audit_class_error(main: Any, monkeypatch: Any) -> None:
     :param monkeypatch:     Mock patch environment and attributes.
     """
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
-    pyaud.utils.files.append(Path.cwd() / FILES)
-    with pytest.raises(pyaud.exceptions.PyAuditError):
+    pyaud.files.append(Path.cwd() / FILES)
+    with pytest.raises(pyaud.exceptions.AuditError):
         main("lint")
 
 
@@ -1260,7 +1262,7 @@ def test_no_exe_provided(monkeypatch: Any) -> None:
     """
     unique = datetime.datetime.now().strftime("%d%m%YT%H%M%S")
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
-    pyaud.utils.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILES)
 
     # noinspection PyUnusedLocal
     @pyaud.plugins.register(name=unique)
@@ -1270,4 +1272,4 @@ def test_no_exe_provided(monkeypatch: Any) -> None:
         def audit(self, *args: Any, **kwargs: bool) -> int:
             """Nothing to do."""
 
-    assert pyaud.plugins.plugins[unique].exe == []
+    assert pyaud.plugins.get(unique).exe == []

@@ -4,29 +4,29 @@ pyaud.environ
 
 Set up the environment variables for the current project.
 """
-import os
-from collections.abc import MutableMapping
-from pathlib import Path
-from typing import Any
+import os as _os
+from collections.abc import MutableMapping as _MutableMapping
+from pathlib import Path as _Path
+from typing import Any as _Any
 
-import dotenv
-import setuptools
+import dotenv as _dotenv
+import setuptools as _setuptools
 
 NAME = __name__.split(".")[0]
-DOCS = Path("docs")
-PIPFILE_LOCK = Path("Pipfile.lock")
-PLUGINS = Path("plugins")
-DEFAULT_PLUGINS = Path(__file__).absolute().parent.parent / PLUGINS
-SITE_PLUGINS = Path.cwd() / PLUGINS
+DOCS = _Path("docs")
+PIPFILE_LOCK = _Path("Pipfile.lock")
+PLUGINS = _Path("plugins")
+DEFAULT_PLUGINS = _Path(__file__).absolute().parent.parent / PLUGINS
+SITE_PLUGINS = _Path.cwd() / PLUGINS
 
 
-def find_package() -> str:
+def package() -> str:
     """Find the relative path of the package to the project root.
 
     :return: Relative path to the package.
     """
-    packages = setuptools.find_packages(
-        where=Path.cwd(), exclude=["plugins", "tests"]
+    packages = _setuptools.find_packages(
+        where=_Path.cwd(), exclude=["plugins", "tests"]
     )
     if not packages:
         raise EnvironmentError("no packages found")
@@ -36,30 +36,31 @@ def find_package() -> str:
 
 def load_namespace() -> None:
     """Load key-value pairs."""
-    os.environ.update(
+    _os.environ.update(
         PYAUD_WHITELIST="whitelist.py",
         PYAUD_COVERAGE_XML="coverage.xml",
         PYAUD_REQUIREMENTS="requirements.txt",
         BUILDDIR=str(DOCS / "_build"),
-        PYAUD_GH_NAME=os.environ.get(
-            "PYAUD_GH_NAME", os.environ.get("GITHUB_REPOSITORY_OWNER", "")
+        PYAUD_GH_NAME=_os.environ.get(
+            "PYAUD_GH_NAME", _os.environ.get("GITHUB_REPOSITORY_OWNER", "")
         ),
-        PYAUD_GH_EMAIL=os.environ.get("PYAUD_GH_EMAIL", ""),
-        PYAUD_GH_TOKEN=os.environ.get("PYAUD_GH_TOKEN", ""),
-        CODECOV_TOKEN=os.environ.get("CODECOV_TOKEN", ""),
+        PYAUD_GH_EMAIL=_os.environ.get("PYAUD_GH_EMAIL", ""),
+        PYAUD_GH_TOKEN=_os.environ.get("PYAUD_GH_TOKEN", ""),
+        CODECOV_TOKEN=_os.environ.get("CODECOV_TOKEN", ""),
         PYAUD_DOCS=str(DOCS),
         PYAUD_PIPFILE_LOCK=str(PIPFILE_LOCK),
-        PYAUD_TOC=str(DOCS / f"{find_package()}.rst"),
+        PYAUD_TOC=str(DOCS / f"{package()}.rst"),
+        PYCHARM_HOSTED="False",
     )
-    dotenv.load_dotenv(dotenv.find_dotenv(), override=True)
-    if "PYAUD_GH_REMOTE" not in os.environ:
-        os.environ[
+    _dotenv.load_dotenv(_dotenv.find_dotenv(), override=True)
+    if "PYAUD_GH_REMOTE" not in _os.environ:
+        _os.environ[
             "PYAUD_GH_REMOTE"
         ] = "https://{}:{}@github.com/{}/{}.git".format(
-            os.environ["PYAUD_GH_NAME"],
-            os.environ["PYAUD_GH_TOKEN"],
-            os.environ["PYAUD_GH_NAME"],
-            find_package(),
+            _os.environ["PYAUD_GH_NAME"],
+            _os.environ["PYAUD_GH_TOKEN"],
+            _os.environ["PYAUD_GH_NAME"],
+            package(),
         )
 
 
@@ -76,7 +77,7 @@ class TempEnvVar:
     :param value:   Value to temporarily change in supplied object.
     """
 
-    def __init__(self, obj: MutableMapping, **kwargs: Any) -> None:
+    def __init__(self, obj: _MutableMapping, **kwargs: _Any) -> None:
         self._obj = obj
         self._kwargs = kwargs
         self._default = {k: obj.get(k) for k in kwargs}
@@ -84,7 +85,7 @@ class TempEnvVar:
     def __enter__(self) -> None:
         self._obj.update(self._kwargs)
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    def __exit__(self, exc_type: _Any, exc_val: _Any, exc_tb: _Any) -> None:
         for key, value in self._default.items():
             if value is None:
                 try:

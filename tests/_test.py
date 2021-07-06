@@ -29,50 +29,40 @@ from . import (
     INFO,
     INIT,
     INITIAL_COMMIT,
-    OS_GETCWD,
+    PYAUD_PLUGINS_PLUGINS,
+    PYPROJECT,
+    RCFILE,
     README,
     REAL_REPO,
     REPO,
+    TOMLFILE,
     TYPE_ERROR,
     WARNING,
 )
 
 
-def test_get_branch_unique(monkeypatch: Any) -> None:
-    """Test that ``get_branch`` returns correct branch.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    """
-    cwd = str(Path.cwd())
-    monkeypatch.undo()
-    monkeypatch.setattr(OS_GETCWD, lambda: cwd)
+def test_get_branch_unique() -> None:
+    """Test that ``get_branch`` returns correct branch."""
     Path(Path.cwd() / README).touch()
     branch = datetime.datetime.now().strftime("%d%m%YT%H%M%S")
-    pyaud.utils.git.add(".", devnull=True)  # type: ignore
-    pyaud.utils.git.commit("-m", INITIAL_COMMIT, devnull=True)  # type: ignore
-    pyaud.utils.git.checkout("-b", branch, devnull=True)  # type: ignore
-    assert pyaud.utils.get_branch() == branch
+    pyaud.git.add(".", devnull=True)  # type: ignore
+    pyaud.git.commit("-m", INITIAL_COMMIT, devnull=True)  # type: ignore
+    pyaud.git.checkout("-b", branch, devnull=True)  # type: ignore
+    assert pyaud._utils.branch() == branch  # pylint: disable=protected-access
 
 
-def test_get_branch_initial_commit(monkeypatch: Any) -> None:
+def test_get_branch_initial_commit() -> None:
     """Test that ``get_branch`` returns None.
 
     Test when run from a commit with no parent commits i.e. initial
     commit.
-
-    :param monkeypatch: Mock patch environment and attributes.
     """
-    cwd = str(Path.cwd())
-    monkeypatch.undo()
-    monkeypatch.setattr(OS_GETCWD, lambda: cwd)
     Path(Path.cwd() / README).touch()
-    pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.git.commit("-m", INITIAL_COMMIT)  # type: ignore
-    pyaud.utils.git.rev_list(  # type: ignore
-        "--max-parents=0", "HEAD", capture=True
-    )
-    pyaud.utils.git.checkout(pyaud.utils.git.stdout()[0])  # type: ignore
-    assert pyaud.utils.get_branch() is None
+    pyaud.git.add(".")  # type: ignore
+    pyaud.git.commit("-m", INITIAL_COMMIT)  # type: ignore
+    pyaud.git.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
+    pyaud.git.checkout(pyaud.git.stdout()[0])  # type: ignore
+    assert pyaud._utils.branch() is None  # pylint: disable=protected-access
 
 
 def test_pipe_to_file() -> None:
@@ -82,7 +72,7 @@ def test_pipe_to_file() -> None:
     the filename provided.
     """
     path = Path.cwd() / FILES
-    pyaud.utils.git.init(file=path)  # type: ignore
+    pyaud.git.init(file=path)  # type: ignore
     with open(path) as fin:
         assert (
             fin.read().strip()
@@ -102,31 +92,9 @@ def test_find_package(monkeypatch: Any) -> None:
     monkeypatch.setattr("os.getcwd", lambda: cwd)
     monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [])
     with pytest.raises(EnvironmentError) as err:
-        pyaud.environ.find_package()
+        pyaud.package()
 
     assert str(err.value) == "no packages found"
-
-
-@pytest.mark.parametrize(
-    "change,expected",
-    [(False, True), (True, False)],
-    ids=["no_change", "change"],
-)
-def test_hash_file(make_tree: Any, change: Any, expected: Any) -> None:
-    """Test that ``HashCap`` can properly determine changes.
-
-    :param make_tree:   Create directory tree from dict mapping.
-    :param change:      True or False: Change the file.
-    :param expected:    Expected result from ``cap.compare``.
-    """
-    path = Path.cwd() / pyaud.environ.DOCS / f"{REPO}.rst"
-    make_tree(Path.cwd(), {"docs": {path.name: None}})
-    with pyaud.utils.HashCap(path) as cap:
-        if change:
-            with open(path, "w") as fin:
-                fin.write("changed")
-
-    assert cap.compare == expected
 
 
 @pytest.mark.parametrize(
@@ -156,12 +124,12 @@ def test_get_pyfiles(
     make_item = project_dir / assert_relative_item
     make_file.parent.mkdir(exist_ok=True, parents=True)
     make_file.touch()
-    pyaud.utils.git.add(".")  # type: ignore
-    pyaud.utils.files.populate()
+    pyaud.git.add(".")  # type: ignore
+    pyaud.files.populate()
     if assert_true:
-        assert make_item in pyaud.utils.files.reduce()
+        assert make_item in pyaud.files.reduce()
     else:
-        assert make_item not in pyaud.utils.files.reduce()
+        assert make_item not in pyaud.files.reduce()
 
 
 def test_pyitems_exclude_venv(make_tree: Any) -> None:
@@ -192,9 +160,9 @@ def test_pyitems_exclude_venv(make_tree: Any) -> None:
     with open(project_dir / ".gitignore", "w") as fout:
         fout.write("venv\n")
 
-    pyaud.utils.files.clear()
-    pyaud.utils.files.populate()
-    assert set(pyaud.utils.files.reduce()) == set()
+    pyaud.files.clear()
+    pyaud.files.populate()
+    assert set(pyaud.files.reduce()) == set()
 
 
 def test_arg_order_clone(
@@ -211,7 +179,7 @@ def test_arg_order_clone(
     """
     patch_sp_print_called()
     path = tmp_path / REPO
-    pyaud.utils.git.clone(  # type: ignore
+    pyaud.git.clone(  # type: ignore
         "--depth", "1", "--branch", "v1.1.0", REAL_REPO, path
     )
     assert (
@@ -242,13 +210,13 @@ def test_loglevel(
         "-vvvv": [DEBUG, DEBUG, DEBUG, DEBUG, DEBUG],
     }
     pyaud.config.toml["logging"]["root"]["level"] = default
-    with open(pyaud.config.CONFIGDIR / pyaud.config.TOMLFILE, "w") as fout:
+    with open(pyaud.config.CONFIGDIR / TOMLFILE, "w") as fout:
         pyaud.config.toml.dump(fout)
 
     # dummy call to non-existing plugin to evaluate multiple -v
     # arguments
     monkeypatch.setattr(
-        "pyaud.main.plugins", {"module": lambda *_, **__: None}
+        PYAUD_PLUGINS_PLUGINS, {"module": lambda *_, **__: None}
     )
     pyaud.config.configure_global()
     main("module", flag)
@@ -261,7 +229,10 @@ def test_loglevel(
 def test_del_key_in_context():
     """Confirm there is no error raised when deleting temp key-value."""
     obj = {}
-    with pyaud.environ.TempEnvVar(obj, key="value"):
+    # noinspection PyProtectedMember
+    with pyaud._environ.TempEnvVar(  # pylint: disable=protected-access
+        obj, key="value"
+    ):
         assert obj["key"] == "value"
         del obj["key"]
 
@@ -333,7 +304,7 @@ def test_help(
         "plugin2": plugin2,
         "plugin3": plugin3,
     }
-    monkeypatch.setattr("pyaud.main.plugins", mocked_plugins)
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_plugins)
     with pytest.raises(SystemExit):
         main("modules", arg)
 
@@ -344,28 +315,13 @@ def test_help(
 
 def test_seq() -> None:
     """Get coverage on ``Seq`` abstract methods."""
-    pyaud.utils.files.append("key")
-    assert pyaud.utils.files[0] == "key"
-    pyaud.utils.files[0] = "value"
-    assert pyaud.utils.files[0] == "value"
-    del pyaud.utils.files[0]
-    assert not pyaud.utils.files
-    assert repr(pyaud.utils.files) == "<_Files []>"
-
-
-def test_temp_env_var_iskey() -> None:
-    """Test ``TempEnvVar`` sets environment variable.
-
-    Test existing variable's value is as it originally was once the
-    context action is done.
-    """
-    obj = copy.deepcopy(os.environ)
-    assert "BUILDDIR" in obj
-    builddir = obj["BUILDDIR"]
-    with pyaud.environ.TempEnvVar(obj, BUILDDIR="True"):
-        assert "BUILDDIR" in obj and obj["BUILDDIR"] == "True"
-
-    assert "BUILDDIR" in obj and obj["BUILDDIR"] == builddir
+    pyaud.files.append("key")
+    assert pyaud.files[0] == "key"
+    pyaud.files[0] = "value"
+    assert pyaud.files[0] == "value"
+    del pyaud.files[0]
+    assert not pyaud.files
+    assert repr(pyaud.files) == "<_Files []>"
 
 
 @pytest.mark.usefixtures("init_remote")
@@ -380,7 +336,8 @@ def test_gen_default_remote(monkeypatch: Any) -> None:
         fout.write(f"PYAUD_GH_EMAIL={GH_EMAIL}\n")
         fout.write(f"PYAUD_GH_TOKEN={GH_TOKEN}\n")
 
-    pyaud.environ.load_namespace()
+    # noinspection PyProtectedMember
+    pyaud._environ.load_namespace()  # pylint: disable=protected-access
     assert (
         os.environ["PYAUD_GH_REMOTE"]
         == f"https://{GH_NAME}:{GH_TOKEN}@github.com/{GH_NAME}/{REPO}.git"
@@ -401,7 +358,7 @@ def test_mapping_class() -> None:
 
 
 def test_toml() -> None:
-    """Assert "$HOME/.config/pyaud.utils.toml" is created and loaded.
+    """Assert "$HOME/.config/pyaud.toml" is created and loaded.
 
     Create "$HOME/.pyaudrc" and "$PROJECT_DIR/.pyaudrc" load them,
     ensuring that each level up overrides changes from lower level
@@ -412,8 +369,8 @@ def test_toml() -> None:
     # base config is created and loaded
     # =================================
     project_dir = Path.cwd()
-    project_rc = project_dir / pyaud.config.RCFILE
-    pyproject_path = project_dir / pyaud.config.PYPROJECT
+    project_rc = project_dir / RCFILE
+    pyproject_path = project_dir / PYPROJECT
     test_default: Dict[Any, Any] = copy.deepcopy(pyaud.config.DEFAULT_CONFIG)
     assert dict(pyaud.config.toml) == test_default
 
@@ -426,7 +383,7 @@ def test_toml() -> None:
         {"class": "logging.handlers.StreamHandler"}
     )
     home_rcfile["logging"]["version"] = 2
-    with open(Path.home() / pyaud.config.RCFILE, "w") as fout:
+    with open(Path.home() / RCFILE, "w") as fout:
         pyaud.config.toml.dump(fout, home_rcfile)
 
     # reset the dict to the test default
@@ -486,7 +443,7 @@ def test_toml() -> None:
 
 def test_config_ini_integration() -> None:
     """Test config ini edits override global toml."""
-    tomlfile = pyaud.config.CONFIGDIR / pyaud.config.TOMLFILE
+    tomlfile = pyaud.config.CONFIGDIR / TOMLFILE
     inifile = pyaud.config.CONFIGDIR / f"{pyaud.__name__}.ini"
     config_parser = configparser.ConfigParser()
 
@@ -550,11 +507,11 @@ def test_toml_no_override_all(monkeypatch: Any) -> None:
     )
     pyaud.config.toml.clear()
     pyaud.config.load_config()  # base key-values
-    with open(pyaud.config.CONFIGDIR / pyaud.config.TOMLFILE) as fin:
+    with open(pyaud.config.CONFIGDIR / TOMLFILE) as fin:
         pyaud.config.toml.load(fin)  # base key-values
 
     assert dict(pyaud.config.toml) == pyaud.config.DEFAULT_CONFIG
-    with open(Path.home() / pyaud.config.RCFILE, "w") as fout:
+    with open(Path.home() / RCFILE, "w") as fout:
         pyaud.config.toml.dump(fout, {"logging": {"root": {"level": "INFO"}}})
 
     # should override:
@@ -591,8 +548,8 @@ def test_toml_no_override_all(monkeypatch: Any) -> None:
 # noinspection DuplicatedCode
 def test_backup_toml() -> None:
     """Test backing up of toml config in case file is corrupted."""
-    configfile = pyaud.config.CONFIGDIR / pyaud.config.TOMLFILE
-    backupfile = pyaud.config.CONFIGDIR / f".{pyaud.config.TOMLFILE}.bak"
+    configfile = pyaud.config.CONFIGDIR / TOMLFILE
+    backupfile = pyaud.config.CONFIGDIR / f".{TOMLFILE}.bak"
 
     def _corrupt_file(_configfile_contents: str) -> None:
         # make a non-parsable change to the configfile (corrupt it)

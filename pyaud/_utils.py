@@ -6,22 +6,29 @@ Utility classes and functions.
 """
 from __future__ import annotations
 
-import functools
-import logging
-import os
-import sys
-from pathlib import Path
-from subprocess import PIPE, CalledProcessError, Popen
-from typing import Any, Iterable, List, Optional, Tuple, Union
+import functools as _functools
+import logging as _logging
+import os as _os
+import sys as _sys
+from pathlib import Path as _Path
+from subprocess import PIPE as _PIPE
+from subprocess import CalledProcessError as _CalledProcessError
+from subprocess import Popen as _Popen
+from typing import Any as _Any
+from typing import Iterable as _Iterable
+from typing import List as _List
+from typing import Optional as _Optional
+from typing import Tuple as _Tuple
+from typing import Union as _Union
 
-import pyblake2
-from object_colors import Color
+import pyblake2 as _pyblake2
+from object_colors import Color as _Color
 
-from .config import toml
-from .environ import TempEnvVar
-from .objects import MutableSequence as _MutableSequence
+from . import config as _config
+from ._environ import TempEnvVar as _TempEnvVar
+from ._objects import MutableSequence as _MutableSequence
 
-colors = Color()
+colors = _Color()
 colors.populate_colors()
 
 
@@ -48,8 +55,8 @@ class Subprocess:
         self,
         exe: str,
         loglevel: str = "error",
-        commands: Optional[Iterable[str]] = None,
-        **kwargs: Union[bool, str],
+        commands: _Optional[_Iterable[str]] = None,
+        **kwargs: _Union[bool, str],
     ) -> None:
         self._exe = exe
         self._loglevel = loglevel
@@ -58,18 +65,18 @@ class Subprocess:
                 setattr(
                     self,
                     command.replace("-", "_"),
-                    functools.partial(self.call, command),
+                    _functools.partial(self.call, command),
                 )
 
         self._kwargs = kwargs
-        self._stdout: List[str] = []
-        self.args: Tuple[str, ...] = ()
+        self._stdout: _List[str] = []
+        self.args: _Tuple[str, ...] = ()
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} ({self._exe})>"
 
     def _handle_stdout(
-        self, pipeline: Popen, **kwargs: Union[bool, str]
+        self, pipeline: _Popen, **kwargs: _Union[bool, str]
     ) -> None:
         if pipeline.stdout is not None:
             for line in iter(pipeline.stdout.readline, b""):
@@ -83,29 +90,29 @@ class Subprocess:
                     self._stdout.append(line.strip())
 
                 elif kwargs.get("devnull", self._kwargs.get("devnull", False)):
-                    with open(os.devnull, "w") as fout:
+                    with open(_os.devnull, "w") as fout:
                         fout.write(line)
 
                 else:
-                    sys.stdout.write(line)
+                    _sys.stdout.write(line)
 
-    def _handle_stderr(self, pipeline: Popen) -> None:
+    def _handle_stderr(self, pipeline: _Popen) -> None:
         for line in iter(pipeline.stderr.readline, b""):  # type: ignore
-            getattr(logging.getLogger(self._exe), self._loglevel)(
+            getattr(_logging.getLogger(self._exe), self._loglevel)(
                 line.decode("utf-8", "ignore").strip()
             )
 
-    def _open_process(self, *args: str, **kwargs: Union[bool, str]) -> int:
+    def _open_process(self, *args: str, **kwargs: _Union[bool, str]) -> int:
         # open process with ``subprocess.Popen``
         # pipe stream depending on the keyword arguments provided
         # Log errors to file regardless
         # wait for process to finish and return it's exit-code
-        pipeline = Popen([self._exe, *args], stdout=PIPE, stderr=PIPE)
+        pipeline = _Popen([self._exe, *args], stdout=_PIPE, stderr=_PIPE)
         self._handle_stdout(pipeline, **kwargs)
         self._handle_stderr(pipeline)
         return pipeline.wait()
 
-    def call(self, *args: Any, **kwargs: Any) -> int:
+    def call(self, *args: _Any, **kwargs: _Any) -> int:
         """Call command. Open process with ``subprocess.Popen``.
 
         Pipe stream depending on the keyword arguments provided to
@@ -126,19 +133,19 @@ class Subprocess:
         :return:                    Exit status.
         """
         self.args = tuple([str(i) for i in args])
-        logging.getLogger(self._exe).debug("called with %s", self.args)
+        _logging.getLogger(self._exe).debug("called with %s", self.args)
         returncode = self._open_process(*self.args, **kwargs)
         if returncode and not kwargs.get("suppress", False):
-            logging.getLogger(self._exe).error(
+            _logging.getLogger(self._exe).error(
                 "returned non-zero exit status %s", returncode
             )
-            raise CalledProcessError(
+            raise _CalledProcessError(
                 returncode, f"{self._exe} {' '.join(self.args)}"
             )
 
         return returncode
 
-    def stdout(self) -> List[str]:
+    def stdout(self) -> _List[str]:
         """Consume accrued stdout by returning the lines of output.
 
         Assign new container to ``_stdout``.
@@ -182,7 +189,7 @@ class _Git(Subprocess):
     def __init__(self) -> None:
         super().__init__("git", commands=self.commands, loglevel="debug")
 
-    def call(self, *args: Any, **kwargs: Any) -> int:
+    def call(self, *args: _Any, **kwargs: _Any) -> int:
         """Call partial git command instantiated in superclass.
 
         :param args:                Command's positional arguments.
@@ -195,13 +202,13 @@ class _Git(Subprocess):
         :raises CalledProcessError: If error occurs in subprocess.
         :return:                    Exit status.
         """
-        with TempEnvVar(
-            os.environ,
-            GIT_WORK_TREE=str(Path.cwd()),
-            GIT_DIR=str(Path.cwd() / ".git"),
+        with _TempEnvVar(
+            _os.environ,
+            GIT_WORK_TREE=str(_Path.cwd()),
+            GIT_DIR=str(_Path.cwd() / ".git"),
         ):
             if "--bare" in args:
-                del os.environ["GIT_WORK_TREE"]
+                del _os.environ["GIT_WORK_TREE"]
 
             return super().call(*args, **kwargs)
 
@@ -212,10 +219,10 @@ class HashCap:
     :param file: The path of the file to hash.
     """
 
-    def __init__(self, file: Path) -> None:
+    def __init__(self, file: _Path) -> None:
         self.file = file
-        self.before: Optional[str] = None
-        self.after: Optional[str] = None
+        self.before: _Optional[str] = None
+        self.after: _Optional[str] = None
         self.compare = False
         self.new = not self.file.is_file()
 
@@ -225,7 +232,7 @@ class HashCap:
         :return: Hash as a string.
         """
         with open(self.file, "rb") as lines:
-            _hash = pyblake2.blake2b(lines.read())
+            _hash = _pyblake2.blake2b(lines.read())
 
         return _hash.hexdigest()
 
@@ -242,7 +249,7 @@ class HashCap:
 
         return self
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    def __exit__(self, exc_type: _Any, exc_val: _Any, exc_tb: _Any) -> None:
         try:
             self.after = self._hash_file()
         except FileNotFoundError:
@@ -251,7 +258,7 @@ class HashCap:
         self.compare = self._compare()
 
 
-def get_branch() -> Optional[str]:
+def branch() -> _Optional[str]:
     """Get the current checked out branch of the project.
 
     :return: Name of branch or None if on a branch with no parent.
@@ -281,7 +288,7 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
 
         Exclude items not in version-control.
         """
-        for path in Path.cwd().rglob("*.py"):
+        for path in _Path.cwd().rglob("*.py"):
             if (
                 path.name not in self._exclude
                 and not git.ls_files(  # type: ignore
@@ -290,7 +297,7 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
             ):
                 self.append(path)
 
-    def reduce(self) -> List[Path]:
+    def reduce(self) -> _List[_Path]:
         """Get all relevant python files starting from project root.
 
         :return:    List of project's Python file index, reduced to
@@ -300,14 +307,14 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
                     $PROJECT_DIR/dir but PROJECT_DIR/file1.py
                     and $PROJECT_DIR/file2.py remain as they are.
         """
-        project_dir = Path.cwd()
+        project_dir = _Path.cwd()
         return list(
             set(
                 project_dir / p.relative_to(project_dir).parts[0] for p in self
             )
         )
 
-    def args(self, reduce: bool = False) -> Tuple[str, ...]:
+    def args(self, reduce: bool = False) -> _Tuple[str, ...]:
         """Return tuple suitable to be run with starred expression.
 
         :param reduce:  :func:`~pyaud.utils._Tree.reduce`
@@ -320,5 +327,5 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
         return tuple([str(p) for p in paths])
 
 
-files = _Files(*toml["indexing"]["exclude"])
+files = _Files(*_config.toml["indexing"]["exclude"])
 git = _Git()

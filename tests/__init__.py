@@ -6,6 +6,8 @@ import re
 from pathlib import Path
 from typing import Any, Tuple
 
+import pyaud
+
 from . import files
 
 REAL_REPO = Path(__file__).parent.parent
@@ -26,11 +28,15 @@ WARNING = LEVELS[2]
 ERROR = LEVELS[3]
 CRITICAL = LEVELS[4]
 PYAUD_MODULES = "pyaud.main.plugins"
-SP_OPEN_PROC = "pyaud.utils.Subprocess._open_process"
-OS_GETCWD = "os.getcwd"
+SP_OPEN_PROC = "pyaud._utils.Subprocess._open_process"
 README = Path("README.rst")
-PYAUD_PLUGINS_PLUGINS = "pyaud.plugins.plugins"
+PYAUD_PLUGINS_PLUGINS = "pyaud.plugins._plugins"
 TYPE_ERROR = "can only register one of the following:"
+DOCS = Path("docs")
+PIPFILE_LOCK = Path("Pipfile.lock")
+RCFILE = f".{pyaud.__name__}rc"
+TOMLFILE = f"{pyaud.__name__}.toml"
+PYPROJECT = "pyproject.toml"
 
 
 class NoColorCapsys:

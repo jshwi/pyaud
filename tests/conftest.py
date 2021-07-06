@@ -48,7 +48,7 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     # make default testing branch ``master``
     # replace default config with changes values from above
     # set config file to test config within the temporary home dir
-    monkeypatch.setattr("pyaud.utils.get_branch", lambda: "master")
+    monkeypatch.setattr("pyaud.branch", lambda: "master")
     monkeypatch.setattr(
         "pyaud.config.CONFIGDIR", tmp_path / ".config" / pyaud.__name__
     )
@@ -56,7 +56,8 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     # load default key-value pairs
     # ============================
     # monkeypatch implemented on prefixes and override other
-    pyaud.environ.load_namespace()
+    # noinspection PyProtectedMember
+    pyaud._environ.load_namespace()  # pylint: disable=protected-access
     monkeypatch.setenv("PYAUD_GH_NAME", GH_NAME)
     monkeypatch.setenv("PYAUD_GH_EMAIL", GH_EMAIL)
     monkeypatch.setenv("PYAUD_GH_TOKEN", GH_TOKEN)
@@ -72,7 +73,7 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
 
     # initialize repository
     # =====================
-    pyaud.utils.git.init(devnull=True)  # type: ignore
+    pyaud.git.init(devnull=True)  # type: ignore
 
     # prepare default config
     # ======================
@@ -97,9 +98,9 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
 
     # setup singletons
     # ================
-    pyaud.utils.files.clear()
+    pyaud.files.clear()
     pyaud.config.toml.clear()
-    pyaud.utils.files.populate()
+    pyaud.files.populate()
     pyaud.config.configure_global()
     pyaud.config.load_config()
     pyaud.config.configure_logging()
@@ -127,8 +128,12 @@ def fixture_main(monkeypatch: Any) -> Any:
 
     def _main(*args: str) -> None:
         """Run main with custom args."""
+        # noinspection PyProtectedMember
+        # pylint: disable=protected-access,import-outside-toplevel
+        from pyaud._main import main
+
         monkeypatch.setattr("sys.argv", [pyaud.__name__, *args])
-        pyaud.main.main()
+        main()
 
     return _main
 
@@ -169,7 +174,7 @@ def fixture_patch_sp_call(monkeypatch: Any) -> Any:
 
             return returncode
 
-        monkeypatch.setattr("pyaud.utils.Subprocess.call", call)
+        monkeypatch.setattr("pyaud._utils.Subprocess.call", call)
 
     return _patch_sp_call
 
@@ -186,7 +191,7 @@ def fixture_patch_sp_output(patch_sp_call: Any) -> Any:
     def _patch_sp_output(*stdout: str) -> None:
         _stdout = list(stdout)
 
-        def _call(self: pyaud.utils.Subprocess, *_: Any, **__: Any) -> None:
+        def _call(self, *_: Any, **__: Any) -> None:
             """Mock call to to do nothing except send the expected
             stdout to self."""
             self._stdout.append(  # pylint: disable=protected-access
@@ -226,12 +231,10 @@ def fixture_init_remote() -> None:
 
     :return: Function for using this fixture.
     """
-    pyaud.utils.git.init(  # type: ignore
+    pyaud.git.init(  # type: ignore
         "--bare", Path(os.environ["PYAUD_GH_REMOTE"]), devnull=True
     )
-    pyaud.utils.git.remote(  # type: ignore
-        "add", "origin", "origin", devnull=True
-    )
+    pyaud.git.remote("add", "origin", "origin", devnull=True)  # type: ignore
 
 
 @pytest.fixture(name="patch_sp_print_called")
@@ -244,7 +247,7 @@ def fixture_patch_sp_print_called(patch_sp_call: Any) -> Any:
     """
 
     def _patch_sp_print_called() -> Any:
-        def _call(self: pyaud.utils.Subprocess, *args: str, **_: Any) -> None:
+        def _call(self, *args: str, **_: Any) -> None:
             print(f"{self} {' '.join(str(i) for i in args)}")
 
         return patch_sp_call(_call)
