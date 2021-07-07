@@ -7,9 +7,9 @@ import json
 import sys
 from argparse import SUPPRESS, ArgumentParser
 
-from .config import configure_logging, load_config, toml
+from .config import configure_logging, load_config
 from .environ import NAME, load_namespace
-from .plugins import load, plugins, register
+from .plugins import load, plugins
 from .utils import colors, tree
 
 
@@ -149,32 +149,6 @@ class _Parser(ArgumentParser):
             self._print_module_summary()
 
         return self._returncode
-
-
-@register(name="audit")
-def audit(**kwargs: bool) -> None:
-    """Read from [audit] key in config.
-
-    :param kwargs:  Pass keyword arguments to audit submodule.
-    :key clean:     Insert clean module to the beginning of module list
-                    to remove all unversioned files before executing
-                    rest of audit.
-    :key deploy:    Append deploy modules (docs and coverage) to end of
-                    modules list to deploy package data after executing
-                    audit.
-    :return:        Exit status.
-    """
-    funcs = toml["audit"]["modules"]
-    if kwargs.get("clean", False):
-        funcs.insert(0, "clean")
-
-    if kwargs.get("deploy", False):
-        funcs.append("deploy")
-
-    for func in funcs:
-        if func in plugins:
-            colors.cyan.bold.print(f"\n{NAME} {func}")
-            plugins[func](**kwargs)
 
 
 def main() -> None:

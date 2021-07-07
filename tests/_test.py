@@ -34,6 +34,7 @@ from . import (
     INITIAL_COMMIT,
     NO_ISSUES,
     OS_GETCWD,
+    PLUGINS_MODULES_PLUGINS,
     PUSHING_SKIPPED,
     PYAUD_MODULES,
     REAL_REPO,
@@ -104,7 +105,7 @@ def test_make_audit_error(monkeypatch: Any, nocolorcapsys: Any) -> None:
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     pyaud.utils.tree.append(Path.cwd() / FILES)
     with pytest.raises(CalledProcessError):
-        pyaud.main.audit()
+        pyaud.plugins.plugins["audit"]()
 
     assert nocolorcapsys.stdout().strip() == "pyaud format"
 
@@ -271,7 +272,7 @@ def test_audit_modules(
     for module in modules:
         mocked_modules[module] = call_status(module)
 
-    monkeypatch.setattr(PYAUD_MODULES, mocked_modules)
+    monkeypatch.setattr(PLUGINS_MODULES_PLUGINS, mocked_modules)
     main("audit", *args)
     output = [i for i in nocolorcapsys.stdout().splitlines() if i != ""]
     assert all([f"pyaud {i}" in output for i in modules])
@@ -1805,7 +1806,7 @@ def test_custom_modules(
     for module in modules:
         mocked_modules[module] = call_status(module)
 
-    monkeypatch.setattr(PYAUD_MODULES, mocked_modules)
+    monkeypatch.setattr(PLUGINS_MODULES_PLUGINS, mocked_modules)
 
     # make ``load_config`` do nothing so it does not override the toml
     # config above

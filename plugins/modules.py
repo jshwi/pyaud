@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 from subprocess import CalledProcessError
 
+import pyaud
 from pyaud.config import generate_rcfile, toml
 from pyaud.environ import (
     DOCS_CONF,
@@ -17,7 +18,7 @@ from pyaud.environ import (
     find_package,
 )
 from pyaud.exceptions import PyAuditError
-from pyaud.plugins import check_command, register, write_command
+from pyaud.plugins import check_command, plugins, register, write_command
 from pyaud.utils import (
     LineSwitch,
     Subprocess,
@@ -513,3 +514,29 @@ def make_generate_rcfile(**__: bool) -> None:
     Print rcfile to stdout so it may be piped to chosen filepath.
     """
     generate_rcfile()
+
+
+@register(name="audit")
+def audit(**kwargs: bool) -> None:
+    """Read from [audit] key in config.
+
+    :param kwargs:  Pass keyword arguments to audit submodule.
+    :key clean:     Insert clean module to the beginning of module list
+                    to remove all unversioned files before executing
+                    rest of audit.
+    :key deploy:    Append deploy modules (docs and coverage) to end of
+                    modules list to deploy package data after executing
+                    audit.
+    :return:        Exit status.
+    """
+    funcs = toml["audit"]["modules"]
+    if kwargs.get("clean", False):
+        funcs.insert(0, "clean")
+
+    if kwargs.get("deploy", False):
+        funcs.append("deploy")
+
+    for func in funcs:
+        if func in plugins:
+            colors.cyan.bold.print(f"\n{pyaud.__name__} {func}")
+            plugins[func](**kwargs)

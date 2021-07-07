@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Adds `pyaud.utils.Subprocess.args`
 
 ### Changed
+- `pyaud.main.audit` → `plugins.modules.audit`
 - `pyaud.modules` → `plugins.modules`
 
 ### Fixed
