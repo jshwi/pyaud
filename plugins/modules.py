@@ -10,13 +10,7 @@ from subprocess import CalledProcessError
 
 import pyaud
 from pyaud.config import generate_rcfile, toml
-from pyaud.environ import (
-    DOCS_CONF,
-    NAME,
-    PIPFILE_LOCK,
-    TempEnvVar,
-    find_package,
-)
+from pyaud.environ import NAME, PIPFILE_LOCK, TempEnvVar, find_package
 from pyaud.exceptions import PyAuditError
 from pyaud.plugins import check_command, plugins, register, write_command
 from pyaud.utils import Subprocess, colors, get_branch, git, tree
@@ -271,7 +265,7 @@ def make_toc(**kwargs: bool) -> None:
     package = find_package()
     docspath = Path.cwd() / DOCS
     tocpath = docspath / f"{package}.rst"
-    if Path(Path.cwd() / DOCS_CONF).is_file():
+    if Path(Path.cwd() / DOCS / "conf.py").is_file():
         apidoc = Subprocess("sphinx-apidoc")
         apidoc.call(
             "-o", docspath, Path.cwd() / package, "-f", devnull=True, **kwargs

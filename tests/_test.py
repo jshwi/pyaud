@@ -37,6 +37,7 @@ from . import (
     PLUGINS_MODULES_PLUGINS,
     PUSHING_SKIPPED,
     PYAUD_MODULES,
+    README,
     REAL_REPO,
     REPO,
     SP_OPEN_PROC,
@@ -327,7 +328,7 @@ def test_make_docs_rm_cache(
     :param make_tree:       Create directory tree from dict mapping.
     """
     builddir = Path.cwd() / os.environ["BUILDDIR"]
-    readme = Path.cwd() / pyaud.environ.README
+    readme = Path.cwd() / README
 
     # disable call to ``Subprocess`` to only create ./docs/_build
     # directory so tests can continue
@@ -426,7 +427,7 @@ def test_get_branch_unique(monkeypatch: Any) -> None:
     cwd = str(Path.cwd())
     monkeypatch.undo()
     monkeypatch.setattr(OS_GETCWD, lambda: cwd)
-    Path(Path.cwd() / pyaud.environ.README).touch()
+    Path(Path.cwd() / README).touch()
     branch = datetime.datetime.now().strftime("%d%m%YT%H%M%S")
     pyaud.utils.git.add(".", devnull=True)  # type: ignore
     pyaud.utils.git.commit("-m", INITIAL_COMMIT, devnull=True)  # type: ignore
@@ -445,7 +446,7 @@ def test_get_branch_initial_commit(monkeypatch: Any) -> None:
     cwd = str(Path.cwd())
     monkeypatch.undo()
     monkeypatch.setattr(OS_GETCWD, lambda: cwd)
-    Path(Path.cwd() / pyaud.environ.README).touch()
+    Path(Path.cwd() / README).touch()
     pyaud.utils.git.add(".")  # type: ignore
     pyaud.utils.git.commit("-m", INITIAL_COMMIT)  # type: ignore
     pyaud.utils.git.rev_list(  # type: ignore
@@ -479,7 +480,7 @@ def test_clean_exclude(
     :param exclude:         Files to exclude from ``git clean``.
     :param expected:        Expected output from ``pyaud clean``.
     """
-    Path(Path.cwd() / pyaud.environ.README).touch()
+    Path(Path.cwd() / README).touch()
     pyaud.utils.git.init(devnull=True)  # type: ignore
     pyaud.utils.git.add(".")  # type: ignore
     pyaud.utils.git.commit(  # type: ignore
@@ -548,7 +549,7 @@ def test_hash_file(make_tree: Any, change: Any, expected: Any) -> None:
 
 def test_readme_replace() -> None:
     """Test that ``LineSwitch`` properly edits a file."""
-    path = Path.cwd() / pyaud.environ.README
+    path = Path.cwd() / README
 
     def _test_file_index(title: str, underline: str) -> None:
         with open(path) as fin:
@@ -971,7 +972,7 @@ def test_readme(main: Any, nocolorcapsys: Any) -> None:
     assert (
         nocolorcapsys.stdout().strip() == "No README.rst found in project root"
     )
-    with open(Path.cwd() / pyaud.environ.README, "w") as fout:
+    with open(Path.cwd() / README, "w") as fout:
         fout.write(files.CODE_BLOCK_TEMPLATE)
 
     main("readme")
@@ -1086,7 +1087,7 @@ def test_deploy_master(monkeypatch: Any, nocolorcapsys: Any) -> None:
                             color codes.
     """
     project_dir = Path.cwd()
-    readme = project_dir / pyaud.environ.README
+    readme = project_dir / README
     monkeypatch.setattr(
         "plugins.modules.make_docs",
         lambda *_, **__: Path(
@@ -1157,7 +1158,7 @@ def test_deploy_master_param(
             parents=True
         ),
     )
-    with open(path / pyaud.environ.README, "w") as fout:
+    with open(path / README, "w") as fout:
         fout.write(files.README_RST)
 
     Path(path, FILES).touch()
