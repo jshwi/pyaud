@@ -1,4 +1,4 @@
-_.dump_list  # unused method (pyaud/config.py:162)
+_.dump_list  # unused method (pyaud/config.py:156)
 exc_tb  # unused variable (pyaud/environ.py:83)
 exc_tb  # unused variable (pyaud/utils.py:245)
 exc_tb  # unused variable (pyaud/utils.py:279)

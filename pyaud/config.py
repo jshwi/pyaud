@@ -23,12 +23,6 @@ RCFILE = f".{NAME}rc"
 TOMLFILE = f"{NAME}.toml"
 PYPROJECT = "pyproject.toml"
 CONFIGDIR = Path(appdirs.user_config_dir(NAME))
-DEBUG = "DEBUG"
-INFO = "INFO"
-WARNING = "WARNING"
-ERROR = "ERROR"
-CRITICAL = "CRITICAL"
-LEVELS = [DEBUG, INFO, WARNING, ERROR, CRITICAL]
 DEFAULT_CONFIG: Dict[str, Any] = dict(
     clean={"exclude": ["*.egg*", ".mypy_cache", ".env", "instance"]},
     logging={
@@ -296,6 +290,7 @@ def configure_logging(verbose: int = 0) -> None:
 
     :param verbose: Level to raise log verbosity by.
     """
+    levels = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
     config = toml["logging"]
 
     # create logging dir and it's parents if they do not exist already
@@ -304,8 +299,8 @@ def configure_logging(verbose: int = 0) -> None:
     )
 
     # tweak loglevel if commandline argument is provided
-    config["root"]["level"] = LEVELS[
-        max(0, LEVELS.index(config["root"]["level"]) - verbose)
+    config["root"]["level"] = levels[
+        max(0, levels.index(config["root"]["level"]) - verbose)
     ]
 
     # load values to ``logging``

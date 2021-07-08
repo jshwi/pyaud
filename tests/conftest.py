@@ -13,7 +13,7 @@ import pytest
 
 import pyaud
 
-from . import GH_EMAIL, GH_NAME, GH_TOKEN, REPO, NoColorCapsys
+from . import DEBUG, GH_EMAIL, GH_NAME, GH_TOKEN, REPO, NoColorCapsys
 
 
 @pytest.fixture(name="mock_environment", autouse=True)
@@ -80,7 +80,7 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     # loglevel to DEBUG
     default_config: Dict[str, Any] = copy.deepcopy(pyaud.config.DEFAULT_CONFIG)
     default_config["logging"]["handlers"]["default"]["filename"] = str(logfile)
-    default_config["logging"]["root"]["level"] = pyaud.config.DEBUG
+    default_config["logging"]["root"]["level"] = DEBUG
     monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
 
     # create ~/.gitconfig

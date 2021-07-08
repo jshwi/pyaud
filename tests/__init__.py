@@ -6,8 +6,6 @@ import re
 from pathlib import Path
 from typing import Any, Tuple
 
-import pyaud.config
-
 from . import files
 
 REAL_REPO = Path(__file__).parent.parent
@@ -21,11 +19,12 @@ INITIAL_COMMIT = "Initial commit"
 NO_ISSUES = "Success: no issues found in 1 source files"
 INIT = "__init__.py"
 CONFPY = "conf.py"
-DEBUG = pyaud.config.DEBUG
-INFO = pyaud.config.INFO
-WARNING = pyaud.config.WARNING
-ERROR = pyaud.config.ERROR
-CRITICAL = pyaud.config.CRITICAL
+LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
+DEBUG = LEVELS[0]
+INFO = LEVELS[1]
+WARNING = LEVELS[2]
+ERROR = LEVELS[3]
+CRITICAL = LEVELS[4]
 PYAUD_MODULES = "pyaud.MODULES"
 
 

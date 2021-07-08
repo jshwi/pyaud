@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v2.0.0...HEAD)
 ------------------------------------------------------------------------
+### Removed
+- Removes loglevel constants from `pyaud.config`
 
 [2.0.0](https://github.com/jshwi/pyaud/releases/tag/v2.0.0) - 2021-06-28
 ------------------------------------------------------------------------
