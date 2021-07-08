@@ -536,7 +536,7 @@ def test_hash_file(make_tree: Any, change: Any, expected: Any) -> None:
     :param change:      True or False: Change the file.
     :param expected:    Expected result from ``cap.compare``.
     """
-    path = Path.cwd() / pyaud.utils.DOCS / f"{REPO}.rst"
+    path = Path.cwd() / pyaud.environ.DOCS / f"{REPO}.rst"
     make_tree(Path.cwd(), {"docs": {path.name: None}})
     with pyaud.utils.HashCap(path) as cap:
         if change:
@@ -565,7 +565,7 @@ def test_readme_replace() -> None:
         fout.write(f"{repo}\n{repo_underline}\n")
 
     _test_file_index(repo, repo_underline)
-    with pyaud.utils.LineSwitch(path, {0: readme, 1: readme_underline}):
+    with plugins.utils.LineSwitch(path, {0: readme, 1: readme_underline}):
         _test_file_index(readme, readme_underline)
 
     _test_file_index(repo, repo_underline)
@@ -741,7 +741,7 @@ def test_make_toc(patch_sp_print_called: Any, make_tree: Any) -> None:
     """
     project_dir = Path.cwd()
     modules = "modules.rst"
-    path = project_dir / pyaud.utils.DOCS / f"{REPO}.rst"
+    path = project_dir / pyaud.environ.DOCS / f"{REPO}.rst"
     make_tree(project_dir, {"docs": {modules: None, CONFPY: None}})
     with open(path, "w") as fout:
         assert fout.write(files.DEFAULT_TOC)
@@ -751,7 +751,7 @@ def test_make_toc(patch_sp_print_called: Any, make_tree: Any) -> None:
     with open(path) as fin:
         assert fin.read() == files.ALTERED_TOC
 
-    assert not Path(project_dir / pyaud.utils.DOCS / modules).is_file()
+    assert not Path(project_dir / pyaud.environ.DOCS / modules).is_file()
 
 
 def test_make_requirements(patch_sp_output: Any, nocolorcapsys: Any) -> None:

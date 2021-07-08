@@ -19,18 +19,9 @@ from pyaud.environ import (
 )
 from pyaud.exceptions import PyAuditError
 from pyaud.plugins import check_command, plugins, register, write_command
-from pyaud.utils import (
-    LineSwitch,
-    Subprocess,
-    colors,
-    deploy_docs,
-    get_branch,
-    git,
-    tree,
-)
+from pyaud.utils import Subprocess, colors, get_branch, git, tree
 
-DOCS = Path("docs")
-README = Path("README.rst")
+from .utils import DOCS, README, LineSwitch, deploy_docs
 
 
 @register(name="clean")

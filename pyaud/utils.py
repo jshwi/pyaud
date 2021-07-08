@@ -9,17 +9,16 @@ from __future__ import annotations
 import functools
 import logging
 import os
-import shutil
 import sys
 from pathlib import Path
 from subprocess import PIPE, CalledProcessError, Popen
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Iterable, List, Optional, Tuple, Union
 
 import pyblake2
 from object_colors import Color
 
 from .config import toml
-from .environ import DOCS, README, TempEnvVar
+from .environ import TempEnvVar
 from .objects import MutableSequence as _MutableSequence
 
 colors = Color()
@@ -252,36 +251,6 @@ class HashCap:
         self.compare = self._compare()
 
 
-class LineSwitch:
-    """Take the ``path`` and ``replace`` argument from the commandline.
-
-    Reformat the README whilst returning the original title to the
-    parent process.
-
-    :param path:    File to manipulate.
-    :param obj:     Dictionary of line number's as key and replacement
-                    strings as values.
-    """
-
-    def __init__(self, path: Path, obj: Dict[int, str]) -> None:
-        self._path = path
-        self._obj = obj
-        with open(path) as fin:
-            self.read = fin.read()
-
-    def __enter__(self) -> None:
-        with open(self._path, "w") as file:
-            for count, line in enumerate(self.read.splitlines()):
-                if count in self._obj:
-                    line = self._obj[count]
-
-                file.write(f"{line}\n")
-
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        with open(self._path, "w") as file:
-            file.write(self.read)
-
-
 def get_branch() -> Optional[str]:
     """Get the current checked out branch of the project.
 
@@ -295,71 +264,6 @@ def get_branch() -> Optional[str]:
         return stdout[-1]
 
     return None
-
-
-def deploy_docs() -> None:
-    """Series of functions for deploying docs."""
-    gh_remote = os.environ["PYAUD_GH_REMOTE"]
-    root_html = Path.cwd() / "html"
-    git.add(".")  # type: ignore
-    git.diff_index("--cached", "HEAD", capture=True)  # type: ignore
-    stashed = False
-    if git.stdout():
-        git.stash(devnull=True)  # type: ignore
-        stashed = True
-
-    shutil.move(str(Path.cwd() / os.environ["BUILDDIR"] / "html"), root_html)
-    shutil.copy(Path.cwd() / README, root_html / README)
-    git.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
-    stdout = git.stdout()
-    if stdout:
-        git.checkout(stdout[-1])  # type: ignore
-
-    git.checkout("--orphan", "gh-pages")  # type: ignore
-    git.config(  # type: ignore
-        "--global", "user.name", os.environ["PYAUD_GH_NAME"]
-    )
-    git.config(  # type: ignore
-        "--global", "user.email", os.environ["PYAUD_GH_EMAIL"]
-    )
-    shutil.rmtree(Path.cwd() / DOCS)
-    git.rm("-rf", Path.cwd(), devnull=True)  # type: ignore
-    git.clean("-fdx", "--exclude=html", devnull=True)  # type: ignore
-    for file in root_html.rglob("*"):
-        shutil.move(str(file), Path.cwd() / file.name)
-
-    shutil.rmtree(root_html)
-    git.add(".")  # type: ignore
-    git.commit(  # type: ignore
-        "-m", '"[ci skip] Publishes updated documentation"', devnull=True
-    )
-    git.remote("rm", "origin")  # type: ignore
-    git.remote("add", "origin", gh_remote)  # type: ignore
-    git.fetch()  # type: ignore
-    git.stdout()
-    git.ls_remote(  # type: ignore
-        "--heads", gh_remote, "gh-pages", capture=True
-    )
-    result = git.stdout()
-    remote_exists = None if not result else result[-1]
-    git.diff(  # type: ignore
-        "gh-pages", "origin/gh-pages", suppress=True, capture=True
-    )
-    result = git.stdout()
-    remote_diff = None if not result else result[-1]
-    if remote_exists is not None and remote_diff is None:
-        colors.green.print("No difference between local branch and remote")
-        print("Pushing skipped")
-    else:
-        colors.green.print("Pushing updated documentation")
-        git.push("origin", "gh-pages", "-f")  # type: ignore
-        print("Documentation Successfully deployed")
-
-    git.checkout("master", devnull=True)  # type: ignore
-    if stashed:
-        git.stash("pop", devnull=True)  # type: ignore
-
-    git.branch("-D", "gh-pages", devnull=True)  # type: ignore
 
 
 class _Tree(_MutableSequence):  # pylint: disable=too-many-ancestors
