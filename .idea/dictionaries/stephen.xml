@@ -10,11 +10,13 @@
       <w>docformatter</w>
       <w>docspath</w>
       <w>flynt</w>
+      <w>functools</w>
       <w>getcwd</w>
       <w>gitvars</w>
       <w>hashcap</w>
       <w>htmldir</w>
       <w>inifile</w>
+      <w>itsdangerous</w>
       <w>localconf</w>
       <w>loglines</w>
       <w>pathlib</w>
