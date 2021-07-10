@@ -2,4 +2,4 @@
 plugins
 =======
 """
-from . import modules, utils
+from . import modules

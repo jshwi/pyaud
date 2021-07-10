@@ -475,7 +475,7 @@ def test_readme_replace() -> None:
         fout.write(f"{repo}\n{repo_underline}\n")
 
     _test_file_index(repo, repo_underline)
-    with plugins.utils.LineSwitch(path, {0: readme, 1: readme_underline}):
+    with plugins.modules.LineSwitch(path, {0: readme, 1: readme_underline}):
         _test_file_index(readme, readme_underline)
 
     _test_file_index(repo, repo_underline)
