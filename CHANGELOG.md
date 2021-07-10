@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `pyaud.modules` → `plugins.modules`
 
 ### Fixed
+- Adds positional arguments to `@check_command`
 - Fixes errors raised for missing project files
 - Fixes loading of `PYAUD_GH_NAME`
 

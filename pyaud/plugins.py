@@ -27,11 +27,11 @@ def check_command(func: Callable[..., int]) -> Callable[..., None]:
     """
 
     @functools.wraps(func)
-    def _wrapper(**kwargs: bool) -> None:
+    def _wrapper(*args, **kwargs: bool) -> None:
         if not files.reduce():
             print("No files found")
         else:
-            returncode = func(**kwargs)
+            returncode = func(*args, **kwargs)
             if returncode:
                 colors.red.bold.print(
                     f"Failed: returned non-zero exit status {returncode}",
