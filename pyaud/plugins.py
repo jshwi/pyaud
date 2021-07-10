@@ -189,17 +189,98 @@ class Audit(Plugin):
                 raise self.audit_error() from err
 
 
+class Fix(Audit):
+    """Blueprint for writing audit and fix plugins.
+
+    Audit will be called from here.
+
+    Called within context of defined environment variables.
+    If no environment variables are defined nothing will change.
+
+    If audit fails and the ``-f/--fix`` flag is passed to the
+    commandline the ``fix`` method will be called within the
+    ``CalledProcessError`` try-except block.
+
+    If ``-f/--fix`` and the audit fails the user is running the
+    audit only and will raise an ``AuditError``.
+
+    :raises CalledProcessError: Will always be raised if something
+                                fails that is not to do with the
+                                audit condition.
+
+                                Will be excepted and reraised as
+                                ``AuditError`` if the audit fails and
+                                ``-f/--fix`` is not passed to the
+                                commandline.
+
+    :raises AuditError:         Raised from ``CalledProcessError``
+                                if audit fails and ``-f/--fix`` flag
+                                if not passed to the commandline.
+
+    :return:                    If any error has not been raised for any
+                                reason int object must be returned, from
+                                subprocess or written, to notify call
+                                whether process has succeeded or failed.
+
+                                No value will actually return from
+                                __call__ as it will be passed to the
+                                decorator.
+    """
+
+    @abstractmethod
+    def audit(self, *args: Any, **kwargs: bool) -> int:
+        """All audit logic to be written within this method.
+
+        :param args:    Args that can be passed from other plugins.
+
+        :param kwargs:  Boolean flags for subprocesses.
+
+        :return:        If any error has not been raised for any reason
+                        int object must be returned, from subprocess or
+                        written, to notify __call__ whether process has
+                        succeeded or failed.
+
+                        If non-zero exist if returned and ``-f/--fix``
+                        has been passed to the commandline run the
+                        ``fix`` method, otherwise raise ``AuditError``.
+        """
+
+    @abstractmethod
+    def fix(self, *args: Any, **kwargs: bool) -> int:
+        """Run if audit fails but only if running a fix.
+
+        :param args:    Args that can be passed from other plugins.
+        :param kwargs:  Boolean flags for subprocesses.
+        :return:        If any error has not been raised for any reason
+                        int object must be returned, from subprocess or
+                        written, to notify __call__ whether process has
+                        succeeded or failed.
+        """
+
+    @check_command
+    def __call__(self, *args: Any, **kwargs: bool) -> Any:
+        with TempEnvVar(os.environ, **self.env):
+            try:
+                return self.audit(*args, **kwargs)
+
+            except CalledProcessError as err:
+                if kwargs.get("fix", False):
+                    return self.fix(**kwargs)
+
+                raise self.audit_error() from err
+
+
 # array of plugins
-PLUGINS = [Audit]
+PLUGINS = [Audit, Fix]
 
 # array of plugin names
 PLUGIN_NAMES = [t.__name__ for t in PLUGINS]
 
 # array of plugin types before instantiation
-PluginType = Union[Type[Audit]]
+PluginType = Union[Type[Audit], Type[Fix]]
 
 # array of plugin types after instantiation
-PluginInstance = Union[Audit]
+PluginInstance = Union[Audit, Fix]
 
 
 class _Plugins(MutableMapping):  # pylint: disable=too-many-ancestors
@@ -228,7 +309,7 @@ def register(name: str) -> Callable[..., PluginInstance]:
     :return:        Return registered plugin to call.
     """
 
-    def _register(plugin: Any):
+    def _register(plugin: Any) -> Any:
         plugins[name] = plugin
         return plugin
 

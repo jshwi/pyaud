@@ -6,7 +6,6 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from subprocess import CalledProcessError
 from typing import Any, Dict, List
 
 import pyaud
@@ -154,27 +153,24 @@ def make_files(**kwargs: bool) -> None:
 
 
 @pyaud.plugins.register(name="format")
-@pyaud.plugins.check_command
-def make_format(**kwargs: bool) -> int:
-    """Audit code against ``Black``.
+class Format(pyaud.plugins.Fix):
+    """Audit code with `Black`."""
 
-    :param kwargs:  Pass keyword arguments to ``call``.
-    :key fix:       Do not raise error - fix problem instead.
-    :return:        Exit status.
-    """
-    black = pyaud.utils.Subprocess("black", loglevel="debug")
-    args = pyaud.utils.files.reduce()
-    try:
-        return black.call("--check", *args, **kwargs)
+    black = "black"
 
-    except CalledProcessError as err:
-        black.call(*args, **kwargs)
-        if kwargs.get("fix", False):
-            return black.call(*args, **kwargs)
+    @property
+    def exe(self) -> List[str]:
+        return [self.black]
 
-        raise pyaud.exceptions.PyAuditError(
-            f"{black} {tuple([str(p) for p in args])}"
-        ) from err
+    def audit(self, *args: Any, **kwargs: bool) -> Any:
+        return self.subprocess[self.black].call(
+            "--check", *pyaud.utils.files.args(reduce=True), *args, **kwargs
+        )
+
+    def fix(self, *args: Any, **kwargs: bool) -> Any:
+        return self.subprocess[self.black].call(
+            *args, *pyaud.utils.files.args(reduce=True), **kwargs
+        )
 
 
 @pyaud.plugins.register(name="lint")
@@ -317,34 +313,29 @@ class TypeCheck(pyaud.plugins.Audit):
 
 
 @pyaud.plugins.register(name="unused")
-@pyaud.plugins.check_command
-def make_unused(**kwargs: bool) -> int:
+class Unused(pyaud.plugins.Fix):
     """Audit unused code with ``vulture``.
 
     Create whitelist first with --fix.
-
-    :param kwargs:  Pass keyword arguments to ``call``.
-    :key fix:       Do not raise error - fix problem instead.
-    :return:        Exit status.
     """
-    whitelist = Path.cwd() / os.environ["PYAUD_WHITELIST"]
-    args = pyaud.utils.files.reduce()
-    vulture = pyaud.utils.Subprocess("vulture")
-    while True:
-        try:
-            if whitelist.is_file():
-                args.append(whitelist)
 
-            return vulture.call(*args, **kwargs)
+    vulture = "vulture"
 
-        except CalledProcessError as err:
-            if kwargs.get("fix", False):
-                make_whitelist(**kwargs)
-                return 0
+    @property
+    def exe(self) -> List[str]:
+        return [self.vulture]
 
-            raise pyaud.exceptions.PyAuditError(
-                f"{vulture} {pyaud.utils.files.args(reduce=True)}"
-            ) from err
+    def audit(self, *args: Any, **kwargs: bool) -> Any:
+        whitelist = Path.cwd() / os.environ["PYAUD_WHITELIST"]
+        args = *pyaud.utils.files.args(reduce=True), *args
+        if whitelist.is_file():
+            args = str(whitelist), *args
+
+        return self.subprocess[self.vulture].call(*args, **kwargs)
+
+    def fix(self, *args: Any, **kwargs: bool) -> Any:
+        make_whitelist(**kwargs)
+        return self.audit(*args, **kwargs)
 
 
 @pyaud.plugins.register(name="whitelist")
@@ -458,62 +449,59 @@ def make_readme(**kwargs: bool) -> None:
 
 
 @pyaud.plugins.register(name="format-str")
-@pyaud.plugins.check_command
-def make_format_str(**kwargs: bool) -> int:
-    """Format f-strings with ``flynt``.
+class FormatFString(pyaud.plugins.Fix):
+    """Format f-strings with ``flynt``."""
 
-    :param kwargs:  Pass keyword arguments to ``call``.
-    :key fix:       Do not raise error - fix problem instead.
-    :return:        Exit status.
-    """
-    flynt = pyaud.utils.Subprocess("flynt")
-    args = (
-        "--line-length",
-        "72",
-        "--transform-concats",
-        *pyaud.utils.files.reduce(),
-    )
-    try:
-        return flynt.call(
-            "--dry-run", "--fail-on-change", *args, devnull=True, **kwargs
+    flynt = "flynt"
+    args = "--line-length", "72", "--transform-concats"
+
+    @property
+    def exe(self) -> List[str]:
+        return [self.flynt]
+
+    def audit(self, *args: Any, **kwargs: bool) -> Any:
+        return self.subprocess[self.flynt].call(
+            "--check",
+            *self.args,
+            *pyaud.utils.files.args(reduce=True),
+            *args,
+            **kwargs,
         )
 
-    except CalledProcessError as err:
-        if kwargs.get("fix", False):
-            return flynt.call(*args, **kwargs)
-
-        raise pyaud.exceptions.PyAuditError(
-            f"{flynt} {tuple([str(p) for p in args])}"
-        ) from err
+    def fix(self, *args: Any, **kwargs: bool) -> Any:
+        return self.subprocess[self.flynt].call(
+            *self.args, *pyaud.utils.files.args(reduce=True), *args, **kwargs
+        )
 
 
 @pyaud.plugins.register(name="format-docs")
-@pyaud.plugins.check_command
-def make_format_docs(**kwargs: bool) -> int:
-    """Format docstrings with ``docformatter``.
+class FormatDocs(pyaud.plugins.Fix):
+    """Format docstrings with ``docformatter``."""
 
-    :param kwargs:  Pass keyword arguments to ``call``.
-    :key fix:       Do not raise error - fix problem instead.
-    :return:        Exit status.
-    """
-    docformatter = pyaud.utils.Subprocess("docformatter")
-    args = (
-        "--recursive",
-        "--wrap-summaries",
-        "72",
-        *pyaud.utils.files.reduce(),
-    )
-    try:
-        return docformatter.call("--check", *args, **kwargs)
+    docformatter = "docformatter"
+    args = "--recursive", "--wrap-summaries", "72"
 
-    except CalledProcessError as err:
-        args = ("--in-place", *args)
-        if kwargs.get("fix", False):
-            return docformatter.call(*args, **kwargs)
+    @property
+    def exe(self) -> List[str]:
+        return [self.docformatter]
 
-        raise pyaud.exceptions.PyAuditError(
-            f"{docformatter} {pyaud.utils.files.args(reduce=True)}"
-        ) from err
+    def audit(self, *args: Any, **kwargs: bool) -> Any:
+        return self.subprocess[self.docformatter].call(
+            "--check",
+            *self.args,
+            *pyaud.utils.files.args(reduce=True),
+            *args,
+            **kwargs,
+        )
+
+    def fix(self, *args: Any, **kwargs: bool) -> Any:
+        return self.subprocess[self.docformatter].call(
+            "--in-place",
+            *self.args,
+            *pyaud.utils.files.args(reduce=True),
+            *args,
+            **kwargs,
+        )
 
 
 @pyaud.plugins.register(name="generate-rcfile")

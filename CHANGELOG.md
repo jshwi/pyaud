@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v2.0.0...HEAD)
 ------------------------------------------------------------------------
 ### Added
+- Adds `pyaud.plugins.Fix` abstract base class
 - Adds `pyaud.plugins.Audit` abstract base class
 - Adds `pyaud.utils.files.args`
 - Adds `plugins`

@@ -4,6 +4,7 @@ tests.plugins_test
 """
 # pylint: disable=too-many-lines,too-many-arguments,cell-var-from-loop
 # pylint: disable=too-few-public-methods,unused-variable
+import datetime
 import os
 import random
 from pathlib import Path
@@ -98,7 +99,7 @@ def test_make_audit_error(
     """
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     pyaud.utils.files.append(Path.cwd() / FILES)
-    with pytest.raises(CalledProcessError):
+    with pytest.raises(pyaud.exceptions.PyAuditError):
         main("audit")
 
     assert nocolorcapsys.stdout().strip() == "pyaud format"
@@ -745,24 +746,23 @@ def test_readme(main: Any, nocolorcapsys: Any) -> None:
 
 
 @pytest.mark.parametrize(
-    "module,process,content",
+    "module,content",
     [
-        ("format", "black", files.UNFORMATTED),
-        ("imports", "imports", files.IMPORTS_UNSORTED),
-        ("format-str", "flynt", files.FORMAT_STR_FUNCS_PRE),
-        ("format-docs", "docformatter", files.DOCFORMATTER_EXAMPLE),
+        ("format", files.UNFORMATTED),
+        ("imports", files.IMPORTS_UNSORTED),
+        ("format-str", files.FORMAT_STR_FUNCS_PRE),
+        ("format-docs", files.DOCFORMATTER_EXAMPLE),
     ],
     ids=["format", "imports", "format-str", "format-docs"],
 )
 def test_py_audit_error(
-    main: Any, make_tree: Any, module: str, process: str, content: str
+    main: Any, make_tree: Any, module: str, content: str
 ) -> None:
     """Test ``PyAuditError`` message.
 
     :param main:        Patch package entry point.
     :param make_tree:   Create directory tree from dict mapping.
     :param module:      [<module>].__name__.
-    :param process:     Subprocess being called.
     :param content:     Content to write to file.
     """
     project_dir = Path.cwd()
@@ -777,9 +777,7 @@ def test_py_audit_error(
         main(module)
 
     stderr = str(err.value)
-    assert all(
-        i in stderr for i in (process, file.name, "did not pass all checks")
-    )
+    assert all(i in stderr for i in (module, "did not pass all checks"))
     assert "Path" not in stderr
 
 
@@ -1151,11 +1149,7 @@ def test_make_unused_fail(main: Any) -> None:
     with pytest.raises(pyaud.exceptions.PyAuditError) as err:
         main("unused")
 
-    assert str(
-        err.value
-    ) == "<Subprocess (vulture)> ('{}',) did not pass all checks".format(
-        Path.cwd() / FILES
-    )
+    assert str(err.value) == "pyaud unused did not pass all checks"
 
 
 def test_make_format_docs_fix(main: Any, nocolorcapsys: Any) -> None:
@@ -1272,15 +1266,16 @@ def test_no_exe_provided(monkeypatch: Any) -> None:
 
     :param monkeypatch: Mock patch environment and attributes.
     """
+    unique = datetime.datetime.now().strftime("%d%m%YT%H%M%S")
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     pyaud.utils.files.append(Path.cwd() / FILES)
 
     # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin")
+    @pyaud.plugins.register(name=unique)
     class Plugin(pyaud.plugins.Audit):
         """Nothing to do."""
 
         def audit(self, *args: Any, **kwargs: bool) -> int:
             """Nothing to do."""
 
-    assert pyaud.plugins.plugins["plugin"].exe == []
+    assert pyaud.plugins.plugins[unique].exe == []
