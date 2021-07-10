@@ -146,7 +146,7 @@ def make_docs(**kwargs: bool) -> None:
         shutil.rmtree(build_dir)
 
     sphinx_build = Subprocess("sphinx-build")
-    if Path(Path.cwd() / DOCS).is_dir():
+    if Path(Path.cwd() / DOCS).is_dir() and Path(Path.cwd(), README).is_file():
         with LineSwitch(Path.cwd() / README, {0: readme_rst, 1: underline}):
             command = ["-M", "html", Path.cwd() / DOCS, build_dir, "-W"]
             sphinx_build.call(*command, **kwargs)
@@ -274,8 +274,10 @@ def make_toc(**kwargs: bool) -> None:
             "-o", docspath, Path.cwd() / package, "-f", devnull=True, **kwargs
         )
 
-        with open(tocpath) as fin:
-            contents = fin.read().splitlines()
+        contents = []
+        if tocpath.is_file():
+            with open(tocpath) as fin:
+                contents.extend(fin.read().splitlines())
 
         with open(tocpath, "w") as fout:
             fout.write(f"{package}\n{len(package) * '='}\n\n")
