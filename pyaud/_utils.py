@@ -259,9 +259,9 @@ class HashCap:
 
 
 def branch() -> _Optional[str]:
-    """Get the current checked out branch of the project.
+    """Return current Git branch if in Git repository.
 
-    :return: Name of branch or None if on a branch with no parent.
+    :return: Checked out branch or None if no parent commit or repo.
     """
     git.symbolic_ref(  # type: ignore
         "--short", "HEAD", suppress=True, capture=True

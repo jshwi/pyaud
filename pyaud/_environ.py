@@ -21,9 +21,10 @@ SITE_PLUGINS = _Path.cwd() / PLUGINS
 
 
 def package() -> str:
-    """Find the relative path of the package to the project root.
+    """Return name of Python package.
 
-    :return: Relative path to the package.
+    :raises EnvironmentError:   Raised if no package can be found.
+    :return:                    Name of Python package.
     """
     packages = _setuptools.find_packages(
         where=_Path.cwd(), exclude=["plugins", "tests"]

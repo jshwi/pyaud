@@ -2,7 +2,43 @@
 pyaud.config
 ============
 
-Config module for ini parsing.
+Includes constants, functions, and singleton for Toml config parsing.
+
+``toml`` can be used with the external API for retrieving parsed config.
+
+    Configs are parsed in the following order:
+        | ~/.config/pyaud/pyaud.toml
+        | ~/.pyaudrc
+        | .pyaudrc
+        | pyproject.toml
+
+The following methods can be called with ``toml``:
+
+    .. code-block:: python
+
+        toml.dump(
+            self, fout: TextIO, obj: Optional[MutableMapping = None
+        ) -> str:
+
+    Dump dict object to open file.
+
+    If Optional[MutableMapping] is not provided, toml will use it's
+    own key-values.
+
+    .. code-block:: python
+
+        toml.dumps(self, obj: Optional[MutableMapping] = None) -> str
+
+    Return dict object from open file as toml str.
+
+    If Optional[MutableMapping] is not provided, toml will use it's
+    own key-values.
+
+    .. code-block:: python
+
+        toml.load(self, fin: TextIO, *args: Any) -> None
+
+    Load dict object from open file.
 """
 import copy as _copy
 import logging.config as _logging_config
@@ -147,8 +183,10 @@ def configure_global() -> None:
     """Setup object with default config settings.
 
     Create config file with default config settings if one does not
-    already exist. Load base config file which may or may not still have
-    the default settings configured.
+    already exist.
+
+    Load base config file which may, or may not, still have the default
+    settings configured.
     """
     configfile = CONFIGDIR / _TOMLFILE
     backupfile = CONFIGDIR / f".{_TOMLFILE}.bak"
@@ -198,9 +236,15 @@ def load_config(opt: _Optional[_Union[str, _os.PathLike]] = None):
 
 
 def configure_logging(verbose: int = 0) -> None:
-    """Set loglevel via commandline.
+    """Set loglevel.
 
-    Override environment variable if loglevel has already been set.
+    If ``-v`` flag passed to commandline decrease runtime loglevel for
+    every repeat occurrence.
+
+    ``-vvvv`` will always set logging to ``DEBUG``.
+
+    Default loglevel is set in the toml config and overridden by
+    environment variable if there is one.
 
     :param verbose: Level to raise log verbosity by.
     """

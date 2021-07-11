@@ -1,8 +1,4 @@
-"""Select module with commandline arguments.
-
-The word ``function`` and ``module`` are used interchangeably in this
-package.
-"""
+"""Plugin architecture for auditing Python packages."""
 from . import config, exceptions, plugins
 from ._environ import package
 from ._utils import branch, files, git
