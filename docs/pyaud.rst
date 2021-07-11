@@ -1,6 +1,10 @@
 pyaud
 =====
 
+.. automodule:: pyaud
+   :members:
+   :undoc-members:
+   :show-inheritance:
 .. automodule:: pyaud.config
    :members:
    :undoc-members:
@@ -10,10 +14,6 @@ pyaud
    :undoc-members:
    :show-inheritance:
 .. automodule:: pyaud.plugins
-   :members:
-   :undoc-members:
-   :show-inheritance:
-.. automodule:: pyaud
    :members:
    :undoc-members:
    :show-inheritance:

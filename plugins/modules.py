@@ -410,12 +410,7 @@ class Toc(pyaud.plugins.Write):
         return Path.cwd() / DOCS
 
     def write(self, *args: Any, **kwargs: bool) -> Any:
-        toc_attrs = [
-            ".. automodule::",
-            "   :members:",
-            "   :undoc-members:",
-            "   :show-inheritance:",
-        ]
+        toc_attrs = "   :members:\n   :undoc-members:\n   :show-inheritance:"
         package = pyaud.package()
         docspath = Path.cwd() / DOCS
         if Path(Path.cwd() / DOCS / "conf.py").is_file():
@@ -434,11 +429,13 @@ class Toc(pyaud.plugins.Write):
                 with open(self.path) as fin:
                     contents.extend(fin.read().splitlines())
 
+            contents = sorted(
+                [i for i in contents if i.startswith(".. automodule::")]
+            )
             with open(self.path, "w") as fout:
                 fout.write(f"{package}\n{len(package) * '='}\n\n")
                 for content in contents:
-                    if any(a in content for a in toc_attrs):
-                        fout.write(f"{content}\n")
+                    fout.write(f"{content}\n{toc_attrs}\n")
 
             modules = (
                 docspath / f"{package}.src.rst",

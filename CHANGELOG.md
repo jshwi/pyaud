@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `pyaud.modules` → `plugins.modules`
 
 ### Fixed
+- `pyaud toc` sorts modules alphabetically so `package.__init__.py` is on top
 - Adds positional arguments to `@check_command`
 - Fixes errors raised for missing project files
 - Fixes loading of `PYAUD_GH_NAME`
