@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixes loading of `PYAUD_GH_NAME`
 
 ### Removed
+- Removes support for ini config
 - Removes loglevel constants from `pyaud.config`
 
 [2.0.0](https://github.com/jshwi/pyaud/releases/tag/v2.0.0) - 2021-06-28

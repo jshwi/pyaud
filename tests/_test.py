@@ -4,7 +4,6 @@ tests._test
 """
 # pylint: disable=too-many-lines,too-many-arguments,cell-var-from-loop
 # pylint: disable=too-few-public-methods,unused-variable
-import configparser
 import copy
 import datetime
 import logging
@@ -439,51 +438,6 @@ def test_toml() -> None:
     pyaud.config.load_config(opt_rc)
     subtotal["audit"] = {"modules": ["files", "format", "format-docs"]}
     assert dict(pyaud.config.toml) == subtotal
-
-
-def test_config_ini_integration() -> None:
-    """Test config ini edits override global toml."""
-    tomlfile = pyaud.config.CONFIGDIR / TOMLFILE
-    inifile = pyaud.config.CONFIGDIR / f"{pyaud.__name__}.ini"
-    config_parser = configparser.ConfigParser()
-
-    # write default test ini file
-    # ===========================
-    default_ini_config = dict(
-        CLEAN={"exclude": "*.egg*,\n  .mypy_cache,\n  .env,\n  instance,"}
-    )
-    config_parser.read_dict(default_ini_config)
-    with open(inifile, "w") as fout:
-        config_parser.write(fout)
-
-    # ini ``CLEAN`` matches toml ``clean``
-    # ====================================
-    pyaud.config.configure_global()
-    with open(tomlfile) as fin:
-        assert (
-            '[clean]\nexclude = ["*.egg*", ".mypy_cache", ".env", "instance"]'
-        ) in fin.read()
-
-    # remove toml to write global again
-    # =================================
-    os.remove(tomlfile)
-
-    # write updated test ini file
-    # ===========================
-    default_ini_config["CLEAN"] = {
-        "exclude": "*.egg*,\n  .env,\n  instance,\n  .coverage"
-    }
-    config_parser.read_dict(default_ini_config)
-    with open(inifile, "w") as fout:
-        config_parser.write(fout)
-
-    # ini ``CLEAN`` matches toml ``clean``
-    # ====================================
-    pyaud.config.configure_global()
-    with open(tomlfile) as fin:
-        assert (
-            '[clean]\nexclude = ["*.egg*", ".env", "instance", ".coverage"]'
-        ) in fin.read()
 
 
 def test_toml_no_override_all(monkeypatch: Any) -> None:

@@ -8,11 +8,9 @@ import copy as _copy
 import logging.config as _logging_config
 import os as _os
 import shutil as _shutil
-from configparser import ConfigParser as _ConfigParser
 from pathlib import Path as _Path
 from typing import Any as _Any
 from typing import Dict as _Dict
-from typing import List as _List
 from typing import MutableMapping as _ABCMutableMapping
 from typing import Optional as _Optional
 from typing import TextIO as _TextIO
@@ -67,42 +65,6 @@ DEFAULT_CONFIG: _Dict[str, _Any] = dict(
 )
 
 _TOMLFILE = f"{_NAME}.toml"
-
-
-class ConfigParser(_ConfigParser):  # pylint: disable=too-many-ancestors
-    """ConfigParser inherited class with some tweaks."""
-
-    def __init__(self) -> None:
-        super().__init__(default_section="")
-        self.configfile = CONFIGDIR / f"{_NAME}.ini"
-        self._resolve()
-
-    def _read_proxy(self) -> None:
-        self.read(self.configfile)
-        for section in self.sections():
-            for key in self[section]:
-                self[section][key] = _os.path.expandvars(self[section][key])
-
-    def _resolve(self) -> None:
-        if self.configfile.is_file():
-            self._read_proxy()
-
-    def getlist(self, section: str, key: str) -> _List[str]:
-        """Return a comma separated ini list as a Python list.
-
-        :param section: Section containing the key-value pair.
-        :param key:     The key who's comma separated list will be
-                        parsed.
-        :return:        Python list parsed from command separated
-                        values.
-        """
-        retval = []
-        if section in self:
-            retval.extend(
-                [e.strip() for e in self[section][key].split(",") if e != ""]
-            )
-
-        return retval
 
 
 class _TomlArrayEncoder(_toml_encoder.TomlEncoder):
@@ -191,7 +153,6 @@ def configure_global() -> None:
     configfile = CONFIGDIR / _TOMLFILE
     backupfile = CONFIGDIR / f".{_TOMLFILE}.bak"
     default_config = _copy.deepcopy(DEFAULT_CONFIG)
-    config = ConfigParser()
     if configfile.is_file():
         while True:
             with open(configfile) as fin:
@@ -209,10 +170,6 @@ def configure_global() -> None:
     for key in default_config:
         if key not in toml:
             toml[key] = default_config[key]
-
-    exclude = config.getlist("CLEAN", "exclude")
-    if exclude:
-        toml["clean"]["exclude"] = exclude
 
     CONFIGDIR.mkdir(exist_ok=True, parents=True)
     with open(configfile, "w") as fout:
