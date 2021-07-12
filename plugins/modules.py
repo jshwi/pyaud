@@ -7,6 +7,7 @@ import shutil
 import tempfile
 from pathlib import Path
 from subprocess import CalledProcessError
+from typing import Any, Dict, List
 
 import pyaud
 
@@ -43,22 +44,16 @@ def make_coverage(**kwargs: bool) -> None:
 
 
 @pyaud.plugins.register(name="deploy")
-def make_deploy(**kwargs: bool) -> None:
+def make_deploy(*args: Any, **kwargs: bool) -> None:
     """Deploy package documentation and test coverage.
 
     :param kwargs: Keyword arguments for ``deploy_module``.
     """
 
-    deploy_modules = [make_deploy_cov, make_deploy_docs]
+    deploy_modules = ["deploy-cov", "deploy-docs"]
     for deploy_module in deploy_modules:
-        pyaud.utils.colors.cyan.bold.print(
-            "\n{}".format(
-                deploy_module.__name__.replace(
-                    "make_", f"{pyaud.__name__} "
-                ).replace("_", "-")
-            )
-        )
-        deploy_module(**kwargs)
+        pyaud.utils.colors.cyan.bold.print(f"{pyaud.__name__} {deploy_module}")
+        pyaud.plugins.plugins[deploy_module](*args, **kwargs)
 
 
 @pyaud.plugins.register(name="deploy-cov")
@@ -183,17 +178,26 @@ def make_format(**kwargs: bool) -> int:
 
 
 @pyaud.plugins.register(name="lint")
-@pyaud.plugins.check_command
-def make_lint(**kwargs: bool) -> int:
-    """Lint code with ``pylint``.
+class Lint(pyaud.plugins.Audit):
+    """Lint code with ``pylint``."""
 
-    :param kwargs:  Pass keyword arguments to ``call``.
-    :return:        Exit status.
-    """
-    with pyaud.environ.TempEnvVar(os.environ, PYCHARM_HOSTED="True"):
-        args = pyaud.utils.files.reduce()
-        pylint = pyaud.utils.Subprocess("pylint")
-        return pylint.call("--output-format=colorized", *args, **kwargs)
+    pylint = "pylint"
+
+    @property
+    def exe(self) -> List[str]:
+        return [self.pylint]
+
+    @property
+    def env(self) -> Dict[str, str]:
+        return {"PYCHARM_HOSTED": "True"}
+
+    def audit(self, *args: Any, **kwargs: bool) -> Any:
+        return self.subprocess[self.pylint].call(
+            "--output-format=colorized",
+            *args,
+            *pyaud.utils.files.args(reduce=True),
+            **kwargs,
+        )
 
 
 @pyaud.plugins.register(name="requirements")
@@ -290,20 +294,26 @@ def make_toc(**kwargs: bool) -> None:
 
 
 @pyaud.plugins.register(name="typecheck")
-@pyaud.plugins.check_command
-def make_typecheck(**kwargs: bool) -> int:
+class TypeCheck(pyaud.plugins.Audit):
     """Typecheck code with ``mypy``.
 
-    Check that there are no errors between the files and their
-    stub-files.
-
-    :param kwargs:  Pass keyword arguments to ``call``.
-    :return:        Exit status.
+    Check that there are no errors between the files and their stub-
+    files.
     """
-    mypy = pyaud.utils.Subprocess("mypy")
-    return mypy.call(
-        "--ignore-missing-imports", *pyaud.utils.files.reduce(), **kwargs
-    )
+
+    mypy = "mypy"
+
+    @property
+    def exe(self) -> List[str]:
+        return [self.mypy]
+
+    def audit(self, *args: Any, **kwargs: bool) -> Any:
+        return self.subprocess[self.mypy].call(
+            "--ignore-missing-imports",
+            *pyaud.utils.files.args(reduce=True),
+            *args,
+            **kwargs,
+        )
 
 
 @pyaud.plugins.register(name="unused")
@@ -424,8 +434,7 @@ def make_imports(**kwargs: bool) -> int:
                 else:
                     raise pyaud.exceptions.PyAuditError(
                         "{} {}".format(
-                            make_imports.__name__,
-                            pyaud.utils.files.args(reduce=True),
+                            make_imports, pyaud.utils.files.args(reduce=True)
                         )
                     )
 

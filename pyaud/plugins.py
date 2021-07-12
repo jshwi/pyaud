@@ -8,13 +8,15 @@ import functools
 import importlib
 import os
 import sys
+from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Union
+from subprocess import CalledProcessError
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-from .environ import DEFAULT_PLUGINS, SITE_PLUGINS
-from .exceptions import NameConflictError
+from .environ import DEFAULT_PLUGINS, SITE_PLUGINS, TempEnvVar
+from .exceptions import NameConflictError, PyAuditError
 from .objects import MutableMapping
-from .utils import HashCap, colors, files
+from .utils import HashCap, Subprocess, colors, files
 
 _plugin_paths: List[Path] = [DEFAULT_PLUGINS, SITE_PLUGINS]
 
@@ -83,6 +85,123 @@ def write_command(
     return _decorator
 
 
+class _SubprocessFactory(MutableMapping):  # pylint: disable=too-many-ancestors
+    """Instantiate collection of ``Subprocess`` objects."""
+
+    def __init__(self, args: List[str]):
+        super().__init__()
+        for arg in args:
+            self[arg] = Subprocess(arg)
+
+
+class Plugin(ABC):  # pylint: disable=too-few-public-methods
+    """Base class of all plugins.
+
+    Raises ``TypeError`` if registered directly.
+
+    Contains the name attribute assigned upon registration.
+
+    Subprocesses are stored in the ``subprocess`` dict object
+
+    :param name: Name assigned to plugin via ``@register`` decorator.
+    """
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.subprocess = _SubprocessFactory(self.exe)
+
+    @staticmethod
+    def audit_error() -> PyAuditError:
+        """Raise if checks have failed.
+
+        :return: AuditError instantiated with error message.
+        """
+        return PyAuditError(" ".join(sys.argv))
+
+    @property
+    def env(self) -> Dict[str, str]:
+        """Return environment which will remain active for run.
+
+        :return:    Dict containing any number of str keys and
+                    corresponding str values.
+        """
+        return {}
+
+    @property
+    def exe(self) -> List[str]:
+        """List of executables to add to ``subprocess`` dict.
+
+        :return: List of str object to assign to subprocesses
+        """
+        return []
+
+    def __call__(self, *args: Any, **kwargs: bool) -> Any:
+        """Enables calling of all plugin instances."""
+
+
+class Audit(Plugin):
+    """Blueprint for writing audit-only plugins.
+
+    Audit will be called from here.
+
+    Run within context of defined environment variables.
+    If no environment variables are defined nothing will change.
+
+    :raises CalledProcessError: Will always be raised if something
+                                fails that is not to do with the
+                                audit condition.
+
+                                Will be excepted and reraised as
+                                ``AuditError`` if the audit fails.
+
+    :raises AuditError:         Raised from ``CalledProcessError`` if
+                                audit fails.
+
+    :return:                    If any error has not been raised for any
+                                reason int object must be returned, from
+                                subprocess or written, to notify call
+                                whether process has succeeded or failed.
+
+                                No value will actually return from
+                                __call__ as it will be passed to the
+                                decorator.
+    """
+
+    @abstractmethod
+    def audit(self, *args: Any, **kwargs: bool) -> int:
+        """All audit logic to be written within this method.
+
+        :param args:    Args that can be passed from other plugins.
+        :param kwargs:  Boolean flags for subprocesses.
+        :return:        If any error has not been raised for any reason
+                        int object must be returned, from subprocess or
+                        written, to notify call whether process has
+                        succeeded or failed.
+        """
+
+    @check_command
+    def __call__(self, *args: Any, **kwargs: bool) -> int:
+        with TempEnvVar(os.environ, **self.env):
+            try:
+                return self.audit(*args, **kwargs)
+
+            except CalledProcessError as err:
+                raise self.audit_error() from err
+
+
+# array of plugins
+PLUGINS = [Audit]
+
+# array of plugin names
+PLUGIN_NAMES = [t.__name__ for t in PLUGINS]
+
+# array of plugin types before instantiation
+PluginType = Union[Type[Audit]]
+
+# array of plugin types after instantiation
+PluginInstance = Union[Audit]
+
+
 class _Plugins(MutableMapping):  # pylint: disable=too-many-ancestors
     """Holds registered plugins."""
 
@@ -92,13 +211,17 @@ class _Plugins(MutableMapping):  # pylint: disable=too-many-ancestors
         if name in self:
             raise NameConflictError(plugin.__name__, name)
 
-        super().__setitem__(name, plugin)
+        if hasattr(plugin, "__bases__"):
+            super().__setitem__(name, plugin(name))
+
+        else:
+            super().__setitem__(name, plugin)
 
 
 plugins = _Plugins()
 
 
-def register(name: str) -> Callable[..., Any]:
+def register(name: str) -> Callable[..., PluginInstance]:
     """Register subclassed plugin to collection.
 
     :param name:    Name to register plugin as.

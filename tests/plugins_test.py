@@ -96,9 +96,7 @@ def test_make_audit_error(
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    monkeypatch.setattr(
-        "pyaud.utils.Subprocess._open_process", lambda *_, **__: 1
-    )
+    monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     pyaud.utils.files.append(Path.cwd() / FILES)
     with pytest.raises(CalledProcessError):
         main("audit")
@@ -143,17 +141,16 @@ def test_make_deploy_all(
                             Optionally returns non-zero exit code (0 by
                             default).
     """
-    modules = "make_deploy_cov", "make_deploy_docs"
+    modules = "deploy-cov", "deploy-docs"
+    mocked_plugins = dict(pyaud.plugins.plugins)
     for module in modules:
-        monkeypatch.setattr(f"plugins.modules.{module}", call_status(module))
+        mocked_plugins[module] = call_status(module)
 
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_plugins)
     main("deploy")
     out = nocolorcapsys.stdout().splitlines()
     for module in modules:
-        assert (
-            module.replace("make_", f"{pyaud.__name__} ").replace("_", "-")
-            in out
-        )
+        assert f"{pyaud.__name__} {module}" in out
 
 
 def test_make_deploy_all_fail(
@@ -167,15 +164,13 @@ def test_make_deploy_all_fail(
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    deploy_module = "make_deploy_docs"
-    monkeypatch.setattr(
-        f"plugins.modules.{deploy_module}", call_status(deploy_module, 1)
-    )
+    deploy_module = "deploy-docs"
+    mocked_plugins = dict(pyaud.plugins.plugins)
+    mocked_plugins[deploy_module] = call_status(deploy_module, 1)
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_plugins)
     main("deploy")
-    assert (
-        deploy_module.replace("make_", f"{pyaud.__name__} ").replace("_", "-")
-        in nocolorcapsys.stdout().splitlines()
-    )
+    out = nocolorcapsys.stdout().splitlines()
+    assert f"{pyaud.__name__} {deploy_module}" in out
 
 
 def test_make_docs_no_docs(main: Any, nocolorcapsys: Any) -> None:
@@ -249,9 +244,7 @@ def test_make_docs_toc_fail(
     :param make_tree:   Create directory tree from dict mapping.
     """
     make_tree(Path.cwd(), {"docs": {CONFPY: None}})
-    monkeypatch.setattr(
-        "pyaud.utils.Subprocess._open_process", lambda *_, **__: 1
-    )
+    monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     with pytest.raises(CalledProcessError) as err:
         main("docs")
 
@@ -1260,3 +1253,34 @@ def test_help_with_plugins(
 
     out = nocolorcapsys.stdout()
     assert any(i in out for i in expected)
+
+
+def test_audit_class_error(main: Any, monkeypatch: Any) -> None:
+    """Test errors are handled correctly when running ``pyaud audit``.
+
+    :param main:            Patch package entry point.
+    :param monkeypatch:     Mock patch environment and attributes.
+    """
+    monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
+    pyaud.utils.files.append(Path.cwd() / FILES)
+    with pytest.raises(pyaud.exceptions.PyAuditError):
+        main("lint")
+
+
+def test_no_exe_provided(monkeypatch: Any) -> None:
+    """Test default value for exe property.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    """
+    monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
+    pyaud.utils.files.append(Path.cwd() / FILES)
+
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name="plugin")
+    class Plugin(pyaud.plugins.Audit):
+        """Nothing to do."""
+
+        def audit(self, *args: Any, **kwargs: bool) -> int:
+            """Nothing to do."""
+
+    assert pyaud.plugins.plugins["plugin"].exe == []
