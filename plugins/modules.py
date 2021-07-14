@@ -437,68 +437,73 @@ class Whitelist(pyaud.plugins.Write):
 
 
 @pyaud.plugins.register(name="imports")
-@pyaud.plugins.check_command
-def make_imports(**kwargs: bool) -> int:
+class Imports(pyaud.plugins.FixFile):
     """Audit imports with ``isort``.
 
     ``Black`` and ``isort`` clash in some areas when it comes to
-    ``Black`` sorting imports. To avoid  running into false positives
-    when running both in conjunction (as ``Black`` is uncompromising)
-    run ``Black`` straight after. To effectively test this, for lack of
-    stdin functionality, use ``tempfile.NamedTemporaryFunction`` to
-    first evaluate contents from original file, then after ``isort``,
-    then after ``Black``. If nothing has changed, even if ``isort``
-    has changed a file, then the imports are sorted enough for
-    ``Black``'s standard. If there is a change raise ``PyAuditError`` if
-    ``-f/--fix`` or ``-s/--suppress`` was not passed to the commandline.
-    If ``-f/--fix`` was passed then replace the original file with the
-    temp file's contents.
+    ``Black`` sorting imports. To avoid  running into false
+    positives when running both in conjunction (as ``Black`` is
+    uncompromising) run ``Black`` straight after.
 
-    :param kwargs:  Pass keyword arguments to ``call``.
-    :key fix:       Do not raise error - fix problem instead.
-    :return:        Exit status.
+    To effectively test this, for lack of stdin functionality, use
+    ``tempfile.NamedTemporaryFunction`` to first evaluate contents
+    from original file, then after ``isort``, then after ``Black``.
+
+    If nothing has changed, even if ``isort`` has changed a file,
+    then the imports are sorted enough for ``Black``'s standard.
+
+    If there is a change raise ``PyAuditError`` if ``-f/--fix`` or
+    ``-s/--suppress`` was not passed to the commandline.
+
+    If ``-f/--fix`` was passed then replace the original file with
+    the temp file's contents.
     """
-    isort = pyaud.utils.Subprocess("isort", devnull=True)
-    black = pyaud.utils.Subprocess("black", loglevel="debug", devnull=True)
-    for item in pyaud.utils.files:
-        if item.is_file():
 
-            # collect original file's contents
-            with open(item) as fin:
-                content = fin.read()
+    result = ""
+    content = ""
 
-            # write original file's contents to temporary file
-            tmp = tempfile.NamedTemporaryFile(delete=False)
-            with open(tmp.name, "w") as fout:
-                fout.write(content)
+    @property
+    def exe(self) -> List[str]:
+        return ["isort", "black"]
 
-            # run both ``isort`` and ``black`` on the temporary file,
-            # leaving the original file untouched
-            isort.call(tmp.name, **kwargs)
-            black.call(tmp.name, "--line-length", "79", **kwargs)
+    def audit(self, file: Path, **kwargs: bool) -> Any:
+        # collect original file's contents
+        with open(file) as fin:
+            self.content = fin.read()
 
-            # collect the results from the temporary file
-            with open(tmp.name) as fin:
-                result = fin.read()
+        # write original file's contents to temporary file
+        tmp = tempfile.NamedTemporaryFile(delete=False)
+        with open(tmp.name, "w") as fout:
+            fout.write(self.content)
 
-            os.remove(tmp.name)
-            if result != content:
-                if kwargs.get("fix"):
-                    print(f"Fixed {item.relative_to(Path.cwd())}")
+        # run both ``isort`` and ``black`` on the temporary file,
+        # leaving the original file untouched
+        self.subprocess["isort"].call(tmp.name, devnull=True, **kwargs)
+        self.subprocess["black"].call(
+            tmp.name,
+            "--line-length",
+            "79",
+            loglevel="debug",
+            devnull=True,
+            **kwargs,
+        )
 
-                    # replace original file's contents with the temp
-                    # file post ``isort`` and ``Black``
-                    with open(item, "w") as fout:
-                        fout.write(result)
+        # collect the results from the temporary file
+        with open(tmp.name) as fin:
+            self.result = fin.read()
 
-                else:
-                    raise pyaud.exceptions.PyAuditError(
-                        "{} {}".format(
-                            make_imports, pyaud.utils.files.args(reduce=True)
-                        )
-                    )
+        os.remove(tmp.name)
 
-    return 0
+    def fail_condition(self) -> Optional[bool]:
+        return self.result != self.content
+
+    def fix(self, file: Any, **kwargs: bool) -> None:
+        print(f"Fixed {file.relative_to(Path.cwd())}")
+
+        # replace original file's contents with the temp
+        # file post ``isort`` and ``Black``
+        with open(file, "w") as fout:
+            fout.write(self.result)
 
 
 @pyaud.plugins.register(name="readme")

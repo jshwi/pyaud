@@ -354,25 +354,108 @@ class Write(Plugin):
                 print(f"updated ``{path.name}``")
 
 
+class FixFile(Plugin):
+    """Blueprint for writing audit and fix plugins for individual files.
+
+    All logic can act on each file that would be passed from __call__.
+
+    Called within context of defined environment variables.
+    If no environment variables are defined nothing will change.
+
+    Condition for failure needs to be defined, as the file argument
+    passed from outer loop will not return an exit status.
+
+    If audit fails and the ``-f/--fix`` flag is passed to the
+    commandline the ``fix`` method will be called within the
+    ``CalledProcessError`` try-except block.
+
+    If ``-f/--fix`` and the audit fails the user is running the
+    audit only and will raise an ``AuditError``.
+
+    :raises CalledProcessError: Will always be raised if something
+                                fails that is not to do with the
+                                audit condition.
+
+                                Will be excepted and reraised as
+                                ``AuditError`` if the audit fails and
+                                ``-f/--fix`` is not passed to the
+                                commandline.
+
+    :raises AuditError:         Raised from ``CalledProcessError``
+                                if audit fails and ``-f/--fix`` flag
+                                if not passed to the commandline.
+
+    :return:                    Only 0 exit-status can be returned. If
+                                process fails error will be raised.
+    """
+
+    @abstractmethod
+    def fail_condition(self) -> Optional[bool]:
+        """Condition to trigger non-subprocess failure."""
+
+    @abstractmethod
+    def audit(self, file: Path, **kwargs: bool) -> None:
+        """All logic written within this method for each file's audit.
+
+        :param file:    Individual file.
+        :param kwargs:  Boolean flags for subprocesses.
+        """
+
+    @abstractmethod
+    def fix(self, file: Path, **kwargs: bool) -> None:
+        """All logic written within this method for each file's fix.
+
+        :param file:    Individual file.
+        :param kwargs:  Boolean flags for subprocesses.
+        """
+
+    @check_command
+    def __call__(self, *args: Any, **kwargs: bool) -> Any:
+        paths = [p for p in files if p.is_file()]
+        for path in paths:
+            self.audit(path, **kwargs)
+            fail = self.fail_condition()
+            if fail is not None and fail:
+                if kwargs.get("fix", False):
+                    self.fix(path, **kwargs)
+                else:
+                    raise self.audit_error()
+
+        # if no error raised return 0 to decorator
+        return 0
+
+
 # array of plugins
-PLUGINS = [Audit, Fix, Action, Parametrize, Write]
+PLUGINS = [Audit, Fix, Action, Parametrize, Write, FixFile]
 
 # array of plugin names
 PLUGIN_NAMES = [t.__name__ for t in PLUGINS]
 
 # array of plugin types before instantiation
 PluginType = Union[
-    Type[Audit], Type[Fix], Type[Action], Type[Parametrize], Type[Write]
+    Type[Audit],
+    Type[Fix],
+    Type[Action],
+    Type[Parametrize],
+    Type[Write],
+    Type[FixFile],
 ]
 
 # array of plugin types after instantiation
-PluginInstance = Union[Audit, Fix, Action, Parametrize, Write]
+PluginInstance = Union[Audit, Fix, Action, Parametrize, Write, FixFile]
 
 
 class _Plugins(MutableMapping):  # pylint: disable=too-many-ancestors
-    """Holds registered plugins."""
+    """Holds registered plugins.
 
-    def __setitem__(self, name: str, plugin: Any) -> None:
+    Instantiate plugin on running __setitem__.
+
+    :raise NameConflictError:   If name of registered plugin is not
+                                unique.
+    :raise TypeError:           If non plugin type registered.
+    """
+
+    def __setitem__(self, name: str, plugin: PluginType) -> None:
         # only unique names to be set in `plugins` object
         # if name is not unique raise `NameConflictError`
         if name in self:
