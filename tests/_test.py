@@ -33,6 +33,7 @@ from . import (
     README,
     REAL_REPO,
     REPO,
+    TYPE_ERROR,
     WARNING,
 )
 
@@ -689,14 +690,68 @@ def test_register_plugin_name_conflict_error() -> None:
     """Test ``NameConflictError`` is raised when same name provided."""
     unique = "test-register-plugin-name-conflict-error"
 
+    # noinspection PyUnusedLocal
     @pyaud.plugins.register(name=unique)
-    def plugin_one():  # pylint: disable=unused-variable
+    class PluginOne(pyaud.plugins.Action):
         """Nothing to do."""
+
+        def action(self, *args: Any, **kwargs: bool) -> Any:
+            """Nothing to do."""
 
     with pytest.raises(pyaud.exceptions.NameConflictError) as err:
 
+        # noinspection PyUnusedLocal
         @pyaud.plugins.register(name=unique)
-        def plugin_two():  # pylint: disable=unused-variable
+        class PluginTwo(pyaud.plugins.Action):
             """Nothing to do."""
 
-    assert str(err.value) == f"plugin name conflict at plugin_two: '{unique}'"
+            def action(self, *args: Any, **kwargs: bool) -> Any:
+                """Nothing to do."""
+
+    assert str(err.value) == f"plugin name conflict at PluginTwo: '{unique}'"
+
+
+def test_register_invalid_type() -> None:
+    """Test correct error is displayed when registering unknown type."""
+    unique = "test-register-invalid-type"
+    with pytest.raises(TypeError) as err:
+
+        # noinspection PyUnusedLocal
+        @pyaud.plugins.register(name=unique)
+        class NotSubclassed:
+            """Nothing to do."""
+
+    assert TYPE_ERROR in str(err.value)
+
+
+def test_plugin_assign_non_type_value() -> None:
+    """Test assigning of incompatible type to `_Plugin` instance."""
+    unique = "test-plugin-assign-non-type-value"
+    with pytest.raises(TypeError) as err:
+
+        # noinspection PyUnusedLocal
+        @pyaud.plugins.register(name=unique)
+        def plugin():
+            """Nothing to do."""
+
+    assert TYPE_ERROR in str(err.value)
+
+
+def test_plugin_assign_non_type_key():
+    """Test assigning of incompatible type to `_Plugin` instance."""
+    unique = "test-plugin-assign-non-type-key"
+
+    class Parent:
+        """Nothing to do."""
+
+    with pytest.raises(TypeError) as err:
+
+        # noinspection PyUnusedLocal
+        @pyaud.plugins.register(name=unique)
+        class Plugin(Parent):
+            """Nothing to do."""
+
+            def __call__(self, *args: Any, **kwargs: bool) -> Any:
+                """Nothing to do."""
+
+    assert TYPE_ERROR in str(err.value)

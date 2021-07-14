@@ -767,7 +767,7 @@ def test_py_audit_error(
         main(module)
 
     stderr = str(err.value)
-    assert all(i in stderr for i in (module, "did not pass all checks"))
+    assert stderr == f"pyaud {module} did not pass all checks"
     assert "Path" not in stderr
 
 

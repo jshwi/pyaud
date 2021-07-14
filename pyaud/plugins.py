@@ -461,11 +461,16 @@ class _Plugins(MutableMapping):  # pylint: disable=too-many-ancestors
         if name in self:
             raise NameConflictError(plugin.__name__, name)
 
-        if hasattr(plugin, "__bases__"):
-            super().__setitem__(name, plugin(name))
+        if (
+            not hasattr(plugin, "__bases__")
+            or plugin.__bases__[0].__name__ not in PLUGIN_NAMES
+        ):
+            raise TypeError(
+                "can only register one of the following: "
+                + ", ".join(PLUGIN_NAMES)
+            )
 
-        else:
-            super().__setitem__(name, plugin)
+        super().__setitem__(name, plugin(name))
 
 
 plugins = _Plugins()
