@@ -22,33 +22,110 @@ pyaud
     :target: https://github.com/psf/black
     :alt: black
 
-Automate quality-check of Python package with bundled utils
+The ``pyaud`` framework is designed for writing modular audits for Python packages
 
-Configuration of settings can be made with the following toml syntax files:
-    | ~/.config/pyaud/pyaud.toml
-    | ~/.pyaudrc
-    | .pyaudrc
-    | pyproject.toml
+    | Audits can be run to fail, such as when using CI, or include a fix
+    | Fixes can be written for whole directories or individual files
+    | Plugins can be written for manipulating files
+    | Supports single script plugins
 
-or environment variables (overriding in this order)
+Install
+-------
+Dependencies
+
+    | python3.8 (see `pyenv <https://github.com/pyenv/pyenv>`_)
+    | pip
+
+PyPi
+
+``pip install pyaud``
+
+Local clone
+
+``pip install .``
+
+Development
+
+``pip install pipenv && pipenv install --dev``
+
+Usage
+-----
+
+.. code-block:: console
+
+    usage: pyaud [-h] [-c] [-d] [-f] [-s] [-v] [--rcfile RCFILE] MODULE
+
+    positional arguments:
+      MODULE           choice of module: [modules] to list all
+
+    optional arguments:
+      -h, --help       show this help message and exit
+      -c, --clean      clean unversioned files prior to any process
+      -d, --deploy     include test and docs deployment after audit
+      -s, --suppress   continue without stopping for errors
+      -v, --verbose    incrementally increase logging verbosity
+      --rcfile RCFILE  select file to override config hierarchy
+
+Plugins
+-------
+
+``pyaud`` will search for a ``plugins`` package in the project root
+
+    | This package can contain any number of Python modules
+    | For writing plugins see `docs <https://jshwi.github.io/pyaud/pyaud.html#pyaud-plugins>`_
+
+The following plugins are usable out of the box:
+
+.. code-block:: console
+
+    audit           -- Read from [audit] key in config
+    clean           -- Remove all unversioned package files recursively
+    coverage        -- Run package unit-tests with `pytest` and `coverage`
+    deploy          -- Deploy package documentation and test coverage
+    deploy-cov      -- Upload coverage data to `Codecov`
+    deploy-docs     -- Deploy package documentation to `gh-pages`
+    docs            -- Compile package documentation with `Sphinx`
+    files           -- Audit project data files
+    format          -- Audit code against `Black`
+    format-docs     -- Format docstrings with `docformatter`
+    format-str      -- Format f-strings with `flynt`
+    generate-rcfile -- Print rcfile to stdout
+    imports         -- Audit imports with `isort`
+    lint            -- Lint code with `pylint`
+    readme          -- Parse, test, and assert RST code-blocks
+    requirements    -- Audit requirements.txt with Pipfile.lock
+    tests           -- Run the package unit-tests with `pytest`
+    toc             -- Audit docs/<NAME>.rst toc-file
+    typecheck       -- Typecheck code with `mypy`
+    unused          -- Audit unused code with `vulture`
+    whitelist       -- Check whitelist.py file with `vulture`
+
+Environment
+-----------
 
 Default environment variables:
-
-or environment variables (overriding in this order)
 
 .. code-block:: shell
 
     PYAUD_WHITELIST     = "whitelist.py"
     PYAUD_COVERAGE_XML  = "coverage.xml"
     PYAUD_REQUIREMENTS  = "requirements.txt"
-    BUILDDIR            = "docs/_build"
     PYAUD_GH_NAME       = ""
     PYAUD_GH_EMAIL      = ""
     PYAUD_GH_TOKEN      = ""
     PYAUD_GH_REMOTE     = ""
-    CODECOV_TOKEN       = ""
 
-Environment variables should be placed in an .env file in project root:
+Environment variables should be placed in an .env file in the project root and override all config files
+
+Configure
+---------
+
+Configuration of settings can be made with the following toml syntax files (overriding in this order):
+
+    | ~/.config/pyaud/pyaud.toml
+    | ~/.pyaudrc
+    | .pyaudrc
+    | pyproject.toml
 
 Example config:
 
@@ -99,44 +176,3 @@ Prefix each key with ``tool.pyaud`` when using pyproject.toml
 
     [tool.pyaud.clean]
     exclude = ["*.egg*", ".mypy_cache", ".env", "instance"]
-
-Commandline arguments:
-
-.. code-block:: console
-
-    usage: pyaud [-h] [-c] [-d] [-f] [-s] [-v] [--rcfile RCFILE] MODULE
-
-    positional arguments:
-      MODULE           choice of module: [modules] to list all
-
-    optional arguments:
-      -h, --help       show this help message and exit
-      -c, --clean      clean unversioned files prior to any process
-      -d, --deploy     include test and docs deployment after audit
-      -s, --suppress   continue without stopping for errors
-      -v, --verbose    incrementally increase logging verbosity
-      --rcfile RCFILE  select file to override config hierarchy
-    ------------------------------------------------------------------------
-    audit           -- Read from [audit] key in config
-    clean           -- Remove all unversioned package files recursively
-    coverage        -- Run package unit-tests with `pytest` and `coverage`
-    deploy          -- Deploy package documentation and test coverage
-    deploy-cov      -- Upload coverage data to `Codecov`
-    deploy-docs     -- Deploy package documentation to `gh-pages`
-    docs            -- Compile package documentation with `Sphinx`
-    files           -- Audit project data files
-    format          -- Audit code against `Black`
-    format-docs     -- Format docstrings with `docformatter`
-    format-str      -- Format f-strings with `flynt`
-    generate-rcfile -- Print rcfile to stdout
-    imports         -- Audit imports with `isort`
-    lint            -- Lint code with `pylint`
-    readme          -- Parse, test, and assert RST code-blocks
-    requirements    -- Audit requirements.txt with Pipfile.lock
-    tests           -- Run the package unit-tests with `pytest`
-    toc             -- Audit docs/<NAME>.rst toc-file
-    typecheck       -- Typecheck code with `mypy`
-    unused          -- Audit unused code with `vulture`
-    whitelist       -- Check whitelist.py file with `vulture`
-
-*The word `function` and `module` are used interchangeably in this package*
