@@ -658,7 +658,10 @@ def test_make_whitelist(
     pyaud.git.add(".")  # type: ignore
     pyaud.files.populate()
     patch_sp_output(
-        files.Whitelist.be8a443_tests, files.Whitelist.be8a443_pyaud
+        files.Whitelist.be8a443_tests_conftest,
+        files.Whitelist.be8a443_tests_files,
+        files.Whitelist.be8a443_pyaud,
+        files.Whitelist.be8a443_pyaud_modules,
     )
     pyaud.plugins.get("whitelist")()
     assert nocolorcapsys.stdout() == (

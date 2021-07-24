@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.0.0...HEAD)
 ------------------------------------------------------------------------
+### Deprecated
+- `pyaud.files.args(reduce=True)` is deprecated
+
+### Fixed
+- Prevents packaged plugins from indexing unversioned files
 
 [3.0.0](https://github.com/jshwi/pyaud/releases/tag/v3.0.0) - 2021-07-17
 ------------------------------------------------------------------------

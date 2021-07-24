@@ -295,12 +295,12 @@ class Format(pyaud.plugins.Fix):
 
     def audit(self, *args: Any, **kwargs: bool) -> Any:
         return self.subprocess[self.black].call(
-            "--check", *pyaud.files.args(reduce=True), *args, **kwargs
+            "--check", *pyaud.files.args(), *args, **kwargs
         )
 
     def fix(self, *args: Any, **kwargs: bool) -> Any:
         return self.subprocess[self.black].call(
-            *args, *pyaud.files.args(reduce=True), **kwargs
+            *args, *pyaud.files.args(), **kwargs
         )
 
 
@@ -320,10 +320,7 @@ class Lint(pyaud.plugins.Audit):
 
     def audit(self, *args: Any, **kwargs: bool) -> Any:
         return self.subprocess[self.pylint].call(
-            "--output-format=colorized",
-            *args,
-            *pyaud.files.args(reduce=True),
-            **kwargs,
+            "--output-format=colorized", *args, *pyaud.files.args(), **kwargs
         )
 
 
@@ -462,10 +459,7 @@ class TypeCheck(pyaud.plugins.Audit):
 
     def audit(self, *args: Any, **kwargs: bool) -> Any:
         return self.subprocess[self.mypy].call(
-            "--ignore-missing-imports",
-            *pyaud.files.args(reduce=True),
-            *args,
-            **kwargs,
+            "--ignore-missing-imports", *pyaud.files.args(), *args, **kwargs
         )
 
 
@@ -484,7 +478,7 @@ class Unused(pyaud.plugins.Fix):
 
     def audit(self, *args: Any, **kwargs: bool) -> Any:
         whitelist = Path.cwd() / os.environ["PYAUD_WHITELIST"]
-        args = *pyaud.files.args(reduce=True), *args
+        args = *pyaud.files.args(), *args
         if whitelist.is_file():
             args = str(whitelist), *args
 
@@ -516,7 +510,7 @@ class Whitelist(pyaud.plugins.Write):
     def write(self, *args: Any, **kwargs: bool) -> Any:
 
         # append whitelist exceptions for each individual module
-        for item in pyaud.files.reduce():
+        for item in pyaud.files:
             kwargs["suppress"] = True
             self.subprocess[self.vulture].call(
                 item, "--make-whitelist", *args, capture=True, **kwargs
@@ -643,16 +637,12 @@ class FormatFString(pyaud.plugins.Fix):
 
     def audit(self, *args: Any, **kwargs: bool) -> Any:
         return self.subprocess[self.flynt].call(
-            "--check",
-            *self.args,
-            *pyaud.files.args(reduce=True),
-            *args,
-            **kwargs,
+            "--check", *self.args, *pyaud.files.args(), *args, **kwargs
         )
 
     def fix(self, *args: Any, **kwargs: bool) -> Any:
         return self.subprocess[self.flynt].call(
-            *self.args, *pyaud.files.args(reduce=True), *args, **kwargs
+            *self.args, *pyaud.files.args(), *args, **kwargs
         )
 
 
@@ -669,20 +659,12 @@ class FormatDocs(pyaud.plugins.Fix):
 
     def audit(self, *args: Any, **kwargs: bool) -> Any:
         return self.subprocess[self.docformatter].call(
-            "--check",
-            *self.args,
-            *pyaud.files.args(reduce=True),
-            *args,
-            **kwargs,
+            "--check", *self.args, *pyaud.files.args(), *args, **kwargs
         )
 
     def fix(self, *args: Any, **kwargs: bool) -> Any:
         return self.subprocess[self.docformatter].call(
-            "--in-place",
-            *self.args,
-            *pyaud.files.args(reduce=True),
-            *args,
-            **kwargs,
+            "--in-place", *self.args, *pyaud.files.args(), *args, **kwargs
         )
 
 

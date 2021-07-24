@@ -666,3 +666,59 @@ def test_plugin_assign_non_type_key():
                 """Nothing to do."""
 
     assert TYPE_ERROR in str(err.value)
+
+
+def test_args_reduce(make_tree: Any) -> None:
+    """Demonstrate why the ``reduce`` argument should be deprecated.
+
+    :param make_tree: Create directory tree from dict mapping.
+    """
+    # ignore the bundle dir, including containing python files
+    with open(Path.cwd() / ".gitignore", "w") as fout:
+        fout.write("bundle")
+
+    make_tree(
+        Path.cwd(),
+        {
+            "dotfiles": {
+                "vim": {
+                    "bundle": {  # this dir should be ignored
+                        "ctags": {
+                            "Units": {
+                                "parse-python.r": {
+                                    "python-dot-in-import.d": {
+                                        "input.py": None
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "ipython_config.py": None,
+            },
+            "src": {"__init__.py": None},
+        },
+    )
+    pyaud.git.add(".")  # type: ignore
+    pyaud.files.populate()
+    normal = pyaud.files.args()
+    reduced = pyaud.files.args(reduce=True)
+
+    # if reduce is used, then all of $PROJECT_DIR/dotfiles will be
+    # scanned (as $PROJECT_DIR/dotfiles/ipython_config.py is not
+    # ignored) therefore the .gitignore rule will not apply to
+    # ``bundle``
+    assert all(
+        i in reduced
+        for i in (str(Path.cwd() / "dotfiles"), str(Path.cwd() / "src"))
+    )
+
+    # therefore the ``reduce`` argument should be used sparingly as in
+    # this example the bundle dir will not be scanned
+    assert all(
+        i in normal
+        for i in (
+            str(Path.cwd() / "src" / "__init__.py"),
+            str(Path.cwd() / "dotfiles" / "ipython_config.py"),
+        )
+    )
