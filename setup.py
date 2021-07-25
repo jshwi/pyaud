@@ -12,7 +12,7 @@ with open("README.rst") as file:
 
 setuptools.setup(
     name="pyaud",
-    version="3.0.2",
+    version="3.0.3",
     description="Framework for writing Python packages audits",
     long_description=README,
     long_description_content_type="text/x-rst",
