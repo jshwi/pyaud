@@ -10,8 +10,10 @@ exclude = ["whitelist.py", "conf.py", "setup.py"]
 
 [audit]
 modules = [
+    "files",
     "format",
     "format-docs",
+    "format-str",
     "imports",
     "typecheck",
     "unused",
