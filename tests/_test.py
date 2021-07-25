@@ -183,9 +183,7 @@ def test_arg_order_clone(
     )
     assert (
         nocolorcapsys.stdout().strip()
-        == "<_Git (git)> clone --depth 1 --branch v1.1.0 {} {}".format(
-            REAL_REPO, path
-        )
+        == f"<_Git (git)> clone --depth 1 --branch v1.1.0 {REAL_REPO} {path}"
     )
 
 

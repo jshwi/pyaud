@@ -629,7 +629,7 @@ class FormatFString(pyaud.plugins.Fix):
     """Format f-strings with ``flynt``."""
 
     flynt = "flynt"
-    args = "--line-length", "72", "--transform-concats"
+    args = "--line-length", "79", "--transform-concats"
 
     @property
     def exe(self) -> List[str]:
@@ -637,7 +637,12 @@ class FormatFString(pyaud.plugins.Fix):
 
     def audit(self, *args: Any, **kwargs: bool) -> Any:
         return self.subprocess[self.flynt].call(
-            "--check", *self.args, *pyaud.files.args(), *args, **kwargs
+            "--dry-run",
+            "--fail-on-change",
+            *self.args,
+            *pyaud.files.args(),
+            *args,
+            **kwargs,
         )
 
     def fix(self, *args: Any, **kwargs: bool) -> Any:
