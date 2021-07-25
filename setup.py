@@ -13,15 +13,12 @@ with open("README.rst") as file:
 setuptools.setup(
     name="pyaud",
     version="3.0.2",
-    description="Automate quality-check of Python package with bundled utils",
+    description="Framework for writing Python packages audits",
     long_description=README,
     long_description_content_type="text/x-rst",
     author="Stephen Whitlock",
-    email="stephen@jshwisolutions.com",
-    maintainer="Stephen Whitlock",
-    maintainer_email="stephen@jshwisolutions.com",
+    author_email="stephen@jshwisolutions.com",
     url="https://github.com/jshwi/pyaud",
-    copyright="2021, Stephen Whitlock",
     license="MIT",
     platforms="GNU/Linux",
     classifiers=[
