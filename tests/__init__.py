@@ -37,6 +37,8 @@ PIPFILE_LOCK = Path("Pipfile.lock")
 RCFILE = f".{pyaud.__name__}rc"
 TOMLFILE = f"{pyaud.__name__}.toml"
 PYPROJECT = "pyproject.toml"
+GITIGNORE = ".gitignore"
+PYAUD_FILES_POPULATE = "pyaud.files.populate"
 
 
 class NoColorCapsys:

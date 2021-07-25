@@ -9,6 +9,7 @@ import datetime
 import logging
 import logging.config as logging_config
 import os
+import time
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
@@ -25,6 +26,7 @@ from . import (
     GH_EMAIL,
     GH_NAME,
     GH_TOKEN,
+    GITIGNORE,
     INFO,
     INIT,
     INITIAL_COMMIT,
@@ -156,7 +158,7 @@ def test_pyitems_exclude_venv(make_tree: Any) -> None:
     )
 
     # add venv to .gitignore
-    with open(project_dir / ".gitignore", "w") as fout:
+    with open(project_dir / GITIGNORE, "w") as fout:
         fout.write("venv\n")
 
     pyaud.files.clear()
@@ -672,7 +674,7 @@ def test_args_reduce(make_tree: Any) -> None:
     :param make_tree: Create directory tree from dict mapping.
     """
     # ignore the bundle dir, including containing python files
-    with open(Path.cwd() / ".gitignore", "w") as fout:
+    with open(Path.cwd() / GITIGNORE, "w") as fout:
         fout.write("bundle")
 
     make_tree(
@@ -720,3 +722,59 @@ def test_args_reduce(make_tree: Any) -> None:
             str(Path.cwd() / "dotfiles" / "ipython_config.py"),
         )
     )
+
+
+def test_files_populate_proc(make_tree):
+    """Test that populating an index is quicker when there are commits.
+
+    Once there is a committed index we can index the paths from the
+    repository, rather than compiling all files in the working dir and
+    filtering out the non-versioned files later.
+
+    :param make_tree: Create directory tree from dict mapping.
+    """
+    make_tree(
+        Path.cwd(),
+        {
+            REPO: {"src": {INIT: None}},
+            "venv": {
+                "pyvenv.cfg": None,
+                "bin": {},
+                "include": {},
+                "share": {},
+                "src": {},
+                "lib": {"python3.8": {"site-packages": {"six.py": None}}},
+                "lib64": "lib",
+            },
+        },
+    )
+
+    # add venv to .gitignore
+    with open(Path.cwd() / GITIGNORE, "w") as fout:
+        fout.write("venv\n")
+
+    def _old_files_populate():
+        indexed = []
+        for path in Path.cwd().rglob("*.py"):
+            if path.name not in pyaud.config.DEFAULT_CONFIG["indexing"][
+                "exclude"
+            ] and not pyaud.git.ls_files(  # type: ignore
+                "--error-unmatch", path, devnull=True, suppress=True
+            ):
+                indexed.append(path)
+
+        return indexed
+
+    pyaud.git.add(".")
+    start = time.process_time()
+    no_commit_files = _old_files_populate()
+    stop = time.process_time()
+    time_no_commit = stop - start
+    pyaud.files.clear()
+    start = time.process_time()
+    pyaud.files.populate()
+    commit_files = list(pyaud.files)
+    stop = time.process_time()
+    time_commit = stop - start
+    assert time_no_commit > time_commit
+    assert no_commit_files == commit_files

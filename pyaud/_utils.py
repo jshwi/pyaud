@@ -284,18 +284,15 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
         self._exclude = exclude
 
     def populate(self) -> None:
-        """Populate object with repository index.
-
-        Exclude items not in version-control.
-        """
-        for path in _Path.cwd().rglob("*.py"):
-            if (
-                path.name not in self._exclude
-                and not git.ls_files(  # type: ignore
-                    "--error-unmatch", path, devnull=True, suppress=True
-                )
-            ):
-                self.append(path)
+        """Populate object with index of versioned Python files."""
+        git.ls_files(capture=True)  # type: ignore
+        self.extend(
+            [
+                _Path.cwd() / p
+                for p in [_Path(p) for p in git.stdout()]
+                if p.name not in self._exclude and p.name.endswith(".py")
+            ]
+        )
 
     def reduce(self) -> _List[_Path]:
         """Get all relevant python files starting from project root.
