@@ -9,6 +9,7 @@ from __future__ import annotations
 import functools as _functools
 import logging as _logging
 import os as _os
+import shutil as _shutil
 import sys as _sys
 from pathlib import Path as _Path
 from subprocess import PIPE as _PIPE
@@ -28,6 +29,7 @@ from object_colors import Color as _Color
 from . import config as _config
 from ._environ import TempEnvVar as _TempEnvVar
 from ._objects import MutableSequence as _MutableSequence
+from .exceptions import CommandNotFoundError as _CommandNotFoundError
 from .exceptions import NotARepositoryError as _NotARepositoryError
 
 colors = _Color()
@@ -43,14 +45,18 @@ class Subprocess:
     using ``call``.
 
 
-    :param exe:         Subprocess executable.
-    :key loglevel:      Loglevel for non-error logging.
-    :param commands:    List of positional arguments to set as
-                        attributes if not None.
-    :key file:          File path to write stream to if not None.
-    :key capture:       Collect output array.
-    :key log:           Pipe stdout to logging instead of console.
-    :key devnull:       Send output to /dev/null.
+    :param exe:                     Subprocess executable.
+    :key loglevel:                  Loglevel for non-error logging.
+    :param commands:                List of positional arguments to set
+                                    as attributes if not None.
+    :key file:                      File path to write stream to if not
+                                    None.
+    :key capture:                   Collect output array.
+    :key log:                       Pipe stdout to logging instead of
+                                    console.
+    :key devnull:                   Send output to /dev/null.
+    :raise CommandNotFoundError:    Raise if instantiated subprocess
+                                    cannot exist.
     """
 
     def __init__(
@@ -60,6 +66,9 @@ class Subprocess:
         commands: _Optional[_Iterable[str]] = None,
         **kwargs: _Union[bool, str],
     ) -> None:
+        if not _shutil.which(exe):
+            raise _CommandNotFoundError(exe)
+
         self._exe = exe
         self._loglevel = loglevel
         if commands is not None:

@@ -46,3 +46,10 @@ class PythonPackageNotFoundError(OSError):
 
     def __init__(self) -> None:
         super().__init__("no packages found")
+
+
+class CommandNotFoundError(OSError):
+    """Raise when subprocess called is not on system."""
+
+    def __init__(self, cmd: str) -> None:
+        super().__init__(f"{cmd}: command not found...")

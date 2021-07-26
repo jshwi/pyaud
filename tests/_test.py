@@ -12,7 +12,7 @@ import os
 import time
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, List, Tuple
 
 import dotenv
 import pytest
@@ -804,3 +804,24 @@ def test_called_process_error_with_git() -> None:
         "Command 'git commit -m Second initial commit' returned non-zero exit "
         "status 1."
     )
+
+
+def test_command_not_found_error() -> None:
+    """Test ``CommandNotFoundError`` with ``Subprocess``."""
+    not_a_command = "not-a-command"
+    with pytest.raises(pyaud.exceptions.CommandNotFoundError) as err:
+
+        # noinspection PyUnusedLocal
+        @pyaud.plugins.register("test-command-not-found-error")
+        class Plugin(pyaud.plugins.Action):
+            """Test ``CommandNotFoundError``."""
+
+            @property
+            def exe(self) -> List[str]:
+                """Non-existing command."""
+                return ["not-a-command"]
+
+            def action(self, *args: Any, **kwargs: bool) -> Any:
+                """Nothing to do."""
+
+    assert str(err.value) == f"{not_a_command}: command not found..."
