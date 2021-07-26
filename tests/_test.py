@@ -648,7 +648,7 @@ def test_plugin_assign_non_type_value() -> None:
     assert TYPE_ERROR in str(err.value)
 
 
-def test_plugin_assign_non_type_key():
+def test_plugin_assign_non_type_key() -> None:
     """Test assigning of incompatible type to `_Plugin` instance."""
     unique = "test-plugin-assign-non-type-key"
 
@@ -724,7 +724,7 @@ def test_args_reduce(make_tree: Any) -> None:
     )
 
 
-def test_files_populate_proc(make_tree):
+def test_files_populate_proc(make_tree: Any) -> None:
     """Test that populating an index is quicker when there are commits.
 
     Once there is a committed index we can index the paths from the
@@ -765,7 +765,7 @@ def test_files_populate_proc(make_tree):
 
         return indexed
 
-    pyaud.git.add(".")
+    pyaud.git.add(".")  # type: ignore
     start = time.process_time()
     no_commit_files = _old_files_populate()
     stop = time.process_time()
