@@ -28,6 +28,7 @@ from object_colors import Color as _Color
 from . import config as _config
 from ._environ import TempEnvVar as _TempEnvVar
 from ._objects import MutableSequence as _MutableSequence
+from .exceptions import NotARepositoryError as _NotARepositoryError
 
 colors = _Color()
 colors.populate_colors()
@@ -174,25 +175,33 @@ class _Git(Subprocess):
     def call(self, *args: _Any, **kwargs: _Any) -> int:
         """Call partial git command instantiated in superclass.
 
-        :param args:                Command's positional arguments.
-        :key file:                  File path to write the stdout stream
-                                    to.
-        :key capture:               Pipe stream to self.
-        :key devnull:               Suppress output.
-        :key suppress:              Suppress errors and continue
-                                    running.
-        :raises CalledProcessError: If error occurs in subprocess.
-        :return:                    Exit status.
+        :param args:                    Command's positional arguments.
+        :key file:                      File path to write the stdout
+                                        stream to.
+        :key capture:                   Pipe stream to self.
+        :key devnull:                   Suppress output.
+        :key suppress:                  Suppress errors and continue
+                                        running.
+        :raises NotARepositoryError:    If not run from within a
+                                        repository.
+        :raises CalledProcessError:     If error occurs in subprocess.
+        :return:                        Exit status.
         """
+        git_dir = _Path.cwd() / ".git"
         with _TempEnvVar(
-            _os.environ,
-            GIT_WORK_TREE=str(_Path.cwd()),
-            GIT_DIR=str(_Path.cwd() / ".git"),
+            _os.environ, GIT_WORK_TREE=str(_Path.cwd()), GIT_DIR=str(git_dir)
         ):
             if "--bare" in args:
                 del _os.environ["GIT_WORK_TREE"]
 
-            return super().call(*args, **kwargs)
+            try:
+                return super().call(*args, **kwargs)
+
+            except _CalledProcessError as err:
+                if not git_dir.is_dir():
+                    raise _NotARepositoryError from err
+
+                raise err
 
 
 class HashCap:

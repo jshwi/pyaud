@@ -11,6 +11,7 @@ import logging.config as logging_config
 import os
 import time
 from pathlib import Path
+from subprocess import CalledProcessError
 from typing import Any, Dict, Tuple
 
 import dotenv
@@ -778,3 +779,28 @@ def test_files_populate_proc(make_tree: Any) -> None:
     time_commit = stop - start
     assert time_no_commit > time_commit
     assert no_commit_files == commit_files
+
+
+def test_not_a_repository_error(monkeypatch: Any, tmp_path: Path) -> None:
+    """Test error when Git command run in non-repository project.
+
+    :param tmp_path:    Create and return a temporary directory for
+                        testing.
+    :param monkeypatch: Mock patch environment and attributes.
+    """
+    monkeypatch.setattr("os.getcwd", lambda: str(tmp_path))
+    with pytest.raises(pyaud.exceptions.NotARepositoryError) as err:
+        pyaud.git.add(".")  # type: ignore
+
+    assert str(err.value) == "not a git repository"
+
+
+def test_called_process_error_with_git() -> None:
+    """Test regular Git command error."""
+    with pytest.raises(CalledProcessError) as err:
+        pyaud.git.commit("-m", "Second initial commit")  # type: ignore
+
+    assert str(err.value) == (
+        "Command 'git commit -m Second initial commit' returned non-zero exit "
+        "status 1."
+    )

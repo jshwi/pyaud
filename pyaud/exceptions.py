@@ -32,3 +32,10 @@ class NameConflictError(Exception):
 
     def __init__(self, plugin: str, name: str) -> None:
         super().__init__(f"plugin name conflict at {plugin}: '{name}'")
+
+
+class NotARepositoryError(OSError):
+    """Raise if there is an error related to a Git repository."""
+
+    def __init__(self) -> None:
+        super().__init__("not a git repository")
