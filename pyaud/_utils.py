@@ -14,6 +14,7 @@ from pathlib import Path as _Path
 from subprocess import PIPE as _PIPE
 from subprocess import CalledProcessError as _CalledProcessError
 from subprocess import Popen as _Popen
+from subprocess import check_output as _sp_out
 from typing import Any as _Any
 from typing import Iterable as _Iterable
 from typing import List as _List
@@ -162,31 +163,12 @@ class _Git(Subprocess):
     @DynamicAttrs
     """
 
-    commands = (
-        "add",
-        "apply",
-        "branch",
-        "checkout",
-        "clean",
-        "clone",
-        "commit",
-        "config",
-        "diff",
-        "diff-index",
-        "fetch",
-        "init",
-        "ls-files",
-        "ls-remote",
-        "push",
-        "remote",
-        "rev-list",
-        "rev-parse",
-        "rm",
-        "stash",
-        "symbolic-ref",
-    )
-
     def __init__(self) -> None:
+        self.commands = [
+            i.lstrip().split()[0]
+            for i in _sp_out(["git", "help", "--all"]).decode().splitlines()
+            if i.startswith("   ")
+        ]
         super().__init__("git", commands=self.commands, loglevel="debug")
 
     def call(self, *args: _Any, **kwargs: _Any) -> int:
