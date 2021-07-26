@@ -39,3 +39,10 @@ class NotARepositoryError(OSError):
 
     def __init__(self) -> None:
         super().__init__("not a git repository")
+
+
+class PythonPackageNotFoundError(OSError):
+    """Raise if Python package not found in project."""
+
+    def __init__(self) -> None:
+        super().__init__("no packages found")

@@ -12,6 +12,10 @@ from typing import Any as _Any
 import dotenv as _dotenv
 import setuptools as _setuptools
 
+from .exceptions import (
+    PythonPackageNotFoundError as _PythonPackageNotFoundError,
+)
+
 NAME = __name__.split(".")[0]
 DOCS = _Path("docs")
 PIPFILE_LOCK = _Path("Pipfile.lock")
@@ -23,14 +27,15 @@ SITE_PLUGINS = _Path.cwd() / PLUGINS
 def package() -> str:
     """Return name of Python package.
 
-    :raises EnvironmentError:   Raised if no package can be found.
-    :return:                    Name of Python package.
+    :raises PythonPackageNotFoundError: Raised if no package can be
+                                        found.
+    :return:                            Name of Python package.
     """
     packages = _setuptools.find_packages(
         where=_Path.cwd(), exclude=["plugins", "tests"]
     )
     if not packages:
-        raise EnvironmentError("no packages found")
+        raise _PythonPackageNotFoundError
 
     return packages[0]
 

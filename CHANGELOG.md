@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.0.3...HEAD)
 ------------------------------------------------------------------------
 ### Added
+Adds `pyaud.exceptions.PythonPackageNotFoundError`
 Adds `pyaud.exceptions.NotARepositoryError`
 Adds all git commands to `pyaud.git`
 
