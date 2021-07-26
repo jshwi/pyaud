@@ -13,6 +13,9 @@ Adds `pyaud.exceptions.PythonPackageNotFoundError`
 Adds `pyaud.exceptions.NotARepositoryError`
 Adds all git commands to `pyaud.git`
 
+### Changed
+`pyblake2.blake2b` → `hashlib.blake2b`
+
 [3.0.3](https://github.com/jshwi/pyaud/releases/tag/v3.0.3) - 2021-07-26
 ------------------------------------------------------------------------
 ### Fixed

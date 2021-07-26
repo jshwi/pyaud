@@ -7,6 +7,7 @@ Utility classes and functions.
 from __future__ import annotations
 
 import functools as _functools
+import hashlib as _hashlib
 import logging as _logging
 import os as _os
 import shutil as _shutil
@@ -23,7 +24,6 @@ from typing import Optional as _Optional
 from typing import Tuple as _Tuple
 from typing import Union as _Union
 
-import pyblake2 as _pyblake2
 from object_colors import Color as _Color
 
 from . import config as _config
@@ -232,7 +232,7 @@ class HashCap:
         :return: Hash as a string.
         """
         with open(self.file, "rb") as lines:
-            _hash = _pyblake2.blake2b(lines.read())
+            _hash = _hashlib.blake2b(lines.read())
 
         return _hash.hexdigest()
 
