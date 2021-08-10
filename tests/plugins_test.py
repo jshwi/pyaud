@@ -28,7 +28,9 @@ from . import (
     PYAUD_PLUGINS_PLUGINS,
     README,
     REPO,
+    SP_CALL,
     SP_OPEN_PROC,
+    SP_STDOUT,
     files,
 )
 
@@ -280,7 +282,7 @@ def test_make_docs_rm_cache(
     mocked_plugins = pyaud.plugins.mapping()
     mocked_plugins["toc"] = call_status("toc")
     monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_plugins)
-    monkeypatch.setattr("pyaud._utils.Subprocess.call", _call)
+    monkeypatch.setattr(SP_CALL, _call)
     make_tree(Path.cwd(), {"docs": {CONFPY: None, "readme.rst": None}})
     with open(readme, "w") as fout:
         fout.write(files.README_RST)
@@ -422,7 +424,7 @@ def test_audit_modules(
     monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_modules)
     main("audit", *args)
     output = [i for i in nocolorcapsys.stdout().splitlines() if i != ""]
-    assert all([f"pyaud {i}" in output for i in modules])
+    assert all(f"pyaud {i}" in output for i in modules)
     assert output[0] == first
     assert output[-1] == last
 
@@ -830,15 +832,13 @@ def test_deploy_master_not_set(
     main("deploy-docs")
     out = nocolorcapsys.stdout().splitlines()
     assert all(
-        [
-            i in out
-            for i in [
-                "The following is not set:",
-                "- PYAUD_GH_NAME",
-                "- PYAUD_GH_EMAIL",
-                "- PYAUD_GH_TOKEN",
-                PUSHING_SKIPPED,
-            ]
+        i in out
+        for i in [
+            "The following is not set:",
+            "- PYAUD_GH_NAME",
+            "- PYAUD_GH_EMAIL",
+            "- PYAUD_GH_TOKEN",
+            PUSHING_SKIPPED,
         ]
     )
 
@@ -1292,3 +1292,36 @@ def test_no_exe_provided(monkeypatch: Any) -> None:
             """Nothing to do."""
 
     assert pyaud.plugins.get(unique).exe == []
+
+
+def test_download_missing_stubs(monkeypatch: Any, main: Any) -> None:
+    """Test for coverage on missing stubs file.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param main:        Patch package entry point.
+    :return:
+    """
+    path = Path(os.getcwd(), FILES)
+    pyaud.files.append(path)
+    monkeypatch.setattr(SP_CALL, lambda *_, **__: 1)
+    monkeypatch.setattr(
+        SP_STDOUT, lambda _: ["error: Library stubs not installed for"]
+    )
+    main("typecheck")
+
+
+def test_typecheck_re_raise_err(monkeypatch: Any, main: Any) -> None:
+    """Test for re-raise of error for non stub library errors.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param main:        Patch package entry point.
+    :return:
+    """
+    path = Path(os.getcwd(), FILES)
+    pyaud.files.append(path)
+    monkeypatch.setattr(SP_CALL, lambda *_, **__: 1)
+    monkeypatch.setattr(SP_STDOUT, lambda _: [])
+    with pytest.raises(pyaud.exceptions.AuditError) as err:
+        main("typecheck")
+
+    assert str(err.value) == "pyaud typecheck did not pass all checks"

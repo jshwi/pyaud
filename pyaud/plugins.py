@@ -54,9 +54,7 @@ def _check_command(func: _Callable[..., int]) -> _Callable[..., None]:
                 )
             else:
                 _colors.green.bold.print(
-                    "Success: no issues found in {} source files".format(
-                        len(_files)
-                    )
+                    f"Success: no issues found in {len(_files)} source files"
                 )
 
     return _wrapper

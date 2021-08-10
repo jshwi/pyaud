@@ -118,7 +118,9 @@ class Subprocess:
         # pipe stream depending on the keyword arguments provided
         # Log errors to file regardless
         # wait for process to finish and return it's exit-code
-        pipeline = _Popen([self._exe, *args], stdout=_PIPE, stderr=_PIPE)
+        pipeline = _Popen(  # pylint: disable=consider-using-with
+            [self._exe, *args], stdout=_PIPE, stderr=_PIPE
+        )
         self._handle_stdout(pipeline, **kwargs)
         self._handle_stderr(pipeline)
         return pipeline.wait()
@@ -143,7 +145,9 @@ class Subprocess:
         :raises CalledProcessError: If error occurs in subprocess.
         :return:                    Exit status.
         """
-        self.args = tuple([str(i) for i in args])
+        self.args = tuple(  # pylint: disable=consider-using-generator
+            [str(i) for i in args]
+        )
         _logging.getLogger(self._exe).debug("called with %s", self.args)
         returncode = self._open_process(*self.args, **kwargs)
         if returncode and not kwargs.get("suppress", False):
@@ -321,7 +325,9 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
         if reduce:
             paths = self.reduce()
 
-        return tuple([str(p) for p in paths])
+        return tuple(  # pylint: disable=consider-using-generator
+            [str(p) for p in paths]
+        )
 
 
 files = _Files(*_config.toml["indexing"]["exclude"])

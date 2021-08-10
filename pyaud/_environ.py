@@ -16,7 +16,7 @@ from .exceptions import (
     PythonPackageNotFoundError as _PythonPackageNotFoundError,
 )
 
-NAME = __name__.split(".")[0]
+NAME = __name__.split(".", maxsplit=1)[0]
 DOCS = _Path("docs")
 PIPFILE_LOCK = _Path("Pipfile.lock")
 PLUGINS = _Path("plugins")

@@ -4,6 +4,7 @@ plugins.modules
 """
 import os
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -458,9 +459,57 @@ class TypeCheck(pyaud.plugins.Audit):
         return [self.mypy]
 
     def audit(self, *args: Any, **kwargs: bool) -> Any:
-        return self.subprocess[self.mypy].call(
-            "--ignore-missing-imports", *pyaud.files.args(), *args, **kwargs
+        # save the value of ``suppress`` if it exists: default to False
+        suppress = kwargs.get("suppress", False)
+
+        # ignore the first error that might occur
+        # capture output to analyse for missing stub libraries
+        kwargs["suppress"] = True
+        returncode = self.subprocess[self.mypy].call(
+            "--ignore-missing-imports",
+            *pyaud.files.args(),
+            *args,
+            capture=True,
+            **kwargs,
         )
+
+        # restore value of ``suppress``
+        kwargs["suppress"] = suppress
+        stdout = self.subprocess[self.mypy].stdout()
+
+        # if no error occurred, continue on to print message and return
+        # value
+        if returncode:
+            # if error occurred it might be because the stub library is
+            # not installed: automatically download and install stub
+            # library if the below message occurred
+            if any(
+                "error: Library stubs not installed for" in i for i in stdout
+            ):
+                self.subprocess[self.mypy].call(
+                    "--non-interactive", "--install-types"
+                )
+
+                # continue on to run the first command again, which will
+                # not, by default, ignore any consecutive errors
+                # do not capture output again
+                return self.subprocess[self.mypy].call(
+                    "--ignore-missing-imports",
+                    *pyaud.files.args(),
+                    *args,
+                    **kwargs,
+                )
+
+            # if any error occurred that wasn't because of a missing
+            # stub library
+            print("\n".join(stdout))
+            if not suppress:
+                raise pyaud.exceptions.AuditError(" ".join(sys.argv))
+
+        else:
+            print("\n".join(stdout))
+
+        return returncode
 
 
 @pyaud.plugins.register(name="unused")
@@ -567,7 +616,11 @@ class Imports(pyaud.plugins.FixFile):
             self.content = fin.read()
 
         # write original file's contents to temporary file
-        tmp = tempfile.NamedTemporaryFile(delete=False)
+        tmp = (
+            tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
+                delete=False
+            )
+        )
         with open(tmp.name, "w") as fout:
             fout.write(self.content)
 

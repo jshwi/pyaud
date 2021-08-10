@@ -39,6 +39,8 @@ TOMLFILE = f"{pyaud.__name__}.toml"
 PYPROJECT = "pyproject.toml"
 GITIGNORE = ".gitignore"
 PYAUD_FILES_POPULATE = "pyaud.files.populate"
+SP_CALL = "pyaud._utils.Subprocess.call"
+SP_STDOUT = "pyaud._utils.Subprocess.stdout"
 
 
 class NoColorCapsys:
@@ -78,7 +80,9 @@ class NoColorCapsys:
         :return:    A tuple (just like the capsys) containing stdout in
                     the first index and stderr in the second
         """
-        return tuple([self._regex(r) for r in self.capsys.readouterr()])
+        return tuple(  # pylint: disable=consider-using-generator
+            [self._regex(r) for r in self.capsys.readouterr()]
+        )
 
     def stdout(self) -> str:
         """Return stdout without referencing the tuple indices.
