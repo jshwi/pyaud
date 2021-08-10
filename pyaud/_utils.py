@@ -24,6 +24,7 @@ from typing import Optional as _Optional
 from typing import Tuple as _Tuple
 from typing import Union as _Union
 
+import setuptools as _setuptools
 from object_colors import Color as _Color
 
 from . import config as _config
@@ -31,6 +32,9 @@ from ._environ import TempEnvVar as _TempEnvVar
 from ._objects import MutableSequence as _MutableSequence
 from .exceptions import CommandNotFoundError as _CommandNotFoundError
 from .exceptions import NotARepositoryError as _NotARepositoryError
+from .exceptions import (
+    PythonPackageNotFoundError as _PythonPackageNotFoundError,
+)
 
 colors = _Color()
 colors.populate_colors()
@@ -328,6 +332,22 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
         return tuple(  # pylint: disable=consider-using-generator
             [str(p) for p in paths]
         )
+
+
+def package() -> str:
+    """Return name of Python package.
+
+    :raises PythonPackageNotFoundError: Raised if no package can be
+                                        found.
+    :return:                            Name of Python package.
+    """
+    packages = _setuptools.find_packages(
+        where=_Path.cwd(), exclude=["plugins", "tests"]
+    )
+    if not packages:
+        raise _PythonPackageNotFoundError
+
+    return packages[0]
 
 
 files = _Files(*_config.toml["indexing"]["exclude"])
