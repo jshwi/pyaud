@@ -57,7 +57,7 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     # ============================
     # monkeypatch implemented on prefixes and override other
     # noinspection PyProtectedMember
-    pyaud._environ.load_namespace()  # pylint: disable=protected-access
+    pyaud.load_namespace()  # pylint: disable=protected-access
     monkeypatch.setenv("PYAUD_GH_NAME", GH_NAME)
     monkeypatch.setenv("PYAUD_GH_EMAIL", GH_EMAIL)
     monkeypatch.setenv("PYAUD_GH_TOKEN", GH_TOKEN)
