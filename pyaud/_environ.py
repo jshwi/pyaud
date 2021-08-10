@@ -42,6 +42,7 @@ def package() -> str:
 
 def load_namespace() -> None:
     """Load key-value pairs."""
+    repo = _Path.cwd().name
     _os.environ.update(
         PYAUD_WHITELIST="whitelist.py",
         PYAUD_COVERAGE_XML="coverage.xml",
@@ -55,7 +56,7 @@ def load_namespace() -> None:
         CODECOV_TOKEN=_os.environ.get("CODECOV_TOKEN", ""),
         PYAUD_DOCS=str(DOCS),
         PYAUD_PIPFILE_LOCK=str(PIPFILE_LOCK),
-        PYAUD_TOC=str(DOCS / f"{package()}.rst"),
+        PYAUD_TOC=str(DOCS / f"{repo}.rst"),
         PYCHARM_HOSTED="False",
     )
     _dotenv.load_dotenv(_dotenv.find_dotenv(), override=True)
@@ -66,7 +67,7 @@ def load_namespace() -> None:
             _os.environ["PYAUD_GH_NAME"],
             _os.environ["PYAUD_GH_TOKEN"],
             _os.environ["PYAUD_GH_NAME"],
-            package(),
+            repo,
         )
 
 

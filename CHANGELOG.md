@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Adds `__all__` to `plugins`
 
+### Changed
+- Changes default names from primary package to name of project root
+
 ### Fixed
 - Updates nested config changes for global config
 - Installs missing stubs automatically for `mypy==0.910`
