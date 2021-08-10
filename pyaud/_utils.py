@@ -334,12 +334,12 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
         )
 
 
-def package() -> str:
-    """Return name of Python package.
+def get_packages() -> _List[str]:
+    """Return list of Python package names currently in project.
 
     :raises PythonPackageNotFoundError: Raised if no package can be
                                         found.
-    :return:                            Name of Python package.
+    :return:                            List of Python packages.
     """
     packages = _setuptools.find_packages(
         where=_Path.cwd(), exclude=["plugins", "tests"]
@@ -347,7 +347,33 @@ def package() -> str:
     if not packages:
         raise _PythonPackageNotFoundError("no packages found")
 
-    return packages[0]
+    packages.sort()
+    return packages
+
+
+def package() -> str:
+    """Return name of primary Python package.
+
+    :raises PythonPackageNotFoundError: Raised if no primary package can
+                                        be determined.
+    :return:                            Name of primary Python package.
+    """
+    # at least one package will be returned or an error would have been
+    # raised
+    packages = get_packages()
+
+    # if there is only one package then that is the default
+    if len(packages) == 1:
+        return packages.pop()
+
+    # if there are multiple packages found then the package with the
+    # same name as the project root (if it exists) is the default
+    repo = _Path.cwd().name
+    if repo in packages:
+        return repo
+
+    # if none of the above criteria is met then raise
+    raise _PythonPackageNotFoundError("cannot determine primary package")
 
 
 files = _Files(*_config.toml["indexing"]["exclude"])

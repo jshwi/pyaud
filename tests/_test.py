@@ -826,3 +826,49 @@ def test_command_not_found_error() -> None:
                 """Nothing to do."""
 
     assert str(err.value) == f"{not_a_command}: command not found..."
+
+
+def test_get_packages(monkeypatch: Any, make_tree: Any) -> None:
+    """Test process when searching for project's package.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param make_tree:   Create directory tree from dict mapping.
+    """
+    # undo patch to ``setuptools``
+    # ============================
+    cwd = os.getcwd()
+    monkeypatch.undo()
+    monkeypatch.setattr(OS_GETCWD, lambda: cwd)
+
+    # search for only package
+    # =======================
+    make_tree(Path.cwd(), {"first_package": {INIT: None}})
+    assert pyaud.get_packages() == ["first_package"]
+    assert pyaud.package() == "first_package"
+
+    # search for ambiguous package
+    # ============================
+    make_tree(
+        Path.cwd(),
+        {"second_package": {INIT: None}, "third_package": {INIT: None}},
+    )
+    assert pyaud.get_packages() == [
+        "first_package",
+        "second_package",
+        "third_package",
+    ]
+    with pytest.raises(pyaud.exceptions.PythonPackageNotFoundError) as err:
+        pyaud.package()
+
+    assert str(err.value) == "cannot determine primary package"
+
+    # search for package with the same name as repo
+    # =============================================
+    make_tree(Path.cwd(), {"repo": {INIT: None}})
+    assert pyaud.get_packages() == [
+        "first_package",
+        "repo",
+        "second_package",
+        "third_package",
+    ]
+    assert pyaud.package() == "repo"
