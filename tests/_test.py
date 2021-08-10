@@ -31,6 +31,7 @@ from . import (
     INFO,
     INIT,
     INITIAL_COMMIT,
+    OS_GETCWD,
     PYAUD_PLUGINS_PLUGINS,
     PYPROJECT,
     RCFILE,
@@ -91,7 +92,7 @@ def test_find_package(monkeypatch: Any) -> None:
     """
     cwd = os.getcwd()
     monkeypatch.undo()
-    monkeypatch.setattr("os.getcwd", lambda: cwd)
+    monkeypatch.setattr(OS_GETCWD, lambda: cwd)
     monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [])
     with pytest.raises(EnvironmentError) as err:
         pyaud.package()
@@ -788,7 +789,7 @@ def test_not_a_repository_error(monkeypatch: Any, tmp_path: Path) -> None:
                         testing.
     :param monkeypatch: Mock patch environment and attributes.
     """
-    monkeypatch.setattr("os.getcwd", lambda: str(tmp_path))
+    monkeypatch.setattr(OS_GETCWD, lambda: str(tmp_path))
     with pytest.raises(pyaud.exceptions.NotARepositoryError) as err:
         pyaud.git.add(".")  # type: ignore
 
