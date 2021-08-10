@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Adds `__all__` to `plugins`
 
 ### Changed
+- Allows variable message for `PythonPackageNotFoundError`
 - Moves `pyaud._environ.package` → `pyaud._utils.package`
 - Changes default names from primary package to name of project root
 

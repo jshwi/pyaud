@@ -345,7 +345,7 @@ def package() -> str:
         where=_Path.cwd(), exclude=["plugins", "tests"]
     )
     if not packages:
-        raise _PythonPackageNotFoundError
+        raise _PythonPackageNotFoundError("no packages found")
 
     return packages[0]
 

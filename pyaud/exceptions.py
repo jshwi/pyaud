@@ -44,9 +44,6 @@ class NotARepositoryError(OSError):
 class PythonPackageNotFoundError(OSError):
     """Raise if Python package not found in project."""
 
-    def __init__(self) -> None:
-        super().__init__("no packages found")
-
 
 class CommandNotFoundError(OSError):
     """Raise when subprocess called is not on system."""
