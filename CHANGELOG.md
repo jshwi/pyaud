@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Adds `__all__` to `plugins`
 
 ### Fixed
+- Updates nested config changes for global config
 - Installs missing stubs automatically for `mypy==0.910`
 
 ### Security
