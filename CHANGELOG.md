@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.1.0...HEAD)
 ------------------------------------------------------------------------
 ### Added
+- Adds `packages["exclude"]: List[str]` to config
 - Adds `load_namespace` to `__all__
 - Adds `__all__` to `plugins`
 

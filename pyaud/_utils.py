@@ -342,7 +342,7 @@ def get_packages() -> _List[str]:
     :return:                            List of Python packages.
     """
     packages = _setuptools.find_packages(
-        where=_Path.cwd(), exclude=["plugins", "tests"]
+        where=_Path.cwd(), exclude=_config.toml["packages"]["exclude"]
     )
     if not packages:
         raise _PythonPackageNotFoundError("no packages found")

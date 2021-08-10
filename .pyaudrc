@@ -8,6 +8,9 @@ disable_existing_loggers = true
 [indexing]
 exclude = ["whitelist.py", "conf.py", "setup.py"]
 
+[packages]
+exclude = []
+
 [audit]
 modules = [
     "files",

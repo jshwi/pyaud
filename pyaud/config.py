@@ -84,6 +84,7 @@ DEFAULT_CONFIG: _Dict[str, _Any] = dict(
         "root": {"level": "INFO", "handlers": ["default"], "propagate": False},
     },
     indexing={"exclude": ["whitelist.py", "conf.py", "setup.py"]},
+    packages={"exclude": ["tests"]},
     audit={
         "modules": [
             "format",
