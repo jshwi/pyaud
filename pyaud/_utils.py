@@ -366,8 +366,15 @@ def package() -> str:
     if len(packages) == 1:
         return packages.pop()
 
-    # if there are multiple packages found then the package with the
-    # same name as the project root (if it exists) is the default
+    # if there are multiple packages found then look for a configured
+    # package name that matches one of the project's packages
+    package_name = _config.toml["packages"].get("name")
+    if package_name in packages:
+        return package_name
+
+    # if there are multiple packages found, and none of the above two
+    # apply, then the package with the same name as the project root (if
+    # it exists) is the default
     repo = _Path.cwd().name
     if repo in packages:
         return repo

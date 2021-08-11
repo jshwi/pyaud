@@ -872,3 +872,8 @@ def test_get_packages(monkeypatch: Any, make_tree: Any) -> None:
         "third_package",
     ]
     assert pyaud.package() == "repo"
+
+    # search for configured package
+    # =============================
+    pyaud.config.toml["packages"]["name"] = "second_package"
+    assert pyaud.package() == "second_package"
