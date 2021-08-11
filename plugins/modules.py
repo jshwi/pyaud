@@ -527,7 +527,9 @@ class Unused(pyaud.plugins.Fix):
 
     def audit(self, *args: Any, **kwargs: bool) -> Any:
         whitelist = Path.cwd() / os.environ["PYAUD_WHITELIST"]
-        args = *pyaud.files.args(), *args
+        args = tuple(
+            [*[str(Path.cwd() / i) for i in pyaud.get_packages()], *args]
+        )
         if whitelist.is_file():
             args = str(whitelist), *args
 
@@ -557,27 +559,17 @@ class Whitelist(pyaud.plugins.Write):
         return Path.cwd() / os.environ["PYAUD_WHITELIST"]
 
     def write(self, *args: Any, **kwargs: bool) -> Any:
-
         # append whitelist exceptions for each individual module
-        for item in pyaud.files:
-            kwargs["suppress"] = True
-            self.subprocess[self.vulture].call(
-                item, "--make-whitelist", *args, capture=True, **kwargs
-            )
-
-        # clear contents of instantiated ``TextIO' object to write a new
-        # file and not append
-        stdout = [
-            i
-            for i in "\n".join(
-                self.subprocess[self.vulture].stdout()
-            ).splitlines()
-            if i != ""
-        ]
+        kwargs["suppress"] = True
+        packages = [str(Path.cwd() / i) for i in pyaud.get_packages()]
+        self.subprocess[self.vulture].call(
+            *packages, "--make-whitelist", *args, capture=True, **kwargs
+        )
+        stdout = self.subprocess[self.vulture].stdout()
+        stdout = [i.replace(str(Path.cwd()) + os.sep, "") for i in stdout]
         stdout.sort()
         with open(self.path, "w") as fout:
-            for line in stdout:
-                fout.write(f"{line.replace(str(Path.cwd()) + os.sep, '')}\n")
+            fout.write("\n".join(stdout) + "\n")
 
 
 @pyaud.plugins.register(name="imports")

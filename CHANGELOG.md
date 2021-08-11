@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changes default names from primary package to name of project root
 
 ### Fixed
+- Fixes `pyaud whitelist`: Reduces false-positives
 - Updates nested config changes for global config
 - Installs missing stubs automatically for `mypy==0.910`
 

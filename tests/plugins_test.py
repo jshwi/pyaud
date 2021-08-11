@@ -650,12 +650,13 @@ def test_make_requirements(
 
 
 def test_make_whitelist(
-    patch_sp_output: Any, nocolorcapsys: Any, make_tree: Any
+    monkeypatch: Any, patch_sp_output: Any, nocolorcapsys: Any, make_tree: Any
 ) -> None:
     """Test a whitelist.py file is created properly.
 
     Test for when piping data from ``vulture --make-whitelist``.
 
+    :param monkeypatch:         Mock patch environment and attributes.
     :param patch_sp_output:     Patch ``Subprocess`` so that ``call``
                                 sends expected stdout out to self.
     :param nocolorcapsys:       Capture system output while stripping
@@ -674,11 +675,10 @@ def test_make_whitelist(
     pyaud.git.init(devnull=True)  # type: ignore
     pyaud.git.add(".")  # type: ignore
     pyaud.files.populate()
-    patch_sp_output(
-        files.Whitelist.be8a443_tests_conftest,
-        files.Whitelist.be8a443_tests_files,
-        files.Whitelist.be8a443_pyaud,
-        files.Whitelist.be8a443_pyaud_modules,
+    patch_sp_output([])
+    monkeypatch.setattr(
+        "pyaud._utils.Subprocess.stdout",
+        lambda *_, **__: files.Whitelist.be8a443,
     )
     pyaud.plugins.get("whitelist")()
     assert nocolorcapsys.stdout() == (
@@ -1123,14 +1123,19 @@ def test_make_format_fix(main: Any) -> None:
         assert fin.read().strip() == files.UNFORMATTED.replace("'", '"')
 
 
-def test_make_unused_fix(main: Any, nocolorcapsys: Any) -> None:
+def test_make_unused_fix(
+    main: Any, nocolorcapsys: Any, make_tree: Any
+) -> None:
     """Test ``make_unused`` when ``-f/--fix`` is provided.
 
     :param main:            Patch package entry point.
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    with open(Path.cwd() / FILES, "w") as fout:
+    package = Path.cwd() / "repo"
+    make_tree(Path.cwd(), {"repo": {INIT: None}})
+    file = package / FILES
+    with open(file, "w") as fout:
         fout.write(files.UNFORMATTED)  # also an unused function
 
     pyaud.files.append(Path.cwd() / FILES)
@@ -1140,12 +1145,12 @@ def test_make_unused_fix(main: Any, nocolorcapsys: Any) -> None:
         "Updating ``{}``\n"
         "created ``whitelist.py``\n"
         "Success: no issues found in 1 source files\n".format(
-            Path.cwd() / FILES, Path.cwd() / os.environ["PYAUD_WHITELIST"]
+            file, Path.cwd() / os.environ["PYAUD_WHITELIST"]
         )
     )
     with open(Path.cwd() / os.environ["PYAUD_WHITELIST"]) as fin:
         assert fin.read().strip() == (
-            "reformat_this  # unused function (file.py:1)"
+            "reformat_this  # unused function (repo/file.py:1)"
         )
 
 

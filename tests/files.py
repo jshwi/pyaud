@@ -1732,7 +1732,7 @@ CODE_BLOCK_EXPECTED = '\ncode-block 1\n. >>> print("Hello, world!")\n\u2713 Hell
 class Whitelist:
     """Output for whitelist.py on commit be8a443."""
 
-    be8a443_tests_conftest = """fixture_is_env_path_var  # unused function (tests/conftest.py:16)
+    be8a443 = """fixture_is_env_path_var  # unused function (tests/conftest.py:16)
 fixture_call_status  # unused function (tests/conftest.py:228)
 fixture_commit_test  # unused function (tests/conftest.py:160)
 fixture_main  # unused function (tests/conftest.py:211)
@@ -1754,9 +1754,7 @@ fixture_set_git_creds  # unused function (tests/conftest.py:152)
 fixture_test_logging  # unused function (tests/conftest.py:61)
 fixture_track_called  # unused function (tests/conftest.py:281)
 fixture_validate_env  # unused function (tests/conftest.py:33)
-"""
-    be8a443_tests_files = ""
-    be8a443_pyaud = """_.clone  # unused method (pyaud/src/__init__.py:223)
+_.clone  # unused method (pyaud/src/__init__.py:223)
 _.propagate  # unused attribute (pyaud/src/__init__.py:463)
 exc_tb  # unused variable (pyaud/src/__init__.py:256)
 exc_tb  # unused variable (pyaud/src/__init__.py:299)
@@ -1767,10 +1765,9 @@ exc_type  # unused variable (pyaud/src/__init__.py:381)
 exc_val  # unused variable (pyaud/src/__init__.py:256)
 exc_val  # unused variable (pyaud/src/__init__.py:299)
 exc_val  # unused variable (pyaud/src/__init__.py:381)
-"""
-    be8a443_pyaud_modules = """make_audit  # unused function (pyaud/src/modules.py:26)
+make_audit  # unused function (pyaud/src/modules.py:26)
 make_files  # unused function (pyaud/src/modules.py:205)
-"""
+""".splitlines()
 
     @classmethod
     def be8a443_all(cls):
@@ -1778,7 +1775,7 @@ make_files  # unused function (pyaud/src/modules.py:205)
 
         :return: Concatenated and sorted ``str``.
         """
-        seq = f"{cls.be8a443_pyaud}{cls.be8a443_tests_conftest}{cls.be8a443_pyaud_modules}".splitlines()
+        seq = list(cls.be8a443)
         seq.sort()
         return "{}\n".format("\n".join(seq))
 
