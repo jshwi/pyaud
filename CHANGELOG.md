@@ -16,23 +16,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [3.1.0](https://github.com/jshwi/pyaud/releases/tag/v3.1.0) - 2021-07-27
 ------------------------------------------------------------------------
 ### Added
-Adds `pyaud.exceptions.CommandNotFoundError`
-Adds `pyaud.exceptions.PythonPackageNotFoundError`
-Adds `pyaud.exceptions.NotARepositoryError`
-Adds all git commands to `pyaud.git`
+- Adds `pyaud.exceptions.CommandNotFoundError`
+- Adds `pyaud.exceptions.PythonPackageNotFoundError`
+- Adds `pyaud.exceptions.NotARepositoryError`
+- Adds all git commands to `pyaud.git`
 
 ### Changed
-`pyblake2.blake2b` → `hashlib.blake2b`
+- `pyblake2.blake2b` → `hashlib.blake2b`
 
 [3.0.3](https://github.com/jshwi/pyaud/releases/tag/v3.0.3) - 2021-07-26
 ------------------------------------------------------------------------
 ### Fixed
-Reduces indexing time
+- Reduces indexing time
 
 [3.0.2](https://github.com/jshwi/pyaud/releases/tag/v3.0.2) - 2021-07-25
 ------------------------------------------------------------------------
 ### Fixed
-Fixes `pyaud format-str`
+- Fixes `pyaud format-str`
 
 [3.0.1](https://github.com/jshwi/pyaud/releases/tag/v3.0.1) - 2021-07-24
 ------------------------------------------------------------------------
