@@ -5,7 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-[Unreleased](https://github.com/jshwi/pyaud/compare/v3.1.0...HEAD)
+[Unreleased](https://github.com/jshwi/pyaud/compare/v3.2.0...HEAD)
+------------------------------------------------------------------------
+
+[3.2.0](https://github.com/jshwi/pyaud/releases/tag/v3.2.0) - 2021-08-12
 ------------------------------------------------------------------------
 ### Added
 - Adds option to set `packages["name"]: str` in config
