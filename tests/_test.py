@@ -877,3 +877,40 @@ def test_get_packages(monkeypatch: Any, make_tree: Any) -> None:
     # =============================
     pyaud.config.toml["packages"]["name"] = "second_package"
     assert pyaud.package() == "second_package"
+
+
+def test_get_subpackages(monkeypatch: Any, make_tree: Any) -> None:
+    """Test process when searching for project's package.
+
+    Assert that subdirectories are not returned with import syntax, i.e.
+    dot separated, and that only the parent package names are returned.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param make_tree:   Create directory tree from dict mapping.
+    """
+    # undo patch to ``setuptools``
+    # ============================
+    cwd = os.getcwd()
+    monkeypatch.undo()
+    monkeypatch.setattr(OS_GETCWD, lambda: cwd)
+
+    # create a tree of sub-packages with their own __init__.py files.
+    make_tree(
+        Path.cwd(),
+        {
+            "repo": {
+                INIT: None,
+                "src": {
+                    INIT: None,
+                    "client": {INIT: None},
+                    "server": {INIT: None},
+                    "shell": {INIT: None},
+                    "stdout": {INIT: None},
+                },
+            }
+        },
+    )
+
+    # assert no dot separated packages are returned and that only the
+    # parent packages name is returned
+    assert pyaud.get_packages() == ["repo"]

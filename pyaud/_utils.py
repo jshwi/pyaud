@@ -337,12 +337,22 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
 def get_packages() -> _List[str]:
     """Return list of Python package names currently in project.
 
+    Prevent dot separated subdirectories (import syntax) as args are
+    evaluated by path.
+
+    Only return the parent package's name.
+
     :raises PythonPackageNotFoundError: Raised if no package can be
                                         found.
     :return:                            List of Python packages.
     """
-    packages = _setuptools.find_packages(
-        where=_Path.cwd(), exclude=_config.toml["packages"]["exclude"]
+    packages = list(
+        set(
+            i.split(".", maxsplit=1)[0]
+            for i in _setuptools.find_packages(
+                where=_Path.cwd(), exclude=_config.toml["packages"]["exclude"]
+            )
+        )
     )
     if not packages:
         raise _PythonPackageNotFoundError("no packages found")
