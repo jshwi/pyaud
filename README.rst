@@ -141,6 +141,10 @@ Example config:
     [indexing]
     exclude = ["whitelist.py", "conf.py", "setup.py"]
 
+    [packages]
+    exclude = ["tests"]
+    name = "pyaud"
+
     [audit]
     modules = [
         "format",
