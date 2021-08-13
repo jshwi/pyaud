@@ -673,6 +673,8 @@ def test_plugin_assign_non_type_key() -> None:
 def test_args_reduce(make_tree: Any) -> None:
     """Demonstrate why the ``reduce`` argument should be deprecated.
 
+    No longer considered depreciated.
+
     :param make_tree: Create directory tree from dict mapping.
     """
     # ignore the bundle dir, including containing python files

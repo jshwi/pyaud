@@ -1135,7 +1135,7 @@ def test_make_unused_fix(
     with open(file, "w") as fout:
         fout.write(files.UNFORMATTED)  # also an unused function
 
-    pyaud.files.append(Path.cwd() / FILES)
+    pyaud.files.append(file)
     main("unused", "--fix")
     assert nocolorcapsys.stdout() == (
         "{}:1: unused function 'reformat_this' (60% confidence)\n"

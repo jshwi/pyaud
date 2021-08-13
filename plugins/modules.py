@@ -527,9 +527,7 @@ class Unused(pyaud.plugins.Fix):
 
     def audit(self, *args: Any, **kwargs: bool) -> Any:
         whitelist = Path.cwd() / os.environ["PYAUD_WHITELIST"]
-        args = tuple(
-            [*[str(Path.cwd() / i) for i in pyaud.get_packages()], *args]
-        )
+        args = tuple([*pyaud.files.args(reduce=True), *args])
         if whitelist.is_file():
             args = str(whitelist), *args
 
@@ -561,9 +559,12 @@ class Whitelist(pyaud.plugins.Write):
     def write(self, *args: Any, **kwargs: bool) -> Any:
         # append whitelist exceptions for each individual module
         kwargs["suppress"] = True
-        packages = [str(Path.cwd() / i) for i in pyaud.get_packages()]
         self.subprocess[self.vulture].call(
-            *packages, "--make-whitelist", *args, capture=True, **kwargs
+            *pyaud.files.args(reduce=True),
+            "--make-whitelist",
+            *args,
+            capture=True,
+            **kwargs,
         )
         stdout = self.subprocess[self.vulture].stdout()
         stdout = [i.replace(str(Path.cwd()) + os.sep, "") for i in stdout]

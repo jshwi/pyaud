@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.2.2...HEAD)
 ------------------------------------------------------------------------
+### Fixed
+- Fixes `pyaud whitelist`: reverts to using index with `reduce`
 
 [3.2.2](https://github.com/jshwi/pyaud/releases/tag/v3.2.2) - 2021-08-13
 ------------------------------------------------------------------------
