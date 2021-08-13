@@ -914,3 +914,34 @@ def test_get_subpackages(monkeypatch: Any, make_tree: Any) -> None:
     # assert no dot separated packages are returned and that only the
     # parent packages name is returned
     assert pyaud.get_packages() == ["repo"]
+
+
+def test_type_error_stdout(patch_sp_output: Any) -> None:
+    """Subtle bug which appeared to be one test, but was another.
+
+    Error was being raised in ``test_make_unused_fix`` as ``replace``
+    could not be used on a list.
+
+    The error was the cause of  ``test_make_whitelist`` as a dummy patch
+    was used to override output (empty list: unnecessary - removed).
+
+    Would not fail test every run, but with ``pytest-randomly`` it
+    appears to have been caused when ``test_make_whitelist`` came
+    before ``test_make_unused_fix``.
+
+    Error was not caused by any bug in the program,
+    just the monkeypatch.
+
+    Not clear yet how exactly the two tests are related.
+
+    :param patch_sp_output: Patch ``Subprocess`` so that ``call`` sends
+                            expected stdout out to self.
+    """
+    with pytest.raises(TypeError) as err:
+        patch_sp_output([])
+        pyaud.plugins.get("whitelist")()
+
+    assert (
+        str(err.value)
+        == "stdout received as 'list': only str instances allowed"
+    )

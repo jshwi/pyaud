@@ -20,6 +20,7 @@ from subprocess import check_output as _sp_out
 from typing import Any as _Any
 from typing import Iterable as _Iterable
 from typing import List as _List
+from typing import MutableSequence as _ABCMutableSequence
 from typing import Optional as _Optional
 from typing import Tuple as _Tuple
 from typing import Union as _Union
@@ -38,6 +39,20 @@ from .exceptions import (
 
 colors = _Color()
 colors.populate_colors()
+
+
+class _STDOut(_MutableSequence):
+    """Only except str in the stdout object."""
+
+    def insert(self, index: int, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError(
+                "stdout received as '{}': only str instances allowed".format(
+                    type(value).__name__
+                )
+            )
+
+        super().insert(index, value)
 
 
 class Subprocess:
@@ -84,7 +99,7 @@ class Subprocess:
                 )
 
         self._kwargs = kwargs
-        self._stdout: _List[str] = []
+        self._stdout: _ABCMutableSequence[str] = _STDOut()
         self.args: _Tuple[str, ...] = ()
 
     def __repr__(self) -> str:
@@ -164,14 +179,14 @@ class Subprocess:
 
         return returncode
 
-    def stdout(self) -> _List[str]:
+    def stdout(self) -> _ABCMutableSequence[str]:
         """Consume accrued stdout by returning the lines of output.
 
         Assign new container to ``_stdout``.
 
         :return: List of captured stdout.
         """
-        captured, self._stdout = self._stdout, []
+        captured, self._stdout = self._stdout, _STDOut()
         return captured
 
 

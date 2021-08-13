@@ -650,15 +650,13 @@ def test_make_requirements(
 
 
 def test_make_whitelist(
-    monkeypatch: Any, patch_sp_output: Any, nocolorcapsys: Any, make_tree: Any
+    monkeypatch: Any, nocolorcapsys: Any, make_tree: Any
 ) -> None:
     """Test a whitelist.py file is created properly.
 
     Test for when piping data from ``vulture --make-whitelist``.
 
     :param monkeypatch:         Mock patch environment and attributes.
-    :param patch_sp_output:     Patch ``Subprocess`` so that ``call``
-                                sends expected stdout out to self.
     :param nocolorcapsys:       Capture system output while stripping
                                 ANSI color codes.
     :param make_tree:           Create directory tree from dict mapping.
@@ -675,7 +673,6 @@ def test_make_whitelist(
     pyaud.git.init(devnull=True)  # type: ignore
     pyaud.git.add(".")  # type: ignore
     pyaud.files.populate()
-    patch_sp_output([])
     monkeypatch.setattr(
         "pyaud._utils.Subprocess.stdout",
         lambda *_, **__: files.Whitelist.be8a443,
