@@ -295,11 +295,14 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
         """Populate object with index of versioned Python files."""
         git.ls_files(capture=True)  # type: ignore
         self.extend(
-            [
-                _Path.cwd() / p
-                for p in [_Path(p) for p in git.stdout()]
-                if p.name not in self._exclude and p.name.endswith(".py")
-            ]
+            list(
+                # prevents duplicates which might occur during a merge
+                set(
+                    _Path.cwd() / p
+                    for p in [_Path(p) for p in git.stdout()]
+                    if p.name not in self._exclude and p.name.endswith(".py")
+                )
+            )
         )
 
     def reduce(self) -> _List[_Path]:

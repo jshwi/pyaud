@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.2.1...HEAD)
 ------------------------------------------------------------------------
+### Fixed
+- Prevents duplicates in index such as with unmerged trees
 
 [3.2.1](https://github.com/jshwi/pyaud/releases/tag/v3.2.1) - 2021-08-12
 ------------------------------------------------------------------------
