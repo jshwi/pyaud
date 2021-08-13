@@ -256,7 +256,7 @@ class Docs(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
             shutil.rmtree(build_dir)
 
         if (
-            Path(Path.cwd() / DOCS).is_dir()
+            Path(Path.cwd() / DOCS / "conf.py").is_file()
             and Path(Path.cwd(), README).is_file()
         ):
             with LineSwitch(
@@ -405,43 +405,39 @@ class Toc(pyaud.plugins.Write):
         return Path.cwd() / DOCS / f"{pyaud.package()}.rst"
 
     def required(self) -> Optional[Path]:
-        return Path.cwd() / DOCS
+        return Path.cwd() / DOCS / "conf.py"
 
     def write(self, *args: Any, **kwargs: bool) -> Any:
         toc_attrs = "   :members:\n   :undoc-members:\n   :show-inheritance:"
         package = pyaud.package()
         docspath = Path.cwd() / DOCS
-        if Path(Path.cwd() / DOCS / "conf.py").is_file():
-            self.subprocess[self.sphinx_apidoc].call(
-                "-o",
-                docspath,
-                Path.cwd() / package,
-                "-f",
-                *args,
-                devnull=True,
-                **kwargs,
-            )
+        self.subprocess[self.sphinx_apidoc].call(
+            "-o",
+            docspath,
+            Path.cwd() / package,
+            "-f",
+            *args,
+            devnull=True,
+            **kwargs,
+        )
 
-            contents = []
-            if self.path.is_file():
-                with open(self.path) as fin:
-                    contents.extend(fin.read().splitlines())
+        contents = []
+        if self.path.is_file():
+            with open(self.path) as fin:
+                contents.extend(fin.read().splitlines())
 
-            contents = sorted(
-                [i for i in contents if i.startswith(".. automodule::")]
-            )
-            with open(self.path, "w") as fout:
-                fout.write(f"{package}\n{len(package) * '='}\n\n")
-                for content in contents:
-                    fout.write(f"{content}\n{toc_attrs}\n")
+        contents = sorted(
+            [i for i in contents if i.startswith(".. automodule::")]
+        )
+        with open(self.path, "w") as fout:
+            fout.write(f"{package}\n{len(package) * '='}\n\n")
+            for content in contents:
+                fout.write(f"{content}\n{toc_attrs}\n")
 
-            modules = (
-                docspath / f"{package}.src.rst",
-                docspath / "modules.rst",
-            )
-            for module in modules:
-                if module.is_file():
-                    os.remove(module)
+        modules = (docspath / f"{package}.src.rst", docspath / "modules.rst")
+        for module in modules:
+            if module.is_file():
+                os.remove(module)
 
 
 @pyaud.plugins.register(name="typecheck")
