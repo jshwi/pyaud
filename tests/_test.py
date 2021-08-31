@@ -41,6 +41,7 @@ from . import (
     TOMLFILE,
     TYPE_ERROR,
     WARNING,
+    WHITELIST_PY,
 )
 
 
@@ -105,7 +106,7 @@ def test_find_package(monkeypatch: Any) -> None:
     [
         (FILES, FILES, True),
         (Path("nested") / "python" / "file" / FILES, "nested", True),
-        ("whitelist.py", "whitelist.py", False),
+        (WHITELIST_PY, "whitelist.py", False),
     ],
     ids=["file", "nested", "exclude"],
 )
@@ -128,6 +129,7 @@ def test_get_files(
     make_file.parent.mkdir(exist_ok=True, parents=True)
     make_file.touch()
     pyaud.git.add(".")  # type: ignore
+    pyaud.files.add_exclusions(WHITELIST_PY)
     pyaud.files.populate()
     if assert_true:
         assert make_item in pyaud.files.reduce()
@@ -969,3 +971,36 @@ def test_exclude_loads_at_main(main: Any) -> None:
     main("typecheck")
 
     assert "project" in pyaud.config.toml["indexing"]["exclude"]
+
+
+def test_exclude(make_tree: Any) -> None:
+    """Test exclusions and inclusions with toml config.
+
+    param make_tree: Create directory tree from dict mapping.
+    """
+    webapp = {"_blog.py": None, "_config.py": None, "db.py": None, INIT: None}
+    make_tree(
+        Path.cwd(),
+        {
+            WHITELIST_PY: None,
+            "docs": {"conf.py": None},
+            "setup.py": None,
+            "migrations": {
+                "alembic.ini": None,
+                "env.py": None,
+                "README": None,
+                "script.py.mako": None,
+                "versions": {
+                    "1b62f391f86f_add_adds_post_table.py": None,
+                    "2c5aaad1d65e_add_adds_user_table.py": None,
+                },
+            },
+            "repo": webapp,
+        },
+    )
+    exclude = (WHITELIST_PY, "conf.py", "setup.py", "migrations")
+    pyaud.git.add(".")  # type: ignore
+    pyaud.files.add_exclusions(*exclude)
+    pyaud.files.populate()
+    assert not any(i in p.parts for i in exclude for p in pyaud.files)
+    assert all(Path.cwd() / "repo" / p in pyaud.files for p in webapp)

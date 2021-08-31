@@ -319,7 +319,11 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
                 set(
                     _Path.cwd() / p
                     for p in [_Path(p) for p in git.stdout()]
-                    if p.name not in self._exclude and p.name.endswith(".py")
+                    # exclude any basename, stem, or part of a
+                    # `pathlib.Path` path
+                    if not any(i in self._exclude for i in (*p.parts, p.stem))
+                    # only include Python files in index
+                    and p.name.endswith(".py")
                 )
             )
         )

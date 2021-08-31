@@ -42,6 +42,7 @@ PYAUD_FILES_POPULATE = "pyaud.files.populate"
 SP_CALL = "pyaud._utils.Subprocess.call"
 SP_STDOUT = "pyaud._utils.Subprocess.stdout"
 OS_GETCWD = "os.getcwd"
+WHITELIST_PY = "whitelist.py"
 
 
 class NoColorCapsys:
