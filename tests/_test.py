@@ -109,7 +109,7 @@ def test_find_package(monkeypatch: Any) -> None:
     ],
     ids=["file", "nested", "exclude"],
 )
-def test_get_pyfiles(
+def test_get_files(
     make_relative_file: str, assert_relative_item: str, assert_true: bool
 ) -> None:
     """Test ``get_files``.
@@ -135,7 +135,7 @@ def test_get_pyfiles(
         assert make_item not in pyaud.files.reduce()
 
 
-def test_pyitems_exclude_venv(make_tree: Any) -> None:
+def test_files_exclude_venv(make_tree: Any) -> None:
     """Test that virtualenv dir is excluded.
 
      Test when indexing with ``PythonItems.items``.
