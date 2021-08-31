@@ -297,14 +297,18 @@ def branch() -> _Optional[str]:
 
 
 class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
-    """Index all Python files in project.
+    """Index all Python files in project."""
 
-    :param exclude: Files to exclude.
-    """
-
-    def __init__(self, *exclude: str) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self._exclude = exclude
+        self._exclude: _List[str] = []
+
+    def add_exclusions(self, *exclusions: str) -> None:
+        """Add iterable of str objects to exclude from indexing.
+
+        :param exclusions: Iterable of str names to exclude from index.
+        """
+        self._exclude.extend(exclusions)
 
     def populate(self) -> None:
         """Populate object with index of versioned Python files."""
@@ -411,5 +415,5 @@ def package() -> str:
     raise _PythonPackageNotFoundError("cannot determine primary package")
 
 
-files = _Files(*_config.toml["indexing"]["exclude"])
+files = _Files()
 git = _Git()

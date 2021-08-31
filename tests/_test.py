@@ -947,3 +947,25 @@ def test_type_error_stdout(patch_sp_output: Any) -> None:
         str(err.value)
         == "stdout received as 'list': only str instances allowed"
     )
+
+
+def test_exclude_loads_at_main(main: Any) -> None:
+    """Confirm project config is loaded with ``main``.
+
+    :param main: Patch package entry point.
+    """
+    default_config = copy.deepcopy(pyaud.config.DEFAULT_CONFIG)
+    project_config = copy.deepcopy(default_config)
+    project_config["indexing"]["exclude"].append("project")
+    test_project_toml_object = (
+        pyaud.config._Toml()  # pylint: disable=protected-access
+    )
+    test_project_toml_object.update(project_config)
+    with open(Path.cwd() / ".pyaudrc", "w") as fout:
+        test_project_toml_object.dump(fout)
+
+    assert "project" not in pyaud.config.toml["indexing"]["exclude"]
+
+    main("typecheck")
+
+    assert "project" in pyaud.config.toml["indexing"]["exclude"]

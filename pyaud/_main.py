@@ -165,6 +165,7 @@ def main() -> None:
     _load_namespace()
     _config.load_config(parser.args.rcfile)
     _config.configure_logging(parser.args.verbose)
+    _files.add_exclusions(*_config.toml["indexing"]["exclude"])
     _files.populate()
     _plugins.get(parser.args.module)(
         clean=parser.args.clean,
