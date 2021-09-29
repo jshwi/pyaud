@@ -376,7 +376,11 @@ def get_packages() -> _List[str]:
         set(
             i.split(".", maxsplit=1)[0]
             for i in _setuptools.find_packages(
-                where=_Path.cwd(), exclude=_config.toml["packages"]["exclude"]
+                # in response to an update to `setuptools` stubs:
+                # - error: Argument "where" has incompatible type
+                #   "Path"; expected "str"
+                where=str(_Path.cwd()),
+                exclude=_config.toml["packages"]["exclude"],
             )
         )
     )
