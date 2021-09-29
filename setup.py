@@ -50,7 +50,21 @@ setuptools.setup(
     zip_safe=False,
     install_requires=[
         "appdirs>=1.4.4, <=2.0.0",
-        "black>=21.7b0",
+        # see
+        # https://github.com/pypa/pipenv/issues/1760#issuecomment-527366599
+        #
+        # in short, without strong equality running `pipenv lock` with
+        # this as a dependency will fail (unless passing `--pre` as an
+        # argument)
+        #
+        # - ERROR: Could not find a version that matches black>=21.7b0
+        #   Skipped pre-versions
+        #
+        # appears the version needs to be strictly specified in order
+        # for `pipenv` to allow locking without the additional argument
+        # this adds extra time to the locking process if forgotten, and
+        # the error message could be confusing to some
+        "black==21.7b0",
         "codecov>=2.1.11, <=3.0.0",
         "coverage>=5.5, <=6.0",
         "docformatter>=1.4, <=2.0.0",
