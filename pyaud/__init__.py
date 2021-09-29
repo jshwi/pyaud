@@ -3,7 +3,7 @@ from . import config, exceptions, plugins
 from ._environ import load_namespace
 from ._utils import branch, files, get_packages, git, package
 
-__version__ = "3.2.5"
+__version__ = "3.2.6"
 
 __all__ = [
     "branch",
