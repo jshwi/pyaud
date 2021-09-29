@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.2.5...HEAD)
 ------------------------------------------------------------------------
 ### Fixed
+- Relaxes requirement versions
 - Argument for `where` (`setuptools.find_packages`) is now a `str`
 
 [3.2.5](https://github.com/jshwi/pyaud/releases/tag/v3.2.5) - 2021-08-31
