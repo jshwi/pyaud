@@ -33,6 +33,7 @@ from . import (
     SP_STDOUT,
     files,
 )
+from .files import EXPECTED_NESTED_TOC
 
 
 def test_no_files_found(main: Any, nocolorcapsys: Any) -> None:
@@ -1329,3 +1330,53 @@ def test_typecheck_re_raise_err(monkeypatch: Any, main: Any) -> None:
         main("typecheck")
 
     assert str(err.value) == "pyaud typecheck did not pass all checks"
+
+
+def test_nested_toc(main: Any, make_tree: Any) -> None:
+    """Test that only one file is completed with a nested project.
+
+    Prior to this commit only ``repo.src.rst`` would be removed.
+    This commit will remove any file and copy its contents to the
+    single <NAME>.rst file e.g. ``repo.routes.rst`` is removed and
+    ``repo.routes``, ``repo.routes.auth``, ``repo.routes.post``, and
+    ``repo.routes.views`` is added to repo.rst.
+
+    :param main:        Patch package entry point.
+    :param make_tree:   Create directory tree from dict mapping.
+    """
+    make_tree(
+        Path.cwd(),
+        {
+            "docs": {CONFPY: None},
+            "repo": {
+                "routes": {
+                    "auth.py": None,
+                    "__init__.py": None,
+                    "post.py": None,
+                    "views.py": None,
+                },
+                "admin.py": None,
+                "cli.py": None,
+                "config.py": None,
+                "deps.py": None,
+                "exceptions.py": None,
+                "extensions.py": None,
+                "forms.py": None,
+                "__init__.py": None,
+                "log.py": None,
+                "mail.py": None,
+                "models.py": None,
+                "navbar.py": None,
+                "redirect.py": None,
+                "renderers.py": None,
+                "security.py": None,
+                "shell.py": None,
+                "tasks.py": None,
+                "user.py": None,
+            },
+        },
+    )
+    main("toc")
+    assert not Path(Path.cwd() / DOCS / "repo.routes.rst").is_file()
+    with open(Path.cwd() / DOCS / f"{REPO}.rst") as fin:
+        assert fin.read() == EXPECTED_NESTED_TOC

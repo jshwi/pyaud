@@ -407,6 +407,12 @@ class Toc(pyaud.plugins.Write):
     def required(self) -> Optional[Path]:
         return Path.cwd() / DOCS / "conf.py"
 
+    @staticmethod
+    def _populate(path: Path, contents: List[str]) -> None:
+        if path.is_file():
+            with open(path) as fin:
+                contents.extend(fin.read().splitlines())
+
     def write(self, *args: Any, **kwargs: bool) -> Any:
         toc_attrs = "   :members:\n   :undoc-members:\n   :show-inheritance:"
         package = pyaud.package()
@@ -421,10 +427,20 @@ class Toc(pyaud.plugins.Write):
             **kwargs,
         )
 
-        contents = []
-        if self.path.is_file():
-            with open(self.path) as fin:
-                contents.extend(fin.read().splitlines())
+        # dynamically populate a list of unwanted, overly nested files
+        # nesting the file in the docs/<NAME>.rst file is preferred
+        nested = [
+            docspath / f
+            for f in docspath.iterdir()
+            if len(f.name.split(".")) > 2
+        ]
+
+        contents: List[str] = []
+        self._populate(self.path, contents)
+        for file in nested:
+
+            # extract the data from the nested toc
+            self._populate(file, contents)
 
         contents = sorted(
             [i for i in contents if i.startswith(".. automodule::")]
@@ -434,8 +450,13 @@ class Toc(pyaud.plugins.Write):
             for content in contents:
                 fout.write(f"{content}\n{toc_attrs}\n")
 
-        modules = (docspath / f"{package}.src.rst", docspath / "modules.rst")
-        for module in modules:
+        # files that we do not want included in docs
+        # modules creates an extra layer that is not desired for this
+        # module
+        blacklist = [docspath / "modules.rst", *nested]
+
+        # remove unwanted files
+        for module in blacklist:
             if module.is_file():
                 os.remove(module)
 

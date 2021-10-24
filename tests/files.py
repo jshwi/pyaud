@@ -1872,3 +1872,96 @@ BEFORE_ISORT = (
 )
 UNFORMATTED = """def reformat_this():
     print('black will make sure this is double quoted')"""
+EXPECTED_NESTED_TOC = """\
+repo
+====
+
+.. automodule:: repo
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.admin
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.cli
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.config
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.deps
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.exceptions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.extensions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.forms
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.log
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.mail
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.navbar
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.redirect
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.renderers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.routes
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.routes.auth
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.routes.post
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.routes.views
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.security
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.shell
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.tasks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+.. automodule:: repo.user
+   :members:
+   :undoc-members:
+   :show-inheritance:
+"""

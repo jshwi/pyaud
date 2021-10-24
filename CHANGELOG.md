@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.2.7...HEAD)
 ------------------------------------------------------------------------
 ### Fixed
+- `pyaud toc` only creates one file
 - Renames `plugins` to `pyaud_plugins` to avoid name collisions
 
 [3.2.7](https://github.com/jshwi/pyaud/releases/tag/v3.2.7) - 2021-09-29
