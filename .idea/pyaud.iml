@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/pyaud" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/plugins" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/pyaud_plugins" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.mypy_cache" />
       <excludeFolder url="file://$MODULE_DIR$/pyaud.egg-info" />
       <excludeFolder url="file://$MODULE_DIR$/docs/_build" />

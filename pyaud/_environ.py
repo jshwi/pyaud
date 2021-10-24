@@ -15,7 +15,8 @@ NAME = __name__.split(".", maxsplit=1)[0]
 DOCS = _Path("docs")
 PIPFILE_LOCK = _Path("Pipfile.lock")
 PLUGINS = _Path("plugins")
-DEFAULT_PLUGINS = _Path(__file__).absolute().parent.parent / PLUGINS
+PYAUD_PLUGINS = _Path("pyaud_plugins")
+DEFAULT_PLUGINS = _Path(__file__).absolute().parent.parent / PYAUD_PLUGINS
 SITE_PLUGINS = _Path.cwd() / PLUGINS
 
 

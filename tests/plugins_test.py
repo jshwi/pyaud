@@ -12,8 +12,8 @@ from typing import Any, List, Tuple
 
 import pytest
 
-import plugins
 import pyaud
+import pyaud_plugins
 
 from . import (
     CONFPY,
@@ -81,7 +81,7 @@ def test_write_command(
                 fout.write(content)
 
         monkeypatch.setattr(
-            "plugins.modules.Whitelist.write", mock_write_whitelist
+            "pyaud_plugins.modules.Whitelist.write", mock_write_whitelist
         )
         main("whitelist")
 
@@ -483,7 +483,9 @@ def test_readme_replace() -> None:
         fout.write(f"{repo}\n{repo_underline}\n")
 
     _test_file_index(repo, repo_underline)
-    with plugins.modules.LineSwitch(path, {0: readme, 1: readme_underline}):
+    with pyaud_plugins.modules.LineSwitch(
+        path, {0: readme, 1: readme_underline}
+    ):
         _test_file_index(readme, readme_underline)
 
     _test_file_index(repo, repo_underline)
