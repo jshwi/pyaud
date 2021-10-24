@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "81e074922a9223c05252d8e155f92899c1637be89b64bea346bc6d6d037d7658"
+            "sha256": "14a13f493936af8323474ec791c3fa56078f80f3ffc0f71a672a801387b0787c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -170,11 +170,11 @@
         },
         "flynt": {
             "hashes": [
-                "sha256:5439675a5375a4ce96f9ca331ff0c559ac896f327d3eb7d230d333c92fadd342",
-                "sha256:e7277ab437dbedf1fa0fbb300f7c134e4a135855fc550986cb2c10ebca3cefdd"
+                "sha256:42de12dd29e66cc067cda8a2c1fb34fb79c0b14b0c48cd7cdcbc7c5a84578adf",
+                "sha256:5bc49abd71891afbc2400f22f040ba9f23259fe03f9049dd62a2de8953248ce7"
             ],
             "index": "pypi",
-            "version": "==0.65"
+            "version": "==0.69"
         },
         "idna": {
             "hashes": [
@@ -426,11 +426,11 @@
         },
         "pyparsing": {
             "hashes": [
-                "sha256:001cad8d467e7a9248ef9fd513f5c0d39afcbcb9a43684101853bd0ab962e479",
-                "sha256:d487599e9fb0dc36bee6b5c183c6fc5bd372ce667736f3d430ab7d842a54a35a"
+                "sha256:84196357aa3566d64ad123d7a3c67b0e597a115c4934b097580e5ce220b91531",
+                "sha256:fd93fc45c47893c300bd98f5dd1b41c0e783eaeb727e7cea210dcc09d64ce7c3"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==3.0.0"
+            "version": "==3.0.1"
         },
         "pytest": {
             "hashes": [
@@ -633,7 +633,7 @@
                 "sha256:4987c65554f7a2dbf30c18fd48778ef124af6fab771a377103da0585e2336ece",
                 "sha256:c4fdf4019605b6e5423637e01bc9fe4daef873709a7973e195ceba0a62bbc844"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4.0'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'",
             "version": "==1.26.7"
         },
         "vulture": {
@@ -940,11 +940,11 @@
         },
         "flynt": {
             "hashes": [
-                "sha256:5439675a5375a4ce96f9ca331ff0c559ac896f327d3eb7d230d333c92fadd342",
-                "sha256:e7277ab437dbedf1fa0fbb300f7c134e4a135855fc550986cb2c10ebca3cefdd"
+                "sha256:42de12dd29e66cc067cda8a2c1fb34fb79c0b14b0c48cd7cdcbc7c5a84578adf",
+                "sha256:5bc49abd71891afbc2400f22f040ba9f23259fe03f9049dd62a2de8953248ce7"
             ],
             "index": "pypi",
-            "version": "==0.65"
+            "version": "==0.69"
         },
         "grip": {
             "hashes": [
@@ -1330,11 +1330,11 @@
         },
         "pyparsing": {
             "hashes": [
-                "sha256:001cad8d467e7a9248ef9fd513f5c0d39afcbcb9a43684101853bd0ab962e479",
-                "sha256:d487599e9fb0dc36bee6b5c183c6fc5bd372ce667736f3d430ab7d842a54a35a"
+                "sha256:84196357aa3566d64ad123d7a3c67b0e597a115c4934b097580e5ce220b91531",
+                "sha256:fd93fc45c47893c300bd98f5dd1b41c0e783eaeb727e7cea210dcc09d64ce7c3"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==3.0.0"
+            "version": "==3.0.1"
         },
         "pytest": {
             "hashes": [
@@ -1483,6 +1483,10 @@
                 "sha256:a86d6e1f5b1dc238b218b012df0aa79409667bb209e58da56d0b94704e712a97"
             ],
             "version": "==1.5.0"
+        },
+        "sanitized-package": {
+            "editable": true,
+            "path": "."
         },
         "secretstorage": {
             "hashes": [
@@ -1643,7 +1647,7 @@
                 "sha256:4987c65554f7a2dbf30c18fd48778ef124af6fab771a377103da0585e2336ece",
                 "sha256:c4fdf4019605b6e5423637e01bc9fe4daef873709a7973e195ceba0a62bbc844"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4.0'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'",
             "version": "==1.26.7"
         },
         "vulture": {
