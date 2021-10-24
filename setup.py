@@ -66,7 +66,7 @@ setuptools.setup(
         # the error message could be confusing to some
         "black==21.7b0",
         "codecov>=2.1.11, <=3.0.0",
-        "coverage>=5.5, <=6.0",
+        "coverage>=5.0.0, <=7.0.0",
         "docformatter>=1.4, <=2.0.0",
         "flynt>=0.64",
         "isort>=5.7.0, <=6.0.0",
