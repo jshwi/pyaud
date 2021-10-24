@@ -75,7 +75,7 @@ setuptools.setup(
         "pipfile-requirements>=0.3.0",
         "pylint>=2.6.0, <=3.0.0",
         "pytest>=6.2.1, <=7.0.0",
-        "pytest-cov>=2.11.1, <=3.0.0",
+        "pytest-cov>=2.0.0, <=4.0.0",
         "python-dotenv>=0.16.0",
         "readmetester>=1.0.0, <=2.0.0",
         "sphinx>=4.1.2, <=5.0.0",
