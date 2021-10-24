@@ -30,7 +30,7 @@ imagesize==1.2.0
 importlib-metadata==4.8.1
 iniconfig==1.1.1
 ipython==7.19.0
-isort==5.9.0
+isort==5.9.3
 itsdangerous==2.0.1
 jedi==0.18.0
 jeepney==0.7.1
