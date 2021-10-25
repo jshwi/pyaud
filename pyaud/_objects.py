@@ -15,7 +15,7 @@ class MutableSequence(_MutableSequence):  # pylint: disable=too-many-ancestors
     """Inherit to replicate subclassing of ``list`` objects."""
 
     def __init__(self) -> None:
-        self._list: _List[_Any] = list()
+        self._list: _List[_Any] = []
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self._list}>"
@@ -45,7 +45,7 @@ class MutableMapping(_MutableMapping):  # pylint: disable=too-many-ancestors
     """Inherit to replicate subclassing of ``dict`` objects."""
 
     def __init__(self) -> None:
-        self._dict: _Dict[str, _Any] = dict()
+        self._dict: _Dict[str, _Any] = {}
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self._dict}>"
