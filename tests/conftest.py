@@ -93,7 +93,7 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
             "init": {"defaultBranch": "master"},
         }
     )
-    with open(Path.home() / ".gitconfig", "w") as fout:
+    with open(Path.home() / ".gitconfig", "w", encoding="utf-8") as fout:
         config.write(fout)
 
     # setup singletons

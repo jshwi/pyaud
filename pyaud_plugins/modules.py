@@ -34,11 +34,11 @@ class LineSwitch:
     def __init__(self, path: Path, obj: Dict[int, str]) -> None:
         self._path = path
         self._obj = obj
-        with open(path) as fin:
+        with open(path, encoding="utf-8") as fin:
             self.read = fin.read()
 
     def __enter__(self) -> None:
-        with open(self._path, "w") as file:
+        with open(self._path, "w", encoding="utf-8") as file:
             for count, line in enumerate(self.read.splitlines()):
                 if count in self._obj:
                     line = self._obj[count]
@@ -46,7 +46,7 @@ class LineSwitch:
                 file.write(f"{line}\n")
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        with open(self._path, "w") as file:
+        with open(self._path, "w", encoding="utf-8") as file:
             file.write(self.read)
 
 
@@ -359,7 +359,7 @@ class Requirements(pyaud.plugins.Write):
             set("\n".join(self.subprocess[self.p2req].stdout()).splitlines())
         )
         stdout.sort()
-        with open(self.path, "w") as fout:
+        with open(self.path, "w", encoding="utf-8") as fout:
             for content in stdout:
                 fout.write(f"{content.split(';')[0]}\n")
 
@@ -410,7 +410,7 @@ class Toc(pyaud.plugins.Write):
     @staticmethod
     def _populate(path: Path, contents: List[str]) -> None:
         if path.is_file():
-            with open(path) as fin:
+            with open(path, encoding="utf-8") as fin:
                 contents.extend(fin.read().splitlines())
 
     def write(self, *args: Any, **kwargs: bool) -> Any:
@@ -445,7 +445,7 @@ class Toc(pyaud.plugins.Write):
         contents = sorted(
             [i for i in contents if i.startswith(".. automodule::")]
         )
-        with open(self.path, "w") as fout:
+        with open(self.path, "w", encoding="utf-8") as fout:
             fout.write(f"{package}\n{len(package) * '='}\n\n")
             for content in contents:
                 fout.write(f"{content}\n{toc_attrs}\n")
@@ -586,7 +586,7 @@ class Whitelist(pyaud.plugins.Write):
         stdout = self.subprocess[self.vulture].stdout()
         stdout = [i.replace(str(Path.cwd()) + os.sep, "") for i in stdout]
         stdout.sort()
-        with open(self.path, "w") as fout:
+        with open(self.path, "w", encoding="utf-8") as fout:
             fout.write("\n".join(stdout) + "\n")
 
 
@@ -622,7 +622,7 @@ class Imports(pyaud.plugins.FixFile):
 
     def audit(self, file: Path, **kwargs: bool) -> Any:
         # collect original file's contents
-        with open(file) as fin:
+        with open(file, encoding="utf-8") as fin:
             self.content = fin.read()
 
         # write original file's contents to temporary file
@@ -631,7 +631,7 @@ class Imports(pyaud.plugins.FixFile):
                 delete=False
             )
         )
-        with open(tmp.name, "w") as fout:
+        with open(tmp.name, "w", encoding="utf-8") as fout:
             fout.write(self.content)
 
         # run both ``isort`` and ``black`` on the temporary file,
@@ -647,7 +647,7 @@ class Imports(pyaud.plugins.FixFile):
         )
 
         # collect the results from the temporary file
-        with open(tmp.name) as fin:
+        with open(tmp.name, encoding="utf-8") as fin:
             self.result = fin.read()
 
         os.remove(tmp.name)
@@ -660,7 +660,7 @@ class Imports(pyaud.plugins.FixFile):
 
         # replace original file's contents with the temp
         # file post ``isort`` and ``Black``
-        with open(file, "w") as fout:
+        with open(file, "w", encoding="utf-8") as fout:
             fout.write(self.result)
 
 

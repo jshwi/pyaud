@@ -113,14 +113,14 @@ class Subprocess:
                 line = line.decode("utf-8", "ignore")
                 file = kwargs.get("file", self._kwargs.get("file", None))
                 if file is not None:
-                    with open(file, "a+") as fout:
+                    with open(file, "a+", encoding="utf-8") as fout:
                         fout.write(line)
 
                 elif kwargs.get("capture", self._kwargs.get("capture", False)):
                     self._stdout.append(line.strip())
 
                 elif kwargs.get("devnull", self._kwargs.get("devnull", False)):
-                    with open(_os.devnull, "w") as fout:
+                    with open(_os.devnull, "w", encoding="utf-8") as fout:
                         fout.write(line)
 
                 else:

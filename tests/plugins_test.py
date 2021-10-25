@@ -78,7 +78,11 @@ def test_write_command(
     for content in contents:
 
         def mock_write_whitelist(*_: Any, **__: Any) -> None:
-            with open(Path.cwd() / os.environ["PYAUD_WHITELIST"], "w") as fout:
+            with open(
+                Path.cwd() / os.environ["PYAUD_WHITELIST"],
+                "w",
+                encoding="utf-8",
+            ) as fout:
                 fout.write(content)
 
         monkeypatch.setattr(
@@ -285,7 +289,7 @@ def test_make_docs_rm_cache(
     monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_plugins)
     monkeypatch.setattr(SP_CALL, _call)
     make_tree(Path.cwd(), {"docs": {CONFPY: None, "readme.rst": None}})
-    with open(readme, "w") as fout:
+    with open(readme, "w", encoding="utf-8") as fout:
         fout.write(files.README_RST)
 
     builddir.mkdir(parents=True)
@@ -293,7 +297,7 @@ def test_make_docs_rm_cache(
     freeze_docs_build = builddir.iterdir()
 
     # to test creation of README.rst content needs to be written to file
-    with open(readme, "w") as fout:
+    with open(readme, "w", encoding="utf-8") as fout:
         fout.write(files.README_RST)
 
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
@@ -332,7 +336,7 @@ def test_make_format(main: Any) -> None:
     :param main: Patch package entry point.
     """
     file = Path.cwd() / FILES
-    with open(file, "w") as fout:
+    with open(file, "w", encoding="utf-8") as fout:
         fout.write(files.UNFORMATTED)
 
     pyaud.files.append(file)
@@ -353,7 +357,7 @@ def test_pipfile2req_commands(
     """
     requirements = Path.cwd() / os.environ["PYAUD_REQUIREMENTS"]
     pipfile_lock = Path.cwd() / PIPFILE_LOCK
-    with open(pipfile_lock, "w") as fout:
+    with open(pipfile_lock, "w", encoding="utf-8") as fout:
         fout.write(files.PIPFILE_LOCK)
 
     patch_sp_print_called()
@@ -470,7 +474,7 @@ def test_readme_replace() -> None:
     path = Path.cwd() / README
 
     def _test_file_index(title: str, underline: str) -> None:
-        with open(path) as fin:
+        with open(path, encoding="utf-8") as fin:
             lines = fin.read().splitlines()
 
         assert lines[0] == title
@@ -480,7 +484,7 @@ def test_readme_replace() -> None:
     readme = "README"
     repo_underline = len(repo) * "="
     readme_underline = len(readme) * "="
-    with open(path, "w") as fout:
+    with open(path, "w", encoding="utf-8") as fout:
         fout.write(f"{repo}\n{repo_underline}\n")
 
     _test_file_index(repo, repo_underline)
@@ -612,13 +616,13 @@ def test_make_toc(
     modules = "modules.rst"
     path = project_dir / DOCS / f"{REPO}.rst"
     make_tree(project_dir, {"docs": {modules: None, CONFPY: None}})
-    with open(path, "w") as fout:
+    with open(path, "w", encoding="utf-8") as fout:
         assert fout.write(files.DEFAULT_TOC)
 
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
     patch_sp_print_called()
     main("toc")
-    with open(path) as fin:
+    with open(path, encoding="utf-8") as fin:
         assert fin.read() == files.ALTERED_TOC
 
     assert not Path(project_dir / DOCS / modules).is_file()
@@ -639,7 +643,7 @@ def test_make_requirements(
                             color codes.
     """
     path = Path.cwd() / os.environ["PYAUD_REQUIREMENTS"]
-    with open(Path.cwd() / PIPFILE_LOCK, "w") as fout:
+    with open(Path.cwd() / PIPFILE_LOCK, "w", encoding="utf-8") as fout:
         fout.write(files.PIPFILE_LOCK)
 
     patch_sp_output(files.PIPFILE2REQ_PROD, files.PIPFILE2REQ_DEV)
@@ -648,7 +652,7 @@ def test_make_requirements(
     assert nocolorcapsys.stdout() == (
         f"Updating ``{path}``\ncreated ``{path.name}``\n"
     )
-    with open(path) as fin:
+    with open(path, encoding="utf-8") as fin:
         assert fin.read() == files.REQUIREMENTS
 
 
@@ -684,7 +688,7 @@ def test_make_whitelist(
     assert nocolorcapsys.stdout() == (
         f"Updating ``{whitelist}``\ncreated ``{whitelist.name}``\n"
     )
-    with open(whitelist) as fin:
+    with open(whitelist, encoding="utf-8") as fin:
         assert fin.read() == files.Whitelist.be8a443_all()
 
 
@@ -700,7 +704,7 @@ def test_pylint_colorized(main: Any, capsys: Any) -> None:
     :param capsys:  Capture sys output.
     """
     path = Path.cwd() / FILES
-    with open(path, "w") as fout:
+    with open(path, "w", encoding="utf-8") as fout:
         fout.write("import this_package_does_not_exist")
 
     pyaud.files.append(path)
@@ -720,12 +724,12 @@ def test_isort_imports(main: Any, nocolorcapsys: Any) -> None:
                             color codes.
     """
     path = Path.cwd() / FILES
-    with open(path, "w") as fout:
+    with open(path, "w", encoding="utf-8") as fout:
         fout.write(files.IMPORTS_UNSORTED)
 
     pyaud.files.append(path)
     main("imports", "--fix")
-    with open(path) as fin:
+    with open(path, encoding="utf-8") as fin:
         assert (
             files.IMPORTS_SORTED.splitlines()[1:]
             == fin.read().splitlines()[:20]
@@ -747,7 +751,7 @@ def test_readme(main: Any, nocolorcapsys: Any) -> None:
     assert (
         nocolorcapsys.stdout().strip() == "No README.rst found in project root"
     )
-    with open(Path.cwd() / README, "w") as fout:
+    with open(Path.cwd() / README, "w", encoding="utf-8") as fout:
         fout.write(files.CODE_BLOCK_TEMPLATE)
 
     main("readme")
@@ -780,7 +784,7 @@ def test_py_audit_error(
     project_dir = Path.cwd()
     file = project_dir / FILES
     make_tree(project_dir, {"tests": {"_test.py": None}, REPO: {INIT: None}})
-    with open(file, "w") as fout:
+    with open(file, "w", encoding="utf-8") as fout:
         fout.write(content)
 
     pyaud.git.add(".")  # type: ignore
@@ -870,7 +874,7 @@ def test_deploy_master(
     pyaud.git.add(".")  # type: ignore
     pyaud.git.commit("-m", INITIAL_COMMIT, devnull=True)  # type: ignore
 
-    with open(readme, "w") as fout:
+    with open(readme, "w", encoding="utf-8") as fout:
         fout.write(files.README_RST)
 
     main("deploy-docs", "--fix")
@@ -936,7 +940,7 @@ def test_deploy_master_param(
 
     mock_plugins["docs"] = _docs  # type: ignore
     monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mock_plugins)
-    with open(path / README, "w") as fout:
+    with open(path / README, "w", encoding="utf-8") as fout:
         fout.write(files.README_RST)
 
     Path(path, FILES).touch()
@@ -1029,7 +1033,7 @@ def test_make_format_docs_fail(main: Any) -> None:
     :param main: Patch package entry point.
     """
     path = Path.cwd() / FILES
-    with open(path, "w") as fout:
+    with open(path, "w", encoding="utf-8") as fout:
         fout.write(files.DOCFORMATTER_EXAMPLE)
 
     pyaud.files.append(path)
@@ -1049,7 +1053,7 @@ def test_make_format_docs_suppress(main: Any, nocolorcapsys: Any) -> None:
                             color codes.
     """
     path = Path.cwd() / FILES
-    with open(path, "w") as fout:
+    with open(path, "w", encoding="utf-8") as fout:
         fout.write(files.DOCFORMATTER_EXAMPLE)
 
     pyaud.files.append(path)
@@ -1082,7 +1086,7 @@ def test_isort_and_black(main: Any) -> None:
     :param main: Patch package entry point.
     """
     path = Path.cwd() / FILES
-    with open(path, "w") as fout:
+    with open(path, "w", encoding="utf-8") as fout:
         fout.write(files.BEFORE_ISORT)
 
     pyaud.files.append(path)
@@ -1100,7 +1104,7 @@ def test_isort_and_black_fix(main: Any, nocolorcapsys: Any) -> None:
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    with open(Path.cwd() / FILES, "w") as fout:
+    with open(Path.cwd() / FILES, "w", encoding="utf-8") as fout:
         fout.write(files.BEFORE_ISORT)
 
     pyaud.files.append(Path.cwd() / FILES)
@@ -1114,12 +1118,12 @@ def test_make_format_fix(main: Any) -> None:
 
     :param main: Patch package entry point.
     """
-    with open(Path.cwd() / FILES, "w") as fout:
+    with open(Path.cwd() / FILES, "w", encoding="utf-8") as fout:
         fout.write(files.UNFORMATTED)
 
     pyaud.files.append(Path.cwd() / FILES)
     main("format", "--fix")
-    with open(Path.cwd() / FILES) as fin:
+    with open(Path.cwd() / FILES, encoding="utf-8") as fin:
         assert fin.read().strip() == files.UNFORMATTED.replace("'", '"')
 
 
@@ -1135,7 +1139,7 @@ def test_make_unused_fix(
     package = Path.cwd() / "repo"
     make_tree(Path.cwd(), {"repo": {INIT: None}})
     file = package / FILES
-    with open(file, "w") as fout:
+    with open(file, "w", encoding="utf-8") as fout:
         fout.write(files.UNFORMATTED)  # also an unused function
 
     pyaud.files.append(file)
@@ -1148,7 +1152,9 @@ def test_make_unused_fix(
             file, Path.cwd() / os.environ["PYAUD_WHITELIST"]
         )
     )
-    with open(Path.cwd() / os.environ["PYAUD_WHITELIST"]) as fin:
+    with open(
+        Path.cwd() / os.environ["PYAUD_WHITELIST"], encoding="utf-8"
+    ) as fin:
         assert fin.read().strip() == (
             "reformat_this  # unused function (repo/file.py:1)"
         )
@@ -1159,7 +1165,7 @@ def test_make_unused_fail(main: Any) -> None:
 
     :param main: Patch package entry point.
     """
-    with open(Path.cwd() / FILES, "w") as fout:
+    with open(Path.cwd() / FILES, "w", encoding="utf-8") as fout:
         fout.write(files.UNFORMATTED)  # also an unused function
 
     pyaud.files.append(Path.cwd() / FILES)
@@ -1180,7 +1186,7 @@ def test_make_format_docs_fix(main: Any, nocolorcapsys: Any) -> None:
                             color codes.
     """
     pyaud.files.append(Path.cwd() / FILES)
-    with open(Path.cwd() / FILES, "w") as fout:
+    with open(Path.cwd() / FILES, "w", encoding="utf-8") as fout:
         fout.write(files.DOCFORMATTER_EXAMPLE)
 
     main("format-docs", "--fix")
@@ -1194,14 +1200,14 @@ def test_format_str_fix(main: Any, nocolorcapsys: Any) -> None:
     :param nocolorcapsys:   Capture system output while stripping ANSI
                             color codes.
     """
-    with open(Path.cwd() / FILES, "w") as fout:
+    with open(Path.cwd() / FILES, "w", encoding="utf-8") as fout:
         fout.write(files.FORMAT_STR_FUNCS_PRE)
 
     pyaud.git.add(".", devnull=True)  # type: ignore
     pyaud.files.populate()
     main("format-str", "--fix")
     nocolorcapsys.stdout()
-    with open(Path.cwd() / FILES) as fin:
+    with open(Path.cwd() / FILES, encoding="utf-8") as fin:
         assert fin.read() == files.FORMAT_STR_FUNCS_POST
 
 
@@ -1378,5 +1384,5 @@ def test_nested_toc(main: Any, make_tree: Any) -> None:
     )
     main("toc")
     assert not Path(Path.cwd() / DOCS / "repo.routes.rst").is_file()
-    with open(Path.cwd() / DOCS / f"{REPO}.rst") as fin:
+    with open(Path.cwd() / DOCS / f"{REPO}.rst", encoding="utf-8") as fin:
         assert fin.read() == EXPECTED_NESTED_TOC

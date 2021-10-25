@@ -207,7 +207,7 @@ def configure_global() -> None:
     default_config = _copy.deepcopy(DEFAULT_CONFIG)
     if configfile.is_file():
         while True:
-            with open(configfile) as fin:
+            with open(configfile, encoding="utf-8") as fin:
                 try:
                     toml.load(fin)
                     _shutil.copyfile(configfile, backupfile)
@@ -221,7 +221,7 @@ def configure_global() -> None:
 
     toml.update(_recursive_update(toml, default_config))
     CONFIGDIR.mkdir(exist_ok=True, parents=True)
-    with open(configfile, "w") as fout:
+    with open(configfile, "w", encoding="utf-8") as fout:
         toml.dump(fout)
 
 
@@ -242,7 +242,7 @@ def load_config(opt: _Optional[_Union[str, _os.PathLike]] = None):
 
     for file in files:
         if file.is_file():
-            with open(file) as fin:
+            with open(file, encoding="utf-8") as fin:
                 toml.load(fin, "tool", _NAME)
 
 
