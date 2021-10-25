@@ -2,7 +2,7 @@
 alabaster==0.7.12
 appdirs==1.4.4
 astor==0.8.1
-astroid==2.8.3
+astroid==2.8.4
 attrs==21.2.0
 babel==2.9.1
 backcall==0.2.0
@@ -66,7 +66,7 @@ pytest-randomly==3.10.1
 pytest-sugar==0.9.4
 pytest-xdist==2.2.1
 pytest==6.2.5
-python-dotenv==0.19.0
+python-dotenv==0.19.1
 pytz==2021.3
 readme-renderer==30.0
 readmetester==1.0.1
@@ -91,7 +91,7 @@ termcolor==1.1.0
 toml==0.10.2
 tomli==1.2.2
 tqdm==4.62.3
-traitlets==5.1.0
+traitlets==5.1.1
 twine==3.4.2
 typing-extensions==3.10.0.2
 untokenize==0.1.1
