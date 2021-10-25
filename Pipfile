@@ -31,7 +31,7 @@ grip = "==4.5.2"
 ipython = "==7.19.0"
 prompt-toolkit = "==3.0.13"
 pyaud = {editable = true, path = "."}
-pytest-randomly = "==3.5.0"
+pytest-randomly = "==3.10.1"
 pytest-sugar = "==0.9.4"
 pytest-xdist = "==2.2.1"
 restview = "==2.9.2"
