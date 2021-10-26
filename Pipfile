@@ -33,7 +33,7 @@ prompt-toolkit = "==3.0.13"
 pyaud = {editable = true, path = "."}
 pytest-randomly = "==3.10.1"
 pytest-sugar = "==0.9.4"
-pytest-xdist = "==2.2.1"
+pytest-xdist = "==2.4.0"
 restview = "==2.9.2"
 twine = "==3.4.2"
 

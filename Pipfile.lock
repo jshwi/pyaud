@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9ce856f8f9c6c51631a7d83f3007500593d3a8d2dbedae5a61cf89d457a2ed5f"
+            "sha256": "34b54d9f1a63eed6d4ec5cc202edeb3575fe7b0354b8a364a8ce394cb3415799"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -1429,11 +1429,11 @@
         },
         "pytest-xdist": {
             "hashes": [
-                "sha256:2447a1592ab41745955fb870ac7023026f20a5f0bfccf1b52a879bd193d46450",
-                "sha256:718887296892f92683f6a51f25a3ae584993b06f7076ce1e1fd482e59a8220a2"
+                "sha256:7b61ebb46997a0820a263553179d6d1e25a8c50d8a8620cd1aa1e20e3be99168",
+                "sha256:89b330316f7fc475f999c81b577c2b926c9569f3d397ae432c0c2e2496d61ff9"
             ],
             "index": "pypi",
-            "version": "==2.2.1"
+            "version": "==2.4.0"
         },
         "python-dotenv": {
             "hashes": [
@@ -1535,6 +1535,10 @@
                 "sha256:a86d6e1f5b1dc238b218b012df0aa79409667bb209e58da56d0b94704e712a97"
             ],
             "version": "==1.5.0"
+        },
+        "sanitized-package": {
+            "editable": true,
+            "path": "."
         },
         "secretstorage": {
             "hashes": [
