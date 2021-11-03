@@ -10,7 +10,7 @@ codecov = "==2.1.12"
 coverage = {extras = ["toml"], version = "==6.1.1"}
 docformatter = "==1.4"
 flynt = "==0.69"
-isort = "==5.9.3"
+isort = "==5.10.0"
 mypy = "==0.910"
 object-colors = "==2.0.1"
 pipfile-requirements = "==0.3.0"
