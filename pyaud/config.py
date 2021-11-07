@@ -41,6 +41,9 @@ The following methods can be called with ``toml``:
     Load dict object from open file.
 """
 import copy as _copy
+import importlib as _importlib
+import inspect as _inspect
+import logging as _logging
 import logging.config as _logging_config
 import os as _os
 import shutil as _shutil
@@ -246,6 +249,42 @@ def load_config(opt: _Optional[_Union[str, _os.PathLike]] = None):
                 toml.load(fin, "tool", _NAME)
 
 
+def _extract_logger(default: _Dict[str, _Any]) -> _logging.Logger:
+    # return the logging object
+    parts = default["class"].split(".")
+    module = _importlib.import_module(".".join(parts[:-1]))
+    return getattr(module, parts[-1])
+
+
+def _filter_default(
+    default: _Dict[str, _Any], logger: _logging.Logger
+) -> _Dict[str, _Any]:
+    # filter out any invalid kwargs for logging config
+
+    # this will be invalid, so re-add after
+    cls = default["class"]
+    formatter = default["formatter"]
+
+    # inspect logger's signature for kwargs that it can take
+    filter_keys = [
+        param.name
+        for param in _inspect.signature(
+            logger  # type: ignore
+        ).parameters.values()
+        if param.kind == param.POSITIONAL_OR_KEYWORD
+    ]
+
+    # delete all the keys from the default section that are not valid
+    for key in dict(default):
+        if key not in filter_keys:
+            del default[key]
+
+    # re-add the str representation of the configured class
+    default.update({"class": cls, "formatter": formatter})
+
+    return default
+
+
 def configure_logging(verbose: int = 0) -> None:
     """Set loglevel.
 
@@ -260,12 +299,17 @@ def configure_logging(verbose: int = 0) -> None:
     :param verbose: Level to raise log verbosity by.
     """
     levels = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
-    config = toml["logging"]
+    config = dict(toml["logging"])
+    default = config["handlers"]["default"]
+    filename = default.get("filename")
+
+    # get the logger object to filter out any invalid kwargs
+    logger = _extract_logger(default)
+    _filter_default(default, logger)
 
     # create logging dir and it's parents if they do not exist already
-    _Path(config["handlers"]["default"]["filename"]).expanduser().parent.mkdir(
-        exist_ok=True, parents=True
-    )
+    if filename is not None:
+        _Path(filename).expanduser().parent.mkdir(exist_ok=True, parents=True)
 
     # tweak loglevel if commandline argument is provided
     config["root"]["level"] = levels[
@@ -273,7 +317,7 @@ def configure_logging(verbose: int = 0) -> None:
     ]
 
     # load values to ``logging``
-    _logging_config.dictConfig(toml["logging"])
+    _logging_config.dictConfig(config)
 
 
 toml = _Toml()

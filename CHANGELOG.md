@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.2.8...HEAD)
 ------------------------------------------------------------------------
+### Fixed
+Bypasses `TypeError` when configuring logger
 
 [3.2.8](https://github.com/jshwi/pyaud/releases/tag/v3.2.8) - 2021-10-25
 ------------------------------------------------------------------------

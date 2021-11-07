@@ -8,6 +8,7 @@ import copy
 import datetime
 import logging
 import logging.config as logging_config
+import logging.handlers as logging_handlers
 import os
 import time
 from pathlib import Path
@@ -1012,3 +1013,40 @@ def test_exclude(make_tree: Any) -> None:
     pyaud.files.populate()
     assert not any(i in p.parts for i in exclude for p in pyaud.files)
     assert all(Path.cwd() / "repo" / p in pyaud.files for p in webapp)
+
+
+# noinspection DuplicatedCode
+def test_filter_logging_config_kwargs() -> None:
+    """Test that no errors are raised for additional config kwargs."""
+    project_dir = Path.cwd()
+    project_rc = project_dir / RCFILE
+    test_default: Dict[Any, Any] = copy.deepcopy(pyaud.config.DEFAULT_CONFIG)
+
+    # patch `DEFAULT_CONFIG` for `TimedRotatingFileHandler`
+    logfile = str(Path.cwd() / ".cache" / "pyaud" / "log" / "pyaud.log")
+    test_default["logging"]["handlers"]["default"]["filename"] = logfile
+    rcfile = dict(test_default)
+    with open(project_rc, "w", encoding="utf-8") as fout:
+        pyaud.config.toml.dump(fout, rcfile)
+
+    pyaud.config.load_config()
+    pyaud.config.configure_logging()
+    logger = logging.getLogger("default").root
+    handler = logger.handlers[0]
+    assert isinstance(handler, logging_handlers.TimedRotatingFileHandler)
+    assert handler.when.casefold() == "d"  # type: ignore
+    assert handler.backupCount == 60  # type: ignore
+    assert handler.stream.buffer.name == logfile  # type: ignore
+
+    # patch `DEFAULT_CONFIG` for `StreamHandler`
+    rcfile["logging"]["handlers"]["default"]["class"] = "logging.StreamHandler"
+    with open(project_rc, "w", encoding="utf-8") as fout:
+        pyaud.config.toml.dump(fout, rcfile)
+
+    pyaud.config.load_config()
+    pyaud.config.configure_logging()
+    logger = logging.getLogger("default").root
+    handler = logger.handlers[0]
+    assert isinstance(handler, logging.StreamHandler)
+    assert getattr(handler, "when", None) is None
+    assert getattr(handler, "backupCount", None) is None
