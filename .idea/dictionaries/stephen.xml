@@ -24,6 +24,7 @@
       <w>pathlib</w>
       <w>pyaudrc</w>
       <w>pyproject</w>
+      <w>rcdict</w>
       <w>relpaths</w>
       <w>retval</w>
       <w>rmtree</w>
