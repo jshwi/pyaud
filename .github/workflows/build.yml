@@ -51,4 +51,4 @@ jobs:
     - name: Audit
       run: |
         python -m pipenv run pip install -e .
-        python -m pipenv run pyaud audit --deploy
+        python -m pipenv run pyaud audit --deploy --rcfile .github/pyaud.toml
