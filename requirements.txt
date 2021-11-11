@@ -67,7 +67,7 @@ pytest-randomly==3.10.2
 pytest-sugar==0.9.4
 pytest-xdist==2.4.0
 pytest==6.2.5
-python-dotenv==0.19.1
+python-dotenv==0.19.2
 pytz==2021.3
 readme-renderer==30.0
 readmetester==1.0.1
