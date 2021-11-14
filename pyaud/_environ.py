@@ -37,7 +37,6 @@ def load_namespace() -> None:
         PYAUD_DOCS=str(DOCS),
         PYAUD_PIPFILE_LOCK=str(PIPFILE_LOCK),
         PYAUD_TOC=str(DOCS / f"{repo}.rst"),
-        PYCHARM_HOSTED="False",
     )
     _dotenv.load_dotenv(_dotenv.find_dotenv(), override=True)
     if "PYAUD_GH_REMOTE" not in _os.environ:

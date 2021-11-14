@@ -1050,3 +1050,14 @@ def test_filter_logging_config_kwargs() -> None:
     assert isinstance(handler, logging.StreamHandler)
     assert getattr(handler, "when", None) is None
     assert getattr(handler, "backupCount", None) is None
+
+
+def test_default_key() -> None:
+    """Test setting and restoring of existing dict keys."""
+    obj = {"default_key": "default_value"}
+    with pyaud._environ.TempEnvVar(  # pylint: disable=protected-access
+        obj, default_key="temp_value"
+    ):
+        assert obj["default_key"] == "temp_value"
+
+    assert obj["default_key"] == "default_value"
