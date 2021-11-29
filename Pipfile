@@ -34,7 +34,7 @@ pyaud = {editable = true, path = "."}
 pytest-randomly = "==3.10.2"
 pytest-sugar = "==0.9.4"
 pytest-xdist = "==2.4.0"
-restview = "==2.9.2"
+restview = "==2.9.3"
 twine = "==3.6.0"
 
 [requires]
