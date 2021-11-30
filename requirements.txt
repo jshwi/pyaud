@@ -15,7 +15,7 @@ charset-normalizer==2.0.8
 click==8.0.3
 codecov==2.1.12
 colorama==0.4.4
-coverage[toml]==6.1.2
+coverage[toml]==6.2
 cryptography==36.0.0
 decorator==5.1.0
 docformatter==1.4
