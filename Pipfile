@@ -35,7 +35,7 @@ pytest-randomly = "==3.10.3"
 pytest-sugar = "==0.9.4"
 pytest-xdist = "==2.4.0"
 restview = "==2.9.3"
-twine = "==3.6.0"
+twine = "==3.7.0"
 
 [requires]
 python_version = "3.8"
