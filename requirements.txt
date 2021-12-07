@@ -77,7 +77,6 @@ requests==2.26.0
 restview==2.9.3
 rfc3986==1.5.0
 secretstorage==3.3.1
-setuptools==59.5.0
 six==1.16.0
 snowballstemmer==2.2.0
 sphinx==4.3.1
@@ -94,7 +93,7 @@ toml==0.10.2
 tomli==1.2.2
 tqdm==4.62.3
 traitlets==5.1.1
-twine==3.7.0
+twine==3.7.1
 typing-extensions==4.0.1
 untokenize==0.1.1
 urllib3==1.26.7
