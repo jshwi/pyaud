@@ -54,7 +54,7 @@ pipfile-requirements==0.3.0
 pkginfo==1.8.2
 platformdirs==2.4.0
 pluggy==1.0.0
-prompt-toolkit==3.0.23
+prompt-toolkit==3.0.24
 ptyprocess==0.7.0
 py==1.11.0
 pycparser==2.21
@@ -69,7 +69,7 @@ pytest-xdist==2.4.0
 pytest==6.2.5
 python-dotenv==0.19.2
 pytz==2021.3
-readme-renderer==30.0
+readme-renderer==31.0
 readmetester==1.0.1
 regex==2021.11.10
 requests-toolbelt==0.9.1
