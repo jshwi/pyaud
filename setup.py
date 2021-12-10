@@ -64,7 +64,7 @@ setuptools.setup(
         # for `pipenv` to allow locking without the additional argument
         # this adds extra time to the locking process if forgotten, and
         # the error message could be confusing to some
-        "black==21.11b1",
+        "black==21.12b0",
         "codecov>=2.1.11, <=3.0.0",
         "coverage>=5.0.0, <=7.0.0",
         "docformatter>=1.4, <=2.0.0",
