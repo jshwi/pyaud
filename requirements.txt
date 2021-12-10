@@ -6,7 +6,7 @@ astroid==2.9.0
 attrs==21.2.0
 babel==2.9.1
 backcall==0.2.0
-black==21.11b1
+black==21.12b0
 bleach==4.1.0
 bump2version==1.0.1
 certifi==2021.10.8
@@ -71,7 +71,6 @@ python-dotenv==0.19.2
 pytz==2021.3
 readme-renderer==31.0
 readmetester==1.0.1
-regex==2021.11.10
 requests-toolbelt==0.9.1
 requests==2.26.0
 restview==2.9.3
