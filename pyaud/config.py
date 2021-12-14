@@ -17,12 +17,12 @@ The following methods can be called with ``toml``:
     .. code-block:: python
 
         toml.dump(
-            self, fout: TextIO, obj: Optional[MutableMapping = None
+            self, fout: TextIO, obj: Optional[MutableMapping] = None
         ) -> str:
 
     Dump dict object to open file.
 
-    If Optional[MutableMapping] is not provided, toml will use it's
+    If Optional[MutableMapping] is not provided, toml will use its
     own key-values.
 
     .. code-block:: python
@@ -31,7 +31,7 @@ The following methods can be called with ``toml``:
 
     Return dict object from open file as toml str.
 
-    If Optional[MutableMapping] is not provided, toml will use it's
+    If Optional[MutableMapping] is not provided, toml will use its
     own key-values.
 
     .. code-block:: python

@@ -500,7 +500,7 @@ def test_toml_no_override_all(monkeypatch: Any) -> None:
     pyaud.config.load_config()
 
     # this here would raise a ``ValueError`` if not working as expected,
-    # so on it's own is an assertion
+    # so on its own is an assertion
     logging_config.dictConfig(pyaud.config.toml["logging"])
     pyaud.config.DEFAULT_CONFIG["logging"]["root"]["level"] = "INFO"
     assert dict(pyaud.config.toml) == pyaud.config.DEFAULT_CONFIG
@@ -728,7 +728,7 @@ def test_args_reduce(make_tree: Any) -> None:
         for i in (str(Path.cwd() / "dotfiles"), str(Path.cwd() / "src"))
     )
 
-    # therefore the ``reduce`` argument should be used sparingly as in
+    # therefore, the ``reduce`` argument should be used sparingly as in
     # this example the bundle dir will not be scanned
     assert all(
         i in normal

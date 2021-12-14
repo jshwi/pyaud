@@ -217,7 +217,7 @@ class Fix(Audit):
                         written, to notify __call__ whether process has
                         succeeded or failed.
 
-                        If non-zero exist if returned and ``-f/--fix``
+                        If non-zero exist is returned and ``-f/--fix``
                         has been passed to the commandline run the
                         ``fix`` method, otherwise raise ``AuditError``.
         """

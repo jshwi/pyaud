@@ -54,9 +54,9 @@ class TempEnvVar:
     """Temporarily set a mutable mapping key-value pair.
 
     Set key-value whilst working within the context manager. If key
-    already exists then change the key back to it's original value. If
+    already exists then change the key back to its original value. If
     key does not already exist then delete it so the environment is
-    returned back to it's original state.
+    returned to its original state.
 
     :param obj:     Mutable mapping to temporarily change.
     :param key:     Key to temporarily change in supplied object.

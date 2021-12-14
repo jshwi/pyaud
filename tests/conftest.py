@@ -192,8 +192,8 @@ def fixture_patch_sp_output(patch_sp_call: Any) -> Any:
         _stdout = list(stdout)
 
         def _call(self, *_: Any, **__: Any) -> None:
-            """Mock call to to do nothing except send the expected
-            stdout to self."""
+            """Mock call to do nothing except send the expected stdout
+            to self."""
             self._stdout.append(  # pylint: disable=protected-access
                 _stdout.pop()
             )

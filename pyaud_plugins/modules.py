@@ -354,7 +354,7 @@ class Requirements(pyaud.plugins.Write):
         )
 
         # write to file and then use sed to remove the additional
-        # information following the semi-colon
+        # information following the semicolon
         stdout = list(
             set("\n".join(self.subprocess[self.p2req].stdout()).splitlines())
         )
@@ -742,7 +742,7 @@ class GenerateRCFile(
 ):  # pylint: disable=too-few-public-methods
     """Print rcfile to stdout.
 
-    Print rcfile to stdout so it may be piped to chosen filepath.
+    Print rcfile to stdout, so it may be piped to chosen filepath.
     """
 
     def action(self, *args: Any, **kwargs: bool) -> Any:

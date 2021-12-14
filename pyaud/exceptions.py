@@ -24,7 +24,7 @@ class AuditError(Exception):
 
 
 class NameConflictError(Exception):
-    """Raise if adding plugin who's name is not unique.
+    """Raise if adding plugin whose name is not unique.
 
     :param plugin:  Plugin which could not be registered.
     :param name:    Name which clashes with another.

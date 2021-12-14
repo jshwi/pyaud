@@ -228,7 +228,7 @@ def test_suppress(
 
 
 def test_coverage_no_tests(main: Any, nocolorcapsys: Any) -> None:
-    """Test the correct output is produced when no tests exists.
+    """Test the correct output is produced when no tests exist.
 
      Ensure message is displayed if ``pytest`` could not find a valid
      test folder.
@@ -575,7 +575,7 @@ def test_pytest_is_tests(
 
     Test that ``pytest`` is not called if:
 
-        - there is a tests dir without tests
+        - there is a test dir without tests
         - incorrect names within tests dir
         - no tests at all within tests dir.
 
@@ -922,7 +922,7 @@ def test_deploy_master_param(
     rounds: int,
     expected: List[str],
 ) -> None:
-    """Check that nothing happens when not checkout at at master.
+    """Check that nothing happens when not checkout at master.
 
     :param main:            Patch package entry point.
     :param monkeypatch:     Mock patch environment and attributes.
@@ -1140,7 +1140,7 @@ def test_make_unused_fix(
     make_tree(Path.cwd(), {"repo": {INIT: None}})
     file = package / FILES
     with open(file, "w", encoding="utf-8") as fout:
-        fout.write(files.UNFORMATTED)  # also an unused function
+        fout.write(files.UNFORMATTED)  # also, an unused function
 
     pyaud.files.append(file)
     main("unused", "--fix")
@@ -1166,7 +1166,7 @@ def test_make_unused_fail(main: Any) -> None:
     :param main: Patch package entry point.
     """
     with open(Path.cwd() / FILES, "w", encoding="utf-8") as fout:
-        fout.write(files.UNFORMATTED)  # also an unused function
+        fout.write(files.UNFORMATTED)  # also, an unused function
 
     pyaud.files.append(Path.cwd() / FILES)
     with pytest.raises(pyaud.exceptions.AuditError) as err:
@@ -1233,7 +1233,7 @@ def test_custom_modules(
 
     monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_modules)
 
-    # make ``load_config`` do nothing so it does not override the toml
+    # make ``load_config`` do nothing, so it does not override the toml
     # config above
     monkeypatch.setattr("pyaud.config.load_config", lambda *_: None)
     main("audit")

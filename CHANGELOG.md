@@ -54,7 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [3.2.2](https://github.com/jshwi/pyaud/releases/tag/v3.2.2) - 2021-08-13
 ------------------------------------------------------------------------
 ### Fixed
-- Prevents duplicates in index such as with unmerged trees
+- Prevent duplicates in index such as with unmerged trees
 
 [3.2.1](https://github.com/jshwi/pyaud/releases/tag/v3.2.1) - 2021-08-12
 ------------------------------------------------------------------------

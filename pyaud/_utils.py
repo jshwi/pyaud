@@ -56,7 +56,7 @@ class _STDOut(_MutableSequence):
 
 
 class Subprocess:
-    """Object oriented Subprocess.
+    """Object-oriented Subprocess.
 
     ``exe`` is a mandatory argument used to construct the subprocess
     executable. Default ``file``, ``capture``, and ``devnull`` values
@@ -315,7 +315,7 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
         git.ls_files(capture=True)  # type: ignore
         self.extend(
             list(
-                # prevents duplicates which might occur during a merge
+                # prevent duplicates which might occur during a merge
                 set(
                     _Path.cwd() / p
                     for p in [_Path(p) for p in git.stdout()]
