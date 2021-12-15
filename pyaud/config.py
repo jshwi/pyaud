@@ -56,7 +56,11 @@ from typing import TextIO as _TextIO
 from typing import Union as _Union
 
 import appdirs as _appdirs
+
+# noinspection PyUnresolvedReferences
 import toml.decoder as _toml_decoder
+
+# noinspection PyUnresolvedReferences
 import toml.encoder as _toml_encoder
 
 from ._environ import NAME as _NAME
