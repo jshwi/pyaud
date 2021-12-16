@@ -26,9 +26,9 @@ class LineSwitch:
     Reformat the README whilst returning the original title to the
     parent process.
 
-    :param path:    File to manipulate.
-    :param obj:     t.Dictionary of line number's as key and replacement
-                    strings as values.
+    :param path: File to manipulate.
+    :param obj: t.Dictionary of line number's as key and replacement
+        strings as values.
     """
 
     def __init__(self, path: Path, obj: t.Dict[int, str]) -> None:

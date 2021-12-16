@@ -71,7 +71,7 @@ class NoColorCapsys:
         hard to  read expected strings when they contain the codes.
 
         :param out: String to strip of ANSI escape codes
-        :return:    Same string but without ANSI codes
+        :return: Same string but without ANSI codes
         """
         ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
         return ansi_escape.sub("", out)
@@ -79,8 +79,8 @@ class NoColorCapsys:
     def readouterr(self) -> t.Tuple[str, ...]:
         """Call as capsys ``readouterr`` but remove ANSI color-codes.
 
-        :return:    A tuple (just like the capsys) containing stdout in
-                    the first index and stderr in the second
+        :return: A tuple (just like the capsys) containing stdout in the
+            first index and stderr in the second
         """
         return tuple(  # pylint: disable=consider-using-generator
             [self._regex(r) for r in self.capsys.readouterr()]

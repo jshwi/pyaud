@@ -43,6 +43,7 @@ from . import (
     TYPE_ERROR,
     WARNING,
     WHITELIST_PY,
+    NoColorCapsys,
 )
 
 
@@ -87,7 +88,7 @@ def test_pipe_to_file() -> None:
         )
 
 
-def test_find_package(monkeypatch: t.Any) -> None:
+def test_find_package(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test error is raised if no Python file exists in project root.
 
     :param monkeypatch: Mock patch environment and attributes.
@@ -119,10 +120,10 @@ def test_get_files(
     Test for standard files, nested directories (only return the
     directory root) or files that are excluded.
 
-    :param make_relative_file:      Relative path to Python file.
-    :param assert_relative_item:    Relative path to Python item to
-                                    check for.
-    :param assert_true:             Assert True or assert False.
+    :param make_relative_file: Relative path to Python file.
+    :param assert_relative_item: Relative path to Python item to check
+        for.
+    :param assert_true: Assert True or assert False.
     """
     project_dir = Path.cwd()
     make_file = project_dir / make_relative_file
@@ -172,16 +173,16 @@ def test_files_exclude_venv(make_tree: t.Any) -> None:
 
 
 def test_arg_order_clone(
-    tmp_path: Path, nocolorcapsys: t.Any, patch_sp_print_called: t.Any
+    tmp_path: Path, nocolorcapsys: NoColorCapsys, patch_sp_print_called: t.Any
 ) -> None:
     """Test that the clone destination is always the last argument.
 
-    :param tmp_path:                Create and return a temporary
-                                    directory for testing.
-    :param nocolorcapsys:           Capture system output while
-                                    stripping ANSI color codes.
-    :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
-                                    announce what is called.
+    :param tmp_path: Create and return a temporary directory for
+        testing.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param patch_sp_print_called: Patch ``Subprocess.call`` to only
+        announce what is called.
     """
     patch_sp_print_called()
     path = tmp_path / REPO
@@ -197,14 +198,14 @@ def test_arg_order_clone(
 @pytest.mark.parametrize("default", [CRITICAL, ERROR, WARNING, INFO, DEBUG])
 @pytest.mark.parametrize("flag", ["", "-v", "-vv", "-vvv", "-vvvv"])
 def test_loglevel(
-    monkeypatch: t.Any, main: t.Any, default: str, flag: str
+    monkeypatch: pytest.MonkeyPatch, main: t.Any, default: str, flag: str
 ) -> None:
     """Test the right loglevel is set when parsing the commandline.
 
     :param monkeypatch: Mock patch environment and attributes.
-    :param main:        Patch package entry point.
-    :param default:     Default loglevel configuration.
-    :param flag:        Verbosity level commandline flag.
+    :param main: Patch package entry point.
+    :param default: Default loglevel configuration.
+    :param flag: Verbosity level commandline flag.
     """
     levels = {
         "": [CRITICAL, ERROR, WARNING, INFO, DEBUG],
@@ -271,9 +272,9 @@ def test_del_key_in_context():
     ids=["no-pos", "all-modules", "invalid-pos"],
 )
 def test_help(
-    monkeypatch: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
     main: t.Any,
-    nocolorcapsys: t.Any,
+    nocolorcapsys: NoColorCapsys,
     arg: str,
     index: int,
     expected: t.Tuple[str, ...],
@@ -286,14 +287,14 @@ def test_help(
     Test all and display of all module docstrings for assortment of
     test plugins.
 
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
-    :param arg:             Positional argument for ```pyaud modules``.
-    :param index:           Index 0 returns stdout from ``readouterr``
-                            and 1 returns stderr.
-    :param expected:        Expected result when calling command.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param arg: Positional argument for ```pyaud modules``.
+    :param index: Index 0 returns stdout from ``readouterr`` and 1
+        returns stderr.
+    :param expected: Expected result when calling command.
     """
 
     def plugin1():
@@ -331,7 +332,7 @@ def test_seq() -> None:
 
 
 @pytest.mark.usefixtures("init_remote")
-def test_gen_default_remote(monkeypatch: t.Any) -> None:
+def test_gen_default_remote(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test ``PYAUD_GH_REMOTE`` is properly loaded from .env variables.
 
     :param monkeypatch: Mock patch environment and attributes.
@@ -449,7 +450,7 @@ def test_toml() -> None:
     assert dict(pyaud.config.toml) == subtotal
 
 
-def test_toml_no_override_all(monkeypatch: t.Any) -> None:
+def test_toml_no_override_all(monkeypatch: pytest.MonkeyPatch) -> None:
     """Confirm error not raised for entire key being overridden.
 
      Test for when implementing hierarchical config loading.
@@ -462,7 +463,7 @@ def test_toml_no_override_all(monkeypatch: t.Any) -> None:
     >           raise ValueError("dictionary doesn't specify a version")
     E           ValueError: dictionary doesn't specify a version
 
-    :param monkeypatch:     Mock patch environment and attributes.
+    :param monkeypatch: Mock patch environment and attributes.
     """
     monkeypatch.setattr(
         "pyaud.config.DEFAULT_CONFIG",
@@ -797,11 +798,13 @@ def test_files_populate_proc(make_tree: t.Any) -> None:
     assert no_commit_files == commit_files
 
 
-def test_not_a_repository_error(monkeypatch: t.Any, tmp_path: Path) -> None:
+def test_not_a_repository_error(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """Test error when Git command run in non-repository project.
 
-    :param tmp_path:    Create and return a temporary directory for
-                        testing.
+    :param tmp_path: Create and return a temporary directory for
+        testing.
     :param monkeypatch: Mock patch environment and attributes.
     """
     monkeypatch.setattr(OS_GETCWD, lambda: str(tmp_path))
@@ -843,11 +846,13 @@ def test_command_not_found_error() -> None:
     assert str(err.value) == f"{not_a_command}: command not found..."
 
 
-def test_get_packages(monkeypatch: t.Any, make_tree: t.Any) -> None:
+def test_get_packages(
+    monkeypatch: pytest.MonkeyPatch, make_tree: t.Any
+) -> None:
     """Test process when searching for project's package.
 
     :param monkeypatch: Mock patch environment and attributes.
-    :param make_tree:   Create directory tree from dict mapping.
+    :param make_tree: Create directory tree from dict mapping.
     """
     # undo patch to ``setuptools``
     # ============================
@@ -894,14 +899,16 @@ def test_get_packages(monkeypatch: t.Any, make_tree: t.Any) -> None:
     assert pyaud.package() == "second_package"
 
 
-def test_get_subpackages(monkeypatch: t.Any, make_tree: t.Any) -> None:
+def test_get_subpackages(
+    monkeypatch: pytest.MonkeyPatch, make_tree: t.Any
+) -> None:
     """Test process when searching for project's package.
 
     Assert that subdirectories are not returned with import syntax, i.e.
     dot separated, and that only the parent package names are returned.
 
     :param monkeypatch: Mock patch environment and attributes.
-    :param make_tree:   Create directory tree from dict mapping.
+    :param make_tree: Create directory tree from dict mapping.
     """
     # undo patch to ``setuptools``
     # ============================
@@ -950,7 +957,7 @@ def test_type_error_stdout(patch_sp_output: t.Any) -> None:
     Not clear yet how exactly the two tests are related.
 
     :param patch_sp_output: Patch ``Subprocess`` so that ``call`` sends
-                            expected stdout out to self.
+        expected stdout out to self.
     """
     with pytest.raises(TypeError) as err:
         patch_sp_output([])

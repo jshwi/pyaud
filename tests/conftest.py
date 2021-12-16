@@ -17,10 +17,12 @@ from . import DEBUG, GH_EMAIL, GH_NAME, GH_TOKEN, REPO, NoColorCapsys
 
 
 @pytest.fixture(name="mock_environment", autouse=True)
-def fixture_mock_environment(tmp_path: Path, monkeypatch: t.Any) -> None:
+def fixture_mock_environment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Mock imports to reflect the temporary testing environment.
 
-    :param tmp_path:     Create and return temporary directory.
+    :param tmp_path: Create and return temporary directory.
     :param monkeypatch: Mock patch environment and attributes.
     """
     # set environment variables
@@ -109,23 +111,23 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: t.Any) -> None:
 
 
 @pytest.fixture(name="nocolorcapsys")
-def fixture_nocolorcapsys(capsys: t.Any) -> NoColorCapsys:
+def fixture_nocolorcapsys(capsys: pytest.CaptureFixture) -> NoColorCapsys:
     """Instantiate capsys with the regex method.
 
-    :param capsys:  Capture ``sys`` stdout and stderr..
-    :return:        Instantiated ``NoColorCapsys`` object for capturing
-                    output stream and sanitizing the string if it
-                    contains ANSI escape codes.
+    :param capsys: Capture ``sys`` stdout and stderr..
+    :return: Instantiated ``NoColorCapsys`` object for capturing output
+        stream and sanitizing the string if it contains ANSI escape
+        codes.
     """
     return NoColorCapsys(capsys)
 
 
 @pytest.fixture(name="main")
-def fixture_main(monkeypatch: t.Any) -> t.Any:
+def fixture_main(monkeypatch: pytest.MonkeyPatch) -> t.Any:
     """Pass patched commandline arguments to package's main function.
 
     :param monkeypatch: Mock patch environment and attributes.
-    :return:            Function for using this fixture.
+    :return: Function for using this fixture.
     """
 
     def _main(*args: str) -> None:
@@ -161,13 +163,13 @@ def fixture_call_status() -> t.Any:
 
 
 @pytest.fixture(name="patch_sp_call")
-def fixture_patch_sp_call(monkeypatch: t.Any) -> t.Any:
+def fixture_patch_sp_call(monkeypatch: pytest.MonkeyPatch) -> t.Any:
     """Mock ``Subprocess.call``.
 
     Print the command that is being run.
 
     :param monkeypatch: Mock patch environment and attributes.
-    :return:            Function for using this fixture.
+    :return: Function for using this fixture.
     """
 
     def _patch_sp_call(func: t.Any, returncode: int = 0) -> t.Any:
@@ -187,7 +189,7 @@ def fixture_patch_sp_output(patch_sp_call: t.Any) -> t.Any:
 
     Return test strings to ``self.stdout``.
 
-    :return : Function for using this fixture.
+    :return: Function for using this fixture.
     """
 
     def _patch_sp_output(*stdout: str) -> None:
@@ -243,9 +245,9 @@ def fixture_init_remote() -> None:
 def fixture_patch_sp_print_called(patch_sp_call: t.Any) -> t.Any:
     """Mock ``Subprocess.call``to print the command that is being run.
 
-    :param patch_sp_call:   Mock ``Subprocess.call`` by injecting a new
-                            function into it.
-    :return:                Function for using this fixture.
+    :param patch_sp_call: Mock ``Subprocess.call`` by injecting a new
+        function into it.
+    :return: Function for using this fixture.
     """
 
     def _patch_sp_print_called() -> t.Any:

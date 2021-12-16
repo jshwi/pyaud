@@ -60,9 +60,9 @@ class TempEnvVar:
     key does not already exist then delete it so the environment is
     returned to its original state.
 
-    :param obj:     Mutable mapping to temporarily change.
-    :param key:     Key to temporarily change in supplied object.
-    :param value:   Value to temporarily change in supplied object.
+    :param obj: Mutable mapping to temporarily change.
+    :param key: Key to temporarily change in supplied object.
+    :param value: Value to temporarily change in supplied object.
     """
 
     def __init__(self, obj: _MutableMapping, **kwargs: str) -> None:

@@ -31,8 +31,8 @@ _plugin_paths: _t.List[_Path] = [_DEFAULT_PLUGINS, _SITE_PLUGINS]
 def _check_command(func: _t.Callable[..., int]) -> _t.Callable[..., None]:
     """Run the routine common with all functions in this package.
 
-    :param func:    Function to decorate.
-    :return:        Wrapped function.
+    :param func: Function to decorate.
+    :return: Wrapped function.
     """
 
     @_functools.wraps(func)
@@ -93,8 +93,8 @@ class Plugin(_ABC):  # pylint: disable=too-few-public-methods
     def env(self) -> _t.Dict[str, str]:
         """Return environment which will remain active for run.
 
-        :return:    Dict containing any number of str keys and
-                    corresponding str values.
+        :return: Dict containing any number of str keys and
+            corresponding str values.
         """
         return {}
 
@@ -118,36 +118,26 @@ class Audit(Plugin):
     Run within context of defined environment variables.
     If no environment variables are defined nothing will change.
 
-    :raises CalledProcessError: Will always be raised if something
-                                fails that is not to do with the
-                                audit condition.
-
-                                Will be excepted and reraised as
-                                ``AuditError`` if the audit fails.
-
-    :raises AuditError:         Raised from ``CalledProcessError`` if
-                                audit fails.
-
-    :return:                    If any error has not been raised for any
-                                reason int object must be returned, from
-                                subprocess or written, to notify call
-                                whether process has succeeded or failed.
-
-                                No value will actually return from
-                                __call__ as it will be passed to the
-                                decorator.
+    :raises CalledProcessError: Will always be raised if something fails
+        that is not to do with the audit condition. Will be excepted and
+        reraised as ``AuditError`` if the audit fails.
+    :raises AuditError: Raised from ``CalledProcessError`` if
+        audit fails.
+    :return: If any error has not been raised for any reason int object
+        must be returned, from subprocess or written, to notify call
+        whether process has succeeded or failed. No value will actually
+        return from __call__ as it will be passed to the decorator.
     """
 
     @_abstractmethod
     def audit(self, *args: str, **kwargs: bool) -> int:
         """All audit logic to be written within this method.
 
-        :param args:    Args that can be passed from other plugins.
-        :param kwargs:  Boolean flags for subprocesses.
-        :return:        If any error has not been raised for any reason
-                        int object must be returned, from subprocess or
-                        written, to notify call whether process has
-                        succeeded or failed.
+        :param args: Args that can be passed from other plugins.
+        :param kwargs: Boolean flags for subprocesses.
+        :return: If any error has not been raised for any reason int
+            object must be returned, from subprocess or written, to
+            notify call whether process has succeeded or failed.
         """
 
     @_check_command
@@ -175,57 +165,41 @@ class Fix(Audit):
     If ``-f/--fix`` and the audit fails the user is running the
     audit only and will raise an ``AuditError``.
 
-    :raises CalledProcessError: Will always be raised if something
-                                fails that is not to do with the
-                                audit condition.
-
-                                Will be excepted and reraised as
-                                ``AuditError`` if the audit fails and
-                                ``-f/--fix`` is not passed to the
-                                commandline.
-
-    :raises AuditError:         Raised from ``CalledProcessError``
-                                if audit fails and ``-f/--fix`` flag
-                                if not passed to the commandline.
-
-    :return:                    If any error has not been raised for any
-                                reason int object must be returned, from
-                                subprocess or written, to notify call
-                                whether process has succeeded or failed.
-
-                                No value will actually return from
-                                __call__ as it will be passed to the
-                                decorator.
+    :raises CalledProcessError: Will always be raised if something fails
+        that is not to do with the audit condition. Will be excepted and
+        reraised as ``AuditError`` if the audit fails and ``-f/--fix``
+        is not passed to the commandline.
+    :raises AuditError: Raised from ``CalledProcessError`` if audit
+        fails and ``-f/--fix`` flag if not passed to the commandline.
+    :return: If any error has not been raised for any reason int object
+        must be returned, from subprocess or written, to notify call
+        whether process has succeeded or failed. No value will actually
+        return from __call__ as it will be passed to the decorator.
     """
 
     @_abstractmethod
     def audit(self, *args: str, **kwargs: bool) -> int:
         """All audit logic to be written within this method.
 
-        :param args:    Args that can be passed from other plugins.
-
-        :param kwargs:  Boolean flags for subprocesses.
-
-        :return:        If any error has not been raised for any reason
-                        int object must be returned, from subprocess or
-                        written, to notify __call__ whether process has
-                        succeeded or failed.
-
-                        If non-zero exist is returned and ``-f/--fix``
-                        has been passed to the commandline run the
-                        ``fix`` method, otherwise raise ``AuditError``.
+        :param args: Args that can be passed from other plugins.
+        :param kwargs: Boolean flags for subprocesses.
+        :return: If any error has not been raised for any reason int
+            object must be returned, from subprocess or written, to
+            notify __call__ whether process has succeeded or failed. If
+            non-zero exist is returned and ``-f/--fix`` has been passed
+            to the commandline run the ``fix`` method, otherwise raise
+            ``AuditError``.
         """
 
     @_abstractmethod
     def fix(self, *args: str, **kwargs: bool) -> int:
         """Run if audit fails but only if running a fix.
 
-        :param args:    Args that can be passed from other plugins.
-        :param kwargs:  Boolean flags for subprocesses.
-        :return:        If any error has not been raised for any reason
-                        int object must be returned, from subprocess or
-                        written, to notify __call__ whether process has
-                        succeeded or failed.
+        :param args: Args that can be passed from other plugins.
+        :param kwargs: Boolean flags for subprocesses.
+        :return: If any error has not been raised for any reason int
+            object must be returned, from subprocess or written, to
+            notify __call__ whether process has succeeded or failed.
         """
 
     @_check_command
@@ -247,26 +221,21 @@ class Action(Plugin):  # pylint: disable=too-few-public-methods
     Called within context of defined environment variables.
     If no environment variables are defined nothing will change.
 
-    :raises CalledProcessError: Will always be raised if something
-                                fails that is not to do with the
-                                action condition.
-
-                                Will be excepted and reraised as
-                                ``AuditError`` if the action fails.
-
-    :raises AuditError:         Raised from ``CalledProcessError``
-                                if action fails.
-
-    :return:                    Any value and type can be returned.
+    :raises CalledProcessError: Will always be raised if something fails
+        that is not to do with the action condition. Will be excepted
+        and reraised as ``AuditError`` if the action fails.
+    :raises AuditError: Raised from ``CalledProcessError`` if action
+        fails.
+    :return: Any value and type can be returned.
     """
 
     @_abstractmethod
     def action(self, *args: str, **kwargs: bool) -> _t.Any:
         """All logic to be written within this method.
 
-        :param args:    Args that can be passed from other plugins.
-        :param kwargs:  Boolean flags for subprocesses.
-        :return:        Any value and type can be returned.
+        :param args: Args that can be passed from other plugins.
+        :param kwargs: Boolean flags for subprocesses.
+        :return: Any value and type can be returned.
         """
 
     def __call__(self, *args: str, **kwargs: bool) -> _t.Any:
@@ -281,21 +250,14 @@ class Action(Plugin):  # pylint: disable=too-few-public-methods
 class Parametrize(Plugin):  # pylint: disable=too-few-public-methods
     """Define a list of strings to call multiple plugins.
 
-    :raises CalledProcessError: Will always be raised if something
-                                fails that is not to do with the
-                                called plugin's condition.
-
-                                Will be excepted and reraised as
-                                ``AuditError`` if the called plugin
-                                fails and the called plugin does not
-                                specify a ``fix`` method or the
-                                ``-f/--fix`` flag is not passed to the
-                                commandline.
-
-    :raises AuditError:         Raised from ``CalledProcessError``
-                                if called plugin fails and no ``fix``
-                                method is specified or the ``-f/--fix``
-                                flag is not passed to the commandline.
+    :raises CalledProcessError: Will always be raised if something fails
+        that is not to do with the called plugin's condition. Will be
+        excepted and reraised as ``AuditError`` if the called plugin
+        fails  and the called plugin does not specify a ``fix`` method
+        or the ``-f/--fix`` flag is not passed to the commandline.
+    :raises AuditError: Raised from ``CalledProcessError`` if called
+        plugin fails and no ``fix`` method is specified or the
+        ``-f/--fix`` flag is not passed to the commandline.
     """
 
     @_abstractmethod
@@ -338,8 +300,8 @@ class Write(Plugin):
     def write(self, *args: str, **kwargs: bool) -> _t.Any:
         """All write logic to be written within this method.
 
-        :param args:    Args that can be passed from other plugins.
-        :param kwargs:  Boolean flags for subprocesses.
+        :param args: Args that can be passed from other plugins.
+        :param kwargs: Boolean flags for subprocesses.
         """
 
     def __call__(self, *args: str, **kwargs: bool) -> None:
@@ -379,21 +341,14 @@ class FixFile(Plugin):
     If ``-f/--fix`` and the audit fails the user is running the
     audit only and will raise an ``AuditError``.
 
-    :raises CalledProcessError: Will always be raised if something
-                                fails that is not to do with the
-                                audit condition.
-
-                                Will be excepted and reraised as
-                                ``AuditError`` if the audit fails and
-                                ``-f/--fix`` is not passed to the
-                                commandline.
-
-    :raises AuditError:         Raised from ``CalledProcessError``
-                                if audit fails and ``-f/--fix`` flag
-                                if not passed to the commandline.
-
-    :return:                    Only 0 exit-status can be returned. If
-                                process fails error will be raised.
+    :raises CalledProcessError: Will always be raised if something fails
+        that is not to do with the audit condition. Will be excepted and
+        reraised as ``AuditError`` if the audit fails and ``-f/--fix``
+        is not passed to the commandline.
+    :raises AuditError: Raised from ``CalledProcessError`` if audit
+        fails and ``-f/--fix`` flag if not passed to the commandline.
+    :return: Only 0 exit-status can be returned. If process fails error
+        will be raised.
     """
 
     @_abstractmethod
@@ -404,16 +359,16 @@ class FixFile(Plugin):
     def audit(self, file: _Path, **kwargs: bool) -> None:
         """All logic written within this method for each file's audit.
 
-        :param file:    Individual file.
-        :param kwargs:  Boolean flags for subprocesses.
+        :param file: Individual file.
+        :param kwargs: Boolean flags for subprocesses.
         """
 
     @_abstractmethod
     def fix(self, file: _Path, **kwargs: bool) -> None:
         """All logic written within this method for each file's fix.
 
-        :param file:    Individual file.
-        :param kwargs:  Boolean flags for subprocesses.
+        :param file: Individual file.
+        :param kwargs: Boolean flags for subprocesses.
         """
 
     @_check_command
@@ -457,9 +412,9 @@ class _Plugins(_MutableMapping):  # pylint: disable=too-many-ancestors
 
     Instantiate plugin on running __setitem__.
 
-    :raise NameConflictError:   If name of registered plugin is not
-                                unique.
-    :raise TypeError:           If non plugin type registered.
+    :raise NameConflictError: If name of registered plugin is not
+        unique.
+    :raise TypeError: If non plugin type registered.
     """
 
     def __setitem__(self, name: str, plugin: PluginType) -> None:
@@ -486,8 +441,8 @@ _plugins = _Plugins()
 def register(name: str) -> _t.Callable[[PluginType], PluginType]:
     """Register subclassed plugin to collection.
 
-    :param name:    Name to register plugin as.
-    :return:        Return registered plugin to call.
+    :param name: Name to register plugin as.
+    :return: Return registered plugin to call.
     """
 
     def _register(plugin: PluginType):
@@ -516,8 +471,8 @@ def registered() -> _t.List[str]:
 def get(name: str) -> PluginInstance:
     """Get plugins by name.
 
-    :param name:    Unique name of plugin.
-    :return:        Callable plugin instance.
+    :param name: Unique name of plugin.
+    :return: Callable plugin instance.
     """
     return _plugins[name]
 

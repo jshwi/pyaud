@@ -31,17 +31,18 @@ from . import (
     SP_CALL,
     SP_OPEN_PROC,
     SP_STDOUT,
+    NoColorCapsys,
     files,
 )
 from .files import EXPECTED_NESTED_TOC
 
 
-def test_no_files_found(main: t.Any, nocolorcapsys: t.Any) -> None:
+def test_no_files_found(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
     """Test the correct output is produced when no file exists.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     main("typecheck")
     assert nocolorcapsys.stdout().strip() == "No files found"
@@ -61,19 +62,19 @@ def test_no_files_found(main: t.Any, nocolorcapsys: t.Any) -> None:
 )
 def test_write_command(
     main: t.Any,
-    monkeypatch: t.Any,
-    nocolorcapsys: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
+    nocolorcapsys: NoColorCapsys,
     contents: t.List[str],
     expected: str,
 ) -> None:
     """Test the ``@write_command`` decorator.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param contents:        Content to write to file.
-    :param expected:        Expected output.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param contents: Content to write to file.
+    :param expected: Expected output.
     """
     for content in contents:
 
@@ -94,14 +95,14 @@ def test_write_command(
 
 
 def test_make_audit_error(
-    main: t.Any, monkeypatch: t.Any, nocolorcapsys: t.Any
+    main: t.Any, monkeypatch: pytest.MonkeyPatch, nocolorcapsys: NoColorCapsys
 ) -> None:
     """Test errors are handled correctly when running ``pyaud audit``.
 
-    :param main:            Patch package entry point.
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     pyaud.files.append(Path.cwd() / FILES)
@@ -114,19 +115,18 @@ def test_make_audit_error(
 
 def test_call_coverage_xml(
     main: t.Any,
-    monkeypatch: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
     patch_sp_print_called: t.Any,
-    nocolorcapsys: t.Any,
+    nocolorcapsys: NoColorCapsys,
 ) -> None:
     """Test ``coverage xml`` is called after successful test run.
 
-    :param main:                    Patch package entry point.
-    :param monkeypatch:             Mock patch environment and
-                                    attributes.
-    :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
-                                    announce what is called.
-    :param nocolorcapsys:           Capture system output while
-                                    stripping ANSI color codes.
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param patch_sp_print_called: Patch ``Subprocess.call`` to only
+        announce what is called.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     patch_sp_print_called()
     mocked_plugins = pyaud.plugins.mapping()
@@ -138,7 +138,10 @@ def test_call_coverage_xml(
 
 
 def test_make_deploy_all(
-    main: t.Any, monkeypatch: t.Any, nocolorcapsys: t.Any, call_status: t.Any
+    main: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
+    nocolorcapsys: NoColorCapsys,
+    call_status: t.Any,
 ) -> None:
     """Test the correct commands are run when running ``pyaud deploy``.
 
@@ -147,13 +150,12 @@ def test_make_deploy_all(
     functions should still be able to print what functions are being run
     as announced to the console in cyan.
 
-    :param main:            Patch package entry point.
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
-    :param call_status:    Patch function to not do anything.
-                            Optionally returns non-zero exit code (0 by
-                            default).
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param call_status: Patch function to not do anything. Optionally
+        returns non-zero exit code (0 by default).
     """
     modules = "deploy-cov", "deploy-docs"
     mocked_plugins = pyaud.plugins.mapping()
@@ -168,15 +170,18 @@ def test_make_deploy_all(
 
 
 def test_make_deploy_all_fail(
-    main: t.Any, call_status: t.Any, monkeypatch: t.Any, nocolorcapsys: t.Any
+    main: t.Any,
+    call_status: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
+    nocolorcapsys: NoColorCapsys,
 ) -> None:
     """Test ``pyaud deploy`` fails correctly when encountering an error.
 
-    :param main:            Patch package entry point.
-    :param call_status:     Patch function to return specific exit-code.
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param call_status: Patch function to return specific exit-code.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     deploy_module = "deploy-docs"
     mock_plugins = pyaud.plugins.mapping()
@@ -187,14 +192,14 @@ def test_make_deploy_all_fail(
     assert f"{pyaud.__name__} {deploy_module}" in out
 
 
-def test_make_docs_no_docs(main: t.Any, nocolorcapsys: t.Any) -> None:
+def test_make_docs_no_docs(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
     """Test correct message is produced.
 
     Test when running ``pyaud docs`` when no docs are present.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     Path(Path.cwd() / FILES).touch()
     main("docs")
@@ -202,15 +207,18 @@ def test_make_docs_no_docs(main: t.Any, nocolorcapsys: t.Any) -> None:
 
 
 def test_suppress(
-    main: t.Any, monkeypatch: t.Any, nocolorcapsys: t.Any, make_tree: t.Any
+    main: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
+    nocolorcapsys: NoColorCapsys,
+    make_tree: t.Any,
 ) -> None:
     """Test that audit proceeds through errors with ``--suppress``.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param make_tree:       Create directory tree from dict mapping.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param make_tree: Create directory tree from dict mapping.
     """
     make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
     pyaud.files.append(Path.cwd() / FILES)
@@ -230,15 +238,15 @@ def test_suppress(
     )
 
 
-def test_coverage_no_tests(main: t.Any, nocolorcapsys: t.Any) -> None:
+def test_coverage_no_tests(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
     """Test the correct output is produced when no tests exist.
 
      Ensure message is displayed if ``pytest`` could not find a valid
      test folder.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     main("coverage")
     assert nocolorcapsys.stdout().strip() == (
@@ -247,16 +255,16 @@ def test_coverage_no_tests(main: t.Any, nocolorcapsys: t.Any) -> None:
 
 
 def test_make_docs_toc_fail(
-    main: t.Any, monkeypatch: t.Any, make_tree: t.Any
+    main: t.Any, monkeypatch: pytest.MonkeyPatch, make_tree: t.Any
 ) -> None:
     """Test that error message is produced when ``make_toc`` fails.
 
     Test process stops when ``make_toc`` fails before running the main
     ``make_docs`` process.
 
-    :param main:        Patch package entry point.
+    :param main: Patch package entry point.
     :param monkeypatch: Mock patch environment and attributes.
-    :param make_tree:   Create directory tree from dict mapping.
+    :param make_tree: Create directory tree from dict mapping.
     """
     make_tree(Path.cwd(), {"docs": {CONFPY: None}})
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
@@ -268,14 +276,17 @@ def test_make_docs_toc_fail(
 
 
 def test_make_docs_rm_cache(
-    main: t.Any, monkeypatch: t.Any, call_status: t.Any, make_tree: t.Any
+    main: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
+    call_status: t.Any,
+    make_tree: t.Any,
 ) -> None:
     """Test ``make_docs`` removes all builds before starting a new one.
 
-    :param main:            Patch package entry point.
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param call_status:     Patch function to return specific exit-code.
-    :param make_tree:       Create directory tree from dict mapping.
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param call_status: Patch function to return specific exit-code.
+    :param make_tree: Create directory tree from dict mapping.
     """
     builddir = Path.cwd() / os.environ["BUILDDIR"]
     readme = Path.cwd() / README
@@ -309,15 +320,18 @@ def test_make_docs_rm_cache(
 
 
 def test_make_files(
-    main: t.Any, monkeypatch: t.Any, call_status: t.Any, nocolorcapsys: t.Any
+    main: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
+    call_status: t.Any,
+    nocolorcapsys: NoColorCapsys,
 ) -> None:
     """Test correct commands are executed when running ``make_files``.
 
-    :param main:            Patch package entry point.
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param call_status:     Patch function to return specific exit-code.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param call_status: Patch function to return specific exit-code.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     file_funcs = "requirements", "toc", "whitelist"
     mocked_modules = pyaud.plugins.mapping()
@@ -348,15 +362,15 @@ def test_make_format(main: t.Any) -> None:
 
 
 def test_pipfile2req_commands(
-    main: t.Any, patch_sp_print_called: t.Any, nocolorcapsys: t.Any
+    main: t.Any, patch_sp_print_called: t.Any, nocolorcapsys: NoColorCapsys
 ) -> None:
     """Test that the correct commands are executed.
 
-    :param main:                    Patch package entry point.
-    :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
-                                    announce what is called.
-    :param nocolorcapsys:           Capture system output while
-                                    stripping ANSI color codes.
+    :param main: Patch package entry point.
+    :param patch_sp_print_called: Patch ``Subprocess.call`` to only
+        announce what is called.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     requirements = Path.cwd() / os.environ["PYAUD_REQUIREMENTS"]
     pipfile_lock = Path.cwd() / PIPFILE_LOCK
@@ -393,8 +407,8 @@ def test_pipfile2req_commands(
     ids=["no_args", "clean", "deploy", "clean_and_deploy"],
 )
 def test_audit_modules(
-    monkeypatch: t.Any,
-    nocolorcapsys: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
+    nocolorcapsys: NoColorCapsys,
     main: t.Any,
     call_status: t.Any,
     args: t.List[str],
@@ -410,18 +424,16 @@ def test_audit_modules(
     the first and last functions being run are with the parametrized
     values.
 
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
-    :param main:            Patch package entry point.
-    :param call_status:     Patch function to not do anything.
-                            Optionally returns non-zero exit code (0 by
-                            default).
-    :param args:            Arguments for ``pyaud audit``.
-    :param add:             Function to add to the ``audit_modules``
-                            list
-    :param first:           Expected first function executed.
-    :param last:            Expected last function executed.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param main: Patch package entry point.
+    :param call_status: Patch function to not do anything. Optionally
+        returns non-zero exit code (0 by default).
+    :param args: Arguments for ``pyaud audit``.
+    :param add: Function to add to the ``audit_modules`` list
+    :param first: Expected first function executed.
+    :param last: Expected last function executed.
     """
     mocked_modules = pyaud.plugins.mapping()
     modules = list(pyaud.config.DEFAULT_CONFIG["audit"]["modules"])
@@ -451,15 +463,18 @@ def test_audit_modules(
     ids=["no-exclude", "exclude"],
 )
 def test_clean_exclude(
-    main: t.Any, nocolorcapsys: t.Any, exclude: t.List[str], expected: str
+    main: t.Any,
+    nocolorcapsys: NoColorCapsys,
+    exclude: t.List[str],
+    expected: str,
 ) -> None:
     """Test clean with and without exclude parameters.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
-    :param exclude:         Files to exclude from ``git clean``.
-    :param expected:        Expected output from ``pyaud clean``.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param exclude: Files to exclude from ``git clean``.
+    :param expected: Expected output from ``pyaud clean``.
     """
     Path(Path.cwd() / README).touch()
     pyaud.git.init(devnull=True)  # type: ignore
@@ -500,18 +515,17 @@ def test_readme_replace() -> None:
 
 
 def test_append_whitelist(
-    main: t.Any, nocolorcapsys: t.Any, patch_sp_print_called: t.Any
+    main: t.Any, nocolorcapsys: NoColorCapsys, patch_sp_print_called: t.Any
 ) -> None:
     """Test that whitelist file argument is appended ``vulture`` call.
 
     Test for when whitelist.py exists and is not appended if it does
     not, thus avoiding an error.
 
-    :param main:                    Patch package entry point.
-    :param nocolorcapsys:           Capture system output while
-                                    stripping ANSI
-    :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
-                                    announce what is called.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+    :param patch_sp_print_called: Patch ``Subprocess.call`` to only
+        announce what is called.
     """
     project_dir = Path.cwd()
     whitelist = project_dir / os.environ["PYAUD_WHITELIST"]
@@ -525,15 +539,15 @@ def test_append_whitelist(
 
 
 def test_mypy_expected(
-    main: t.Any, patch_sp_print_called: t.Any, nocolorcapsys: t.Any
+    main: t.Any, patch_sp_print_called: t.Any, nocolorcapsys: NoColorCapsys
 ) -> None:
     """Test that the ``mypy`` command is correctly called.
 
-    :param main:                    Patch package entry point.
-    :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
-                                    announce what is called.
-    :param nocolorcapsys:           Capture system output while
-                                    stripping ANSI color codes.
+    :param main: Patch package entry point.
+    :param patch_sp_print_called: Patch ``Subprocess.call`` to only
+        announce what is called.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     path = Path(os.getcwd(), FILES)
     pyaud.files.append(path)
@@ -567,9 +581,9 @@ def test_mypy_expected(
     ),
 )
 def test_pytest_is_tests(
-    monkeypatch: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
     main: t.Any,
-    nocolorcapsys: t.Any,
+    nocolorcapsys: NoColorCapsys,
     patch_sp_print_called: t.Any,
     relpath: Path,
     expected: str,
@@ -582,16 +596,14 @@ def test_pytest_is_tests(
         - incorrect names within tests dir
         - no tests at all within tests dir.
 
-    :param monkeypatch:             Mock patch environment and
-                                    attributes.
-    :param main:                    Patch package entry point.
-    :param nocolorcapsys:           Capture system output while
-                                    stripping ANSI color codes.
-                                    mapping.
-    :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
-                                    announce what is called.
-    :param relpath:                 Relative path to file.
-    :param expected:                Expected stdout.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param patch_sp_print_called: Patch ``Subprocess.call`` to only
+        announce what is called`
+    :param relpath: Relative path to file.
+    :param expected: Expected stdout.
     """
     pyaud.files.append(Path.cwd() / relpath)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
@@ -601,7 +613,7 @@ def test_pytest_is_tests(
 
 
 def test_make_toc(
-    monkeypatch: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
     main: t.Any,
     patch_sp_print_called: t.Any,
     make_tree: t.Any,
@@ -610,13 +622,11 @@ def test_make_toc(
 
     Ensure additional files generated by ``sphinx-api`` doc are removed.
 
-    :param monkeypatch:             Mock patch environment and
-                                    attributes.
-    :param main:                    Patch package entry point.
-    :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
-                                    announce what is called.
-    :param make_tree:               Create directory tree from dict
-                                    mapping.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param main: Patch package entry point.
+    :param patch_sp_print_called: Patch ``Subprocess.call`` to only
+        announce what is called.
+    :param make_tree: Create directory tree from dict mapping.
     """
     project_dir = Path.cwd()
     modules = "modules.rst"
@@ -635,21 +645,21 @@ def test_make_toc(
 
 
 def test_make_requirements(
-    monkeypatch: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
     main: t.Any,
     patch_sp_output: t.Any,
-    nocolorcapsys: t.Any,
+    nocolorcapsys: NoColorCapsys,
 ) -> None:
     """Test that requirements.txt file is correctly edited.
 
      Tested for use with ``pipfile2req``.
 
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param main:            Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param main: Patch package entry point.
     :param patch_sp_output: Patch ``Subprocess`` so that ``call`` sends
-                            expected stdout out to self.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+        expected stdout out to self.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     path = Path.cwd() / os.environ["PYAUD_REQUIREMENTS"]
     with open(Path.cwd() / PIPFILE_LOCK, "w", encoding="utf-8") as fout:
@@ -666,16 +676,18 @@ def test_make_requirements(
 
 
 def test_make_whitelist(
-    monkeypatch: t.Any, nocolorcapsys: t.Any, make_tree: t.Any
+    monkeypatch: pytest.MonkeyPatch,
+    nocolorcapsys: NoColorCapsys,
+    make_tree: t.Any,
 ) -> None:
     """Test a whitelist.py file is created properly.
 
     Test for when piping data from ``vulture --make-whitelist``.
 
-    :param monkeypatch:         Mock patch environment and attributes.
-    :param nocolorcapsys:       Capture system output while stripping
-                                ANSI color codes.
-    :param make_tree:           Create directory tree from dict mapping.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param make_tree: Create directory tree from dict mapping.
     """
     project_dir = Path.cwd()
     whitelist = project_dir / os.environ["PYAUD_WHITELIST"]
@@ -709,8 +721,8 @@ def test_pylint_colorized(main: t.Any, capsys: t.Any) -> None:
     will be stripped. Using environment variable ``PYCHARM_HOSTED`` for
     now as a workaround as this voids this action.
 
-    :param main:    Patch package entry point.
-    :param capsys:  Capture sys output.
+    :param main: Patch package entry point.
+    :param capsys: Capture sys output.
     """
     path = Path.cwd() / FILES
     with open(path, "w", encoding="utf-8") as fout:
@@ -725,12 +737,12 @@ def test_pylint_colorized(main: t.Any, capsys: t.Any) -> None:
     )
 
 
-def test_isort_imports(main: t.Any, nocolorcapsys: t.Any) -> None:
+def test_isort_imports(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
     """Test isort properly sorts file imports.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     path = Path.cwd() / FILES
     with open(path, "w", encoding="utf-8") as fout:
@@ -749,12 +761,12 @@ def test_isort_imports(main: t.Any, nocolorcapsys: t.Any) -> None:
     main("imports")
 
 
-def test_readme(main: t.Any, nocolorcapsys: t.Any) -> None:
+def test_readme(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
     """Test standard README and return values.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     main("readme")
     assert (
@@ -785,10 +797,10 @@ def test_py_audit_error(
 ) -> None:
     """Test ``AuditError`` message.
 
-    :param main:        Patch package entry point.
-    :param make_tree:   Create directory tree from dict mapping.
-    :param module:      [<module>].__name__.
-    :param content:     Content to write to file.
+    :param main: Patch package entry point.
+    :param make_tree: Create directory tree from dict mapping.
+    :param module: [<module>].__name__.
+    :param content: Content to write to file.
     """
     project_dir = Path.cwd()
     file = project_dir / FILES
@@ -808,14 +820,14 @@ def test_py_audit_error(
 
 @pytest.mark.usefixtures("init_remote")
 def test_deploy_not_master(
-    main: t.Any, monkeypatch: t.Any, nocolorcapsys: t.Any
+    main: t.Any, monkeypatch: pytest.MonkeyPatch, nocolorcapsys: NoColorCapsys
 ) -> None:
     """Test that deployment is skipped when branch is not ``master``.
 
-    :param main:            Patch package entry point.
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     monkeypatch.setattr("pyaud.branch", lambda: "not_master")
     main("deploy-docs")
@@ -827,16 +839,16 @@ def test_deploy_not_master(
 
 @pytest.mark.usefixtures("init_remote")
 def test_deploy_master_not_set(
-    main: t.Any, monkeypatch: t.Any, nocolorcapsys: t.Any
+    main: t.Any, monkeypatch: pytest.MonkeyPatch, nocolorcapsys: NoColorCapsys
 ) -> None:
     """Test correct notification is displayed.
 
     Test for when essential environment variables are not set in
     ``master``.
 
-    :param main:            Patch package entry point.
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
                             color codes.
     """
     monkeypatch.setenv("PYAUD_GH_NAME", "")
@@ -858,16 +870,16 @@ def test_deploy_master_not_set(
 
 @pytest.mark.usefixtures("init_remote")
 def test_deploy_master(
-    main: t.Any, monkeypatch: t.Any, nocolorcapsys: t.Any
+    main: t.Any, monkeypatch: pytest.MonkeyPatch, nocolorcapsys: NoColorCapsys
 ) -> None:
     """Test docs are properly deployed.
 
     Test for when environment variables are set and checked out at
     ``master``.
 
-    :param main:            Patch package entry point.
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
                             color codes.
     """
     project_dir = Path.cwd()
@@ -926,20 +938,19 @@ def test_deploy_master(
 @pytest.mark.usefixtures("init_remote")
 def test_deploy_master_param(
     main: t.Any,
-    monkeypatch: t.Any,
-    nocolorcapsys: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
+    nocolorcapsys: NoColorCapsys,
     rounds: int,
     expected: t.List[str],
 ) -> None:
     """Check that nothing happens when not checkout at master.
 
-    :param main:            Patch package entry point.
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
-    :param rounds:          How many times ``make_deploy_docs`` needs to
-                            be run.
-    :param expected:        Expected stdout result.
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param rounds: How many times ``make_deploy_docs`` needs to be run.
+    :param expected: Expected stdout result.
     """
     path = Path.cwd()
     mock_plugins = pyaud.plugins.mapping()
@@ -964,8 +975,8 @@ def test_deploy_master_param(
 
 def test_deploy_cov_report_token(
     main: t.Any,
-    monkeypatch: t.Any,
-    nocolorcapsys: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
+    nocolorcapsys: NoColorCapsys,
     patch_sp_print_called: t.Any,
 ) -> None:
     """Test ``make_deploy_cov`` when ``CODECOV_TOKEN`` is set.
@@ -973,13 +984,12 @@ def test_deploy_cov_report_token(
     Test for when ``CODECOV_TOKEN`` is set and a coverage.xml file
     exists.
 
-    :param main:                    Patch package entry point.
-    :param monkeypatch:             Mock patch environment and
-                                    attributes.
-    :param nocolorcapsys:           Capture system output while
-                                    stripping ANSI color codes.
-    :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
-                                    announce what is called.
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param patch_sp_print_called: Patch ``Subprocess.call`` to only
+        announce what is called.
     """
     Path(Path.cwd() / os.environ["PYAUD_COVERAGE_XML"]).touch()
     patch_sp_print_called()
@@ -989,15 +999,17 @@ def test_deploy_cov_report_token(
     assert all(e in out for e in ["<Subprocess (codecov)>", "--file"])
 
 
-def test_deploy_cov_no_token(main: t.Any, nocolorcapsys: t.Any) -> None:
+def test_deploy_cov_no_token(
+    main: t.Any, nocolorcapsys: NoColorCapsys
+) -> None:
     """Test ``make_deploy_cov``.
 
     Test for when ``CODECOV_TOKEN`` when only a coverage.xml file
     exists.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     Path(Path.cwd() / os.environ["PYAUD_COVERAGE_XML"]).touch()
     main("deploy-cov")
@@ -1005,15 +1017,17 @@ def test_deploy_cov_no_token(main: t.Any, nocolorcapsys: t.Any) -> None:
     assert all(e in out for e in ["CODECOV_TOKEN not set"])
 
 
-def test_deploy_cov_no_report_token(main: t.Any, nocolorcapsys: t.Any) -> None:
+def test_deploy_cov_no_report_token(
+    main: t.Any, nocolorcapsys: NoColorCapsys
+) -> None:
     """Test ``make_deploy_cov``.
 
      Test for when ``CODECOV_TOKEN`` is not set and a coverage.xml file
      does not. exist.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     main("deploy-cov")
     out = nocolorcapsys.stdout()
@@ -1021,15 +1035,15 @@ def test_deploy_cov_no_report_token(main: t.Any, nocolorcapsys: t.Any) -> None:
 
 
 def test_make_format_success(
-    main: t.Any, nocolorcapsys: t.Any, patch_sp_print_called: t.Any
+    main: t.Any, nocolorcapsys: NoColorCapsys, patch_sp_print_called: t.Any
 ) -> None:
     """Test ``Format`` when successful.
 
-    :param main:                    Patch package entry point.
-    :param nocolorcapsys:           Capture system output while
-                                    stripping ANSI color codes.
-    :param patch_sp_print_called:   Patch ``Subprocess.call`` to only
-                                    announce what is called.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param patch_sp_print_called: Patch ``Subprocess.call`` to only
+        announce what is called.
     """
     pyaud.files.append(Path.cwd() / FILES)
     patch_sp_print_called()
@@ -1053,16 +1067,17 @@ def test_make_format_docs_fail(main: t.Any) -> None:
         main("format-docs")
 
 
-def test_make_format_docs_suppress(main: t.Any, nocolorcapsys: t.Any) -> None:
+def test_make_format_docs_suppress(
+    main: t.Any, nocolorcapsys: NoColorCapsys
+) -> None:
     """Test ``make_format`` when running with ``-s/--suppress``.
 
     Ensure process announces it failed but does not actually return a
     non-zero exit-status.
 
-
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     path = Path.cwd() / FILES
     with open(path, "w", encoding="utf-8") as fout:
@@ -1076,11 +1091,11 @@ def test_make_format_docs_suppress(main: t.Any, nocolorcapsys: t.Any) -> None:
     )
 
 
-def test_make_generate_rcfile(nocolorcapsys: t.Any):
+def test_make_generate_rcfile(nocolorcapsys: NoColorCapsys):
     """Test for correct output when running ``generate-rcfile``.
 
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     pyaud.plugins.get("generate-rcfile")()
     assert (
@@ -1106,15 +1121,17 @@ def test_isort_and_black(main: t.Any) -> None:
         main("imports")
 
 
-def test_isort_and_black_fix(main: t.Any, nocolorcapsys: t.Any) -> None:
+def test_isort_and_black_fix(
+    main: t.Any, nocolorcapsys: NoColorCapsys
+) -> None:
     """Test file is correctly fixed  for failed check.
 
     When looking for formatted inputs run through ``isort`` and
     ``Black`` ensure no errors are raised, and output is as expected.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     with open(Path.cwd() / FILES, "w", encoding="utf-8") as fout:
         fout.write(files.BEFORE_ISORT)
@@ -1140,13 +1157,13 @@ def test_make_format_fix(main: t.Any) -> None:
 
 
 def test_make_unused_fix(
-    main: t.Any, nocolorcapsys: t.Any, make_tree: t.Any
+    main: t.Any, nocolorcapsys: NoColorCapsys, make_tree: t.Any
 ) -> None:
     """Test ``make_unused`` when ``-f/--fix`` is provided.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     package = Path.cwd() / "repo"
     make_tree(Path.cwd(), {"repo": {INIT: None}})
@@ -1187,15 +1204,16 @@ def test_make_unused_fail(main: t.Any) -> None:
     assert str(err.value) == "pyaud unused did not pass all checks"
 
 
-def test_make_format_docs_fix(main: t.Any, nocolorcapsys: t.Any) -> None:
+def test_make_format_docs_fix(
+    main: t.Any, nocolorcapsys: NoColorCapsys
+) -> None:
     """Test ``make_format`` when running with ``-f/--fix``.
 
     Ensure process fixes checked failure.
 
-
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     pyaud.files.append(Path.cwd() / FILES)
     with open(Path.cwd() / FILES, "w", encoding="utf-8") as fout:
@@ -1205,12 +1223,12 @@ def test_make_format_docs_fix(main: t.Any, nocolorcapsys: t.Any) -> None:
     assert nocolorcapsys.stdout().strip() == NO_ISSUES
 
 
-def test_format_str_fix(main: t.Any, nocolorcapsys: t.Any) -> None:
+def test_format_str_fix(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
     """Test fix audit when f-strings can be created with ``flynt``.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
     """
     with open(Path.cwd() / FILES, "w", encoding="utf-8") as fout:
         fout.write(files.FORMAT_STR_FUNCS_PRE)
@@ -1224,17 +1242,19 @@ def test_format_str_fix(main: t.Any, nocolorcapsys: t.Any) -> None:
 
 
 def test_custom_modules(
-    monkeypatch: t.Any, nocolorcapsys: t.Any, main: t.Any, call_status: t.Any
+    monkeypatch: pytest.MonkeyPatch,
+    nocolorcapsys: NoColorCapsys,
+    main: t.Any,
+    call_status: t.Any,
 ) -> None:
     """Test the ``custom`` arg runs what is configured in toml file.
 
-    :param monkeypatch:     Mock patch environment and attributes.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
-    :param main:            Patch package entry point.
-    :param call_status:     Patch function to not do anything.
-                            Optionally returns non-zero exit code (0 by
-                            default).
+    :param monkeypatch: Mock patch environment and attributes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param main: Patch package entry point.
+    :param call_status: Patch function to not do anything. Optionally
+        returns non-zero exit code (0 by default).
     """
     mocked_modules = pyaud.plugins.mapping()
     modules = list(pyaud.config.DEFAULT_CONFIG["audit"]["modules"])
@@ -1263,7 +1283,10 @@ def test_custom_modules(
     ids=["no-pos", "module", "all-modules"],
 )
 def test_help_with_plugins(
-    main: t.Any, nocolorcapsys: t.Any, arg: str, expected: t.Tuple[str, ...]
+    main: t.Any,
+    nocolorcapsys: NoColorCapsys,
+    arg: str,
+    expected: t.Tuple[str, ...],
 ) -> None:
     """Test expected output for help after plugins have been loaded.
 
@@ -1271,11 +1294,11 @@ def test_help_with_plugins(
     Test ``audit`` positional argument and docstring display.
     Test all and display of all module docstrings.
 
-    :param main:            Patch package entry point.
-    :param nocolorcapsys:   Capture system output while stripping ANSI
-                            color codes.
-    :param arg:             Positional argument for ```pyaud modules``.
-    :param expected:        Expected result when calling command.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param arg: Positional argument for ```pyaud modules``.
+    :param expected: Expected result when calling command.
     """
     with pytest.raises(SystemExit):
         main("modules", arg)
@@ -1284,11 +1307,13 @@ def test_help_with_plugins(
     assert any(i in out for i in expected)
 
 
-def test_audit_class_error(main: t.Any, monkeypatch: t.Any) -> None:
+def test_audit_class_error(
+    main: t.Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Test errors are handled correctly when running ``pyaud audit``.
 
-    :param main:            Patch package entry point.
-    :param monkeypatch:     Mock patch environment and attributes.
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
     """
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     pyaud.files.append(Path.cwd() / FILES)
@@ -1297,7 +1322,7 @@ def test_audit_class_error(main: t.Any, monkeypatch: t.Any) -> None:
         main("lint")
 
 
-def test_no_exe_provided(monkeypatch: t.Any) -> None:
+def test_no_exe_provided(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test default value for exe property.
 
     :param monkeypatch: Mock patch environment and attributes.
@@ -1317,11 +1342,13 @@ def test_no_exe_provided(monkeypatch: t.Any) -> None:
     assert pyaud.plugins.get(unique).exe == []
 
 
-def test_download_missing_stubs(monkeypatch: t.Any, main: t.Any) -> None:
+def test_download_missing_stubs(
+    monkeypatch: pytest.MonkeyPatch, main: t.Any
+) -> None:
     """Test for coverage on missing stubs file.
 
     :param monkeypatch: Mock patch environment and attributes.
-    :param main:        Patch package entry point.
+    :param main: Patch package entry point.
     :return:
     """
     path = Path(os.getcwd(), FILES)
@@ -1333,11 +1360,13 @@ def test_download_missing_stubs(monkeypatch: t.Any, main: t.Any) -> None:
     main("typecheck")
 
 
-def test_typecheck_re_raise_err(monkeypatch: t.Any, main: t.Any) -> None:
+def test_typecheck_re_raise_err(
+    monkeypatch: pytest.MonkeyPatch, main: t.Any
+) -> None:
     """Test for re-raise of error for non stub library errors.
 
     :param monkeypatch: Mock patch environment and attributes.
-    :param main:        Patch package entry point.
+    :param main: Patch package entry point.
     :return:
     """
     path = Path(os.getcwd(), FILES)
@@ -1359,8 +1388,8 @@ def test_nested_toc(main: t.Any, make_tree: t.Any) -> None:
     ``repo.routes``, ``repo.routes.auth``, ``repo.routes.post``, and
     ``repo.routes.views`` is added to repo.rst.
 
-    :param main:        Patch package entry point.
-    :param make_tree:   Create directory tree from dict mapping.
+    :param main: Patch package entry point.
+    :param make_tree: Create directory tree from dict mapping.
     """
     make_tree(
         Path.cwd(),

@@ -32,8 +32,8 @@ class MutableSequence(_MutableSequence):  # pylint: disable=too-many-ancestors
     def insert(self, index: int, value: str) -> None:
         """Insert values into ``_list`` object.
 
-        :param index:   ``list`` index to insert ``value``.
-        :param value:   Value to insert into list.
+        :param index: ``list`` index to insert ``value``.
+        :param value: Value to insert into list.
         """
         self._list.insert(index, value)
 

@@ -57,19 +57,16 @@ class Subprocess:
     can be set when instantiating the object and overridden later when
     using ``call``.
 
-
-    :param exe:                     Subprocess executable.
-    :key loglevel:                  Loglevel for non-error logging.
-    :param commands:                List of positional arguments to set
-                                    as attributes if not None.
-    :key file:                      File path to write stream to if not
-                                    None.
-    :key capture:                   Collect output array.
-    :key log:                       Pipe stdout to logging instead of
-                                    console.
-    :key devnull:                   Send output to /dev/null.
-    :raise CommandNotFoundError:    Raise if instantiated subprocess
-                                    cannot exist.
+    :param exe: Subprocess executable.
+    :key loglevel: Loglevel for non-error logging.
+    :param commands: List of positional arguments to set as attributes
+        if not None.
+    :key file: File path to write stream to if not None.
+    :key capture: Collect output array.
+    :key log: Pipe stdout to logging instead of console.
+    :key devnull: Send output to /dev/null.
+    :raise CommandNotFoundError: Raise if instantiated subprocess cannot
+        exist.
     """
 
     def __init__(
@@ -148,15 +145,13 @@ class Subprocess:
         file regardless. Wait for process to finish and return it's
         exit-code.
 
-        :param args:                Positional str arguments.
-        :key file:                  File path to write stream to if not
-                                    None.
-        :key devnull:               Send output to /dev/null.
-        :key capture:               Collect output array.
-        :key suppress:              Suppress errors and continue
-                                    running.
+        :param args: Positional str arguments.
+        :key file: File path to write stream to if not None.
+        :key devnull: Send output to /dev/null.
+        :key capture: Collect output array.
+        :key suppress: Suppress errors and continue running.
         :raises CalledProcessError: If error occurs in subprocess.
-        :return:                    Exit status.
+        :return: Exit status.
         """
         self.args = tuple(  # pylint: disable=consider-using-generator
             [str(i) for i in args]
@@ -201,17 +196,15 @@ class _Git(Subprocess):
     def call(self, *args: str, **kwargs: bool) -> int:
         """Call partial git command instantiated in superclass.
 
-        :param args:                    Command's positional arguments.
-        :key file:                      File path to write the stdout
-                                        stream to.
-        :key capture:                   Pipe stream to self.
-        :key devnull:                   Suppress output.
-        :key suppress:                  Suppress errors and continue
-                                        running.
-        :raises NotARepositoryError:    If not run from within a
-                                        repository.
-        :raises CalledProcessError:     If error occurs in subprocess.
-        :return:                        Exit status.
+        :param args: Command's positional arguments.
+        :key file: File path to write the stdout stream to.
+        :key capture: Pipe stream to self.
+        :key devnull: Suppress output.
+        :key suppress: Suppress errors and continue running.
+        :raises NotARepositoryError: If not run from within a
+            repository.
+        :raises CalledProcessError: If error occurs in subprocess.
+        :return: Exit status.
         """
         git_dir = _Path.cwd() / ".git"
         with _TempEnvVar(
@@ -326,12 +319,11 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
     def reduce(self) -> _t.List[_Path]:
         """Get all relevant python files starting from project root.
 
-        :return:    List of project's Python file index, reduced to
-                    their root, relative to $PROJECT_DIR. Contains no
-                    duplicate items so $PROJECT_DIR/dir/file1.py and
-                    $PROJECT_DIR/dir/file2.py become
-                    $PROJECT_DIR/dir but PROJECT_DIR/file1.py
-                    and $PROJECT_DIR/file2.py remain as they are.
+        :return: List of project's Python file index, reduced to their
+            root, relative to $PROJECT_DIR. Contains no duplicate items
+            so $PROJECT_DIR/dir/file1.py and $PROJECT_DIR/dir/file2.py
+            become $PROJECT_DIR/dir but PROJECT_DIR/file1.py and
+            $PROJECT_DIR/file2.py remain as they are.
         """
         project_dir = _Path.cwd()
         return list(
@@ -343,8 +335,8 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
     def args(self, reduce: bool = False) -> _t.Tuple[str, ...]:
         """Return tuple suitable to be run with starred expression.
 
-        :param reduce:  :func:`~pyaud.utils._Tree.reduce`
-        :return:        Tuple of `Path` objects or str repr.
+        :param reduce: :func:`~pyaud.utils._Tree.reduce`
+        :return: Tuple of `Path` objects or str repr.
         """
         paths = list(self)
         if reduce:
@@ -364,8 +356,8 @@ def get_packages() -> _t.List[str]:
     Only return the parent package's name.
 
     :raises PythonPackageNotFoundError: Raised if no package can be
-                                        found.
-    :return:                            List of Python packages.
+        found.
+    :return: List of Python packages.
     """
     packages = list(
         set(
@@ -390,8 +382,8 @@ def package() -> str:
     """Return name of primary Python package.
 
     :raises PythonPackageNotFoundError: Raised if no primary package can
-                                        be determined.
-    :return:                            Name of primary Python package.
+        be determined.
+    :return: Name of primary Python package.
     """
     # at least one package will be returned or an error would have been
     # raised

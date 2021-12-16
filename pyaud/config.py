@@ -116,8 +116,8 @@ class _TomlArrayEncoder(_toml_encoder.TomlEncoder):
     def dump_list(self, v: _t.Any) -> str:
         """Rule for dumping arrays.
 
-        :param v:   Array from toml file.
-        :return:    toml encoded to str.
+        :param v: Array from toml file.
+        :return: toml encoded to str.
         """
         start, stop = (4 * " ", "\n") if len(str(v)) > 79 else ("", "")
         retval = f"[{stop}"
@@ -149,9 +149,9 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
     ) -> str:
         """Native ``dump`` method to include encoder.
 
-        :param fout:    TextIO file stream.
-        :param obj:     Mutable mapping dict-like object.
-        :return:        str object in toml encoded form.
+        :param fout: TextIO file stream.
+        :param obj: Mutable mapping dict-like object.
+        :return: str object in toml encoded form.
         """
         return _toml_encoder.dump(
             self._format_dump(dict(self) if obj is None else dict(obj)),
@@ -163,7 +163,7 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
         """Native ``dump(from)s(tr)`` method to include encoder.
 
         :param obj: Mutable mapping dict-like object.
-        :return:    str object in toml encoded form.
+        :return: str object in toml encoded form.
         """
         return _toml_encoder.dumps(
             self._format_dump(dict(self) if obj is None else dict(obj)),

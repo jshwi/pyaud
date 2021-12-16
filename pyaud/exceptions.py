@@ -16,7 +16,7 @@ class AuditError(Exception):
     """Raise for audit failures that aren't failed subprocesses.
 
     :param cmd: Command that failed. If no argument provided the value
-                will be None.
+        will be None.
     """
 
     def __init__(self, cmd: _t.Optional[str]) -> None:
@@ -26,8 +26,8 @@ class AuditError(Exception):
 class NameConflictError(Exception):
     """Raise if adding plugin whose name is not unique.
 
-    :param plugin:  Plugin which could not be registered.
-    :param name:    Name which clashes with another.
+    :param plugin: Plugin which could not be registered.
+    :param name: Name which clashes with another.
     """
 
     def __init__(self, plugin: str, name: str) -> None:
