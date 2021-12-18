@@ -53,11 +53,11 @@ class MutableMapping(_MutableMapping):  # pylint: disable=too-many-ancestors
     def __delitem__(self, key: _t.Any) -> None:
         self._dict.__delitem__(key)
 
-    def __setitem__(self, index: _t.Any, value: _t.Any) -> None:
-        self._dict = self._nested_update(self._dict, {index: value})
+    def __setitem__(self, key: _t.Any, value: _t.Any) -> None:
+        self._dict = self._nested_update(self._dict, {key: value})
 
-    def __getitem__(self, index: _t.Any) -> _t.Any:
-        return self._dict.__getitem__(index)
+    def __getitem__(self, key: _t.Any) -> _t.Any:
+        return self._dict.__getitem__(key)
 
     def __iter__(self) -> _t.Iterator:
         return iter(self._dict)
