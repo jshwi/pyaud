@@ -9,6 +9,7 @@ disable_existing_loggers = true
 exclude = ["whitelist.py", "conf.py", "setup.py"]
 
 [packages]
+name = "pyaud"
 exclude = []
 
 [audit]
