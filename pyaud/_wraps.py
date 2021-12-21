@@ -10,7 +10,7 @@ from ._indexing import files as _files
 from ._utils import colors as _colors
 
 
-def check_command(func: _t.Callable[..., int]) -> _t.Callable[..., None]:
+def check_command(func: _t.Callable[..., int]) -> _t.Callable[..., int]:
     """Run the routine common with all functions in this package.
 
     :param func: Function to decorate.
@@ -18,7 +18,8 @@ def check_command(func: _t.Callable[..., int]) -> _t.Callable[..., None]:
     """
 
     @_functools.wraps(func)
-    def _wrapper(*args: str, **kwargs: bool) -> None:
+    def _wrapper(*args: str, **kwargs: bool) -> int:
+        returncode = 0
         if not _files.reduce():
             print("No files found")
         else:
@@ -32,5 +33,7 @@ def check_command(func: _t.Callable[..., int]) -> _t.Callable[..., None]:
                 _colors.green.bold.print(
                     f"Success: no issues found in {len(_files)} source files"
                 )
+
+        return returncode
 
     return _wrapper
