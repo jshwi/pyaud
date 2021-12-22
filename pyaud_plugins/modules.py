@@ -54,6 +54,8 @@ class LineSwitch:
 class Clean(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
     """Remove all unversioned package files recursively."""
 
+    cache = True
+
     def action(self, *args: t.Any, **kwargs: bool) -> int:
         exclude = pyaud.config.toml["clean"]["exclude"]
         return pyaud.git.clean(  # type: ignore
@@ -66,6 +68,8 @@ class Tests(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
     """Run the package unit-tests with ``pytest``."""
 
     pytest = "pytest"
+    cache = True
+    cache_all = True
 
     @property
     def exe(self) -> t.List[str]:
@@ -325,6 +329,7 @@ class Format(pyaud.plugins.Fix):
     """Audit code with `Black`."""
 
     black = "black"
+    cache = True
 
     @property
     def exe(self) -> t.List[str]:
@@ -346,6 +351,7 @@ class Lint(pyaud.plugins.Audit):
     """Lint code with ``pylint``."""
 
     pylint = "pylint"
+    cache = True
 
     @property
     def exe(self) -> t.List[str]:
@@ -405,6 +411,8 @@ class Toc(pyaud.plugins.Write):
     """Audit docs/<NAME>.rst toc-file."""
 
     sphinx_apidoc = "sphinx-apidoc"
+    cache = True
+    cache_all = True
 
     @property
     def exe(self) -> t.List[str]:
@@ -480,6 +488,7 @@ class TypeCheck(pyaud.plugins.Audit):
     """
 
     mypy = "mypy"
+    cache = True
 
     @property
     def exe(self) -> t.List[str]:
@@ -547,6 +556,8 @@ class Unused(pyaud.plugins.Fix):
     """
 
     vulture = "vulture"
+    cache = True
+    cache_all = True
 
     @property
     def exe(self) -> t.List[str]:
@@ -574,6 +585,8 @@ class Whitelist(pyaud.plugins.Write):
     """
 
     vulture = "vulture"
+    cache = True
+    cache_all = True
 
     @property
     def exe(self) -> t.List[str]:
@@ -625,6 +638,7 @@ class Imports(pyaud.plugins.FixFile):
 
     result = ""
     content = ""
+    cache = True
 
     @property
     def exe(self) -> t.List[str]:
@@ -703,6 +717,7 @@ class FormatFString(pyaud.plugins.Fix):
 
     flynt = "flynt"
     args = "--line-length", "79", "--transform-concats"
+    cache = True
 
     @property
     def exe(self) -> t.List[str]:
@@ -730,6 +745,7 @@ class FormatDocs(pyaud.plugins.Fix):
 
     docformatter = "docformatter"
     args = "--recursive", "--wrap-summaries", "72"
+    cache = True
 
     @property
     def exe(self) -> t.List[str]:

@@ -89,6 +89,15 @@ class MutableMapping(_MutableMapping):  # pylint: disable=too-many-ancestors
 class BasePlugin(_ABC):  # pylint: disable=too-few-public-methods
     """Base type for all plugins."""
 
+    #: If set to True then indexed files will be monitored for change.
+    cache = False
+
+    #: Only matters if ``cache`` is set to True.
+    #: If False (default) then audit will cache on a file-by-file basis.
+    #: If True, then no changes can be made to any file for a cache-hit
+    #: to be valid.
+    cache_all = False
+
     @classmethod
     def logger(cls) -> _logging.Logger:
         """Assign an audit logger dynamically, post logging config.
