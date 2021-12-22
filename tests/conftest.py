@@ -86,6 +86,13 @@ def fixture_mock_environment(
     )
     default_config["logging"]["root"]["level"] = DEBUG
     monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
+    logfile = Path(
+        tmp_path / ".cache" / pyaud.__name__ / "log" / f"{pyaud.__name__}.log"
+    )
+    default_config["logging"]["handlers"]["default"]["filename"] = str(logfile)
+    default_config["logging"]["root"]["level"] = DEBUG
+    monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
+    logfile.parent.mkdir(parents=True)
 
     # create ~/.gitconfig
     # ===================
