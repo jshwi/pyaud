@@ -72,22 +72,26 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
         """
         self._exclude.extend(exclusions)
 
+    def extend(self, values: _t.Iterable[_Path]) -> None:
+        """Like extend for a regular list but cannot duplicate.
+
+        :param values: Method expects an iterable of ``pathlib.Path``
+            objects.
+        """
+        super().extend(values)
+        self._list = list(set(self))
+
     def populate(self) -> None:
         """Populate object with index of versioned Python files."""
         _git.ls_files(capture=True)  # type: ignore
         self.extend(
-            list(
-                # prevent duplicates which might occur during a merge
-                set(
-                    _Path.cwd() / p
-                    for p in [_Path(p) for p in _git.stdout()]
-                    # exclude any basename, stem, or part of a
-                    # `pathlib.Path` path
-                    if not any(i in self._exclude for i in (*p.parts, p.stem))
-                    # only include Python files in index
-                    and p.name.endswith(".py")
-                )
-            )
+            _Path.cwd() / p
+            for p in [_Path(p) for p in _git.stdout()]
+            # exclude any basename, stem, or part of a
+            # `pathlib.Path` path
+            if not any(i in self._exclude for i in (*p.parts, p.stem))
+            # only include Python files in index
+            and p.name.endswith(".py")
         )
 
     def reduce(self) -> _t.List[_Path]:

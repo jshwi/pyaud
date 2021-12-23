@@ -1072,3 +1072,19 @@ def test_default_key() -> None:
         assert obj["default_key"] == "temp_value"
 
     assert obj["default_key"] == "default_value"
+
+
+def test_files_extend_no_dupes() -> None:
+    """Test files extend does not index duplicates."""
+    files_before = sorted(
+        [
+            Path.cwd() / "dir" / "file1.py",
+            Path.cwd() / "dir" / "file1.py",
+            Path.cwd() / "file2.py",
+        ]
+    )
+    files_after = sorted(
+        [Path.cwd() / Path("dir", "file1.py"), Path.cwd() / Path("file2.py")]
+    )
+    pyaud.files.extend(files_before)
+    assert sorted(pyaud.files) == files_after
