@@ -98,3 +98,16 @@ def package() -> str:
 
     # if none of the above criteria is met then raise
     raise _PythonPackageNotFoundError("cannot determine primary package")
+
+
+def get_commit_hash() -> _t.Optional[str]:
+    """Get the hash of the current commit.
+
+    :return: A ``str`` containing the hash of the commit, or None if no
+        hash can be provided.
+    """
+    _git.rev_parse("HEAD", capture=True, suppress=True)  # type: ignore
+    try:
+        return _git.stdout()[0]
+    except IndexError:
+        return None

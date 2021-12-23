@@ -3,7 +3,7 @@ tests._test
 ===========
 """
 # pylint: disable=too-many-lines,too-many-arguments,cell-var-from-loop
-# pylint: disable=too-few-public-methods,unused-variable
+# pylint: disable=too-few-public-methods,unused-variable,protected-access
 import copy
 import datetime
 import logging
@@ -21,6 +21,7 @@ import pytest
 import pyaud
 
 from . import (
+    COMMIT,
     CRITICAL,
     DEBUG,
     ERROR,
@@ -1155,3 +1156,24 @@ def test_no_request(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
         "pyaud: error: the following arguments are required: MODULE"
         in nocolorcapsys.stderr()
     )
+
+
+@pytest.mark.parametrize(
+    "stdout,returncode,expected", [([COMMIT], 0, COMMIT), ([], 1, None)]
+)
+def test_get_commit_hash(
+    monkeypatch: pytest.MonkeyPatch,
+    stdout: t.List[str],
+    returncode: int,
+    expected: t.Optional[str],
+) -> None:
+    """Test output from ``pyaud._utils.get_commit_hash``.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param stdout: Mock stdout to be returned from ``git rev-parse``.
+    :param returncode: Mock return code from subprocess.
+    :param expected: Expected result.
+    """
+    monkeypatch.setattr("pyaud.git.rev_parse", lambda *_, **__: returncode)
+    monkeypatch.setattr("pyaud.git.stdout", lambda: stdout)
+    assert pyaud._utils.get_commit_hash() == expected
