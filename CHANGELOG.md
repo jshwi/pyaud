@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.2.10...HEAD)
 ------------------------------------------------------------------------
 ### Fixed
+- Allows for multiple inheritance of plugins
 - Ensures audit returns exit-status
 - Ensures that all files indexed are unique
 - Fixes up typing

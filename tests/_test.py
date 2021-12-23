@@ -658,7 +658,7 @@ def test_plugin_assign_non_type_value() -> None:
 
         # noinspection PyUnusedLocal
         @pyaud.plugins.register(name=unique)  # type: ignore
-        def plugin():
+        class _NonType:
             """Nothing to do."""
 
     assert TYPE_ERROR in str(err.value)
@@ -1088,3 +1088,26 @@ def test_files_extend_no_dupes() -> None:
     )
     pyaud.files.extend(files_before)
     assert sorted(pyaud.files) == files_after
+
+
+def test_plugin_mro() -> None:
+    """Assert that plugins can inherit other plugins.
+
+    Prior to this commit ``PluginType``s were only permitted, and not
+    children of ``PluginType``s.
+    """
+
+    @pyaud.plugins.register(name="plugin_1")
+    class PluginOne(pyaud.plugins.Action):
+        """Nothing to do."""
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            """Nothing to do."""
+
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name="plugin_2")
+    class PluginTwo(PluginOne):
+        """Nothing to do."""
+
+    assert "plugin_1" in pyaud.plugins.mapping()
+    assert "plugin_2" in pyaud.plugins.mapping()

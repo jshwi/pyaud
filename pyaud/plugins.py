@@ -5,6 +5,7 @@ pyaud.plugins
 Main module used for public API.
 """
 import importlib as _importlib
+import inspect
 import os as _os
 import sys as _sys
 import typing as _t
@@ -397,13 +398,14 @@ class _Plugins(_MutableMapping):  # pylint: disable=too-many-ancestors
         if name in self:
             raise _exceptions.NameConflictError(plugin.__name__, name)
 
-        if (
-            not hasattr(plugin, "__bases__")
-            or plugin.__bases__[0].__name__ not in PLUGIN_NAMES
+        mro = tuple(p.__name__ for p in inspect.getmro(plugin))
+        if not hasattr(plugin, "__bases__") or not any(
+            i in PLUGIN_NAMES for i in mro
         ):
             raise TypeError(
-                "can only register one of the following: "
-                + ", ".join(PLUGIN_NAMES)
+                "can only register one of the following: {}; not {}".format(
+                    ", ".join(PLUGIN_NAMES), mro
+                )
             )
 
         super().__setitem__(name, plugin(name))
