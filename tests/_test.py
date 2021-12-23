@@ -1117,3 +1117,41 @@ def test_get_plugin_logger() -> None:
     """Test logger available through uninstantiated ``BasePlugin``."""
     logger = pyaud.plugins.Plugin.logger()
     assert logger.name == pyaud.plugins.Plugin.__name__
+
+
+def test_print_version(
+    monkeypatch: pytest.MonkeyPatch, main: t.Any, nocolorcapsys: NoColorCapsys
+) -> None:
+    """Test printing of version on commandline.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    """
+    monkeypatch.setattr("pyaud._main.__version__", "1.0.0")
+    with pytest.raises(SystemExit):
+        main("--version")
+
+    out = nocolorcapsys.stdout().strip()
+    assert out == "1.0.0"
+
+
+def test_no_request(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
+    """Test continuation of regular ``argparse`` process.
+
+    If ``IndexError`` is not captured with
+    ``pyaud._main._version_request`` then an error message is displayed,
+    and not ``argparse``'s help menu on non-zero exit status.
+
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    """
+    with pytest.raises(SystemExit):
+        main()
+
+    assert (
+        "pyaud: error: the following arguments are required: MODULE"
+        in nocolorcapsys.stderr()
+    )

@@ -5,11 +5,11 @@ from ._indexing import files
 from ._objects import BasePlugin
 from ._subprocess import git
 from ._utils import branch, get_packages, package
-
-__version__ = "3.2.10"
+from ._version import __version__
 
 __all__ = [
     "BasePlugin",
+    "__version__",
     "branch",
     "config",
     "exceptions",

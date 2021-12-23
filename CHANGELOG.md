@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.2.10...HEAD)
 ------------------------------------------------------------------------
 ### Added
+- Adds `pyaud --verison` option
 - Adds cache flags to `pyaud.BasePlugin`
 - Adds logger to `BasePlugin`
 - Adds `pyaud.BasePlugin` class for typing

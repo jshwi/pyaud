@@ -14,6 +14,7 @@ from ._environ import NAME as _NAME
 from ._environ import load_namespace as _load_namespace
 from ._indexing import files as _files
 from ._utils import colors as _colors
+from ._version import __version__
 
 
 class _Parser(_ArgumentParser):
@@ -83,6 +84,9 @@ class _Parser(_ArgumentParser):
             "--rcfile",
             action="store",
             help="select file to override config hierarchy",
+        )
+        self.add_argument(
+            "--version", action="store_true", help="show version and exit"
         )
 
         # pos argument following [modules] argument
@@ -154,12 +158,23 @@ class _Parser(_ArgumentParser):
         return self._returncode
 
 
+def _version_request() -> None:
+    try:
+        # the only exception for not providing positional args
+        if _sys.argv[1] == "--version":
+            print(__version__)
+            _sys.exit(0)
+    except IndexError:
+        pass
+
+
 def main() -> None:
     """Module entry point.
 
     Parse commandline arguments and run the selected choice from the
     dictionary of functions which matches the key.
     """
+    _version_request()
     _plugins.load()
     parser = _Parser(_colors.cyan.get(_NAME))
     _load_namespace()
