@@ -69,6 +69,12 @@ class _Parser(_ArgumentParser):
             help="suppress and fix all fixable issues",
         )
         self.add_argument(
+            "-n",
+            "--no-cache",
+            action="store_true",
+            help="disable file caching",
+        )
+        self.add_argument(
             "-s",
             "--suppress",
             action="store_true",
@@ -196,4 +202,5 @@ def main() -> None:
         deploy=parser.args.deploy,
         fix=parser.args.fix,
         timed=parser.args.timed,
+        no_cache=parser.args.no_cache,
     )

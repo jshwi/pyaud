@@ -14,6 +14,8 @@ from pathlib import Path as _Path
 import appdirs as _appdirs
 import dotenv as _dotenv
 
+from ._version import __version__
+
 NAME = __name__.split(".", maxsplit=1)[0]
 DOCS = _Path("docs")
 PIPFILE_LOCK = _Path("Pipfile.lock")
@@ -22,6 +24,7 @@ PYAUD_PLUGINS = _Path("pyaud_plugins")
 DEFAULT_PLUGINS = _Path(__file__).absolute().parent.parent / PYAUD_PLUGINS
 SITE_PLUGINS = _Path.cwd() / PLUGINS
 DATADIR = _Path(_appdirs.user_data_dir(NAME))
+CACHEDIR = _Path(_appdirs.user_cache_dir(NAME, version=__version__))
 
 
 def load_namespace() -> None:
@@ -93,3 +96,4 @@ class TempEnvVar:
 def initialize_dirs() -> None:
     """Ensure app dirs exist."""
     DATADIR.mkdir(exist_ok=True, parents=True)
+    CACHEDIR.mkdir(exist_ok=True, parents=True)

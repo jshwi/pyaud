@@ -57,8 +57,11 @@ def fixture_mock_environment(
         "pyaud.config.CONFIGDIR", tmp_path / ".config" / pyaud.__name__
     )
     data_dir = Path.home() / ".local" / "share" / pyaud.__name__
+    cache_dir = Path.home() / ".cache" / pyaud.__name__
     monkeypatch.setattr("pyaud._wraps._DATADIR", data_dir)
     monkeypatch.setattr("pyaud._environ.DATADIR", data_dir)
+    monkeypatch.setattr("pyaud._wraps._CACHEDIR", cache_dir)
+    monkeypatch.setattr("pyaud._environ.CACHEDIR", cache_dir)
 
     # load default key-value pairs
     # ============================
@@ -116,6 +119,18 @@ def fixture_mock_environment(
 
     monkeypatch.setattr("pyaud.git.status", lambda *_, **__: True)
     monkeypatch.setattr("pyaud.git.rev_parse", lambda *_, **__: None)
+    pyaud._indexing.HashMapping.unpatched_match_file = (  # type: ignore
+        pyaud._indexing.HashMapping.match_file
+    )
+    pyaud._indexing.HashMapping.unpatched_hash_files = (  # type: ignore
+        pyaud._indexing.HashMapping.hash_files
+    )
+    monkeypatch.setattr(
+        "pyaud._indexing.HashMapping.match_file", lambda *_: False
+    )
+    monkeypatch.setattr(
+        "pyaud._indexing.HashMapping.hash_files", lambda _: None
+    )
 
     # setup singletons
     # ================

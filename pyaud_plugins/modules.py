@@ -411,8 +411,6 @@ class Toc(pyaud.plugins.Write):
     """Audit docs/<NAME>.rst toc-file."""
 
     sphinx_apidoc = "sphinx-apidoc"
-    cache = True
-    cache_all = True
 
     @property
     def exe(self) -> t.List[str]:
@@ -556,8 +554,6 @@ class Unused(pyaud.plugins.Fix):
     """
 
     vulture = "vulture"
-    cache = True
-    cache_all = True
 
     @property
     def exe(self) -> t.List[str]:
@@ -585,8 +581,6 @@ class Whitelist(pyaud.plugins.Write):
     """
 
     vulture = "vulture"
-    cache = True
-    cache_all = True
 
     @property
     def exe(self) -> t.List[str]:

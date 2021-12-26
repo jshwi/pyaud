@@ -57,6 +57,7 @@ class Plugin(_BasePlugin):  # pylint: disable=too-few-public-methods
 
     def __new__(cls, name: str) -> Plugin:  # pylint: disable=unused-argument
         class_decorator = _ClassDecorator(cls)
+        cls.__call__ = class_decorator.files(cls.__call__)  # type: ignore
         cls.__call__ = class_decorator.time(cls.__call__)  # type: ignore
         return super().__new__(cls)
 

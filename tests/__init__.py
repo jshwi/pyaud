@@ -104,3 +104,28 @@ class NoColorCapsys:
 
 class MockPluginType(pyaud.plugins.Plugin):
     """PluginType object."""
+
+
+class MockCachedPluginType(MockPluginType):
+    """PluginType object with ``cache`` set to True."""
+
+    cache = True
+
+
+class Tracker:  # pylint: disable=too-few-public-methods
+    """Track calls in mocked functions."""
+
+    def __init__(self, *_: t.Any, **__: t.Any) -> None:
+        self.called = False
+
+    def call(self, *_: t.Any, **__: t.Any) -> None:
+        """Indicate that this class's method has been called."""
+        self.called = True
+
+
+class StrategyMockPlugin(MockCachedPluginType):
+    """Create a base class that contains a `__call__` method that only
+    returns an exit-code for a successful audit or a failed one."""
+
+    def __call__(self, *args, **kwargs):
+        return 0
