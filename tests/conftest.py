@@ -107,6 +107,8 @@ def fixture_mock_environment(
     with open(Path.home() / ".gitconfig", "w", encoding="utf-8") as fout:
         config.write(fout)
 
+    monkeypatch.setattr("pyaud.git.status", lambda *_, **__: True)
+
     # setup singletons
     # ================
     pyaud.files.clear()

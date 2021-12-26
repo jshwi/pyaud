@@ -111,3 +111,13 @@ def get_commit_hash() -> _t.Optional[str]:
         return _git.stdout()[0]
     except IndexError:
         return None
+
+
+def working_tree_clean() -> bool:
+    """Check if working tree clean.
+
+    :return: Working tree clean? True or False.
+    """
+    _git.stdout()  # [...] -> void; clear stdout, if it exists
+    _git.status("--short", capture=True)  # type: ignore
+    return not _git.stdout()

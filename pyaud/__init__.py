@@ -4,7 +4,13 @@ from ._environ import load_namespace
 from ._indexing import files
 from ._objects import BasePlugin
 from ._subprocess import git
-from ._utils import branch, get_commit_hash, get_packages, package
+from ._utils import (
+    branch,
+    get_commit_hash,
+    get_packages,
+    package,
+    working_tree_clean,
+)
 from ._version import __version__
 
 __all__ = [
@@ -20,4 +26,5 @@ __all__ = [
     "load_namespace",
     "package",
     "plugins",
+    "working_tree_clean",
 ]

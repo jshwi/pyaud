@@ -1177,3 +1177,19 @@ def test_get_commit_hash(
     monkeypatch.setattr("pyaud.git.rev_parse", lambda *_, **__: returncode)
     monkeypatch.setattr("pyaud.git.stdout", lambda: stdout)
     assert pyaud._utils.get_commit_hash() == expected
+
+
+def test_working_tree_clean(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Test checker for clean working tree.
+
+    :param tmp_path: Create and return a temporary directory for
+        testing.
+    :param monkeypatch: Mock patch environment and attributes.
+    """
+    monkeypatch.undo()
+    monkeypatch.setattr("os.getcwd", lambda: str(tmp_path / REPO))
+    assert pyaud._utils.working_tree_clean()
+    Path(Path.cwd() / FILES).touch()
+    assert not pyaud._utils.working_tree_clean()
