@@ -19,11 +19,11 @@ from ._environ import DEFAULT_PLUGINS as _DEFAULT_PLUGINS
 from ._environ import NAME as _NAME
 from ._environ import SITE_PLUGINS as _SITE_PLUGINS
 from ._environ import TempEnvVar as _TempEnvVar
+from ._indexing import HashCap as _HashCap
+from ._indexing import files as _files
 from ._objects import MutableMapping as _MutableMapping
 from ._subprocess import Subprocess as _Subprocess
-from ._utils import HashCap as _HashCap
 from ._utils import colors as _colors
-from ._utils import files as _files
 
 _plugin_paths: _t.List[_Path] = [_DEFAULT_PLUGINS, _SITE_PLUGINS]
 

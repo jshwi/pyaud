@@ -12,8 +12,8 @@ from . import config as _config
 from . import plugins as _plugins
 from ._environ import NAME as _NAME
 from ._environ import load_namespace as _load_namespace
+from ._indexing import files as _files
 from ._utils import colors as _colors
-from ._utils import files as _files
 
 
 class _Parser(_ArgumentParser):
