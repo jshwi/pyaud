@@ -4,7 +4,6 @@ pyaud.plugins
 
 Main module used for public API.
 """
-import functools as _functools
 import importlib as _importlib
 import os as _os
 import sys as _sys
@@ -24,34 +23,9 @@ from ._indexing import files as _files
 from ._objects import MutableMapping as _MutableMapping
 from ._subprocess import Subprocess as _Subprocess
 from ._utils import colors as _colors
+from ._wraps import check_command as _check_command
 
 _plugin_paths: _t.List[_Path] = [_DEFAULT_PLUGINS, _SITE_PLUGINS]
-
-
-def _check_command(func: _t.Callable[..., int]) -> _t.Callable[..., None]:
-    """Run the routine common with all functions in this package.
-
-    :param func: Function to decorate.
-    :return: Wrapped function.
-    """
-
-    @_functools.wraps(func)
-    def _wrapper(*args: str, **kwargs: bool) -> None:
-        if not _files.reduce():
-            print("No files found")
-        else:
-            returncode = func(*args, **kwargs)
-            if returncode:
-                _colors.red.bold.print(
-                    f"Failed: returned non-zero exit status {returncode}",
-                    file=_sys.stderr,
-                )
-            else:
-                _colors.green.bold.print(
-                    f"Success: no issues found in {len(_files)} source files"
-                )
-
-    return _wrapper
 
 
 class _SubprocessFactory(  # pylint: disable=too-many-ancestors
