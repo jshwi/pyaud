@@ -20,8 +20,8 @@ from ._environ import NAME as _NAME
 from ._environ import SITE_PLUGINS as _SITE_PLUGINS
 from ._environ import TempEnvVar as _TempEnvVar
 from ._objects import MutableMapping as _MutableMapping
+from ._subprocess import Subprocess as _Subprocess
 from ._utils import HashCap as _HashCap
-from ._utils import Subprocess as _Subprocess
 from ._utils import colors as _colors
 from ._utils import files as _files
 

@@ -702,7 +702,7 @@ def test_make_whitelist(
     pyaud.git.add(".")  # type: ignore
     pyaud.files.populate()
     monkeypatch.setattr(
-        "pyaud._utils.Subprocess.stdout",
+        "pyaud._subprocess.Subprocess.stdout",
         lambda *_, **__: files.Whitelist.be8a443,
     )
     pyaud.plugins.get("whitelist")()
