@@ -44,6 +44,7 @@ from . import (
     TYPE_ERROR,
     WARNING,
     WHITELIST_PY,
+    MockPluginType,
     NoColorCapsys,
 )
 
@@ -1193,3 +1194,68 @@ def test_working_tree_clean(
     assert pyaud._utils.working_tree_clean()
     Path(Path.cwd() / FILES).touch()
     assert not pyaud._utils.working_tree_clean()
+
+
+def test_time_output(main: t.Any, nocolorcapsys: t.Any) -> None:
+    """Test tracking of durations in output.
+
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    """
+    main("format", "-t")
+    out = nocolorcapsys.stdout()
+    assert "Format: Execution time:" in out
+
+
+# noinspection PyUnresolvedReferences
+def test_restore_data_no_json() -> None:
+    """Test pass on restoring empty file.
+
+    No need to run any assertions; checking that no error is raised.
+    """
+    path = Path(
+        Path.cwd()
+        / pyaud._environ.DATADIR
+        / pyaud._wraps.ClassDecorator.DURATIONS
+    )
+    path.touch()
+    time_cache = pyaud._data.Record(path, REPO, MockPluginType)
+    time_cache.read()
+
+
+@pytest.mark.parametrize("start_time", [1, 2, 3])
+@pytest.mark.parametrize("end_time", [7, 8, 9])
+def test_times(
+    monkeypatch: pytest.MonkeyPatch, start_time: int, end_time: int
+) -> None:
+    """Test program's ability to track the length of processes.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param start_time: Mocked time for when the process starts.
+    :param end_time: Mocked time for when the process finishes.
+    """
+    class_name = "MockPlugin"
+    times = [end_time, start_time]
+    expected_averages = []
+    prefilled = {REPO: {class_name: [0, 0, 0]}}
+
+    # noinspection PyUnresolvedReferences
+    def read(self: pyaud._data.Record):
+        self.update(prefilled)
+
+    # noinspection PyUnresolvedReferences
+    def average(self: pyaud._data.Record) -> float:
+        items = self._get_by_context()
+        actual_average = round(sum(items) / len(items), 2)
+        expected_averages.append(actual_average)
+        return actual_average
+
+    monkeypatch.setattr("pyaud._wraps._package", lambda: REPO)
+    monkeypatch.setattr("pyaud._data._time", times.pop)
+    monkeypatch.setattr("pyaud._data.Record.average", average)
+    monkeypatch.setattr("pyaud._data.Record.read", read)
+    plugin = type(class_name, (MockPluginType,), {})
+    instance = plugin(class_name)
+    instance()
+    assert expected_averages == [end_time - start_time / len(prefilled)]

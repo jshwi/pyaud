@@ -11,6 +11,7 @@ from argparse import ArgumentParser as _ArgumentParser
 from . import config as _config
 from . import plugins as _plugins
 from ._environ import NAME as _NAME
+from ._environ import initialize_dirs as _initialize_dirs
 from ._environ import load_namespace as _load_namespace
 from ._indexing import files as _files
 from ._utils import colors as _colors
@@ -72,6 +73,12 @@ class _Parser(_ArgumentParser):
             "--suppress",
             action="store_true",
             help="continue without stopping for errors",
+        )
+        self.add_argument(
+            "-t",
+            "--timed",
+            action="store_true",
+            help="track the length of time for each plugin",
         )
         self.add_argument(
             "-v",
@@ -178,6 +185,7 @@ def main() -> None:
     _plugins.load()
     parser = _Parser(_colors.cyan.get(_NAME))
     _load_namespace()
+    _initialize_dirs()
     _config.load_config(parser.args.rcfile)
     _config.configure_logging(parser.args.verbose)
     _files.add_exclusions(*_config.toml["indexing"]["exclude"])
@@ -187,4 +195,5 @@ def main() -> None:
         suppress=parser.args.suppress,
         deploy=parser.args.deploy,
         fix=parser.args.fix,
+        timed=parser.args.timed,
     )

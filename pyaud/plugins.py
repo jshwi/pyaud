@@ -4,6 +4,8 @@ pyaud.plugins
 
 Main module used for public API.
 """
+from __future__ import annotations
+
 import importlib as _importlib
 import inspect
 import os as _os
@@ -24,6 +26,7 @@ from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
 from ._subprocess import Subprocess as _Subprocess
 from ._utils import colors as _colors
+from ._wraps import ClassDecorator as _ClassDecorator
 from ._wraps import check_command as _check_command
 
 _plugin_paths: _t.List[_Path] = [_DEFAULT_PLUGINS, _SITE_PLUGINS]
@@ -51,6 +54,11 @@ class Plugin(_BasePlugin):  # pylint: disable=too-few-public-methods
 
     :param name: Name assigned to plugin via ``@register`` decorator.
     """
+
+    def __new__(cls, name: str) -> Plugin:  # pylint: disable=unused-argument
+        class_decorator = _ClassDecorator(cls)
+        cls.__call__ = class_decorator.time(cls.__call__)  # type: ignore
+        return super().__new__(cls)
 
     def __init__(self, name: str) -> None:
         self.name = name

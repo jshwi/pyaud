@@ -100,3 +100,7 @@ class NoColorCapsys:
         :return: Stderr.
         """
         return self.readouterr()[1]
+
+
+class MockPluginType(pyaud.plugins.Plugin):
+    """PluginType object."""

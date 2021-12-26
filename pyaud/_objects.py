@@ -2,6 +2,7 @@
 pyaud.objects
 =============
 """
+import json as _json
 import logging as _logging
 import typing as _t
 from abc import ABC as _ABC
@@ -105,3 +106,26 @@ class BasePlugin(_ABC):  # pylint: disable=too-few-public-methods
         :return: ``Logger`` object.
         """
         return _logging.getLogger(cls.__name__)
+
+
+class JSONIO(MutableMapping):
+    """Base class JSON input/output actions.
+
+    :param path: Path to data file.
+    """
+
+    def __init__(self, path: _Path) -> None:
+        super().__init__()
+        self.path = path
+
+    def read(self) -> None:
+        """Read from file to object."""
+        if self.path.is_file():
+            try:
+                self.update(_json.loads(self.path.read_text()))
+            except _json.decoder.JSONDecodeError:
+                pass
+
+    def write(self) -> None:
+        """Write data to file."""
+        self.path.write_text(_json.dumps(dict(self), separators=(",", ":")))

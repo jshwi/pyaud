@@ -3,6 +3,7 @@ tests.conftest
 ==============
 """
 # pylint: disable=too-many-arguments,too-many-locals,too-few-public-methods
+# pylint: disable=protected-access
 import copy
 import os
 import typing as t
@@ -16,6 +17,7 @@ import pyaud
 from . import DEBUG, GH_EMAIL, GH_NAME, GH_TOKEN, REPO, NoColorCapsys
 
 
+# noinspection PyUnresolvedReferences,PyProtectedMember
 @pytest.fixture(name="mock_environment", autouse=True)
 def fixture_mock_environment(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -54,6 +56,9 @@ def fixture_mock_environment(
     monkeypatch.setattr(
         "pyaud.config.CONFIGDIR", tmp_path / ".config" / pyaud.__name__
     )
+    data_dir = Path.home() / ".local" / "share" / pyaud.__name__
+    monkeypatch.setattr("pyaud._wraps._DATADIR", data_dir)
+    monkeypatch.setattr("pyaud._environ.DATADIR", data_dir)
 
     # load default key-value pairs
     # ============================
@@ -107,7 +112,10 @@ def fixture_mock_environment(
     with open(Path.home() / ".gitconfig", "w", encoding="utf-8") as fout:
         config.write(fout)
 
+    pyaud._environ.initialize_dirs()
+
     monkeypatch.setattr("pyaud.git.status", lambda *_, **__: True)
+    monkeypatch.setattr("pyaud.git.rev_parse", lambda *_, **__: None)
 
     # setup singletons
     # ================
