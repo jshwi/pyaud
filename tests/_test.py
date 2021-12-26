@@ -1111,3 +1111,9 @@ def test_plugin_mro() -> None:
 
     assert "plugin_1" in pyaud.plugins.mapping()
     assert "plugin_2" in pyaud.plugins.mapping()
+
+
+def test_get_plugin_logger() -> None:
+    """Test logger available through uninstantiated ``BasePlugin``."""
+    logger = pyaud.plugins.Plugin.logger()
+    assert logger.name == pyaud.plugins.Plugin.__name__

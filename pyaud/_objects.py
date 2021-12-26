@@ -2,6 +2,7 @@
 pyaud.objects
 =============
 """
+import logging as _logging
 import typing as _t
 from abc import ABC as _ABC
 from collections.abc import MutableMapping as _MutableMapping
@@ -87,3 +88,11 @@ class MutableMapping(_MutableMapping):  # pylint: disable=too-many-ancestors
 
 class BasePlugin(_ABC):  # pylint: disable=too-few-public-methods
     """Base type for all plugins."""
+
+    @classmethod
+    def logger(cls) -> _logging.Logger:
+        """Assign an audit logger dynamically, post logging config.
+
+        :return: ``Logger`` object.
+        """
+        return _logging.getLogger(cls.__name__)
