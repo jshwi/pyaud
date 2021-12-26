@@ -3,6 +3,7 @@ pyaud.objects
 =============
 """
 import typing as _t
+from abc import ABC as _ABC
 from collections.abc import MutableMapping as _MutableMapping
 from collections.abc import MutableSequence as _MutableSequence
 from pathlib import Path as _Path
@@ -82,3 +83,7 @@ class MutableMapping(_MutableMapping):  # pylint: disable=too-many-ancestors
             obj[key] = value
 
         return obj
+
+
+class BasePlugin(_ABC):  # pylint: disable=too-few-public-methods
+    """Base type for all plugins."""

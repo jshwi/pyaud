@@ -9,7 +9,6 @@ import inspect
 import os as _os
 import sys as _sys
 import typing as _t
-from abc import ABC as _ABC
 from abc import abstractmethod as _abstractmethod
 from pathlib import Path as _Path
 from subprocess import CalledProcessError as _CalledProcessError
@@ -21,6 +20,7 @@ from ._environ import SITE_PLUGINS as _SITE_PLUGINS
 from ._environ import TempEnvVar as _TempEnvVar
 from ._indexing import HashCap as _HashCap
 from ._indexing import files as _files
+from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
 from ._subprocess import Subprocess as _Subprocess
 from ._utils import colors as _colors
@@ -40,7 +40,7 @@ class _SubprocessFactory(  # pylint: disable=too-many-ancestors
             self[arg] = _Subprocess(arg)
 
 
-class Plugin(_ABC):  # pylint: disable=too-few-public-methods
+class Plugin(_BasePlugin):  # pylint: disable=too-few-public-methods
     """Base class of all plugins.
 
     Raises ``TypeError`` if registered directly.
