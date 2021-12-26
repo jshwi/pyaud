@@ -11,7 +11,7 @@ import pyaud
 from . import files
 
 REAL_REPO = Path(__file__).parent.parent
-FILES = "file.py"
+FILES: str = "file.py"
 PUSHING_SKIPPED = "Pushing skipped"
 REPO = "repo"
 GH_NAME = "test_user"
@@ -43,6 +43,7 @@ SP_CALL = "pyaud._subprocess.Subprocess.call"
 SP_STDOUT = "pyaud._subprocess.Subprocess.stdout"
 OS_GETCWD = "os.getcwd"
 WHITELIST_PY = "whitelist.py"
+COMMIT = "7c57dc943941566f47b9e7ee3208245d0bcd7656"
 
 
 class NoColorCapsys:

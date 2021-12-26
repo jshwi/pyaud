@@ -61,25 +61,61 @@ class Clean(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
         )
 
 
+@pyaud.plugins.register(name="tests")
+class Tests(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
+    """Run the package unit-tests with ``pytest``."""
+
+    pytest = "pytest"
+
+    @property
+    def exe(self) -> t.List[str]:
+        return [self.pytest]
+
+    @property
+    def is_tests(self) -> bool:
+        """Confirm that a test suite exists.
+
+        :return: Does a test suite exist? True or False.
+        """
+        tests = Path.cwd() / "tests"
+        patterns = ("test_*.py", "*_test.py")
+        rglob = [
+            f
+            for f in pyaud.files
+            for p in patterns
+            if f.match(p) and str(tests) in str(f)
+        ]
+        return rglob != []
+
+    def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+        if self.is_tests:
+            return self.subprocess[self.pytest].call(*args, **kwargs)
+
+        print("No tests found")
+        return 0
+
+
 @pyaud.plugins.register(name="coverage")
-class Coverage(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
+class Coverage(Tests):  # pylint: disable=too-few-public-methods
     """Run package unit-tests with ``pytest`` and ``coverage``."""
 
     coverage = "coverage"
 
     @property
     def exe(self) -> t.List[str]:
-        return [self.coverage]
+        return super().exe + [self.coverage]
 
     def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-        returncode = pyaud.plugins.get("tests")(
-            *[f"--cov={e}" for e in pyaud.files.reduce()], *args, **kwargs
+        returncode = super().action(
+            *[f"--cov={e}" for e in pyaud.files.reduce()], **kwargs
         )
-        if not returncode:
+        if self.is_tests and not returncode:
             kwargs["suppress"] = True
             self.subprocess[self.coverage].call("xml", *args, **kwargs)
         else:
             print("No coverage to report")
+
+        return returncode
 
 
 @pyaud.plugins.register(name="deploy")
@@ -362,32 +398,6 @@ class Requirements(pyaud.plugins.Write):
         with open(self.path, "w", encoding="utf-8") as fout:
             for content in stdout:
                 fout.write(f"{content.split(';')[0]}\n")
-
-
-@pyaud.plugins.register(name="tests")
-class Tests(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
-    """Run the package unit-tests with ``pytest``."""
-
-    pytest = "pytest"
-
-    @property
-    def exe(self) -> t.List[str]:
-        return [self.pytest]
-
-    def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-        tests = Path.cwd() / "tests"
-        patterns = ("test_*.py", "*_test.py")
-        rglob = [
-            f
-            for f in pyaud.files
-            for p in patterns
-            if f.match(p) and str(tests) in str(f)
-        ]
-        if rglob:
-            return self.subprocess[self.pytest].call(*args, **kwargs)
-
-        print("No tests found")
-        return 1
 
 
 @pyaud.plugins.register(name="toc")

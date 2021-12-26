@@ -3,7 +3,7 @@ tests.plugins_test
 ==================
 """
 # pylint: disable=too-many-lines,too-many-arguments,cell-var-from-loop
-# pylint: disable=too-few-public-methods,unused-variable
+# pylint: disable=too-few-public-methods,unused-variable,protected-access
 import datetime
 import os
 import random
@@ -113,28 +113,55 @@ def test_make_audit_error(
     assert nocolorcapsys.stdout().strip() == "pyaud format"
 
 
+@pytest.mark.parametrize(
+    "is_tests,expected", [(False, "No coverage to report"), (True, "xml")]
+)
 def test_call_coverage_xml(
     main: t.Any,
     monkeypatch: pytest.MonkeyPatch,
-    patch_sp_print_called: t.Any,
     nocolorcapsys: NoColorCapsys,
+    is_tests: bool,
+    expected: str,
 ) -> None:
     """Test ``coverage xml`` is called after successful test run.
 
     :param main: Patch package entry point.
     :param monkeypatch: Mock patch environment and attributes.
-    :param patch_sp_print_called: Patch ``Subprocess.call`` to only
-        announce what is called.
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
+    :param is_tests: Are there any tests available? True or False.
+    :param expected: Expected output.
     """
-    patch_sp_print_called()
-    mocked_plugins = pyaud.plugins.mapping()
-    mocked_plugins["tests"] = lambda *_, **__: 0  # type: ignore
-    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_plugins)
-    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
+
+    class _HasCall:
+        @classmethod
+        def call(cls, *args: t.Any, **_: t.Any) -> None:
+            """Print the args passed to the subprocess object.
+
+            :param args: Args to print.
+            :param _: Unused misc kwargs.
+            """
+            print(*args)
+
+    class _Tests(  # pylint: disable=too-few-public-methods
+        pyaud_plugins.modules.Tests
+    ):
+        @property
+        def is_tests(self) -> bool:
+            return is_tests
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            return 0
+
+    monkeypatch.setattr(
+        "pyaud.plugins._SubprocessFactory", lambda *_: {"coverage": _HasCall}
+    )
+    coverage = pyaud_plugins.modules.Coverage
+    coverage.__bases__ = (_Tests,)
+    del pyaud.plugins._plugins["coverage"]
+    pyaud.plugins._plugins["coverage"] = coverage
     main("coverage")
-    assert nocolorcapsys.stdout().strip() == "<Subprocess (coverage)> xml"
+    assert nocolorcapsys.stdout().strip() == expected
 
 
 def test_make_deploy_all(
@@ -235,22 +262,6 @@ def test_suppress(
             ]
         )
         == fix_modules
-    )
-
-
-def test_coverage_no_tests(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
-    """Test the correct output is produced when no tests exist.
-
-     Ensure message is displayed if ``pytest`` could not find a valid
-     test folder.
-
-    :param main: Patch package entry point.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
-    """
-    main("coverage")
-    assert nocolorcapsys.stdout().strip() == (
-        "No tests found\nNo coverage to report"
     )
 
 
@@ -695,7 +706,7 @@ def test_make_whitelist(
         project_dir,
         {
             "tests": {"conftest.py": None, FILES: None},
-            "pyaud": {"src": {"__init__.py": None, "modules.py": None}},
+            "pyaud": {"src": {INIT: None, "modules.py": None}},
         },
     )
     pyaud.git.init(devnull=True)  # type: ignore
