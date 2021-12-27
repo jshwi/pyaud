@@ -7,9 +7,9 @@ Set up the environment variables for the current project.
 from __future__ import annotations
 
 import os as _os
+import typing as _t
 from collections.abc import MutableMapping as _MutableMapping
 from pathlib import Path as _Path
-from typing import Any as _Any
 
 import dotenv as _dotenv
 
@@ -65,7 +65,7 @@ class TempEnvVar:
     :param value:   Value to temporarily change in supplied object.
     """
 
-    def __init__(self, obj: _MutableMapping, **kwargs: _Any) -> None:
+    def __init__(self, obj: _MutableMapping, **kwargs: str) -> None:
         self._obj = obj
         self._default = {k: obj.get(k) for k in kwargs}
         self._obj.update(kwargs)
@@ -73,7 +73,9 @@ class TempEnvVar:
     def __enter__(self) -> TempEnvVar:
         return self
 
-    def __exit__(self, exc_type: _Any, exc_val: _Any, exc_tb: _Any) -> None:
+    def __exit__(
+        self, exc_type: _t.Any, exc_val: _t.Any, exc_tb: _t.Any
+    ) -> None:
         for key, value in self._default.items():
             if value is None:
                 try:

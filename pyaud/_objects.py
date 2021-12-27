@@ -2,20 +2,17 @@
 pyaud.objects
 =============
 """
+import typing as _t
 from collections.abc import MutableMapping as _MutableMapping
 from collections.abc import MutableSequence as _MutableSequence
 from pathlib import Path as _Path
-from typing import Any as _Any
-from typing import Dict as _Dict
-from typing import Iterator as _Iterator
-from typing import List as _List
 
 
 class MutableSequence(_MutableSequence):  # pylint: disable=too-many-ancestors
     """Inherit to replicate subclassing of ``list`` objects."""
 
     def __init__(self) -> None:
-        self._list: _List[_Any] = []
+        self._list: _t.List[_t.Any] = []
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self._list}>"
@@ -23,13 +20,13 @@ class MutableSequence(_MutableSequence):  # pylint: disable=too-many-ancestors
     def __len__(self) -> int:
         return self._list.__len__()
 
-    def __delitem__(self, key: _Any) -> None:
+    def __delitem__(self, key: _t.Any) -> None:
         self._list.__delitem__(key)
 
-    def __setitem__(self, index: _Any, value: _Any) -> None:
+    def __setitem__(self, index: _t.Any, value: _t.Any) -> None:
         self._list.__setitem__(index, value)
 
-    def __getitem__(self, index: _Any) -> _Any:
+    def __getitem__(self, index: _t.Any) -> _t.Any:
         return self._list.__getitem__(index)
 
     def insert(self, index: int, value: str) -> None:
@@ -45,7 +42,7 @@ class MutableMapping(_MutableMapping):  # pylint: disable=too-many-ancestors
     """Inherit to replicate subclassing of ``dict`` objects."""
 
     def __init__(self) -> None:
-        self._dict: _Dict[str, _Any] = {}
+        self._dict: _t.Dict[str, _t.Any] = {}
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self._dict}>"
@@ -53,21 +50,21 @@ class MutableMapping(_MutableMapping):  # pylint: disable=too-many-ancestors
     def __len__(self) -> int:
         return self._dict.__len__()
 
-    def __delitem__(self, key: _Any) -> None:
+    def __delitem__(self, key: _t.Any) -> None:
         self._dict.__delitem__(key)
 
-    def __setitem__(self, index: _Any, value: _Any) -> None:
+    def __setitem__(self, index: _t.Any, value: _t.Any) -> None:
         self._dict = self._nested_update(self._dict, {index: value})
 
-    def __getitem__(self, index: _Any) -> _Any:
+    def __getitem__(self, index: _t.Any) -> _t.Any:
         return self._dict.__getitem__(index)
 
-    def __iter__(self) -> _Iterator:
+    def __iter__(self) -> _t.Iterator:
         return iter(self._dict)
 
     def _nested_update(
-        self, obj: _Dict[str, _Any], update: _Dict[str, _Any]
-    ) -> _Dict[str, _Any]:
+        self, obj: _t.Dict[str, _t.Any], update: _t.Dict[str, _t.Any]
+    ) -> _t.Dict[str, _t.Any]:
         # add to __setitem__ to ensure that no entire dict keys with
         # missing nested keys overwrite all other values
         # run recursively to cover all nested objects if value is a dict

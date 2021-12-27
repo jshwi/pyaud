@@ -11,9 +11,9 @@ import logging.config as logging_config
 import logging.handlers as logging_handlers
 import os
 import time
+import typing as t
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import Any, Dict, List, Tuple
 
 import dotenv
 import pytest
@@ -87,7 +87,7 @@ def test_pipe_to_file() -> None:
         )
 
 
-def test_find_package(monkeypatch: Any) -> None:
+def test_find_package(monkeypatch: t.Any) -> None:
     """Test error is raised if no Python file exists in project root.
 
     :param monkeypatch: Mock patch environment and attributes.
@@ -138,7 +138,7 @@ def test_get_files(
         assert make_item not in pyaud.files.reduce()
 
 
-def test_files_exclude_venv(make_tree: Any) -> None:
+def test_files_exclude_venv(make_tree: t.Any) -> None:
     """Test that virtualenv dir is excluded.
 
      Test when indexing with ``PythonItems.items``.
@@ -172,7 +172,7 @@ def test_files_exclude_venv(make_tree: Any) -> None:
 
 
 def test_arg_order_clone(
-    tmp_path: Path, nocolorcapsys: Any, patch_sp_print_called: Any
+    tmp_path: Path, nocolorcapsys: t.Any, patch_sp_print_called: t.Any
 ) -> None:
     """Test that the clone destination is always the last argument.
 
@@ -197,7 +197,7 @@ def test_arg_order_clone(
 @pytest.mark.parametrize("default", [CRITICAL, ERROR, WARNING, INFO, DEBUG])
 @pytest.mark.parametrize("flag", ["", "-v", "-vv", "-vvv", "-vvvv"])
 def test_loglevel(
-    monkeypatch: Any, main: Any, default: str, flag: str
+    monkeypatch: t.Any, main: t.Any, default: str, flag: str
 ) -> None:
     """Test the right loglevel is set when parsing the commandline.
 
@@ -271,12 +271,12 @@ def test_del_key_in_context():
     ids=["no-pos", "all-modules", "invalid-pos"],
 )
 def test_help(
-    monkeypatch: Any,
-    main: Any,
-    nocolorcapsys: Any,
+    monkeypatch: t.Any,
+    main: t.Any,
+    nocolorcapsys: t.Any,
     arg: str,
     index: int,
-    expected: Tuple[str, ...],
+    expected: t.Tuple[str, ...],
 ) -> None:
     """Test expected output for help with no default plugins.
 
@@ -331,7 +331,7 @@ def test_seq() -> None:
 
 
 @pytest.mark.usefixtures("init_remote")
-def test_gen_default_remote(monkeypatch: Any) -> None:
+def test_gen_default_remote(monkeypatch: t.Any) -> None:
     """Test ``PYAUD_GH_REMOTE`` is properly loaded from .env variables.
 
     :param monkeypatch: Mock patch environment and attributes.
@@ -377,7 +377,9 @@ def test_toml() -> None:
     project_dir = Path.cwd()
     project_rc = project_dir / RCFILE
     pyproject_path = project_dir / PYPROJECT
-    test_default: Dict[Any, Any] = copy.deepcopy(pyaud.config.DEFAULT_CONFIG)
+    test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(
+        pyaud.config.DEFAULT_CONFIG
+    )
     assert dict(pyaud.config.toml) == test_default
 
     # instantiate a new dict object
@@ -405,7 +407,7 @@ def test_toml() -> None:
     # ======================================================
     # override "$HOME/.pyaudrc"
     pyaud.config.load_config()
-    subtotal: Dict[str, Any] = dict(home_rcfile)
+    subtotal: t.Dict[str, t.Any] = dict(home_rcfile)
     subtotal["logging"]["version"] = 3
     subtotal["logging"]["handlers"]["default"]["filename"] = str(
         Path(
@@ -447,7 +449,7 @@ def test_toml() -> None:
     assert dict(pyaud.config.toml) == subtotal
 
 
-def test_toml_no_override_all(monkeypatch: Any) -> None:
+def test_toml_no_override_all(monkeypatch: t.Any) -> None:
     """Confirm error not raised for entire key being overridden.
 
      Test for when implementing hierarchical config loading.
@@ -619,7 +621,7 @@ def test_register_plugin_name_conflict_error() -> None:
     class PluginOne(pyaud.plugins.Action):
         """Nothing to do."""
 
-        def action(self, *args: Any, **kwargs: bool) -> Any:
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
     with pytest.raises(pyaud.exceptions.NameConflictError) as err:
@@ -629,7 +631,7 @@ def test_register_plugin_name_conflict_error() -> None:
         class PluginTwo(pyaud.plugins.Action):
             """Nothing to do."""
 
-            def action(self, *args: Any, **kwargs: bool) -> Any:
+            def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
                 """Nothing to do."""
 
     assert str(err.value) == f"plugin name conflict at PluginTwo: '{unique}'"
@@ -641,7 +643,7 @@ def test_register_invalid_type() -> None:
     with pytest.raises(TypeError) as err:
 
         # noinspection PyUnusedLocal
-        @pyaud.plugins.register(name=unique)
+        @pyaud.plugins.register(name=unique)  # type: ignore
         class NotSubclassed:
             """Nothing to do."""
 
@@ -654,7 +656,7 @@ def test_plugin_assign_non_type_value() -> None:
     with pytest.raises(TypeError) as err:
 
         # noinspection PyUnusedLocal
-        @pyaud.plugins.register(name=unique)
+        @pyaud.plugins.register(name=unique)  # type: ignore
         def plugin():
             """Nothing to do."""
 
@@ -671,17 +673,17 @@ def test_plugin_assign_non_type_key() -> None:
     with pytest.raises(TypeError) as err:
 
         # noinspection PyUnusedLocal
-        @pyaud.plugins.register(name=unique)
+        @pyaud.plugins.register(name=unique)  # type: ignore
         class Plugin(Parent):
             """Nothing to do."""
 
-            def __call__(self, *args: Any, **kwargs: bool) -> Any:
+            def __call__(self, *args: t.Any, **kwargs: bool) -> t.Any:
                 """Nothing to do."""
 
     assert TYPE_ERROR in str(err.value)
 
 
-def test_args_reduce(make_tree: Any) -> None:
+def test_args_reduce(make_tree: t.Any) -> None:
     """Demonstrate why the ``reduce`` argument should be deprecated.
 
     No longer considered depreciated.
@@ -739,7 +741,7 @@ def test_args_reduce(make_tree: Any) -> None:
     )
 
 
-def test_files_populate_proc(make_tree: Any) -> None:
+def test_files_populate_proc(make_tree: t.Any) -> None:
     """Test that populating an index is quicker when there are commits.
 
     Once there is a committed index we can index the paths from the
@@ -795,7 +797,7 @@ def test_files_populate_proc(make_tree: Any) -> None:
     assert no_commit_files == commit_files
 
 
-def test_not_a_repository_error(monkeypatch: Any, tmp_path: Path) -> None:
+def test_not_a_repository_error(monkeypatch: t.Any, tmp_path: Path) -> None:
     """Test error when Git command run in non-repository project.
 
     :param tmp_path:    Create and return a temporary directory for
@@ -831,17 +833,17 @@ def test_command_not_found_error() -> None:
             """Test ``CommandNotFoundError``."""
 
             @property
-            def exe(self) -> List[str]:
+            def exe(self) -> t.List[str]:
                 """Non-existing command."""
                 return ["not-a-command"]
 
-            def action(self, *args: Any, **kwargs: bool) -> Any:
+            def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
                 """Nothing to do."""
 
     assert str(err.value) == f"{not_a_command}: command not found..."
 
 
-def test_get_packages(monkeypatch: Any, make_tree: Any) -> None:
+def test_get_packages(monkeypatch: t.Any, make_tree: t.Any) -> None:
     """Test process when searching for project's package.
 
     :param monkeypatch: Mock patch environment and attributes.
@@ -892,7 +894,7 @@ def test_get_packages(monkeypatch: Any, make_tree: Any) -> None:
     assert pyaud.package() == "second_package"
 
 
-def test_get_subpackages(monkeypatch: Any, make_tree: Any) -> None:
+def test_get_subpackages(monkeypatch: t.Any, make_tree: t.Any) -> None:
     """Test process when searching for project's package.
 
     Assert that subdirectories are not returned with import syntax, i.e.
@@ -929,7 +931,7 @@ def test_get_subpackages(monkeypatch: Any, make_tree: Any) -> None:
     assert pyaud.get_packages() == ["repo"]
 
 
-def test_type_error_stdout(patch_sp_output: Any) -> None:
+def test_type_error_stdout(patch_sp_output: t.Any) -> None:
     """Subtle bug which appeared to be one test, but was another.
 
     Error was being raised in ``test_make_unused_fix`` as ``replace``
@@ -960,7 +962,7 @@ def test_type_error_stdout(patch_sp_output: Any) -> None:
     )
 
 
-def test_exclude_loads_at_main(main: Any) -> None:
+def test_exclude_loads_at_main(main: t.Any) -> None:
     """Confirm project config is loaded with ``main``.
 
     :param main: Patch package entry point.
@@ -982,7 +984,7 @@ def test_exclude_loads_at_main(main: Any) -> None:
     assert "project" in pyaud.config.toml["indexing"]["exclude"]
 
 
-def test_exclude(make_tree: Any) -> None:
+def test_exclude(make_tree: t.Any) -> None:
     """Test exclusions and inclusions with toml config.
 
     param make_tree: Create directory tree from dict mapping.
@@ -1020,7 +1022,9 @@ def test_filter_logging_config_kwargs() -> None:
     """Test that no errors are raised for additional config kwargs."""
     project_dir = Path.cwd()
     project_rc = project_dir / RCFILE
-    test_default: Dict[Any, Any] = copy.deepcopy(pyaud.config.DEFAULT_CONFIG)
+    test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(
+        pyaud.config.DEFAULT_CONFIG
+    )
 
     # patch `DEFAULT_CONFIG` for `TimedRotatingFileHandler`
     logfile = str(Path.cwd() / ".cache" / "pyaud" / "log" / "pyaud.log")

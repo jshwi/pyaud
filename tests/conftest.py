@@ -5,9 +5,9 @@ tests.conftest
 # pylint: disable=too-many-arguments,too-many-locals,too-few-public-methods
 import copy
 import os
+import typing as t
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Any, Dict
 
 import pytest
 
@@ -17,7 +17,7 @@ from . import DEBUG, GH_EMAIL, GH_NAME, GH_TOKEN, REPO, NoColorCapsys
 
 
 @pytest.fixture(name="mock_environment", autouse=True)
-def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
+def fixture_mock_environment(tmp_path: Path, monkeypatch: t.Any) -> None:
     """Mock imports to reflect the temporary testing environment.
 
     :param tmp_path:     Create and return temporary directory.
@@ -68,7 +68,7 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     # ======================
     # create test directories
     # ~/.cache/pyaud/log/pyaud.log needs to exist before running
-    # ``logging.config.dictConfig(config: Dict[str, Any])``
+    # ``logging.config.dictConfig(config: t.Dict[str, t.Any])``
     Path.cwd().mkdir()
 
     # initialize repository
@@ -79,7 +79,9 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
     # ======================
     # override log file path to point to test repository
     # loglevel to DEBUG
-    default_config: Dict[str, Any] = copy.deepcopy(pyaud.config.DEFAULT_CONFIG)
+    default_config: t.Dict[str, t.Any] = copy.deepcopy(
+        pyaud.config.DEFAULT_CONFIG
+    )
     default_config["logging"]["root"]["level"] = DEBUG
     monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
 
@@ -107,7 +109,7 @@ def fixture_mock_environment(tmp_path: Path, monkeypatch: Any) -> None:
 
 
 @pytest.fixture(name="nocolorcapsys")
-def fixture_nocolorcapsys(capsys: Any) -> NoColorCapsys:
+def fixture_nocolorcapsys(capsys: t.Any) -> NoColorCapsys:
     """Instantiate capsys with the regex method.
 
     :param capsys:  Capture ``sys`` stdout and stderr..
@@ -119,7 +121,7 @@ def fixture_nocolorcapsys(capsys: Any) -> NoColorCapsys:
 
 
 @pytest.fixture(name="main")
-def fixture_main(monkeypatch: Any) -> Any:
+def fixture_main(monkeypatch: t.Any) -> t.Any:
     """Pass patched commandline arguments to package's main function.
 
     :param monkeypatch: Mock patch environment and attributes.
@@ -139,7 +141,7 @@ def fixture_main(monkeypatch: Any) -> Any:
 
 
 @pytest.fixture(name="call_status")
-def fixture_call_status() -> Any:
+def fixture_call_status() -> t.Any:
     """Disable all usage of function apart from selected returncode.
 
     Useful for processes programmed to return a value for the function
@@ -148,7 +150,7 @@ def fixture_call_status() -> Any:
     :return: Function for using this fixture.
     """
 
-    def _call_status(module: str, returncode: int = 0) -> Any:
+    def _call_status(module: str, returncode: int = 0) -> t.Any:
         def _func(*_, **__) -> int:
             return returncode
 
@@ -159,7 +161,7 @@ def fixture_call_status() -> Any:
 
 
 @pytest.fixture(name="patch_sp_call")
-def fixture_patch_sp_call(monkeypatch: Any) -> Any:
+def fixture_patch_sp_call(monkeypatch: t.Any) -> t.Any:
     """Mock ``Subprocess.call``.
 
     Print the command that is being run.
@@ -168,7 +170,7 @@ def fixture_patch_sp_call(monkeypatch: Any) -> Any:
     :return:            Function for using this fixture.
     """
 
-    def _patch_sp_call(func: Any, returncode: int = 0) -> Any:
+    def _patch_sp_call(func: t.Any, returncode: int = 0) -> t.Any:
         def call(*args: str, **kwargs: bool) -> int:
             func(*args, **kwargs)
 
@@ -180,7 +182,7 @@ def fixture_patch_sp_call(monkeypatch: Any) -> Any:
 
 
 @pytest.fixture(name="patch_sp_output")
-def fixture_patch_sp_output(patch_sp_call: Any) -> Any:
+def fixture_patch_sp_output(patch_sp_call: t.Any) -> t.Any:
     """Patch ``Subprocess``.
 
     Return test strings to ``self.stdout``.
@@ -191,7 +193,7 @@ def fixture_patch_sp_output(patch_sp_call: Any) -> Any:
     def _patch_sp_output(*stdout: str) -> None:
         _stdout = list(stdout)
 
-        def _call(self, *_: Any, **__: Any) -> None:
+        def _call(self, *_: t.Any, **__: t.Any) -> None:
             """Mock call to do nothing except send the expected stdout
             to self."""
             self._stdout.append(  # pylint: disable=protected-access
@@ -204,13 +206,13 @@ def fixture_patch_sp_output(patch_sp_call: Any) -> Any:
 
 
 @pytest.fixture(name="make_tree")
-def fixture_make_tree() -> Any:
+def fixture_make_tree() -> t.Any:
     """Recursively create directory tree from dict mapping.
 
     :return: Function for using this fixture.
     """
 
-    def _make_tree(root: Path, obj: Dict[Any, Any]) -> None:
+    def _make_tree(root: Path, obj: t.Dict[t.Any, t.Any]) -> None:
         for key, value in obj.items():
             fullpath = root / key
             if isinstance(value, dict):
@@ -238,7 +240,7 @@ def fixture_init_remote() -> None:
 
 
 @pytest.fixture(name="patch_sp_print_called")
-def fixture_patch_sp_print_called(patch_sp_call: Any) -> Any:
+def fixture_patch_sp_print_called(patch_sp_call: t.Any) -> t.Any:
     """Mock ``Subprocess.call``to print the command that is being run.
 
     :param patch_sp_call:   Mock ``Subprocess.call`` by injecting a new
@@ -246,8 +248,8 @@ def fixture_patch_sp_print_called(patch_sp_call: Any) -> Any:
     :return:                Function for using this fixture.
     """
 
-    def _patch_sp_print_called() -> Any:
-        def _call(self, *args: str, **_: Any) -> None:
+    def _patch_sp_print_called() -> t.Any:
+        def _call(self, *args: str, **_: t.Any) -> None:
             print(f"{self} {' '.join(str(i) for i in args)}")
 
         return patch_sp_call(_call)

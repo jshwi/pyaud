@@ -9,7 +9,7 @@ All exceptions made public for if they need to be reraised or excepted.
 Exceptions are already built into the architecture but can be used in
 new plugins as well.
 """
-from typing import Optional as _Optional
+import typing as _t
 
 
 class AuditError(Exception):
@@ -19,7 +19,7 @@ class AuditError(Exception):
                 will be None.
     """
 
-    def __init__(self, cmd: _Optional[str]) -> None:
+    def __init__(self, cmd: _t.Optional[str]) -> None:
         super().__init__(f"{cmd} did not pass all checks")
 
 

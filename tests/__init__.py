@@ -3,8 +3,8 @@
 Imports from ``tests.static`` and ``tests.utils``
 """
 import re
+import typing as t
 from pathlib import Path
-from typing import Any, Tuple
 
 import pyaud
 
@@ -58,7 +58,7 @@ class NoColorCapsys:
     :param capsys: Capture and return stdout and stderr stream.
     """
 
-    def __init__(self, capsys: Any) -> None:
+    def __init__(self, capsys: t.Any) -> None:
         self.capsys = capsys
 
     @staticmethod
@@ -76,7 +76,7 @@ class NoColorCapsys:
         ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
         return ansi_escape.sub("", out)
 
-    def readouterr(self) -> Tuple[str, ...]:
+    def readouterr(self) -> t.Tuple[str, ...]:
         """Call as capsys ``readouterr`` but remove ANSI color-codes.
 
         :return:    A tuple (just like the capsys) containing stdout in

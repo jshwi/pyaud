@@ -47,13 +47,8 @@ import logging as _logging
 import logging.config as _logging_config
 import os as _os
 import shutil as _shutil
+import typing as _t
 from pathlib import Path as _Path
-from typing import Any as _Any
-from typing import Dict as _Dict
-from typing import MutableMapping as _ABCMutableMapping
-from typing import Optional as _Optional
-from typing import TextIO as _TextIO
-from typing import Union as _Union
 
 import appdirs as _appdirs
 
@@ -67,7 +62,7 @@ from ._environ import NAME as _NAME
 from ._objects import MutableMapping as _MutableMapping
 
 CONFIGDIR = _Path(_appdirs.user_config_dir(_NAME))
-DEFAULT_CONFIG: _Dict[str, _Any] = dict(
+DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
     clean={"exclude": ["*.egg*", ".mypy_cache", ".env", "instance"]},
     logging={
         "version": 1,
@@ -118,7 +113,7 @@ class _TomlArrayEncoder(_toml_encoder.TomlEncoder):
     line limit.
     """
 
-    def dump_list(self, v: _Any) -> str:
+    def dump_list(self, v: _t.Any) -> str:
         """Rule for dumping arrays.
 
         :param v:   Array from toml file.
@@ -137,7 +132,7 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
 
     _encoder = _TomlArrayEncoder()
 
-    def _format_dump(self, obj: _Dict[str, _Any]) -> _Dict[str, _Any]:
+    def _format_dump(self, obj: _t.Dict[str, _t.Any]) -> _t.Dict[str, _t.Any]:
         for key, value in obj.items():
             if isinstance(value, dict):
                 value = self._format_dump(value)
@@ -150,7 +145,7 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
         return obj
 
     def dump(
-        self, fout: _TextIO, obj: _Optional[_ABCMutableMapping] = None
+        self, fout: _t.TextIO, obj: _t.Optional[_t.MutableMapping] = None
     ) -> str:
         """Native ``dump`` method to include encoder.
 
@@ -164,7 +159,7 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
             encoder=self._encoder,
         )
 
-    def dumps(self, obj: _Optional[_ABCMutableMapping] = None) -> str:
+    def dumps(self, obj: _t.Optional[_t.MutableMapping] = None) -> str:
         """Native ``dump(from)s(tr)`` method to include encoder.
 
         :param obj: Mutable mapping dict-like object.
@@ -175,7 +170,7 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
             encoder=self._encoder,
         )
 
-    def load(self, fin: _TextIO, *args: _Any) -> None:
+    def load(self, fin: _t.TextIO, *args: _t.Any) -> None:
         """Native ``load (from file)`` method.
 
         :param fin: File stream.
@@ -188,10 +183,10 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
 
 
 def _recursive_update(
-    current: _ABCMutableMapping, default: _ABCMutableMapping
-) -> _ABCMutableMapping:
+    current: _t.MutableMapping, default: _t.MutableMapping
+) -> _t.MutableMapping:
     for key, value in default.items():
-        if isinstance(value, _ABCMutableMapping):
+        if isinstance(value, _t.MutableMapping):
             if key not in current:
                 current[key] = _recursive_update(current.get(key, {}), value)
         else:
@@ -232,7 +227,7 @@ def configure_global() -> None:
         toml.dump(fout)
 
 
-def load_config(opt: _Optional[_Union[str, _os.PathLike]] = None):
+def load_config(opt: _t.Optional[_t.Union[str, _os.PathLike]] = None):
     """Load configs in order, each one overriding the previous.
 
     :param opt: Optional extra path which will override all others.
@@ -253,7 +248,7 @@ def load_config(opt: _Optional[_Union[str, _os.PathLike]] = None):
                 toml.load(fin, "tool", _NAME)
 
 
-def _extract_logger(default: _Dict[str, _Any]) -> _logging.Logger:
+def _extract_logger(default: _t.Dict[str, _t.Any]) -> _logging.Logger:
     # return the logging object
     parts = default["class"].split(".")
     module = _importlib.import_module(".".join(parts[:-1]))
@@ -261,8 +256,8 @@ def _extract_logger(default: _Dict[str, _Any]) -> _logging.Logger:
 
 
 def _filter_default(
-    default: _Dict[str, _Any], logger: _logging.Logger
-) -> _Dict[str, _Any]:
+    default: _t.Dict[str, _t.Any], logger: _logging.Logger
+) -> _t.Dict[str, _t.Any]:
     # filter out any invalid kwargs for logging config
 
     # this will be invalid, so re-add after

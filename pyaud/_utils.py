@@ -12,18 +12,12 @@ import logging as _logging
 import os as _os
 import shutil as _shutil
 import sys as _sys
+import typing as _t
 from pathlib import Path as _Path
 from subprocess import PIPE as _PIPE
 from subprocess import CalledProcessError as _CalledProcessError
 from subprocess import Popen as _Popen
 from subprocess import check_output as _sp_out
-from typing import Any as _Any
-from typing import Iterable as _Iterable
-from typing import List as _List
-from typing import MutableSequence as _ABCMutableSequence
-from typing import Optional as _Optional
-from typing import Tuple as _Tuple
-from typing import Union as _Union
 
 import setuptools as _setuptools
 from object_colors import Color as _Color
@@ -82,8 +76,8 @@ class Subprocess:
         self,
         exe: str,
         loglevel: str = "error",
-        commands: _Optional[_Iterable[str]] = None,
-        **kwargs: _Union[bool, str],
+        commands: _t.Optional[_t.Iterable[str]] = None,
+        **kwargs: _t.Union[bool, str],
     ) -> None:
         if not _shutil.which(exe):
             raise _CommandNotFoundError(exe)
@@ -99,14 +93,14 @@ class Subprocess:
                 )
 
         self._kwargs = kwargs
-        self._stdout: _ABCMutableSequence[str] = _STDOut()
-        self.args: _Tuple[str, ...] = ()
+        self._stdout: _t.MutableSequence[str] = _STDOut()
+        self.args: _t.Tuple[str, ...] = ()
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} ({self._exe})>"
 
     def _handle_stdout(
-        self, pipeline: _Popen, **kwargs: _Union[bool, str]
+        self, pipeline: _Popen, **kwargs: _t.Union[bool, str]
     ) -> None:
         if pipeline.stdout is not None:
             for line in iter(pipeline.stdout.readline, b""):
@@ -132,7 +126,7 @@ class Subprocess:
                 line.decode("utf-8", "ignore").strip()
             )
 
-    def _open_process(self, *args: str, **kwargs: _Union[bool, str]) -> int:
+    def _open_process(self, *args: str, **kwargs: _t.Union[bool, str]) -> int:
         # open process with ``subprocess.Popen``
         # pipe stream depending on the keyword arguments provided
         # Log errors to file regardless
@@ -144,7 +138,7 @@ class Subprocess:
         self._handle_stderr(pipeline)
         return pipeline.wait()
 
-    def call(self, *args: _Any, **kwargs: _Any) -> int:
+    def call(self, *args: str, **kwargs: bool) -> int:
         """Call command. Open process with ``subprocess.Popen``.
 
         Pipe stream depending on the keyword arguments provided to
@@ -179,7 +173,7 @@ class Subprocess:
 
         return returncode
 
-    def stdout(self) -> _ABCMutableSequence[str]:
+    def stdout(self) -> _t.MutableSequence[str]:
         """Consume accrued stdout by returning the lines of output.
 
         Assign new container to ``_stdout``.
@@ -204,7 +198,7 @@ class _Git(Subprocess):
         ]
         super().__init__("git", commands=self.commands, loglevel="debug")
 
-    def call(self, *args: _Any, **kwargs: _Any) -> int:
+    def call(self, *args: str, **kwargs: bool) -> int:
         """Call partial git command instantiated in superclass.
 
         :param args:                    Command's positional arguments.
@@ -244,8 +238,8 @@ class HashCap:
 
     def __init__(self, file: _Path) -> None:
         self.file = file
-        self.before: _Optional[str] = None
-        self.after: _Optional[str] = None
+        self.before: _t.Optional[str] = None
+        self.after: _t.Optional[str] = None
         self.compare = False
         self.new = not self.file.is_file()
         if not self.new:
@@ -271,7 +265,9 @@ class HashCap:
     def __enter__(self) -> HashCap:
         return self
 
-    def __exit__(self, exc_type: _Any, exc_val: _Any, exc_tb: _Any) -> None:
+    def __exit__(
+        self, exc_type: _t.Any, exc_val: _t.Any, exc_tb: _t.Any
+    ) -> None:
         try:
             self.after = self._hash_file()
         except FileNotFoundError:
@@ -280,7 +276,7 @@ class HashCap:
         self.compare = self._compare()
 
 
-def branch() -> _Optional[str]:
+def branch() -> _t.Optional[str]:
     """Return current Git branch if in Git repository.
 
     :return: Checked out branch or None if no parent commit or repo.
@@ -300,7 +296,7 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
 
     def __init__(self) -> None:
         super().__init__()
-        self._exclude: _List[str] = []
+        self._exclude: _t.List[str] = []
 
     def add_exclusions(self, *exclusions: str) -> None:
         """Add iterable of str objects to exclude from indexing.
@@ -327,7 +323,7 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
             )
         )
 
-    def reduce(self) -> _List[_Path]:
+    def reduce(self) -> _t.List[_Path]:
         """Get all relevant python files starting from project root.
 
         :return:    List of project's Python file index, reduced to
@@ -344,7 +340,7 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
             )
         )
 
-    def args(self, reduce: bool = False) -> _Tuple[str, ...]:
+    def args(self, reduce: bool = False) -> _t.Tuple[str, ...]:
         """Return tuple suitable to be run with starred expression.
 
         :param reduce:  :func:`~pyaud.utils._Tree.reduce`
@@ -359,7 +355,7 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
         )
 
 
-def get_packages() -> _List[str]:
+def get_packages() -> _t.List[str]:
     """Return list of Python package names currently in project.
 
     Prevent dot separated subdirectories (import syntax) as args are
