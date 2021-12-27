@@ -1283,3 +1283,43 @@ def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     main("audit")
     actual = json.loads(datafile.read_text(encoding="utf-8"))
     assert all(i in actual for i in expected)
+
+
+def test_del_key_config_runtime(main: t.Any) -> None:
+    """Test a key can be removed and will be replaced if essential.
+
+    :param main: Patch package entry point.
+    """
+    tomlfile = Path.home() / pyaud.config.CONFIGDIR / pyaud.config._TOMLFILE
+
+    # check config file for essential key
+    with open(tomlfile, encoding="utf-8") as fin:
+        pyaud.config.toml.load(fin)
+
+    assert "filename" in pyaud.config.toml["logging"]["handlers"]["default"]
+
+    del pyaud.config.toml["logging"]["handlers"]["default"]["filename"]
+
+    with open(tomlfile, "w", encoding="utf-8") as fout:
+        pyaud.config.toml.dump(fout)
+
+    # check config file to confirm essential key was removed
+    with open(tomlfile, encoding="utf-8") as fin:
+        pyaud.config.toml.load(fin)
+
+    assert (
+        "filename" not in pyaud.config.toml["logging"]["handlers"]["default"]
+    )
+
+    with open(tomlfile, "w", encoding="utf-8") as fout:
+        pyaud.config.toml.dump(fout)
+
+    pyaud.config.configure_global()
+    main("format")
+
+    # confirm after running main that no crash occurred and that the
+    # essential key was replaced with a default
+    with open(tomlfile, encoding="utf-8") as fin:
+        pyaud.config.toml.load(fin)
+
+    assert "filename" in pyaud.config.toml["logging"]["handlers"]["default"]

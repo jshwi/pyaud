@@ -182,19 +182,6 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
         self.update(obj)
 
 
-def _recursive_update(
-    current: _t.MutableMapping, default: _t.MutableMapping
-) -> _t.MutableMapping:
-    for key, value in default.items():
-        if isinstance(value, _t.MutableMapping):
-            if key not in current:
-                current[key] = _recursive_update(current.get(key, {}), value)
-        else:
-            current[key] = value
-
-    return current
-
-
 def configure_global() -> None:
     """Setup object with default config settings.
 
@@ -207,6 +194,7 @@ def configure_global() -> None:
     configfile = CONFIGDIR / _TOMLFILE
     backupfile = CONFIGDIR / f".{_TOMLFILE}.bak"
     default_config = _copy.deepcopy(DEFAULT_CONFIG)
+    toml.update(default_config)
     if configfile.is_file():
         while True:
             with open(configfile, encoding="utf-8") as fin:
@@ -221,7 +209,6 @@ def configure_global() -> None:
                     else:
                         break
 
-    toml.update(_recursive_update(toml, default_config))
     CONFIGDIR.mkdir(exist_ok=True, parents=True)
     with open(configfile, "w", encoding="utf-8") as fout:
         toml.dump(fout)
