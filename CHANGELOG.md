@@ -11,12 +11,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [3.2.10](https://github.com/jshwi/pyaud/releases/tag/v3.2.10) - 2021-11-14
 ------------------------------------------------------------------------
 ### Fixed
-Fixes `pyaud generate-rcfile` when piping to file
+- Fixes `pyaud generate-rcfile` when piping to file
 
 [3.2.9](https://github.com/jshwi/pyaud/releases/tag/v3.2.9) - 2021-11-08
 ------------------------------------------------------------------------
 ### Fixed
-Bypasses `TypeError` when configuring logger
+- Bypasses `TypeError` when configuring logger
 
 [3.2.8](https://github.com/jshwi/pyaud/releases/tag/v3.2.8) - 2021-10-25
 ------------------------------------------------------------------------
