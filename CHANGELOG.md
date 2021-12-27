@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.2.10...HEAD)
 ------------------------------------------------------------------------
+### Fixed
+- Fixes up context classes
 
 [3.2.10](https://github.com/jshwi/pyaud/releases/tag/v3.2.10) - 2021-11-14
 ------------------------------------------------------------------------

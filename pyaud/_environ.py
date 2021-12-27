@@ -4,6 +4,8 @@ pyaud.environ
 
 Set up the environment variables for the current project.
 """
+from __future__ import annotations
+
 import os as _os
 from collections.abc import MutableMapping as _MutableMapping
 from pathlib import Path as _Path
@@ -65,11 +67,11 @@ class TempEnvVar:
 
     def __init__(self, obj: _MutableMapping, **kwargs: _Any) -> None:
         self._obj = obj
-        self._kwargs = kwargs
         self._default = {k: obj.get(k) for k in kwargs}
+        self._obj.update(kwargs)
 
-    def __enter__(self) -> None:
-        self._obj.update(self._kwargs)
+    def __enter__(self) -> TempEnvVar:
+        return self
 
     def __exit__(self, exc_type: _Any, exc_val: _Any, exc_tb: _Any) -> None:
         for key, value in self._default.items():

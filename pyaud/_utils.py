@@ -248,6 +248,8 @@ class HashCap:
         self.after: _Optional[str] = None
         self.compare = False
         self.new = not self.file.is_file()
+        if not self.new:
+            self.before = self._hash_file()
 
     def _hash_file(self) -> str:
         """Open the files and inspect it to get its hash.
@@ -267,9 +269,6 @@ class HashCap:
         return self.before == self.after
 
     def __enter__(self) -> HashCap:
-        if not self.new:
-            self.before = self._hash_file()
-
         return self
 
     def __exit__(self, exc_type: _Any, exc_val: _Any, exc_tb: _Any) -> None:
