@@ -13,7 +13,7 @@ from . import _data
 from . import exceptions as _exceptions
 from ._environ import CACHEDIR as _CACHEDIR
 from ._environ import DATADIR as _DATADIR
-from ._indexing import HashMapping as _Hashed
+from ._indexing import HashMapping as _HashMapping
 from ._indexing import IndexedState as _IndexedState
 from ._indexing import files as _files
 from ._objects import BasePlugin as _BasePlugin
@@ -102,7 +102,7 @@ class ClassDecorator:
         cache_file = _CACHEDIR / self.FILE_HASHES
         package = _package()
         commit = _get_commit_hash()
-        hashed = _Hashed(cache_file, package, self._cls, commit)
+        hashed = _HashMapping(cache_file, package, self._cls, commit)
         if not _working_tree_clean():
             hashed.tag("uncommitted")
 

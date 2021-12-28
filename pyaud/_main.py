@@ -11,7 +11,7 @@ from argparse import ArgumentParser as _ArgumentParser
 from . import _data
 from . import config as _config
 from . import plugins as _plugins
-from ._environ import DATADIR
+from ._environ import DATADIR as _DATADIR
 from ._environ import NAME as _NAME
 from ._environ import initialize_dirs as _initialize_dirs
 from ._environ import load_namespace as _load_namespace
@@ -194,7 +194,7 @@ def main() -> None:
     parser = _Parser(_colors.cyan.get(_NAME))
     _load_namespace()
     _initialize_dirs()
-    _data.read(_data.record, DATADIR / _data.DURATIONS)
+    _data.read(_data.record, _DATADIR / _data.DURATIONS)
     _config.load_config(parser.args.rcfile)
     _config.configure_logging(parser.args.verbose)
     _files.add_exclusions(*_config.toml["indexing"]["exclude"])

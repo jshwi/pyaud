@@ -17,9 +17,8 @@ from subprocess import Popen as _Popen
 from subprocess import check_output as _sp_out
 
 from . import config as _config
+from . import exceptions as _exceptions
 from ._objects import MutableSequence as _MutableSequence
-from .exceptions import CommandNotFoundError as _CommandNotFoundError
-from .exceptions import NotARepositoryError as _NotARepositoryError
 
 
 class _STDOut(_MutableSequence):
@@ -114,7 +113,7 @@ class Subprocess:
         # Log errors to file regardless
         # wait for process to finish and return it's exit-code
         if not self.is_command:
-            raise _CommandNotFoundError(self._exe)
+            raise _exceptions.CommandNotFoundError(self._exe)
 
         pipeline = _Popen(  # pylint: disable=consider-using-with
             [self._exe, *args], stdout=_PIPE, stderr=_PIPE
@@ -206,7 +205,7 @@ class _Git(Subprocess):
 
             except _CalledProcessError as err:
                 if not git_dir.is_dir():
-                    raise _NotARepositoryError from err
+                    raise _exceptions.NotARepositoryError from err
 
                 raise err
 

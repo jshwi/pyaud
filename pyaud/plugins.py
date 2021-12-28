@@ -7,7 +7,7 @@ Main module used for public API.
 from __future__ import annotations
 
 import importlib as _importlib
-import inspect
+import inspect as _inspect
 import os as _os
 import sys as _sys
 import typing as _t
@@ -411,7 +411,7 @@ class _Plugins(_MutableMapping):  # pylint: disable=too-many-ancestors
         if name in self:
             raise _exceptions.NameConflictError(plugin.__name__, name)
 
-        mro = tuple(p.__name__ for p in inspect.getmro(plugin))
+        mro = tuple(p.__name__ for p in _inspect.getmro(plugin))
         if not hasattr(plugin, "__bases__") or not any(
             i in PLUGIN_NAMES for i in mro
         ):

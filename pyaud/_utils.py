@@ -13,10 +13,8 @@ import setuptools as _setuptools
 from object_colors import Color as _Color
 
 from . import config as _config
+from . import exceptions as _exceptions
 from ._subprocess import git as _git
-from .exceptions import (
-    PythonPackageNotFoundError as _PythonPackageNotFoundError,
-)
 
 colors = _Color()
 colors.populate_colors()
@@ -62,7 +60,7 @@ def get_packages() -> _t.List[str]:
         )
     )
     if not packages:
-        raise _PythonPackageNotFoundError("no packages found")
+        raise _exceptions.PythonPackageNotFoundError("no packages found")
 
     packages.sort()
     return packages
@@ -97,7 +95,9 @@ def package() -> str:
         return repo
 
     # if none of the above criteria is met then raise
-    raise _PythonPackageNotFoundError("cannot determine primary package")
+    raise _exceptions.PythonPackageNotFoundError(
+        "cannot determine primary package"
+    )
 
 
 def get_commit_hash() -> _t.Optional[str]:

@@ -1317,7 +1317,7 @@ def test_call_m2r_on_markdown(
     path.touch()
     tracker = Tracker()
     tracker.return_values.append("rst text")
-    monkeypatch.setattr("pyaud.parsers.m2r.parse_from_file", tracker.call)
+    monkeypatch.setattr("pyaud.parsers._m2r.parse_from_file", tracker.call)
     main("docs")
     assert tracker.called
 
