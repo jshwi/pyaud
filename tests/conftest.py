@@ -44,7 +44,6 @@ def fixture_mock_environment(
     # ensure no real .env file interferes with tests
     # patch ``setuptools.find_package`` to return package as existing
     monkeypatch.setattr("os.getcwd", lambda: str(tmp_path / REPO))
-    monkeypatch.setattr("dotenv.find_dotenv", lambda: str(Path.cwd() / ".env"))
     monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [REPO])
 
     # patch pyaud attributes
@@ -56,23 +55,23 @@ def fixture_mock_environment(
     monkeypatch.setattr(
         "pyaud.config.CONFIGDIR", tmp_path / ".config" / pyaud.__name__
     )
-    data_dir = Path.home() / ".local" / "share" / pyaud.__name__
-    cache_dir = Path.home() / ".cache" / pyaud.__name__
-    monkeypatch.setattr("pyaud._wraps._DATADIR", data_dir)
-    monkeypatch.setattr("pyaud._environ.DATADIR", data_dir)
-    monkeypatch.setattr("pyaud._wraps._CACHEDIR", cache_dir)
-    monkeypatch.setattr("pyaud._environ.CACHEDIR", cache_dir)
 
     # load default key-value pairs
     # ============================
     # monkeypatch implemented on prefixes and override other
     # noinspection PyProtectedMember
-    pyaud.load_namespace()  # pylint: disable=protected-access
     monkeypatch.setenv("PYAUD_GH_NAME", GH_NAME)
     monkeypatch.setenv("PYAUD_GH_EMAIL", GH_EMAIL)
     monkeypatch.setenv("PYAUD_GH_TOKEN", GH_TOKEN)
     monkeypatch.setenv("CODECOV_TOKEN", "")
+    monkeypatch.delenv("CODECOV_TOKEN")
     monkeypatch.setenv("PYAUD_GH_REMOTE", str(Path.home() / "origin.git"))
+    monkeypatch.setenv(
+        "PYAUD_DATADIR", str(Path.home() / ".local" / "share" / pyaud.__name__)
+    )
+    monkeypatch.setenv(
+        "PYAUD_CACHEDIR", str(Path.home() / ".cache" / pyaud.__name__)
+    )
 
     # prepare test locations
     # ======================
@@ -271,7 +270,7 @@ def fixture_init_remote() -> None:
     :return: Function for using this fixture.
     """
     pyaud.git.init(  # type: ignore
-        "--bare", Path(os.environ["PYAUD_GH_REMOTE"]), devnull=True
+        "--bare", pyaud.environ.GH_REMOTE, devnull=True
     )
     pyaud.git.remote("add", "origin", "origin", devnull=True)  # type: ignore
 

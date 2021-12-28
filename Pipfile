@@ -9,6 +9,7 @@ black = "==21.12b0"
 codecov = "==2.1.12"
 coverage = {extras = ["toml"], version = "==6.2"}
 docformatter = "==1.4"
+environs = "==9.3.5"
 flynt = "==0.69"
 isort = "==5.10.1"
 m2r = "==0.2.1"

@@ -16,7 +16,6 @@ import typing as t
 from pathlib import Path
 from subprocess import CalledProcessError
 
-import dotenv
 import pytest
 
 import pyaud
@@ -341,15 +340,14 @@ def test_gen_default_remote(monkeypatch: pytest.MonkeyPatch) -> None:
     :param monkeypatch: Mock patch environment and attributes.
     """
     monkeypatch.delenv("PYAUD_GH_REMOTE")
-    with open(dotenv.find_dotenv(), "w", encoding="utf-8") as fout:
+    with open(Path.cwd() / ".env", "w", encoding="utf-8") as fout:
         fout.write(f"PYAUD_GH_NAME={GH_NAME}\n")
         fout.write(f"PYAUD_GH_EMAIL={GH_EMAIL}\n")
         fout.write(f"PYAUD_GH_TOKEN={GH_TOKEN}\n")
 
     # noinspection PyProtectedMember
-    pyaud._environ.load_namespace()  # pylint: disable=protected-access
     assert (
-        os.environ["PYAUD_GH_REMOTE"]
+        pyaud.environ.GH_REMOTE
         == f"https://{GH_NAME}:{GH_TOKEN}@github.com/{GH_NAME}/{REPO}.git"
     )
 
@@ -1196,7 +1194,7 @@ def test_restore_data_no_json() -> None:
     """
     path = Path(
         Path.cwd()
-        / pyaud._environ.DATADIR
+        / pyaud.environ.DATADIR
         / pyaud._wraps.ClassDecorator.DURATIONS
     )
     path.touch()
@@ -1228,7 +1226,7 @@ def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     times = [1, 5, 2, 3, 1, 0]
     configfile = pyaud.config.CONFIGDIR / "pyaud.toml"
     # noinspection PyUnresolvedReferences
-    datafile = pyaud._environ.DATADIR / "durations.json"
+    datafile = pyaud.environ.DATADIR / "durations.json"
     monkeypatch.setattr("pyaud._wraps._package", lambda: REPO)
     monkeypatch.setattr("pyaud._data._time", times.pop)
     expected = {

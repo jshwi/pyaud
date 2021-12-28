@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="pyaud._environ" pattern="file:pyaud/_environ.py" />
+</component>

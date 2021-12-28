@@ -11,8 +11,7 @@ import warnings as _warnings
 
 from . import _data
 from . import exceptions as _exceptions
-from ._environ import CACHEDIR as _CACHEDIR
-from ._environ import DATADIR as _DATADIR
+from ._environ import environ as _environ
 from ._indexing import HashMapping as _HashMapping
 from ._indexing import IndexedState as _IndexedState
 from ._indexing import files as _files
@@ -78,11 +77,11 @@ class ClassDecorator:
         def _wrapper(*args: str, **kwargs: bool) -> int:
             package = _package()
             with _data.record.track(
-                package, str(self._cls), _DATADIR / "durations.json"
+                package, str(self._cls), _environ.DATADIR / "durations.json"
             ) as time_keeper:
                 returncode = func(*args, **kwargs)
 
-            _data.write(_data.record, _DATADIR / _data.DURATIONS)
+            _data.write(_data.record, _environ.DATADIR / _data.DURATIONS)
             logged_time = "{}: Execution time: {}s; Average time: {}s".format(
                 self._cls.__name__,
                 time_keeper.elapsed(),
@@ -99,7 +98,7 @@ class ClassDecorator:
     def _cache_files(
         self, func: _t.Callable[..., int], *args: str, **kwargs: bool
     ) -> int:
-        cache_file = _CACHEDIR / self.FILE_HASHES
+        cache_file = _environ.CACHEDIR / self.FILE_HASHES
         package = _package()
         commit = _get_commit_hash()
         hashed = _HashMapping(cache_file, package, self._cls, commit)

@@ -1,6 +1,6 @@
 """Plugin architecture for auditing Python packages."""
 from . import config, exceptions, parsers, plugins
-from ._environ import load_namespace
+from ._environ import environ
 from ._indexing import files
 from ._objects import BasePlugin
 from ._subprocess import git
@@ -18,12 +18,12 @@ __all__ = [
     "__version__",
     "branch",
     "config",
+    "environ",
     "exceptions",
     "files",
     "get_commit_hash",
     "get_packages",
     "git",
-    "load_namespace",
     "package",
     "parsers",
     "plugins",

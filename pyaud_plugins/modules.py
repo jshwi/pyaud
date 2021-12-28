@@ -119,9 +119,9 @@ class DeployCov(  # pylint: disable=too-few-public-methods
         return [self.codecov]
 
     def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-        coverage_xml = Path.cwd() / os.environ["PYAUD_COVERAGE_XML"]
+        coverage_xml = Path.cwd() / pyaud.environ.COVERAGE_XML
         if coverage_xml.is_file():
-            if os.environ["CODECOV_TOKEN"] != "":
+            if pyaud.environ.CODECOV_TOKEN is not None:
                 self.subprocess[self.codecov].call(
                     "--file", Path.cwd() / coverage_xml, **kwargs
                 )
@@ -147,7 +147,7 @@ class DeployDocs(
 
     def deploy_docs(self) -> None:
         """Series of functions for deploying docs."""
-        gh_remote = os.environ["PYAUD_GH_REMOTE"]
+        gh_remote = pyaud.environ.GH_REMOTE
         root_html = Path.cwd() / "html"
         pyaud.git.add(".")  # type: ignore
         pyaud.git.diff_index("--cached", "HEAD", capture=True)  # type: ignore
@@ -157,7 +157,7 @@ class DeployDocs(
             stashed = True
 
         shutil.move(
-            str(Path.cwd() / os.environ["BUILDDIR"] / "html"), root_html
+            str(Path.cwd() / pyaud.environ.BUILDDIR / "html"), root_html
         )
         shutil.copy(Path.cwd() / README, root_html / README)
         pyaud.git.rev_list(  # type: ignore
@@ -169,10 +169,10 @@ class DeployDocs(
 
         pyaud.git.checkout("--orphan", "gh-pages")  # type: ignore
         pyaud.git.config(  # type: ignore
-            "--global", "user.name", os.environ["PYAUD_GH_NAME"]
+            "--global", "user.name", pyaud.environ.GH_NAME
         )
         pyaud.git.config(  # type: ignore
-            "--global", "user.email", os.environ["PYAUD_GH_EMAIL"]
+            "--global", "user.email", pyaud.environ.GH_EMAIL
         )
         shutil.rmtree(Path.cwd() / DOCS)
         pyaud.git.rm("-rf", Path.cwd(), devnull=True)  # type: ignore
@@ -215,15 +215,13 @@ class DeployDocs(
 
     def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
         if pyaud.branch() == "master":
-            git_credentials = [
-                "PYAUD_GH_NAME",
-                "PYAUD_GH_EMAIL",
-                "PYAUD_GH_TOKEN",
+            git_credentials = ["GH_NAME", "GH_EMAIL", "GH_TOKEN"]
+            null_vals = [
+                k for k in git_credentials if getattr(pyaud.environ, k) is None
             ]
-            null_vals = [k for k in git_credentials if os.environ[k] == ""]
             if not null_vals:
                 if not Path(
-                    Path.cwd() / os.environ["BUILDDIR"] / "html"
+                    Path.cwd() / pyaud.environ.BUILDDIR / "html"
                 ).is_dir():
                     pyaud.plugins.get("docs")(**kwargs)
 
@@ -231,7 +229,7 @@ class DeployDocs(
             else:
                 print("The following is not set:")
                 for null_val in null_vals:
-                    print(f"- {null_val}")
+                    print(f"- {pyaud.environ.PREFIX}{null_val}")
 
                 print()
                 print(self._pushing_skipped)
@@ -260,7 +258,7 @@ class Docs(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
         pyaud.plugins.get("toc")(*args, **kwargs)
         readme_rst = "README"
         underline = len(readme_rst) * "="
-        build_dir = Path.cwd() / os.environ["BUILDDIR"]
+        build_dir = Path.cwd() / pyaud.environ.BUILDDIR
         if build_dir.is_dir():
             shutil.rmtree(build_dir)
 
@@ -355,7 +353,7 @@ class Requirements(pyaud.plugins.Write):
 
     @property
     def path(self) -> Path:
-        return Path.cwd() / os.environ["PYAUD_REQUIREMENTS"]
+        return Path.cwd() / pyaud.environ.REQUIREMENTS
 
     def required(self) -> Path:
         return Path.cwd() / "Pipfile.lock"
@@ -536,7 +534,7 @@ class Unused(pyaud.plugins.Fix):
         return [self.vulture]
 
     def audit(self, *args: t.Any, **kwargs: bool) -> t.Any:
-        whitelist = Path.cwd() / os.environ["PYAUD_WHITELIST"]
+        whitelist = Path.cwd() / pyaud.environ.WHITELIST
         args = tuple([*pyaud.files.args(reduce=True), *args])
         if whitelist.is_file():
             args = str(whitelist), *args
@@ -564,7 +562,7 @@ class Whitelist(pyaud.plugins.Write):
 
     @property
     def path(self) -> Path:
-        return Path.cwd() / os.environ["PYAUD_WHITELIST"]
+        return Path.cwd() / pyaud.environ.WHITELIST
 
     def write(self, *args: t.Any, **kwargs: bool) -> t.Any:
         # append whitelist exceptions for each individual module

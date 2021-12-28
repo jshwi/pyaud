@@ -11,10 +11,8 @@ from argparse import ArgumentParser as _ArgumentParser
 from . import _data
 from . import config as _config
 from . import plugins as _plugins
-from ._environ import DATADIR as _DATADIR
-from ._environ import NAME as _NAME
+from ._environ import environ as _environ
 from ._environ import initialize_dirs as _initialize_dirs
-from ._environ import load_namespace as _load_namespace
 from ._indexing import files as _files
 from ._utils import colors as _colors
 from ._version import __version__
@@ -131,7 +129,9 @@ class _Parser(_ArgumentParser):
         # print summary of module use if no module is selected or an
         # invalid module name os provided
         _colors.yellow.print(
-            f"{_NAME} modules [<module> | all] for more on each module\n"
+            "{} modules [<module> | all] for more on each module\n".format(
+                _environ.NAME
+            )
         )
         print(
             "modules = {}".format(
@@ -190,11 +190,11 @@ def main() -> None:
     dictionary of functions which matches the key.
     """
     _version_request()
+    _environ.read_env()
     _plugins.load()
-    parser = _Parser(_colors.cyan.get(_NAME))
-    _load_namespace()
+    parser = _Parser(_colors.cyan.get(_environ.NAME))
     _initialize_dirs()
-    _data.read(_data.record, _DATADIR / _data.DURATIONS)
+    _data.read(_data.record, _environ.DATADIR / _data.DURATIONS)
     _config.load_config(parser.args.rcfile)
     _config.configure_logging(parser.args.verbose)
     _files.add_exclusions(*_config.toml["indexing"]["exclude"])

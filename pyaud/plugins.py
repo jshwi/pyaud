@@ -17,9 +17,7 @@ from subprocess import CalledProcessError as _CalledProcessError
 
 from . import config as _config
 from . import exceptions as _exceptions
-from ._environ import DEFAULT_PLUGINS as _DEFAULT_PLUGINS
-from ._environ import NAME as _NAME
-from ._environ import SITE_PLUGINS as _SITE_PLUGINS
+from ._environ import environ as _environ
 from ._indexing import HashCap as _HashCap
 from ._indexing import files as _files
 from ._objects import BasePlugin as _BasePlugin
@@ -29,7 +27,10 @@ from ._utils import colors as _colors
 from ._wraps import ClassDecorator as _ClassDecorator
 from ._wraps import check_command as _check_command
 
-_plugin_paths: _t.List[_Path] = [_DEFAULT_PLUGINS, _SITE_PLUGINS]
+_plugin_paths: _t.List[_Path] = [
+    _environ.DEFAULT_PLUGINS,
+    _environ.SITE_PLUGINS,
+]
 
 
 class _SubprocessFactory(  # pylint: disable=too-many-ancestors
@@ -257,7 +258,7 @@ class Parametrize(Plugin):  # pylint: disable=too-few-public-methods
 
     def __call__(self, *args: str, **kwargs: bool) -> None:
         for name in self.plugins():
-            _colors.cyan.bold.print(f"\n{_NAME} {name}")
+            _colors.cyan.bold.print(f"\n{_environ.NAME} {name}")
             _plugins[name](*args, **kwargs)
 
 

@@ -12,6 +12,7 @@
     </inspection_tool>
     <inspection_tool class="PyPep8NamingInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <scope name="app.dom.renderers" level="WEAK WARNING" enabled="false" />
+      <scope name="pyaud._environ" level="WEAK WARNING" enabled="false" />
     </inspection_tool>
     <inspection_tool class="PyShadowingBuiltinsInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <scope name="docs.conf" level="WEAK WARNING" enabled="false">

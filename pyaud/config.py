@@ -60,10 +60,10 @@ import toml.decoder as _toml_decoder
 # noinspection PyUnresolvedReferences
 import toml.encoder as _toml_encoder
 
-from ._environ import NAME as _NAME
+from ._environ import environ as _environ
 from ._objects import MutableMapping as _MutableMapping
 
-CONFIGDIR = _Path(_appdirs.user_config_dir(_NAME))
+CONFIGDIR = _Path(_appdirs.user_config_dir(_environ.NAME))
 DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
     clean={"exclude": ["*.egg*", ".mypy_cache", ".env", "instance"]},
     logging={
@@ -81,7 +81,8 @@ DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
                 "when": "d",
                 "backupCount": 60,
                 "filename": str(
-                    _Path(_appdirs.user_log_dir(_NAME)) / f"{_NAME}.log"
+                    _Path(_appdirs.user_log_dir(_environ.NAME))
+                    / f"{_environ.NAME}.log"
                 ),
             }
         },
@@ -105,7 +106,7 @@ DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
     },
 )
 
-_TOMLFILE = f"{_NAME}.toml"
+_TOMLFILE = f"{_environ.NAME}.toml"
 
 
 class _TomlArrayEncoder(_toml_encoder.TomlEncoder):
@@ -257,7 +258,7 @@ def load_config(opt: _t.Optional[_t.Union[str, _os.PathLike]] = None):
 
     :param opt: Optional extra path which will override all others.
     """
-    rcfile = f".{_NAME}rc"
+    rcfile = f".{_environ.NAME}rc"
     files = [
         CONFIGDIR / _TOMLFILE,
         _Path.home() / rcfile,
@@ -270,7 +271,7 @@ def load_config(opt: _t.Optional[_t.Union[str, _os.PathLike]] = None):
     for file in files:
         if file.is_file():
             with open(file, encoding="utf-8") as fin:
-                toml.load(fin, "tool", _NAME)
+                toml.load(fin, "tool", _environ.NAME)
 
 
 def _extract_logger(default: _t.Dict[str, _t.Any]) -> _logging.Logger:

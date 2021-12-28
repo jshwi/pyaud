@@ -68,6 +68,7 @@ setuptools.setup(
         "codecov>=2.1.11, <=3.0.0",
         "coverage>=5.0.0, <=7.0.0",
         "docformatter>=1.4, <=2.0.0",
+        "environs>=9.0.0, <=10.0.0",
         "flynt>=0.64",
         "isort>=5.7.0, <=6.0.0",
         "m2r>=0.2.1, <=1.0.0",

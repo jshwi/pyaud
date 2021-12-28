@@ -168,7 +168,7 @@ class TestCacheStrategy:
 
     @property
     def _cache_file(self) -> Path:
-        return Path.home() / ".cache" / pyaud.__name__ / "files.json"
+        return pyaud.environ.CACHEDIR / "files.json"
 
     @staticmethod
     def _fmt(o: t.Dict[Path, str]) -> FileHashDict:

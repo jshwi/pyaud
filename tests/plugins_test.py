@@ -80,9 +80,7 @@ def test_write_command(
 
         def mock_write_whitelist(*_: t.Any, **__: t.Any) -> None:
             with open(
-                Path.cwd() / os.environ["PYAUD_WHITELIST"],
-                "w",
-                encoding="utf-8",
+                Path.cwd() / pyaud.environ.WHITELIST, "w", encoding="utf-8"
             ) as fout:
                 fout.write(content)
 
@@ -299,7 +297,7 @@ def test_make_docs_rm_cache(
     :param call_status: Patch function to return specific exit-code.
     :param make_tree: Create directory tree from dict mapping.
     """
-    builddir = Path.cwd() / os.environ["BUILDDIR"]
+    builddir = Path.cwd() / pyaud.environ.BUILDDIR
     readme = Path.cwd() / README
 
     # disable call to ``Subprocess`` to only create ./docs/_build
@@ -383,7 +381,7 @@ def test_pipfile2req_commands(
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
     """
-    requirements = Path.cwd() / os.environ["PYAUD_REQUIREMENTS"]
+    requirements = Path.cwd() / pyaud.environ.REQUIREMENTS
     pipfile_lock = Path.cwd() / PIPFILE_LOCK
     with open(pipfile_lock, "w", encoding="utf-8") as fout:
         fout.write(files.PIPFILE_LOCK)
@@ -537,7 +535,7 @@ def test_append_whitelist(
         announce what is called.
     """
     project_dir = Path.cwd()
-    whitelist = project_dir / os.environ["PYAUD_WHITELIST"]
+    whitelist = project_dir / pyaud.environ.WHITELIST
     Path(project_dir / FILES).touch()
     whitelist.touch()
     pyaud.git.add(".")  # type: ignore
@@ -670,7 +668,7 @@ def test_make_requirements(
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
     """
-    path = Path.cwd() / os.environ["PYAUD_REQUIREMENTS"]
+    path = Path.cwd() / pyaud.environ.REQUIREMENTS
     with open(Path.cwd() / PIPFILE_LOCK, "w", encoding="utf-8") as fout:
         fout.write(files.PIPFILE_LOCK)
 
@@ -699,7 +697,7 @@ def test_make_whitelist(
     :param make_tree: Create directory tree from dict mapping.
     """
     project_dir = Path.cwd()
-    whitelist = project_dir / os.environ["PYAUD_WHITELIST"]
+    whitelist = project_dir / pyaud.environ.WHITELIST
     make_tree(
         project_dir,
         {
@@ -863,6 +861,9 @@ def test_deploy_master_not_set(
     monkeypatch.setenv("PYAUD_GH_NAME", "")
     monkeypatch.setenv("PYAUD_GH_EMAIL", "")
     monkeypatch.setenv("PYAUD_GH_TOKEN", "")
+    monkeypatch.delenv("PYAUD_GH_NAME")
+    monkeypatch.delenv("PYAUD_GH_EMAIL")
+    monkeypatch.delenv("PYAUD_GH_TOKEN")
     main("deploy-docs")
     out = nocolorcapsys.stdout().splitlines()
     assert all(
@@ -896,7 +897,7 @@ def test_deploy_master(
     mock_plugins = pyaud.plugins.mapping()
 
     def _docs(*_: t.Any, **__: t.Any):
-        Path(Path.cwd() / os.environ["BUILDDIR"] / "html").mkdir(parents=True)
+        Path(Path.cwd() / pyaud.environ.BUILDDIR / "html").mkdir(parents=True)
 
     mock_plugins["docs"] = _docs  # type: ignore
     monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mock_plugins)
@@ -965,7 +966,7 @@ def test_deploy_master_param(
     mock_plugins = pyaud.plugins.mapping()
 
     def _docs(*_: t.Any, **__: t.Any) -> None:
-        Path(path / os.environ["BUILDDIR"] / "html").mkdir(parents=True)
+        Path(path / pyaud.environ.BUILDDIR / "html").mkdir(parents=True)
 
     mock_plugins["docs"] = _docs  # type: ignore
     monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mock_plugins)
@@ -1000,7 +1001,7 @@ def test_deploy_cov_report_token(
     :param patch_sp_print_called: Patch ``Subprocess.call`` to only
         announce what is called.
     """
-    Path(Path.cwd() / os.environ["PYAUD_COVERAGE_XML"]).touch()
+    Path(Path.cwd() / pyaud.environ.COVERAGE_XML).touch()
     patch_sp_print_called()
     monkeypatch.setenv("CODECOV_TOKEN", "token")
     main("deploy-cov")
@@ -1020,10 +1021,10 @@ def test_deploy_cov_no_token(
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
     """
-    Path(Path.cwd() / os.environ["PYAUD_COVERAGE_XML"]).touch()
+    Path(Path.cwd() / pyaud.environ.COVERAGE_XML).touch()
     main("deploy-cov")
     out = nocolorcapsys.stdout()
-    assert all(e in out for e in ["CODECOV_TOKEN not set"])
+    assert "CODECOV_TOKEN not set" in out
 
 
 def test_deploy_cov_no_report_token(
@@ -1187,12 +1188,10 @@ def test_make_unused_fix(
         "Updating ``{}``\n"
         "created ``whitelist.py``\n"
         "Success: no issues found in 1 source files\n".format(
-            file, Path.cwd() / os.environ["PYAUD_WHITELIST"]
+            file, Path.cwd() / pyaud.environ.WHITELIST
         )
     )
-    with open(
-        Path.cwd() / os.environ["PYAUD_WHITELIST"], encoding="utf-8"
-    ) as fin:
+    with open(Path.cwd() / pyaud.environ.WHITELIST, encoding="utf-8") as fin:
         assert fin.read().strip() == (
             "reformat_this  # unused function (repo/file.py:1)"
         )
