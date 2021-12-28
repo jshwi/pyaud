@@ -40,6 +40,8 @@ The following methods can be called with ``toml``:
 
     Load dict object from open file.
 """
+from __future__ import annotations
+
 import copy as _copy
 import importlib as _importlib
 import inspect as _inspect
@@ -180,6 +182,42 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
             obj = obj.get(arg, obj)
 
         self.update(obj)
+
+
+class TempEnvVar:
+    """Temporarily set a mutable mapping key-value pair.
+
+    Set key-value whilst working within the context manager. If key
+    already exists then change the key back to its original value. If
+    key does not already exist then delete it so the environment is
+    returned to its original state.
+
+    :param obj: Mutable mapping to temporarily change.
+    :param key: Key to temporarily change in supplied object.
+    :param value: Value to temporarily change in supplied object.
+    """
+
+    def __init__(self, obj: _t.MutableMapping, **kwargs: str) -> None:
+        self._obj = obj
+        self._default = {k: obj.get(k) for k in kwargs}
+        self._obj.update(kwargs)
+
+    def __enter__(self) -> TempEnvVar:
+        return self
+
+    def __exit__(
+        self, exc_type: _t.Any, exc_val: _t.Any, exc_tb: _t.Any
+    ) -> None:
+        for key, value in self._default.items():
+            if value is None:
+                try:
+                    del self._obj[key]
+                except KeyError:
+
+                    # in the case that key gets deleted within context
+                    pass
+            else:
+                self._obj[key] = self._default[key]
 
 
 def configure_global() -> None:

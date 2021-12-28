@@ -16,7 +16,7 @@ from subprocess import CalledProcessError as _CalledProcessError
 from subprocess import Popen as _Popen
 from subprocess import check_output as _sp_out
 
-from ._environ import TempEnvVar as _TempEnvVar
+from . import config as _config
 from ._objects import MutableSequence as _MutableSequence
 from .exceptions import CommandNotFoundError as _CommandNotFoundError
 from .exceptions import NotARepositoryError as _NotARepositoryError
@@ -195,7 +195,7 @@ class _Git(Subprocess):
         :return: Exit status.
         """
         git_dir = _Path.cwd() / ".git"
-        with _TempEnvVar(
+        with _config.TempEnvVar(
             _os.environ, GIT_WORK_TREE=str(_Path.cwd()), GIT_DIR=str(git_dir)
         ):
             if "--bare" in args:

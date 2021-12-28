@@ -240,7 +240,7 @@ def test_del_key_in_context():
     """Confirm there is no error raised when deleting temp key-value."""
     obj = {}
     # noinspection PyProtectedMember
-    with pyaud._environ.TempEnvVar(  # pylint: disable=protected-access
+    with pyaud.config.TempEnvVar(  # pylint: disable=protected-access
         obj, key="value"
     ):
         assert obj["key"] == "value"
@@ -1048,7 +1048,7 @@ def test_filter_logging_config_kwargs() -> None:
 def test_default_key() -> None:
     """Test setting and restoring of existing dict keys."""
     obj = {"default_key": "default_value"}
-    with pyaud._environ.TempEnvVar(  # pylint: disable=protected-access
+    with pyaud.config.TempEnvVar(  # pylint: disable=protected-access
         obj, default_key="temp_value"
     ):
         assert obj["default_key"] == "temp_value"
