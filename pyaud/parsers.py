@@ -49,20 +49,18 @@ class LineSwitch:
 
     def __init__(self, path: _Path, obj: _t.Dict[int, str]) -> None:
         self._path = path
-        self._obj = obj
-        with open(path, encoding="utf-8") as fin:
-            self.read = fin.read()
+        self.read = path.read_text(encoding="utf-8")
+        edit = self.read.splitlines()
+        for count, _ in enumerate(edit):
+            if count in obj:
+                edit[count] = obj[count]
 
-    def __enter__(self) -> None:
-        with open(self._path, "w", encoding="utf-8") as file:
-            for count, line in enumerate(self.read.splitlines()):
-                if count in self._obj:
-                    line = self._obj[count]
+        path.write_text("\n".join(edit), encoding="utf-8")
 
-                file.write(f"{line}\n")
+    def __enter__(self) -> LineSwitch:
+        return self
 
     def __exit__(
         self, exc_type: _t.Any, exc_val: _t.Any, exc_tb: _t.Any
     ) -> None:
-        with open(self._path, "w", encoding="utf-8") as file:
-            file.write(self.read)
+        self._path.write_text(self.read, encoding="utf-8")
