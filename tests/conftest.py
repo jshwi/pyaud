@@ -73,6 +73,7 @@ def fixture_mock_environment(
         "PYAUD_CACHEDIR", str(Path.home() / ".cache" / pyaud.__name__)
     )
     monkeypatch.setenv("PYAUD_TIMED", "0")
+    monkeypatch.setenv("PYAUD_FIX", "0")
 
     # prepare test locations
     # ======================

@@ -4,7 +4,7 @@ pyaud.environ
 
 Set up the environment variables for the current project.
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,too-many-public-methods
 import typing as _t
 from pathlib import Path as _Path
 
@@ -134,6 +134,12 @@ class _Environ(_Env):
         """Set ``timed`` to True without needing to pass arg."""
         with self.prefixed(self.PREFIX):
             return self.bool("TIMED", default=False)
+
+    @property
+    def FIX(self):
+        """Set ``fix`` to True without needing to pass arg."""
+        with self.prefixed(self.PREFIX):
+            return self.bool("FIX", default=False)
 
 
 #: package environment, both parsed from .env file (with set defaults

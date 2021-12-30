@@ -66,6 +66,7 @@ class _Parser(_ArgumentParser):
             "-f",
             "--fix",
             action="store_true",
+            default=_environ.FIX,
             help="suppress and fix all fixable issues",
         )
         self.add_argument(
