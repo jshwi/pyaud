@@ -12,5 +12,6 @@
 .secrets
 __pycache__/
 dist/
+node_modules/
 prof/
 reqlib-metadata/

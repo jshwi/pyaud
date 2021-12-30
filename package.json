@@ -1,0 +1,55 @@
+{
+  "name": "pyaud",
+  "version": "3.4.0",
+  "description": "Framework for writing Python package audits",
+  "private": true,
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "audit": "pipenv run audit",
+    "build": "pipenv run build",
+    "bump:major": "pipenv run bump:major",
+    "bump:minor": "pipenv run bump:minor",
+    "bump:patch": "pipenv run bump:patch",
+    "ci": "pipenv run audit --rcfile .github/pyaud.toml",
+    "clean": "pipenv run clean",
+    "format": "npm-run-all format:*",
+    "format:misc": "prettier -w .",
+    "format:py": "npm-run-all format:py:*",
+    "format:py:code": "pipenv run format:code",
+    "format:py:docs": "pipenv run format:docs",
+    "format:py:str": "pipenv run format:str",
+    "lint": "pipenv run lint",
+    "postbuild": "npm-run-all tar:test twine:check",
+    "prepublish": "npm run build",
+    "prepublish:test": "npm run build",
+    "publish": "pipenv run publish",
+    "publish:test": "pipenv run publish:test",
+    "tar:test": "tar tzf dist/pyaud-\"$(pipenv run version)\".tar.gz",
+    "test": "pipenv run test",
+    "twine:check": "pipenv run twine:check",
+    "types": "pipenv run typecheck"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jshwi/pyaud.git"
+  },
+  "keywords": [
+    "audit",
+    "fix",
+    "ci",
+    "python3.8"
+  ],
+  "author": "Stephen Whitlock",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jshwi/pyaud/issues"
+  },
+  "homepage": "https://jshwi.github.io/pyaud/",
+  "devDependencies": {
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.5.1"
+  }
+}
