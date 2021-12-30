@@ -131,6 +131,9 @@ def fixture_mock_environment(
     monkeypatch.setattr(
         "pyaud._indexing.HashMapping.hash_files", lambda _: None
     )
+    monkeypatch.setattr(
+        "pyaud.plugins._plugins", copy.deepcopy(pyaud.plugins._plugins)
+    )
 
     # setup singletons
     # ================
