@@ -65,6 +65,9 @@ class Plugin(_BasePlugin):  # pylint: disable=too-few-public-methods
         self.name = name
         self.subprocess = _SubprocessFactory(self.exe)
 
+    def __deepcopy__(self, name: str) -> Plugin:
+        return self
+
     @staticmethod
     def audit_error() -> _exceptions.AuditError:
         """Raise if checks have failed.

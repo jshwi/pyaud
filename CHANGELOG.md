@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.3.0...HEAD)
 ------------------------------------------------------------------------
+### Added
+- Adds deepcopy functionality to `pyaud.plugin.Plugin`
 
 [3.3.0](https://github.com/jshwi/pyaud/releases/tag/v3.3.0) - 2021-12-28
 ------------------------------------------------------------------------

@@ -1259,3 +1259,12 @@ def test_times(
     instance = plugin(class_name)
     instance()
     assert expected_averages == [end_time - start_time / len(prefilled)]
+
+
+def test_plugin_deepcopy_with_new() -> None:
+    """Test that ``TypeError`` is not raised.
+
+    No assertions run; test passes if the following is not raised:
+    TypeError: __new__() missing 1 required positional argument: 'name'
+    """
+    copy.deepcopy(pyaud.plugins._plugins)
