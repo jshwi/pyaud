@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Warns instead of crashes when command not found
 
 ### Fixed
+- `cache` set to False for `pyaud clean`
 - `pyaud docs` runs properly if using MD README instead of RST
 - Essentials config keys will be restored to their defaults if missing
 

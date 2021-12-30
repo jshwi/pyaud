@@ -54,8 +54,6 @@ class LineSwitch:
 class Clean(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
     """Remove all unversioned package files recursively."""
 
-    cache = True
-
     def action(self, *args: t.Any, **kwargs: bool) -> int:
         exclude = pyaud.config.toml["clean"]["exclude"]
         return pyaud.git.clean(  # type: ignore
