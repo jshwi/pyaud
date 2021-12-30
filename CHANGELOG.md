@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Adds deepcopy functionality to `pyaud.plugin.Plugin`
 
+### Fixed
+- Fixes time tracking with nested plugins
+
 [3.3.0](https://github.com/jshwi/pyaud/releases/tag/v3.3.0) - 2021-12-28
 ------------------------------------------------------------------------
 ### Added

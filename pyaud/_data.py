@@ -6,62 +6,80 @@ Persistent data for use between runs.
 """
 from __future__ import annotations
 
-import typing as _t
-from pathlib import Path as _Path
+import contextlib as _contextlib
+import json as _json
 from time import time as _time
 
-from ._objects import JSONIO as _JSONIO
-from ._objects import BasePlugin as _BasePlugin
+from ._objects import MutableMapping as _MutableMapping
+
+DURATIONS = "durations.json"
 
 
-class Record(_JSONIO):
-    """Record floats to objects based on calling class.
+class _TimeKeeper:
+    def __init__(self) -> None:
+        self._start_time = 0.0
+        self._end_time = self._start_time
+        self._elapsed = self._start_time
 
-    :param path: Path to data file.
-    :param project: Name of the project that this package is auditing.
-    :param cls: Audit that this class is running in.
-    """
-
-    def __init__(
-        self, path: _Path, project: str, cls: _t.Type[_BasePlugin]
-    ) -> None:
-        super().__init__(path)
-        self._cls = str(cls)
-        self._project = project
+    def start(self) -> None:
+        """Start the timer."""
         self._start_time = _time()
         self._end_time = self._start_time
-        self[self._project] = self.get(self._project, {self._cls: []})
 
-    def __enter__(self) -> Record:
-        return self
-
-    def __exit__(
-        self, exc_type: _t.Any, exc_val: _t.Any, exc_tb: _t.Any
-    ) -> None:
-        self._end_time = _time()
-        self._record(self.time())
-        self.write()
-
-    def _get_by_context(self) -> _t.List[float]:
-        # get list by the calling audit in project
-        return self.get(self._project, {self._cls: []}).get(self._cls, [])
-
-    def _record(self, item: float) -> None:
-        # record time from entry to exit
-        self[self._project][self._cls] = self._get_by_context()
-        self[self._project][self._cls].append(item)
-
-    def time(self) -> float:
+    def stop(self) -> None:
         """Record the time from entry to exit.
 
         :return: Float containing elapsed time.
         """
-        return round(self._end_time - self._start_time, 2)
+        self._end_time = _time()
+        self._elapsed = round(self._end_time - self._start_time, 2)
 
-    def average(self) -> float:
+    def elapsed(self) -> float:
+        """Return the elapsed time.
+
+        :return: The elapsed time.
+        """
+        return self._elapsed
+
+
+class Record(_MutableMapping):
+    """Record floats to objects based on calling class."""
+
+    def average(self, package: str, cls: str) -> float:
         """Get the average of all recorded times.
 
         :return: Float containing the average of elapsed times.
         """
-        items = self._get_by_context()
+        items = self.get(package, {}).get(cls, [])
         return round(sum(items) / len(items), 2)
+
+    @_contextlib.contextmanager
+    def track(self, package: str, cls: str, path):
+        """Context manager for parsing envvars with a common prefix."""
+        time_keeper = _TimeKeeper()
+        try:
+            self[package] = self.get(package, {})
+            self[package][cls] = self[package].get(cls, [])
+            time_keeper.start()
+            yield time_keeper
+        finally:
+            time_keeper.stop()
+            self[package][cls].append(time_keeper.elapsed())
+            write(self, path)
+
+
+def read(obj, path) -> None:
+    """Read from file to object."""
+    if path.is_file():
+        try:
+            obj.update(_json.loads(path.read_text()))
+        except _json.decoder.JSONDecodeError:
+            pass
+
+
+def write(obj, path) -> None:
+    """Write data to file."""
+    path.write_text(_json.dumps(dict(obj), separators=(",", ":")))
+
+
+record = Record()

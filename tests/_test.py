@@ -6,6 +6,7 @@ tests._test
 # pylint: disable=too-few-public-methods,unused-variable,protected-access
 import copy
 import datetime
+import json
 import logging
 import logging.config as logging_config
 import logging.handlers as logging_handlers
@@ -44,7 +45,6 @@ from . import (
     TYPE_ERROR,
     WARNING,
     WHITELIST_PY,
-    MockPluginType,
     NoColorCapsys,
 )
 
@@ -1220,45 +1220,13 @@ def test_restore_data_no_json() -> None:
         / pyaud._wraps.ClassDecorator.DURATIONS
     )
     path.touch()
-    time_cache = pyaud._data.Record(path, REPO, MockPluginType)
-    time_cache.read()
+    time_cache = pyaud._data.Record()
+    pyaud._data.read(time_cache, path)
 
-
-@pytest.mark.parametrize("start_time", [1, 2, 3])
-@pytest.mark.parametrize("end_time", [7, 8, 9])
-def test_times(
-    monkeypatch: pytest.MonkeyPatch, start_time: int, end_time: int
-) -> None:
-    """Test program's ability to track the length of processes.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    :param start_time: Mocked time for when the process starts.
-    :param end_time: Mocked time for when the process finishes.
-    """
-    class_name = "MockPlugin"
-    times = [end_time, start_time]
-    expected_averages = []
-    prefilled = {REPO: {class_name: [0, 0, 0]}}
-
-    # noinspection PyUnresolvedReferences
-    def read(self: pyaud._data.Record):
-        self.update(prefilled)
-
-    # noinspection PyUnresolvedReferences
-    def average(self: pyaud._data.Record) -> float:
-        items = self._get_by_context()
-        actual_average = round(sum(items) / len(items), 2)
-        expected_averages.append(actual_average)
-        return actual_average
-
-    monkeypatch.setattr("pyaud._wraps._package", lambda: REPO)
-    monkeypatch.setattr("pyaud._data._time", times.pop)
-    monkeypatch.setattr("pyaud._data.Record.average", average)
-    monkeypatch.setattr("pyaud._data.Record.read", read)
-    plugin = type(class_name, (MockPluginType,), {})
-    instance = plugin(class_name)
-    instance()
-    assert expected_averages == [end_time - start_time / len(prefilled)]
+    # short-cut for testing ``JSONIO.read`` which is basically identical
+    # to ``pyaud._data.read``
+    time_cache.path = path  # type: ignore
+    pyaud._objects.JSONIO.read(time_cache)  # type: ignore
 
 
 def test_plugin_deepcopy_with_new() -> None:
@@ -1268,3 +1236,50 @@ def test_plugin_deepcopy_with_new() -> None:
     TypeError: __new__() missing 1 required positional argument: 'name'
     """
     copy.deepcopy(pyaud.plugins._plugins)
+
+
+# noinspection PyUnusedLocal
+def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
+    """Test reading and writing of times within nested processes.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param main: Patch package entry point.
+    """
+    times = [1, 5, 2, 3, 1, 0]
+    configfile = pyaud.config.CONFIGDIR / "pyaud.toml"
+    # noinspection PyUnresolvedReferences
+    datafile = pyaud._environ.DATADIR / "durations.json"
+    monkeypatch.setattr("pyaud._wraps._package", lambda: REPO)
+    monkeypatch.setattr("pyaud._data._time", times.pop)
+    expected = {
+        "repo": {
+            "<class 'pyaud_plugins.modules.Audit'>": [1],
+            "<class 'tests._test.test_nested_times.<locals>.P1'>": [2],
+            "<class 'tests._test.test_nested_times.<locals>.P2'>": [3],
+        }
+    }
+    default_config = pyaud.config.DEFAULT_CONFIG
+    test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(default_config)
+    test_default["audit"]["modules"] = ["plugin_1", "plugin_2"]
+    with open(configfile, "w", encoding="utf-8") as fout:
+        pyaud.config.toml.dump(fout, test_default)
+
+    @pyaud.plugins.register(name="plugin_1")
+    class P1(pyaud.plugins.Action):
+        """Nothing to do."""
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            """Nothing to do."""
+
+    @pyaud.plugins.register(name="plugin_2")
+    class P2(pyaud.plugins.Action):
+        """Nothing to do."""
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            """Nothing to do."""
+
+    # noinspection PyUnresolvedReferences
+    pyaud._data.record.clear()
+    main("audit")
+    actual = json.loads(datafile.read_text(encoding="utf-8"))
+    assert all(i in actual for i in expected)

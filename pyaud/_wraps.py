@@ -8,7 +8,7 @@ import functools as _functools
 import sys as _sys
 import typing as _t
 
-from ._data import Record as _Record
+from . import _data
 from ._environ import CACHEDIR as _CACHEDIR
 from ._environ import DATADIR as _DATADIR
 from ._indexing import HashMapping as _Hashed
@@ -74,17 +74,17 @@ class ClassDecorator:
 
         @_functools.wraps(func)
         def _wrapper(*args: str, **kwargs: bool) -> int:
-            data_file = _DATADIR / self.DURATIONS
             package = _package()
-            with _Record(data_file, package, self._cls) as record:
+            with _data.record.track(
+                package, str(self._cls), _DATADIR / "durations.json"
+            ) as time_keeper:
                 returncode = func(*args, **kwargs)
 
-                # read old data in after receiving new data to ensure
-                # data isn't lost between nested runs
-                record.read()
-
+            _data.write(_data.record, _DATADIR / _data.DURATIONS)
             logged_time = "{}: Execution time: {}s; Average time: {}s".format(
-                self._cls.__name__, record.time(), record.average()
+                self._cls.__name__,
+                time_keeper.elapsed(),
+                _data.record.average(package, str(self._cls)),
             )
             self._cls.logger().info(logged_time)
             if kwargs.get("timed", False):
