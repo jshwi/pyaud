@@ -828,27 +828,6 @@ def test_called_process_error_with_git() -> None:
     )
 
 
-def test_command_not_found_error() -> None:
-    """Test ``CommandNotFoundError`` with ``Subprocess``."""
-    not_a_command = "not-a-command"
-    with pytest.raises(pyaud.exceptions.CommandNotFoundError) as err:
-
-        # noinspection PyUnusedLocal
-        @pyaud.plugins.register("test-command-not-found-error")
-        class Plugin(pyaud.plugins.Action):
-            """Test ``CommandNotFoundError``."""
-
-            @property
-            def exe(self) -> t.List[str]:
-                """Non-existing command."""
-                return ["not-a-command"]
-
-            def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-                """Nothing to do."""
-
-    assert str(err.value) == f"{not_a_command}: command not found..."
-
-
 def test_get_packages(
     monkeypatch: pytest.MonkeyPatch, make_tree: t.Any
 ) -> None:
@@ -1341,3 +1320,27 @@ def test_call_m2r_on_markdown(
     monkeypatch.setattr("pyaud.parsers.m2r.parse_from_file", tracker.call)
     main("docs")
     assert tracker.called
+
+
+def test_command_not_found_error() -> None:
+    """Test ``CommandNotFoundError`` warning with ``Subprocess``."""
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register("test-command-not-found-error")
+    class Plugin(pyaud.plugins.Action):
+        """Test ``CommandNotFoundError``."""
+
+        not_a_command = "not_a_command"
+
+        @property
+        def exe(self) -> t.List[str]:
+            """Non-existing command."""
+            return [self.not_a_command]
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            self.subprocess[self.not_a_command].call(*args, **kwargs)
+
+    exe = pyaud.plugins.get("test-command-not-found-error")
+    with pytest.warns(
+        RuntimeWarning, match="not_a_command: Command not found"
+    ):
+        exe()

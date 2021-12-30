@@ -7,8 +7,10 @@ Decorators for wrapping plugins.
 import functools as _functools
 import sys as _sys
 import typing as _t
+import warnings as _warnings
 
 from . import _data
+from . import exceptions as _exceptions
 from ._environ import CACHEDIR as _CACHEDIR
 from ._environ import DATADIR as _DATADIR
 from ._indexing import HashMapping as _Hashed
@@ -156,5 +158,31 @@ class ClassDecorator:
                 return func(*args, **kwargs)
 
             return self._cache_files(func, *args, **kwargs)
+
+        return _wrapper
+
+    @staticmethod
+    def not_found(func: _t.Callable[..., int]) -> _t.Callable[..., int]:
+        """Wrap ``__call__`` to resolve ``CommandNotFound`` errors.
+
+        :param func: Function to wrap.
+        :return: Wrapped function.
+        """
+
+        @_functools.wraps(func)
+        def _wrapper(*args: str, **kwargs: bool) -> int:
+            try:
+                return func(*args, **kwargs)
+            except _exceptions.CommandNotFoundError as err:
+                _warnings.warn(
+                    f"{str(err).split(':', maxsplit=1)[0]}: Command not found",
+                    RuntimeWarning,
+                )
+                _warnings.warn(
+                    "plugin called a subprocess that doesn't exist",
+                    RuntimeWarning,
+                )
+
+            return 1
 
         return _wrapper

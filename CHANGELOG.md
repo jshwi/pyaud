@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.4.0...HEAD)
 ------------------------------------------------------------------------
+### Changed
+- Warns instead of crashes when command not found
+
 ### Fixed
 - `pyaud docs` runs properly if using MD README instead of RST
 - Essentials config keys will be restored to their defaults if missing

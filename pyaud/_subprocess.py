@@ -63,9 +63,7 @@ class Subprocess:
         commands: _t.Optional[_t.Iterable[str]] = None,
         **kwargs: _t.Union[bool, str],
     ) -> None:
-        if not _shutil.which(exe):
-            raise _CommandNotFoundError(exe)
-
+        self.is_command = _shutil.which(exe)
         self._exe = exe
         self._loglevel = loglevel
         if commands is not None:
@@ -115,6 +113,9 @@ class Subprocess:
         # pipe stream depending on the keyword arguments provided
         # Log errors to file regardless
         # wait for process to finish and return it's exit-code
+        if not self.is_command:
+            raise _CommandNotFoundError(self._exe)
+
         pipeline = _Popen(  # pylint: disable=consider-using-with
             [self._exe, *args], stdout=_PIPE, stderr=_PIPE
         )
