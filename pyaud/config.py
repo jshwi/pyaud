@@ -104,6 +104,7 @@ DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
             "docs",
         ]
     },
+    addopts=["timed"],
 )
 
 _TOMLFILE = f"{_environ.NAME}.toml"

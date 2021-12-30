@@ -84,6 +84,7 @@ class _Parser(_ArgumentParser):
             "-t",
             "--timed",
             action="store_true",
+            default=_environ.TIMED,
             help="track the length of time for each plugin",
         )
         self.add_argument(

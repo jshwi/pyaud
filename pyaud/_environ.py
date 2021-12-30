@@ -129,6 +129,12 @@ class _Environ(_Env):
         with self.prefixed(self.PREFIX):
             return self.str("GH_REMOTE", default=default)
 
+    @property
+    def TIMED(self) -> bool:
+        """Set ``timed`` to True without needing to pass arg."""
+        with self.prefixed(self.PREFIX):
+            return self.bool("TIMED", default=False)
+
 
 #: package environment, both parsed from .env file (with set defaults
 #: for missing keys), and static values

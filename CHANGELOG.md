@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.5.0...HEAD)
 ------------------------------------------------------------------------
 ### Added
+- Adds `PYAUD_TIMED` env var
 - Adds `pyaud.environ`
 
 [3.5.0](https://github.com/jshwi/pyaud/releases/tag/v3.5.0) - 2021-12-31
