@@ -39,3 +39,21 @@ twine = "==3.7.1"
 
 [requires]
 python_version = "3.8"
+
+[scripts]
+"audit" = "pyaud audit"
+"build" = "python setup.py sdist bdist_wheel"
+"bump:major" = "bump2version major"
+"bump:minor" = "bump2version minor"
+"bump:patch" = "bump2version patch"
+"clean" = "pyaud clean"
+"format:code" = "pyaud format --fix"
+"format:docs" = "pyaud format-docs --fix"
+"format:str" = "pyaud format-str --fix"
+"lint" = "pyaud lint"
+"publish" = "twine upload dist/*"
+"publish:test" = "twine upload --repository-url https://test.pypi.org/legacy/ dist/*"
+"test" = "pyaud coverage"
+"twine:check" = "twine check dist/*"
+"typecheck" = "pyaud typecheck"
+"version" = "pipenv run pyaud --version"
