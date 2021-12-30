@@ -70,6 +70,8 @@ setuptools.setup(
         "docformatter>=1.4, <=2.0.0",
         "flynt>=0.64",
         "isort>=5.7.0, <=6.0.0",
+        "m2r>=0.2.1, <=1.0.0",
+        "mistune<=0.8.4",
         "mypy>=0.800",
         "object-colors>=2.0.0, <=3.0.0",
         "pipfile-requirements>=0.3.0",

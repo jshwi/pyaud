@@ -295,18 +295,25 @@ class Docs(pyaud.plugins.Action):  # pylint: disable=too-few-public-methods
         if build_dir.is_dir():
             shutil.rmtree(build_dir)
 
-        if (
-            Path(Path.cwd() / DOCS / "conf.py").is_file()
-            and Path(Path.cwd(), README).is_file()
-        ):
-            with LineSwitch(
-                Path.cwd() / README, {0: readme_rst, 1: underline}
+        with pyaud.parsers.Md2Rst(Path.cwd() / "README.md", temp=True):
+            if (
+                Path(Path.cwd() / DOCS / "conf.py").is_file()
+                and Path(Path.cwd(), README).is_file()
             ):
-                command = ["-M", "html", Path.cwd() / DOCS, build_dir, "-W"]
-                self.subprocess[self.sphinx_build].call(*command, **kwargs)
-                colors.green.bold.print("Build successful")
-        else:
-            print("No docs found")
+                with LineSwitch(
+                    Path.cwd() / README, {0: readme_rst, 1: underline}
+                ):
+                    command = [
+                        "-M",
+                        "html",
+                        Path.cwd() / DOCS,
+                        build_dir,
+                        "-W",
+                    ]
+                    self.subprocess[self.sphinx_build].call(*command, **kwargs)
+                    colors.green.bold.print("Build successful")
+            else:
+                print("No docs found")
 
 
 @pyaud.plugins.register(name="files")

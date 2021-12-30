@@ -13,6 +13,10 @@ pyaud
    :members:
    :undoc-members:
    :show-inheritance:
+.. automodule:: pyaud.parsers
+   :members:
+   :undoc-members:
+   :show-inheritance:
 .. automodule:: pyaud.plugins
    :members:
    :undoc-members:

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.4.0...HEAD)
 ------------------------------------------------------------------------
 ### Fixed
+- `pyaud docs` runs properly if using MD README instead of RST
 - Essentials config keys will be restored to their defaults if missing
 
 [3.4.0](https://github.com/jshwi/pyaud/releases/tag/v3.4.0) - 2021-12-30

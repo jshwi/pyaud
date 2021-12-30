@@ -11,6 +11,8 @@ coverage = {extras = ["toml"], version = "==6.2"}
 docformatter = "==1.4"
 flynt = "==0.69"
 isort = "==5.10.1"
+m2r = "==0.2.1"
+mistune = "==0.8.4"
 mypy = "==0.930"
 object-colors = "==2.0.1"
 pipfile-requirements = "==0.3.0"

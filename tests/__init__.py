@@ -115,12 +115,17 @@ class MockCachedPluginType(MockPluginType):
 class Tracker:  # pylint: disable=too-few-public-methods
     """Track calls in mocked functions."""
 
-    def __init__(self, *_: t.Any, **__: t.Any) -> None:
+    def __init__(self) -> None:
         self.called = False
+        self.return_values: t.List[t.Any] = []
 
-    def call(self, *_: t.Any, **__: t.Any) -> None:
+    def call(self, *_: t.Any, **__: t.Any) -> t.Optional[t.Any]:
         """Indicate that this class's method has been called."""
         self.called = True
+        if self.return_values:
+            return self.return_values.pop()
+
+        return None
 
 
 class StrategyMockPlugin(MockCachedPluginType):

@@ -46,6 +46,7 @@ from . import (
     WARNING,
     WHITELIST_PY,
     NoColorCapsys,
+    Tracker,
 )
 
 
@@ -1323,3 +1324,20 @@ def test_del_key_config_runtime(main: t.Any) -> None:
         pyaud.config.toml.load(fin)
 
     assert "filename" in pyaud.config.toml["logging"]["handlers"]["default"]
+
+
+def test_call_m2r_on_markdown(
+    monkeypatch: pytest.MonkeyPatch, main: t.Any
+) -> None:
+    """Test creation of an RST README when only markdown is present.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param main: Patch package entry point.
+    """
+    path = Path.cwd() / "README.md"
+    path.touch()
+    tracker = Tracker()
+    tracker.return_values.append("rst text")
+    monkeypatch.setattr("pyaud.parsers.m2r.parse_from_file", tracker.call)
+    main("docs")
+    assert tracker.called
