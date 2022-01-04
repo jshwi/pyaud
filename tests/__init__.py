@@ -116,12 +116,36 @@ class Tracker:  # pylint: disable=too-few-public-methods
     """Track calls in mocked functions."""
 
     def __init__(self) -> None:
-        self.called = False
         self.return_values: t.List[t.Any] = []
+        self._called = False
+        self.args: t.List[t.Tuple[str, ...]] = []
+        self.kwargs: t.List[t.Dict[str, t.Any]] = []
 
-    def call(self, *_: t.Any, **__: t.Any) -> t.Optional[t.Any]:
-        """Indicate that this class's method has been called."""
-        self.called = True
+    def was_called(self) -> bool:
+        """Confirm whether object was called or not.
+
+        :return: Was object called? True or False.
+        """
+        return self._called
+
+    def __call__(self, *args: t.Any, **kwargs: t.Any) -> t.Optional[t.Any]:
+        """Call the object, update its fields, and return values passed.
+
+        Fields to update:
+
+            - ``_called``: Can be confirmed by calling ``was_called``
+            - args: Args passed to called instance.
+            - kwargs: Kwargs passed to called instance.
+
+        Return values can be appended to ``return_values`` manually.
+
+        :param args: Args passed to instance.
+        :param kwargs: Kwargs passed to instance.
+        :return: Values appended to ``return_values`` to mock.
+        """
+        self._called = True
+        self.args.append(args)
+        self.kwargs.append(kwargs)
         if self.return_values:
             return self.return_values.pop()
 

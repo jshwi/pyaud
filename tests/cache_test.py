@@ -41,18 +41,18 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     clear = Tracker()
     hash_files = Tracker()
     save_cache = Tracker()
-    monkeypatch.setattr("pyaud.plugins._files.remove", remove.call)
-    monkeypatch.setattr("pyaud.plugins._files.clear", clear.call)
+    monkeypatch.setattr("pyaud.plugins._files.remove", remove)
+    monkeypatch.setattr("pyaud.plugins._files.clear", clear)
     monkeypatch.setattr(
-        "pyaud._indexing.HashMapping.write", lambda *_: save_cache.call
+        "pyaud._indexing.HashMapping.write", lambda *_: save_cache
     )
     main("format", "--no-cache")
-    assert match_parent.called is False
-    assert match_file.called is False
-    assert remove.called is False
-    assert clear.called is False
-    assert hash_files.called is False
-    assert save_cache.called is False
+    assert match_parent.was_called() is False
+    assert match_file.was_called() is False
+    assert remove.was_called() is False
+    assert clear.was_called() is False
+    assert hash_files.was_called() is False
+    assert save_cache.was_called() is False
 
 
 def test_remove_matched_files(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -62,7 +62,7 @@ def test_remove_matched_files(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     remove = Tracker()
     pyaud.plugins._files.append(Path.cwd() / REPO)
-    monkeypatch.setattr("pyaud.plugins._files.remove", remove.call)
+    monkeypatch.setattr("pyaud.plugins._files.remove", remove)
     monkeypatch.setattr("pyaud._indexing._Path.read_bytes", lambda *_: b"")
     monkeypatch.setattr(
         "pyaud._indexing.HashMapping.match_file", lambda *_: True
@@ -74,7 +74,7 @@ def test_remove_matched_files(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     obj = MockCachedPluginType("object")
     obj()
-    assert remove.called is True
+    assert remove.was_called() is True
 
 
 # noinspection PyUnresolvedReferences
