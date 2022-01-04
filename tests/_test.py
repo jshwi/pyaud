@@ -1315,9 +1315,11 @@ def test_call_m2r_on_markdown(
     path.touch()
     tracker = Tracker()
     tracker.return_values.append("rst text")
-    monkeypatch.setattr("pyaud.parsers._m2r.parse_from_file", tracker.call)
+    monkeypatch.setattr("pyaud.parsers._m2r.parse_from_file", tracker)
     main("docs")
-    assert tracker.called
+    assert tracker.was_called()
+    assert Path.cwd() / "README.md" in tracker.args[0]
+    assert tracker.kwargs == [{}]
 
 
 def test_command_not_found_error() -> None:
