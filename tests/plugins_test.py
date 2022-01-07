@@ -709,8 +709,7 @@ def test_make_whitelist(
     pyaud.git.add(".")  # type: ignore
     pyaud.files.populate()
     monkeypatch.setattr(
-        "pyaud._subprocess.Subprocess.stdout",
-        lambda *_, **__: files.Whitelist.be8a443,
+        "spall.Subprocess.stdout", lambda *_, **__: files.Whitelist.be8a443
     )
     pyaud.plugins.get("whitelist")()
     assert nocolorcapsys.stdout() == (
