@@ -14,7 +14,6 @@ import os
 import time
 import typing as t
 from pathlib import Path
-from subprocess import CalledProcessError
 
 import pytest
 
@@ -26,9 +25,6 @@ from . import (
     DEBUG,
     ERROR,
     FILES,
-    GH_EMAIL,
-    GH_NAME,
-    GH_TOKEN,
     GITIGNORE,
     INFO,
     INIT,
@@ -38,7 +34,6 @@ from . import (
     PYPROJECT,
     RCFILE,
     README,
-    REAL_REPO,
     REPO,
     TOMLFILE,
     TYPE_ERROR,
@@ -53,9 +48,9 @@ def test_get_branch_unique() -> None:
     """Test that ``get_branch`` returns correct branch."""
     Path(Path.cwd() / README).touch()
     branch = datetime.datetime.now().strftime("%d%m%YT%H%M%S")
-    pyaud.git.add(".", devnull=True)  # type: ignore
-    pyaud.git.commit("-m", INITIAL_COMMIT, devnull=True)  # type: ignore
-    pyaud.git.checkout("-b", branch, devnull=True)  # type: ignore
+    pyaud.git.add(".", devnull=True)
+    pyaud.git.commit("-m", INITIAL_COMMIT, devnull=True)
+    pyaud.git.checkout("-b", branch, devnull=True)
     assert pyaud._utils.branch() == branch  # pylint: disable=protected-access
 
 
@@ -66,10 +61,10 @@ def test_get_branch_initial_commit() -> None:
     commit.
     """
     Path(Path.cwd() / README).touch()
-    pyaud.git.add(".")  # type: ignore
-    pyaud.git.commit("-m", INITIAL_COMMIT)  # type: ignore
-    pyaud.git.rev_list("--max-parents=0", "HEAD", capture=True)  # type: ignore
-    pyaud.git.checkout(pyaud.git.stdout()[0])  # type: ignore
+    pyaud.git.add(".")
+    pyaud.git.commit("-m", INITIAL_COMMIT)
+    pyaud.git.rev_list("--max-parents=0", "HEAD", capture=True)
+    pyaud.git.checkout(pyaud.git.stdout()[0])
     assert pyaud._utils.branch() is None  # pylint: disable=protected-access
 
 
@@ -115,7 +110,7 @@ def test_get_files(
     make_item = project_dir / assert_relative_item
     make_file.parent.mkdir(exist_ok=True, parents=True)
     make_file.touch()
-    pyaud.git.add(".")  # type: ignore
+    pyaud.git.add(".")
     pyaud.files.add_exclusions(WHITELIST_PY)
     pyaud.files.populate()
     if assert_true:
@@ -155,29 +150,6 @@ def test_files_exclude_venv(make_tree: t.Any) -> None:
     pyaud.files.clear()
     pyaud.files.populate()
     assert set(pyaud.files.reduce()) == set()
-
-
-def test_arg_order_clone(
-    tmp_path: Path, nocolorcapsys: NoColorCapsys, patch_sp_print_called: t.Any
-) -> None:
-    """Test that the clone destination is always the last argument.
-
-    :param tmp_path: Create and return a temporary directory for
-        testing.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
-    :param patch_sp_print_called: Patch ``Subprocess.call`` to only
-        announce what is called.
-    """
-    patch_sp_print_called()
-    path = tmp_path / REPO
-    pyaud.git.clone(  # type: ignore
-        "--depth", "1", "--branch", "v1.1.0", REAL_REPO, path
-    )
-    assert (
-        nocolorcapsys.stdout().strip()
-        == f"<_Git (git)> clone --depth 1 --branch v1.1.0 {REAL_REPO} {path}"
-    )
 
 
 @pytest.mark.parametrize("default", [CRITICAL, ERROR, WARNING, INFO, DEBUG])
@@ -314,25 +286,6 @@ def test_seq() -> None:
     del pyaud.files[0]
     assert not pyaud.files
     assert repr(pyaud.files) == "<_Files []>"
-
-
-@pytest.mark.usefixtures("init_remote")
-def test_gen_default_remote(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Test ``PYAUD_GH_REMOTE`` is properly loaded from .env variables.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    """
-    monkeypatch.delenv("PYAUD_GH_REMOTE")
-    with open(Path.cwd() / ".env", "w", encoding="utf-8") as fout:
-        fout.write(f"PYAUD_GH_NAME={GH_NAME}\n")
-        fout.write(f"PYAUD_GH_EMAIL={GH_EMAIL}\n")
-        fout.write(f"PYAUD_GH_TOKEN={GH_TOKEN}\n")
-
-    # noinspection PyProtectedMember
-    assert (
-        pyaud.environ.GH_REMOTE
-        == f"https://{GH_NAME}:{GH_TOKEN}@github.com/{GH_NAME}/{REPO}.git"
-    )
 
 
 def test_mapping_class() -> None:
@@ -701,7 +654,7 @@ def test_args_reduce(make_tree: t.Any) -> None:
             "src": {"__init__.py": None},
         },
     )
-    pyaud.git.add(".")  # type: ignore
+    pyaud.git.add(".")
     pyaud.files.populate()
     normal = pyaud.files.args()
     reduced = pyaud.files.args(reduce=True)
@@ -760,14 +713,14 @@ def test_files_populate_proc(make_tree: t.Any) -> None:
         for path in Path.cwd().rglob("*.py"):
             if path.name not in pyaud.config.DEFAULT_CONFIG["indexing"][
                 "exclude"
-            ] and not pyaud.git.ls_files(  # type: ignore
+            ] and not pyaud.git.ls_files(
                 "--error-unmatch", path, devnull=True, suppress=True
             ):
                 indexed.append(path)
 
         return indexed
 
-    pyaud.git.add(".")  # type: ignore
+    pyaud.git.add(".")
     start = time.process_time()
     no_commit_files = _old_files_populate()
     stop = time.process_time()
@@ -780,33 +733,6 @@ def test_files_populate_proc(make_tree: t.Any) -> None:
     time_commit = stop - start
     assert time_no_commit > time_commit
     assert no_commit_files == commit_files
-
-
-def test_not_a_repository_error(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    """Test error when Git command run in non-repository project.
-
-    :param tmp_path: Create and return a temporary directory for
-        testing.
-    :param monkeypatch: Mock patch environment and attributes.
-    """
-    monkeypatch.setattr(OS_GETCWD, lambda: str(tmp_path))
-    with pytest.raises(pyaud.exceptions.NotARepositoryError) as err:
-        pyaud.git.add(".")  # type: ignore
-
-    assert str(err.value) == "not a git repository"
-
-
-def test_called_process_error_with_git() -> None:
-    """Test regular Git command error."""
-    with pytest.raises(CalledProcessError) as err:
-        pyaud.git.commit("-m", "Second initial commit")  # type: ignore
-
-    assert str(err.value) == (
-        "Command 'git commit -m Second initial commit' returned non-zero exit "
-        "status 1."
-    )
 
 
 def test_get_packages(
@@ -949,7 +875,7 @@ def test_exclude(make_tree: t.Any) -> None:
         },
     )
     exclude = (WHITELIST_PY, "conf.py", "setup.py", "migrations")
-    pyaud.git.add(".")  # type: ignore
+    pyaud.git.add(".")
     pyaud.files.add_exclusions(*exclude)
     pyaud.files.populate()
     assert not any(i in p.parts for i in exclude for p in pyaud.files)

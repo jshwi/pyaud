@@ -290,6 +290,17 @@ astor = "*"
 tomli = ">=1.1.0"
 
 [[package]]
+name = "gitspy"
+version = "0.1.1"
+description = "Intuitive Git for Python"
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0"
+
+[package.dependencies]
+spall = ">=0.1.0,<0.2.0"
+
+[[package]]
 name = "grip"
 version = "4.6.0"
 description = "Render local readme files before sending off to GitHub."
@@ -1173,7 +1184,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "80e03db3636c9d1b6d6781248fe585f480d68874f3fa9c22d6fcc22138fccee4"
+content-hash = "a89fe8de2c2d86b928227686c7bd73a347d9fa2990968686dddda24a5de728cb"
 
 [metadata.files]
 alabaster = [
@@ -1317,6 +1328,10 @@ flask = [
 flynt = [
     {file = "flynt-0.75-py3-none-any.whl", hash = "sha256:2211967c935d5317b8f6811a562b536a934a6c910db1b1738ad660e9fce8ca7a"},
     {file = "flynt-0.75.tar.gz", hash = "sha256:b955d89621531bec85291ecf966cda9d5db519c8f4e28fff7d967c17b06ccaef"},
+]
+gitspy = [
+    {file = "gitspy-0.1.1-py3-none-any.whl", hash = "sha256:7f506b18667a1655b03978bf354301d918a0d91a6d021e2c0f367b3d31944199"},
+    {file = "gitspy-0.1.1.tar.gz", hash = "sha256:b91fdb56ee9e0ca16a0243f38cb99fc40473562680f91e7a2be1aac736f89fae"},
 ]
 grip = [
     {file = "grip-4.6.0-py3-none-any.whl", hash = "sha256:b5c6f732159959a5bf429d380dd4cd3948b34a540cc593b4fabad5972e565630"},
