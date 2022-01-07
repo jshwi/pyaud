@@ -15,6 +15,8 @@ from abc import abstractmethod as _abstractmethod
 from pathlib import Path as _Path
 from subprocess import CalledProcessError as _CalledProcessError
 
+from spall import Subprocess as _Subprocess
+
 from . import config as _config
 from . import exceptions as _exceptions
 from ._environ import environ as _environ
@@ -22,7 +24,6 @@ from ._indexing import HashCap as _HashCap
 from ._indexing import files as _files
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
-from ._subprocess import Subprocess as _Subprocess
 from ._utils import colors as _colors
 from ._wraps import ClassDecorator as _ClassDecorator
 from ._wraps import check_command as _check_command

@@ -9,8 +9,9 @@ import sys as _sys
 import typing as _t
 import warnings as _warnings
 
+import spall.exceptions as sp_exceptions
+
 from . import _data
-from . import exceptions as _exceptions
 from ._environ import environ as _environ
 from ._indexing import HashMapping as _HashMapping
 from ._indexing import IndexedState as _IndexedState
@@ -172,7 +173,7 @@ class ClassDecorator:
         def _wrapper(*args: str, **kwargs: bool) -> int:
             try:
                 return func(*args, **kwargs)
-            except _exceptions.CommandNotFoundError as err:
+            except sp_exceptions.CommandNotFoundError as err:
                 _warnings.warn(
                     f"{str(err).split(':', maxsplit=1)[0]}: Command not found",
                     RuntimeWarning,
