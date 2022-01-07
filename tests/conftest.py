@@ -94,7 +94,7 @@ def fixture_mock_environment(
 
     # initialize repository
     # =====================
-    pyaud.git.init(devnull=True)  # type: ignore
+    pyaud.git.init(devnull=True)
 
     # prepare default config
     # ======================
