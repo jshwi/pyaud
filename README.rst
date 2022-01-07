@@ -12,9 +12,6 @@ pyaud
 .. image:: https://codecov.io/gh/jshwi/pyaud/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/jshwi/pyaud
     :alt: codecov.io
-.. image:: https://readthedocs.org/projects/pyaud/badge/?version=latest
-    :target: https://pyaud.readthedocs.io/en/latest/?badge=latest
-    :alt: readthedocs.org
 .. image:: https://img.shields.io/badge/License-MIT-blue.svg
     :target: https://lbesson.mit-license.org/
     :alt: mit
@@ -40,13 +37,9 @@ PyPi
 
 ``pip install pyaud``
 
-Local clone
-
-``pip install .``
-
 Development
 
-``pip install pipenv && pipenv install --dev``
+``poetry install``
 
 Usage
 -----

@@ -1,5 +1,8 @@
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
+
 [tool.black]
-line-length = 79
 exclude = '''
 /(
   | \.git
@@ -9,13 +12,61 @@ exclude = '''
   | dist
 )/
 '''
+line-length = 79
 skip-magic-trailing-comma = true
+
+[tool.coverage.report]
+fail_under = 100
 
 [tool.coverage.run]
 omit = ["whitelist.py", "pyaud/__main__.py"]
 
-[tool.coverage.report]
-fail_under = 100
+[tool.poetry]
+authors = ["jshwi <stephen@jshwisolutions.com>"]
+description = "Framework for writing Python package audits"
+license = "MIT"
+name = "pyaud"
+version = "3.6.0"
+
+[tool.poetry.dependencies]
+Sphinx = "^4.3.2"
+appdirs = "^1.4.4"
+black = "^21.12b0"
+codecov = "^2.1.12"
+coverage = "^6.2"
+docformatter = "^1.4"
+environs = "^9.4.0"
+flynt = "^0.75"
+isort = "^5.10.1"
+m2r = "^0.2.1"
+mistune = "<=0.8.4"
+mypy = "^0.930"
+object-colors = "^2.0.1"
+pipfile-requirements = "^0.3.0"
+pylint = "^2.12.2"
+pytest = "^6.2.5"
+pytest-cov = "^3.0.0"
+python = "^3.8"
+python-dotenv = "^0.19.2"
+readmetester = "^1.0.1"
+sphinxcontrib-fulltoc = "^1.2.0"
+sphinxcontrib-programoutput = "^0.17"
+toml = "^0.10.2"
+vulture = "^2.3"
+
+[tool.poetry.dev-dependencies]
+bump2version = "^1.0.1"
+grip = "^4.5.2"
+ipython = "^7.31.0"
+prompt-toolkit = "^3.0.24"
+pytest-randomly = "^3.10.3"
+pytest-sugar = "^0.9.4"
+pytest-xdist = "^2.5.0"
+restview = "^2.9.3"
+toml-sort = "^0.19.0"
+
+[tool.poetry.scripts]
+pyaud = "pyaud.__main__:main"
 
 [tool.pytest.ini_options]
 addopts = [
@@ -27,5 +78,5 @@ addopts = [
     "-n",
     "auto"
 ]
-norecursedirs = ["docs", "*.egg-info", ".git", ".mypy_cache", ".idea", "prof"]
 filterwarnings = "ignore::DeprecationWarning"
+norecursedirs = ["docs", "*.egg-info", ".git", ".mypy_cache", ".idea", "prof"]
