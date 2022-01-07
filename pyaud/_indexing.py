@@ -11,7 +11,7 @@ from pathlib import Path as _Path
 from ._objects import JSONIO as _JSONIO
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableSequence as _MutableSequence
-from ._subprocess import git as _git
+from ._utils import git as _git
 
 
 class HashCap:
@@ -85,7 +85,7 @@ class _Files(_MutableSequence):  # pylint: disable=too-many-ancestors
 
     def populate(self) -> None:
         """Populate object with index of versioned Python files."""
-        _git.ls_files(capture=True)  # type: ignore
+        _git.ls_files(capture=True)
         self.extend(
             _Path.cwd() / p
             for p in [_Path(p) for p in _git.stdout()]

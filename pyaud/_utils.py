@@ -10,13 +10,15 @@ import typing as _t
 from pathlib import Path as _Path
 
 import setuptools as _setuptools
+from gitspy import Git as _Git
 from object_colors import Color as _Color
 
 from . import config as _config
 from . import exceptions as _exceptions
-from ._subprocess import git as _git
 
 colors = _Color()
+git = _Git()
+
 colors.populate_colors()
 
 
@@ -25,10 +27,8 @@ def branch() -> _t.Optional[str]:
 
     :return: Checked out branch or None if no parent commit or repo.
     """
-    _git.symbolic_ref(  # type: ignore
-        "--short", "HEAD", suppress=True, capture=True
-    )
-    stdout = _git.stdout()
+    git.symbolic_ref("--short", "HEAD", suppress=True, capture=True)
+    stdout = git.stdout()
     if stdout:
         return stdout[-1]
 
@@ -106,9 +106,9 @@ def get_commit_hash() -> _t.Optional[str]:
     :return: A ``str`` containing the hash of the commit, or None if no
         hash can be provided.
     """
-    _git.rev_parse("HEAD", capture=True, suppress=True)  # type: ignore
+    git.rev_parse("HEAD", capture=True, suppress=True)
     try:
-        return _git.stdout()[0]
+        return git.stdout()[0]
     except IndexError:
         return None
 
@@ -118,6 +118,6 @@ def working_tree_clean() -> bool:
 
     :return: Working tree clean? True or False.
     """
-    _git.stdout()  # [...] -> void; clear stdout, if it exists
-    _git.status("--short", capture=True)  # type: ignore
-    return not _git.stdout()
+    git.stdout()  # [...] -> void; clear stdout, if it exists
+    git.status("--short", capture=True)
+    return not git.stdout()
