@@ -224,7 +224,7 @@ def fixture_patch_sp_call(monkeypatch: pytest.MonkeyPatch) -> t.Any:
 
             return returncode
 
-        monkeypatch.setattr("pyaud._subprocess.Subprocess.call", call)
+        monkeypatch.setattr("spall.Subprocess.call", call)
 
     return _patch_sp_call
 

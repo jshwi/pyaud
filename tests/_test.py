@@ -73,23 +73,6 @@ def test_get_branch_initial_commit() -> None:
     assert pyaud._utils.branch() is None  # pylint: disable=protected-access
 
 
-def test_pipe_to_file() -> None:
-    """Test that the ``Subprocess`` class correctly writes file.
-
-    When the ``file`` keyword argument is used stdout should be piped to
-    the filename provided.
-    """
-    path = Path.cwd() / FILES
-    pyaud.git.init(file=path)  # type: ignore
-    with open(path, encoding="utf-8") as fin:
-        assert (
-            fin.read().strip()
-            == "Reinitialized existing Git repository in {}{}".format(
-                Path.cwd() / ".git", os.sep
-            )
-        )
-
-
 def test_find_package(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test error is raised if no Python file exists in project root.
 
@@ -916,37 +899,6 @@ def test_get_subpackages(
     # assert no dot separated packages are returned and that only the
     # parent packages name is returned
     assert pyaud.get_packages() == ["repo"]
-
-
-def test_type_error_stdout(patch_sp_output: t.Any) -> None:
-    """Subtle bug which appeared to be one test, but was another.
-
-    Error was being raised in ``test_make_unused_fix`` as ``replace``
-    could not be used on a list.
-
-    The error was the cause of  ``test_make_whitelist`` as a dummy patch
-    was used to override output (empty list: unnecessary - removed).
-
-    Would not fail test every run, but with ``pytest-randomly`` it
-    appears to have been caused when ``test_make_whitelist`` came
-    before ``test_make_unused_fix``.
-
-    Error was not caused by any bug in the program,
-    just the monkeypatch.
-
-    Not clear yet how exactly the two tests are related.
-
-    :param patch_sp_output: Patch ``Subprocess`` so that ``call`` sends
-        expected stdout out to self.
-    """
-    with pytest.raises(TypeError) as err:
-        patch_sp_output([])
-        pyaud.plugins.get("whitelist")()
-
-    assert (
-        str(err.value)
-        == "stdout received as 'list': only str instances allowed"
-    )
 
 
 def test_exclude_loads_at_main(main: t.Any) -> None:
