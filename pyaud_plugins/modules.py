@@ -120,6 +120,7 @@ class DeployCov(  # pylint: disable=too-few-public-methods
 
     def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
         coverage_xml = Path.cwd() / pyaud.environ.COVERAGE_XML
+        self.logger().debug("looking for %s", coverage_xml)
         if coverage_xml.is_file():
             if pyaud.environ.CODECOV_TOKEN is not None:
                 self.subprocess[self.codecov].call(

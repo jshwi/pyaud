@@ -3,7 +3,7 @@ tests.conftest
 ==============
 """
 # pylint: disable=too-many-arguments,too-many-locals,too-few-public-methods
-# pylint: disable=protected-access
+# pylint: disable=protected-access,no-member,too-many-statements
 import copy
 import os
 import typing as t
@@ -45,6 +45,16 @@ def fixture_mock_environment(
     # patch ``setuptools.find_package`` to return package as existing
     monkeypatch.setattr("os.getcwd", lambda: str(tmp_path / REPO))
     monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [REPO])
+
+    # mock path resolutions for `environs` module
+    # prevent lookup of .env file in this repo's real dir
+    current_frame = type("current_frame", (), {})
+    current_frame.f_back = type("f_back", (), {})  # type: ignore
+    current_frame.f_back.f_code = type("f_code", (), {})  # type: ignore
+    current_frame.f_back.f_code.co_filename = str(  # type: ignore
+        Path.cwd() / "_main.py"
+    )
+    monkeypatch.setattr("inspect.currentframe", lambda: current_frame)
 
     # patch pyaud attributes
     # ======================
