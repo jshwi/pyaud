@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Logs commencement of audit
 - Adds logger for coverage.xml path
 
+### Fixed
+- Deploy runs `deploy-cov` before `deploy-docs`
+
 [3.6.0](https://github.com/jshwi/pyaud/releases/tag/v3.6.0) - 2022-01-04
 ------------------------------------------------------------------------
 ### Added

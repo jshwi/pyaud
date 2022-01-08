@@ -97,7 +97,7 @@ class Deploy(  # pylint: disable=too-few-public-methods
     """Deploy package documentation and test coverage."""
 
     def plugins(self) -> t.List[str]:
-        return ["deploy-docs", "deploy-cov"]
+        return ["deploy-cov", "deploy-docs"]
 
 
 @pyaud.plugins.register(name="deploy-cov")
