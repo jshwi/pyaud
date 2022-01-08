@@ -26,6 +26,11 @@ authors = ["jshwi <stephen@jshwisolutions.com>"]
 description = "Framework for writing Python package audits"
 license = "MIT"
 name = "pyaud"
+packages = [
+    { include = "pyaud" },
+    { include = "pyaud_plugins" },
+]
+readme = "README.rst"
 version = "3.7.0"
 
 [tool.poetry.dependencies]

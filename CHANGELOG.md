@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.7.0...HEAD)
 ------------------------------------------------------------------------
+### Added
+- Logs commencement of audit
+- Adds logger for coverage.xml path
+
+### Fixed
+- Fixes `poetry` packaging
+- Deploy runs `deploy-cov` before `deploy-docs`
 
 [3.7.0](https://github.com/jshwi/pyaud/releases/tag/v3.7.0) - 2022-01-09
 ------------------------------------------------------------------------
