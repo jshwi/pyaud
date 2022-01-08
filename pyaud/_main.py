@@ -4,9 +4,11 @@ pyaud.main
 """
 import inspect as _inspect
 import json as _json
+import logging as _logging
 import sys as _sys
 from argparse import SUPPRESS as _SUPPRESS
 from argparse import ArgumentParser as _ArgumentParser
+from pathlib import Path as _Path
 
 from . import _data
 from . import config as _config
@@ -15,6 +17,7 @@ from ._environ import environ as _environ
 from ._environ import initialize_dirs as _initialize_dirs
 from ._indexing import files as _files
 from ._utils import colors as _colors
+from ._utils import package as _package
 from ._version import __version__
 
 
@@ -201,6 +204,9 @@ def main() -> None:
     _config.configure_logging(parser.args.verbose)
     _files.add_exclusions(*_config.toml["indexing"]["exclude"])
     _files.populate()
+    _logging.getLogger(__name__).info(
+        "Commencing audit for %s in %s", _package(), _Path.cwd()
+    )
     _plugins.get(parser.args.module)(
         clean=parser.args.clean,
         suppress=parser.args.suppress,
