@@ -31,7 +31,7 @@ packages = [
     { include = "pyaud_plugins" },
 ]
 readme = "README.rst"
-version = "3.7.0"
+version = "3.8.0"
 
 [tool.poetry.dependencies]
 Sphinx = "^4.3.2"
