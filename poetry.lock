@@ -291,11 +291,14 @@ tomli = ">=1.1.0"
 
 [[package]]
 name = "gitspy"
-version = "0.1.0"
+version = "0.1.1"
 description = "Intuitive Git for Python"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
+
+[package.dependencies]
+spall = ">=0.1.0,<0.2.0"
 
 [[package]]
 name = "grip"
@@ -905,7 +908,7 @@ python-versions = "*"
 
 [[package]]
 name = "spall"
-version = "0.1.0"
+version = "0.1.1"
 description = "Object-oriented commandline"
 category = "main"
 optional = false
@@ -1329,8 +1332,8 @@ flynt = [
     {file = "flynt-0.75.tar.gz", hash = "sha256:b955d89621531bec85291ecf966cda9d5db519c8f4e28fff7d967c17b06ccaef"},
 ]
 gitspy = [
-    {file = "gitspy-0.1.0-py3-none-any.whl", hash = "sha256:a7fe3149623c2e42f3d5d8df297fafadc0608508355b7a6e3139576611ffc1a9"},
-    {file = "gitspy-0.1.0.tar.gz", hash = "sha256:fae5fe9fbe4fa75687e30339861bf8e99e74c6f2a7f4ff123613033f839b535e"},
+    {file = "gitspy-0.1.1-py3-none-any.whl", hash = "sha256:7f506b18667a1655b03978bf354301d918a0d91a6d021e2c0f367b3d31944199"},
+    {file = "gitspy-0.1.1.tar.gz", hash = "sha256:b91fdb56ee9e0ca16a0243f38cb99fc40473562680f91e7a2be1aac736f89fae"},
 ]
 grip = [
     {file = "grip-4.5.2.tar.gz", hash = "sha256:048b7e5c738ed80bee345bd10840f27eb31687eb67132b40f2473dc1cf67aa0f"},
@@ -1634,8 +1637,8 @@ snowballstemmer = [
     {file = "snowballstemmer-2.2.0.tar.gz", hash = "sha256:09b16deb8547d3412ad7b590689584cd0fe25ec8db3be37788be3810cbf19cb1"},
 ]
 spall = [
-    {file = "spall-0.1.0-py3-none-any.whl", hash = "sha256:b1811f92b87ae5897c12edaf1e02689d0fd707e3950148b349584cba012869db"},
-    {file = "spall-0.1.0.tar.gz", hash = "sha256:90b6aaca80df4f5eae405c89b9da7c7b87acda42aadcb76b70ca654107a6fadc"},
+    {file = "spall-0.1.1-py3-none-any.whl", hash = "sha256:997c8fa6fd3135466c8de53182c68ef32dfbf1e2cfc882f3a816057b21d51176"},
+    {file = "spall-0.1.1.tar.gz", hash = "sha256:72a06d24a3dc333fd66212f2b5247a5d813baaa4bacfd4fed69a324788475cf1"},
 ]
 sphinx = [
     {file = "Sphinx-4.3.2-py3-none-any.whl", hash = "sha256:6a11ea5dd0bdb197f9c2abc2e0ce73e01340464feaece525e64036546d24c851"},
