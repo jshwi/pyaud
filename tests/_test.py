@@ -83,75 +83,6 @@ def test_find_package(monkeypatch: pytest.MonkeyPatch) -> None:
     assert str(err.value) == "no packages found"
 
 
-@pytest.mark.parametrize(
-    "make_relative_file,assert_relative_item,assert_true",
-    [
-        (FILES, FILES, True),
-        (Path("nested") / "python" / "file" / FILES, "nested", True),
-        (WHITELIST_PY, "whitelist.py", False),
-    ],
-    ids=["file", "nested", "exclude"],
-)
-def test_get_files(
-    make_relative_file: str, assert_relative_item: str, assert_true: bool
-) -> None:
-    """Test ``get_files``.
-
-    Test for standard files, nested directories (only return the
-    directory root) or files that are excluded.
-
-    :param make_relative_file: Relative path to Python file.
-    :param assert_relative_item: Relative path to Python item to check
-        for.
-    :param assert_true: Assert True or assert False.
-    """
-    project_dir = Path.cwd()
-    make_file = project_dir / make_relative_file
-    make_item = project_dir / assert_relative_item
-    make_file.parent.mkdir(exist_ok=True, parents=True)
-    make_file.touch()
-    pyaud.git.add(".")
-    pyaud.files.add_exclusions(WHITELIST_PY)
-    pyaud.files.populate()
-    if assert_true:
-        assert make_item in pyaud.files.reduce()
-    else:
-        assert make_item not in pyaud.files.reduce()
-
-
-def test_files_exclude_venv(make_tree: t.Any) -> None:
-    """Test that virtualenv dir is excluded.
-
-     Test when indexing with ``PythonItems.items``.
-
-    :param make_tree: Create directory tree from dict mapping.
-    """
-    project_dir = Path.cwd()
-    make_tree(
-        project_dir,
-        {
-            REPO: {"src": {INIT: None}},
-            "venv": {
-                "pyvenv.cfg": None,
-                "bin": {},
-                "include": {},
-                "share": {},
-                "src": {},
-                "lib": {"python3.8": {"site-packages": {"six.py": None}}},
-                "lib64": "lib",
-            },
-        },
-    )
-
-    # add venv to .gitignore
-    with open(project_dir / GITIGNORE, "w", encoding="utf-8") as fout:
-        fout.write("venv\n")
-
-    pyaud.files.clear()
-    pyaud.files.populate()
-    assert set(pyaud.files.reduce()) == set()
-
-
 @pytest.mark.parametrize("default", [CRITICAL, ERROR, WARNING, INFO, DEBUG])
 @pytest.mark.parametrize("flag", ["", "-v", "-vv", "-vvv", "-vvvv"])
 def test_loglevel(
@@ -275,17 +206,6 @@ def test_help(
     # index 0 returns stdout from ``readouterr`` and 1 returns stderr
     out = nocolorcapsys.readouterr()[index]
     assert any(i in out for i in expected)
-
-
-def test_seq() -> None:
-    """Get coverage on ``Seq`` abstract methods."""
-    pyaud.files.append("key")
-    assert pyaud.files[0] == "key"
-    pyaud.files[0] = "value"
-    assert pyaud.files[0] == "value"
-    del pyaud.files[0]
-    assert not pyaud.files
-    assert repr(pyaud.files) == "<_Files []>"
 
 
 def test_mapping_class() -> None:
@@ -621,64 +541,6 @@ def test_plugin_assign_non_type_key() -> None:
     assert TYPE_ERROR in str(err.value)
 
 
-def test_args_reduce(make_tree: t.Any) -> None:
-    """Demonstrate why the ``reduce`` argument should be deprecated.
-
-    No longer considered depreciated.
-
-    :param make_tree: Create directory tree from dict mapping.
-    """
-    # ignore the bundle dir, including containing python files
-    with open(Path.cwd() / GITIGNORE, "w", encoding="utf-8") as fout:
-        fout.write("bundle")
-
-    make_tree(
-        Path.cwd(),
-        {
-            "dotfiles": {
-                "vim": {
-                    "bundle": {  # this dir should be ignored
-                        "ctags": {
-                            "Units": {
-                                "parse-python.r": {
-                                    "python-dot-in-import.d": {
-                                        "input.py": None
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "ipython_config.py": None,
-            },
-            "src": {"__init__.py": None},
-        },
-    )
-    pyaud.git.add(".")
-    pyaud.files.populate()
-    normal = pyaud.files.args()
-    reduced = pyaud.files.args(reduce=True)
-
-    # if reduce is used, then all of $PROJECT_DIR/dotfiles will be
-    # scanned (as $PROJECT_DIR/dotfiles/ipython_config.py is not
-    # ignored) therefore the .gitignore rule will not apply to
-    # ``bundle``
-    assert all(
-        i in reduced
-        for i in (str(Path.cwd() / "dotfiles"), str(Path.cwd() / "src"))
-    )
-
-    # therefore, the ``reduce`` argument should be used sparingly as in
-    # this example the bundle dir will not be scanned
-    assert all(
-        i in normal
-        for i in (
-            str(Path.cwd() / "src" / "__init__.py"),
-            str(Path.cwd() / "dotfiles" / "ipython_config.py"),
-        )
-    )
-
-
 def test_files_populate_proc(make_tree: t.Any) -> None:
     """Test that populating an index is quicker when there are commits.
 
@@ -930,22 +792,6 @@ def test_default_key() -> None:
         assert obj["default_key"] == "temp_value"
 
     assert obj["default_key"] == "default_value"
-
-
-def test_files_extend_no_dupes() -> None:
-    """Test files extend does not index duplicates."""
-    files_before = sorted(
-        [
-            Path.cwd() / "dir" / "file1.py",
-            Path.cwd() / "dir" / "file1.py",
-            Path.cwd() / "file2.py",
-        ]
-    )
-    files_after = sorted(
-        [Path.cwd() / Path("dir", "file1.py"), Path.cwd() / Path("file2.py")]
-    )
-    pyaud.files.extend(files_before)
-    assert sorted(pyaud.files) == files_after
 
 
 def test_plugin_mro() -> None:
