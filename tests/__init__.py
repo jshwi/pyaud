@@ -8,17 +8,12 @@ from pathlib import Path
 
 import pyaud
 
-from . import files
-
-REAL_REPO = Path(__file__).parent.parent
 FILES: str = "file.py"
-PUSHING_SKIPPED = "Pushing skipped"
 REPO = "repo"
 GH_NAME = "test_user"
 GH_EMAIL = "test_email.com"
 GH_TOKEN = "token"
 INITIAL_COMMIT = "Initial commit"
-NO_ISSUES = "Success: no issues found in 1 source files"
 INIT = "__init__.py"
 CONFPY = "conf.py"
 LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
@@ -27,20 +22,15 @@ INFO = LEVELS[1]
 WARNING = LEVELS[2]
 ERROR = LEVELS[3]
 CRITICAL = LEVELS[4]
-PYAUD_MODULES = "pyaud.main.plugins"
 SP_OPEN_PROC = "spall.Subprocess._open_process"
 README = Path("README.rst")
 PYAUD_PLUGINS_PLUGINS = "pyaud.plugins._plugins"
 TYPE_ERROR = "can only register one of the following:"
-DOCS = Path("docs")
-PIPFILE_LOCK = Path("Pipfile.lock")
 RCFILE = f".{pyaud.__name__}rc"
 TOMLFILE = f"{pyaud.__name__}.toml"
 PYPROJECT = "pyproject.toml"
 GITIGNORE = ".gitignore"
 PYAUD_FILES_POPULATE = "pyaud.files.populate"
-SP_CALL = "spall.Subprocess.call"
-SP_STDOUT = "spall.Subprocess.stdout"
 OS_GETCWD = "os.getcwd"
 WHITELIST_PY = "whitelist.py"
 COMMIT = "7c57dc943941566f47b9e7ee3208245d0bcd7656"
@@ -155,6 +145,9 @@ class Tracker:  # pylint: disable=too-few-public-methods
 class StrategyMockPlugin(MockCachedPluginType):
     """Create a base class that contains a `__call__` method that only
     returns an exit-code for a successful audit or a failed one."""
+
+    cache = True
+    cache_all = False
 
     def __call__(self, *args, **kwargs):
         return 0

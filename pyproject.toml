@@ -28,39 +28,22 @@ license = "MIT"
 name = "pyaud"
 packages = [
     { include = "pyaud" },
-    { include = "pyaud_plugins" },
 ]
 readme = "README.rst"
 version = "3.8.0"
 
 [tool.poetry.dependencies]
-Sphinx = "^4.3.2"
 appdirs = "^1.4.4"
-black = "^21.12b0"
-codecov = "^2.1.12"
-coverage = "^6.2"
-docformatter = "^1.4"
 environs = "^9.4.0"
-flynt = "^0.75"
 gitspy = "^0.1.0"
-isort = "^5.10.1"
 lsfiles = "^0.1.1"
 m2r = "^0.2.1"
 mistune = "<=0.8.4"
-mypy = "^0.930"
 object-colors = "^2.0.1"
-pipfile-requirements = "^0.3.0"
-pylint = "^2.12.2"
-pytest = "^6.2.5"
-pytest-cov = "^3.0.0"
+pyaud-plugins = "^0.2.0"
 python = "^3.8"
-python-dotenv = "^0.19.2"
-readmetester = "^1.0.1"
 spall = "^0.1.0"
-sphinxcontrib-fulltoc = "^1.2.0"
-sphinxcontrib-programoutput = "^0.17"
 toml = "^0.10.2"
-vulture = "^2.3"
 
 [tool.poetry.dev-dependencies]
 bump2version = "^1.0.1"

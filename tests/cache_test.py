@@ -4,6 +4,7 @@ tests.cache_test
 """
 # pylint: disable=protected-access,too-few-public-methods,no-member
 # pylint: disable=too-many-arguments,too-many-statements,invalid-name
+import copy
 import json
 import typing as t
 from pathlib import Path
@@ -35,6 +36,15 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     :param monkeypatch: Mock patch environment and attributes.
     :param main: Patch package entry point.
     """
+
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name="plugin")
+    class Plugin(pyaud.plugins.Action):  # pylint: disable=unused-variable
+        """Nothing to do."""
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            """Nothing to do."""
+
     match_parent = Tracker()
     match_file = Tracker()
     remove = Tracker()
@@ -46,7 +56,7 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     monkeypatch.setattr(
         "pyaud._indexing.HashMapping.write", lambda *_: save_cache
     )
-    main("format", "--no-cache")
+    main("plugin", "--no-cache")
     assert match_parent.was_called() is False
     assert match_file.was_called() is False
     assert remove.was_called() is False
@@ -153,11 +163,14 @@ class TestCacheStrategy:
         c: int,
         n: int,
         clean: bool = True,
+        cache_all: bool = False,
     ) -> type:
         monkeypatch.setattr("pyaud._wraps._package", lambda: self.P[p])
         monkeypatch.setattr("pyaud._wraps._get_commit_hash", lambda: self.C[c])
         monkeypatch.setattr("pyaud._wraps._working_tree_clean", lambda: clean)
         check = pyaud._wraps.check_command
+        strat = copy.deepcopy(StrategyMockPlugin)
+        strat.cache_all = cache_all
         plugin = type(self.N[n], (StrategyMockPlugin,), {})
         plugin.__call__ = check(plugin.__call__)  # type: ignore
         return plugin(self.N[n])
@@ -353,3 +366,15 @@ class TestCacheStrategy:
         assert self._d_eq(self._idx(o, 0, 2, 0), self._fmt(f))
         assert self._d_eq(self._idx(o, 0, 3, 1), self._fmt(f))
         assert self._d_eq(self._idx(o, 0, 3, 1, prefix=True), self._fmt(f))
+
+        #: Test all files get repopulated if a ``cache_all`` flag is set
+        #: to True.
+        #: ``cache_all`` means that all files must be saved, or
+        # otherwise the cache is void.
+        i6 = self._get_instance(monkeypatch, 0, 1, 0, cache_all=True)
+        f[p[1]] = f[p[1]][::-1]
+        i6()
+        o = json.loads(self._cache_file.read_text())
+        assert self._success_msg(len(f)) in nocolorcapsys.stdout()
+        assert self._cls_in_commit(o, 0, 1, 0)
+        assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))

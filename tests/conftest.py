@@ -4,7 +4,6 @@ tests.conftest
 """
 # pylint: disable=too-many-arguments,too-many-locals,too-few-public-methods
 # pylint: disable=protected-access,no-member,too-many-statements
-import copy
 import os
 import typing as t
 from configparser import ConfigParser
@@ -14,13 +13,14 @@ import pytest
 
 import pyaud
 
-from . import DEBUG, GH_EMAIL, GH_NAME, GH_TOKEN, REPO, NoColorCapsys
+from . import DEBUG, FILES, GH_EMAIL, GH_NAME, REPO, NoColorCapsys
 
 original_hash_mapping_match_file = pyaud.HashMapping.match_file
 original_hash_mapping_unpatched_hash_files = pyaud.HashMapping.hash_files
+original_pyaud_plugin_load = pyaud.plugins.load
+original_pyaud_main_register_default_plugins = pyaud.register_default_plugins
 
 
-# noinspection PyUnresolvedReferences,PyProtectedMember
 @pytest.fixture(name="mock_environment", autouse=True)
 def fixture_mock_environment(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -60,10 +60,6 @@ def fixture_mock_environment(
 
     #: ENV
     monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("CODECOV_SLUG", f"{GH_NAME}/{REPO}")
-    monkeypatch.setenv("PYAUD_GH_NAME", GH_NAME)
-    monkeypatch.setenv("PYAUD_GH_EMAIL", GH_EMAIL)
-    monkeypatch.setenv("PYAUD_GH_TOKEN", GH_TOKEN)
     monkeypatch.setenv("CODECOV_TOKEN", "")
     monkeypatch.delenv("CODECOV_TOKEN")
     monkeypatch.setenv("PYAUD_GH_REMOTE", str(home / "origin.git"))
@@ -86,9 +82,9 @@ def fixture_mock_environment(
     monkeypatch.setattr(
         "pyaud._indexing.HashMapping.hash_files", lambda _: None
     )
-    monkeypatch.setattr(
-        "pyaud.plugins._plugins", copy.deepcopy(pyaud.plugins._plugins)
-    )
+    monkeypatch.setattr("pyaud.plugins._plugins", pyaud.plugins.Plugins())
+    monkeypatch.setattr("pyaud.plugins.load", lambda: None)
+    monkeypatch.setattr("pyaud._main._register_default_plugins", lambda: None)
 
     #: RESET
     pyaud.files.clear()
@@ -101,7 +97,6 @@ def fixture_mock_environment(
         config.write(fout)
 
     #: MAIN - essential setup tasks
-    pyaud.plugins.load()
     pyaud.initialize_dirs()
     pyaud.files.populate()
     pyaud.config.configure_global()
@@ -161,51 +156,6 @@ def fixture_call_status() -> t.Any:
     return _call_status
 
 
-@pytest.fixture(name="patch_sp_call")
-def fixture_patch_sp_call(monkeypatch: pytest.MonkeyPatch) -> t.Any:
-    """Mock ``Subprocess.call``.
-
-    Print the command that is being run.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    :return: Function for using this fixture.
-    """
-
-    def _patch_sp_call(func: t.Any, returncode: int = 0) -> t.Any:
-        def call(*args: str, **kwargs: bool) -> int:
-            func(*args, **kwargs)
-
-            return returncode
-
-        monkeypatch.setattr("spall.Subprocess.call", call)
-
-    return _patch_sp_call
-
-
-@pytest.fixture(name="patch_sp_output")
-def fixture_patch_sp_output(patch_sp_call: t.Any) -> t.Any:
-    """Patch ``Subprocess``.
-
-    Return test strings to ``self.stdout``.
-
-    :return: Function for using this fixture.
-    """
-
-    def _patch_sp_output(*stdout: str) -> None:
-        _stdout = list(stdout)
-
-        def _call(self, *_: t.Any, **__: t.Any) -> None:
-            """Mock call to do nothing except send the expected stdout
-            to self."""
-            self._stdout.append(  # pylint: disable=protected-access
-                _stdout.pop()
-            )
-
-        patch_sp_call(_call)
-
-    return _patch_sp_output
-
-
 @pytest.fixture(name="make_tree")
 def fixture_make_tree() -> t.Any:
     """Recursively create directory tree from dict mapping.
@@ -226,36 +176,6 @@ def fixture_make_tree() -> t.Any:
                 fullpath.touch()
 
     return _make_tree
-
-
-@pytest.fixture(name="init_remote")
-def fixture_init_remote() -> None:
-    """Initialize local "remote origin".
-
-    :return: Function for using this fixture.
-    """
-    pyaud.git.init(  # type: ignore
-        "--bare", pyaud.environ.GH_REMOTE, devnull=True
-    )
-    pyaud.git.remote("add", "origin", "origin", devnull=True)  # type: ignore
-
-
-@pytest.fixture(name="patch_sp_print_called")
-def fixture_patch_sp_print_called(patch_sp_call: t.Any) -> t.Any:
-    """Mock ``Subprocess.call``to print the command that is being run.
-
-    :param patch_sp_call: Mock ``Subprocess.call`` by injecting a new
-        function into it.
-    :return: Function for using this fixture.
-    """
-
-    def _patch_sp_print_called() -> t.Any:
-        def _call(self, *args: str, **_: t.Any) -> None:
-            print(f"{self} {' '.join(str(i) for i in args)}")
-
-        return patch_sp_call(_call)
-
-    return _patch_sp_print_called
 
 
 @pytest.fixture(name="unpatch_hash_mapping_match_file")
@@ -284,3 +204,58 @@ def fixture_unpatch_hash_mapping_hash_files(
         "pyaud._indexing.HashMapping.hash_files",
         original_hash_mapping_unpatched_hash_files,
     )
+
+
+@pytest.fixture(name="unpatch_plugins_load")
+def fixture_unpatch_plugins_load(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Unpatch ``pyaud.plugins.load``.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    """
+    monkeypatch.setattr("pyaud.plugins.load", original_pyaud_plugin_load)
+
+
+@pytest.fixture(name="unpatch_register_default_plugins")
+def fixture_unpatch_register_default_plugins(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Unpatch ``pyaud._main._register_default_plugins``.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    """
+    monkeypatch.setattr(
+        "pyaud._main._register_default_plugins",
+        original_pyaud_main_register_default_plugins,
+    )
+
+
+@pytest.fixture(name="register_plugin")
+def fixture_register_plugin() -> pyaud.plugins.PluginType:
+    """Register a plugin."""
+
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name="plugin")
+    class Plugin(pyaud.plugins.Action):  # pylint: disable=unused-variable
+        """Nothing to do."""
+
+        command = "some-command-that-does-not-exist"
+
+        @property
+        def exe(self) -> t.List[str]:
+            return [self.command]
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            """Nothing to do."""
+            return self.subprocess[self.command].call(*args, **kwargs)
+
+    # noinspection PyUnresolvedReferences,PyProtectedMember
+    Plugin.__call__ = pyaud._wraps.check_command(  # type: ignore
+        Plugin.__call__
+    )
+    return Plugin
+
+
+@pytest.fixture(name="bump_index")
+def fixture_bump_index() -> None:
+    """Add a dummy file to the ``pyaud.files`` index."""
+    pyaud.files.append(Path.cwd() / FILES)

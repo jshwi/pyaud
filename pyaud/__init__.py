@@ -1,5 +1,6 @@
 """Plugin architecture for auditing Python packages."""
 from . import config, exceptions, parsers, plugins
+from ._default import register_default_plugins
 from ._environ import Environ, environ, initialize_dirs
 from ._indexing import HashMapping, files
 from ._main import main
@@ -32,5 +33,6 @@ __all__ = [
     "package",
     "parsers",
     "plugins",
+    "register_default_plugins",
     "working_tree_clean",
 ]

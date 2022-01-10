@@ -11,9 +11,11 @@ import logging
 import logging.config as logging_config
 import logging.handlers as logging_handlers
 import os
+import subprocess
 import time
 import typing as t
 from pathlib import Path
+from subprocess import CalledProcessError
 
 import pytest
 
@@ -21,6 +23,7 @@ import pyaud
 
 from . import (
     COMMIT,
+    CONFPY,
     CRITICAL,
     DEBUG,
     ERROR,
@@ -30,11 +33,13 @@ from . import (
     INIT,
     INITIAL_COMMIT,
     OS_GETCWD,
+    PYAUD_FILES_POPULATE,
     PYAUD_PLUGINS_PLUGINS,
     PYPROJECT,
     RCFILE,
     README,
     REPO,
+    SP_OPEN_PROC,
     TOMLFILE,
     TYPE_ERROR,
     WARNING,
@@ -132,6 +137,7 @@ def test_del_key_in_context():
         del obj["key"]
 
 
+@pytest.mark.usefixtures("unpatch_register_default_plugins")
 @pytest.mark.parametrize(
     "arg,index,expected",
     [
@@ -140,9 +146,9 @@ def test_del_key_in_context():
             0,
             (
                 "modules = [\n",
-                '    "plugin1",\n',
-                '    "plugin2",\n',
-                '    "plugin3"\n',
+                '    "audit",\n',
+                '    "clean",\n',
+                '    "generate-rcfile"\n',
                 "]",
             ),
         ),
@@ -150,9 +156,10 @@ def test_del_key_in_context():
             "all",
             0,
             (
-                "plugin1 -- Docstring for plugin1",
-                "plugin2 -- Docstring for plugin2",
-                "plugin3 -- Docstring for plugin3",
+                "audit           -- Read from [audit] key in config",
+                "clean           -- Remove all unversioned package files "
+                "recursively",
+                "generate-rcfile -- Print rcfile to stdout",
             ),
         ),
         ("not-a-module", 1, ("No such module: not-a-module",)),
@@ -184,28 +191,13 @@ def test_help(
         returns stderr.
     :param expected: Expected result when calling command.
     """
-
-    def plugin1():
-        """Docstring for plugin1."""
-
-    def plugin2():
-        """Docstring for plugin2."""
-
-    def plugin3():
-        """Docstring for plugin3."""
-
-    mocked_plugins = {
-        "plugin1": plugin1,
-        "plugin2": plugin2,
-        "plugin3": plugin3,
-    }
-    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mocked_plugins)
+    monkeypatch.setattr("pyaud.plugins.load", lambda: None)
     with pytest.raises(SystemExit):
         main("modules", arg)
 
     # index 0 returns stdout from ``readouterr`` and 1 returns stderr
     out = nocolorcapsys.readouterr()[index]
-    assert any(i in out for i in expected)
+    assert all(i in out for i in expected)
 
 
 def test_mapping_class() -> None:
@@ -694,6 +686,15 @@ def test_exclude_loads_at_main(main: t.Any) -> None:
 
     :param main: Patch package entry point.
     """
+
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name="plugin")
+    class Plugin(pyaud.plugins.Action):
+        """Nothing to do."""
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            """Nothing to do."""
+
     default_config = copy.deepcopy(pyaud.config.DEFAULT_CONFIG)
     project_config = copy.deepcopy(default_config)
     project_config["indexing"]["exclude"].append("project")
@@ -706,7 +707,7 @@ def test_exclude_loads_at_main(main: t.Any) -> None:
 
     assert "project" not in pyaud.config.toml["indexing"]["exclude"]
 
-    main("typecheck")
+    main("plugin")
 
     assert "project" in pyaud.config.toml["indexing"]["exclude"]
 
@@ -905,9 +906,18 @@ def test_time_output(main: t.Any, nocolorcapsys: t.Any) -> None:
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
     """
-    main("format", "-t")
+
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name="plugin")
+    class Plugin(pyaud.plugins.Action):
+        """Nothing to do."""
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            """Nothing to do."""
+
+    main("plugin", "-t")
     out = nocolorcapsys.stdout()
-    assert "Format: Execution time:" in out
+    assert "Plugin: Execution time:" in out
 
 
 # noinspection PyUnresolvedReferences
@@ -938,9 +948,11 @@ def test_plugin_deepcopy_with_new() -> None:
     TypeError: __new__() missing 1 required positional argument: 'name'
     """
     copy.deepcopy(pyaud.plugins._plugins)
+    assert isinstance(
+        pyaud.plugins.Plugin(REPO).__deepcopy__(REPO), pyaud.plugins.Plugin
+    )
 
 
-# noinspection PyUnusedLocal
 def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     """Test reading and writing of times within nested processes.
 
@@ -966,6 +978,9 @@ def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     with open(configfile, "w", encoding="utf-8") as fout:
         pyaud.config.toml.dump(fout, test_default)
 
+    pyaud.plugins.register("audit")(pyaud._default._Audit)
+
+    # noinspection PyUnusedLocal
     @pyaud.plugins.register(name="plugin_1")
     class P1(pyaud.plugins.Action):
         """Nothing to do."""
@@ -973,6 +988,7 @@ def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
+    # noinspection PyUnusedLocal
     @pyaud.plugins.register(name="plugin_2")
     class P2(pyaud.plugins.Action):
         """Nothing to do."""
@@ -982,6 +998,11 @@ def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
 
     # noinspection PyUnresolvedReferences
     pyaud._data.record.clear()
+    assert sorted(pyaud.plugins.registered()) == [
+        "audit",
+        "plugin_1",
+        "plugin_2",
+    ]
     main("audit")
     actual = json.loads(datafile.read_text(encoding="utf-8"))
     assert all(i in actual for i in expected)
@@ -993,6 +1014,14 @@ def test_del_key_config_runtime(main: t.Any) -> None:
     :param main: Patch package entry point.
     """
     tomlfile = Path.home() / pyaud.config.CONFIGDIR / pyaud.config._TOMLFILE
+
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name="plugin")
+    class Plugin(pyaud.plugins.Action):
+        """Nothing to do."""
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            """Nothing to do."""
 
     # check config file for essential key
     with open(tomlfile, encoding="utf-8") as fin:
@@ -1017,7 +1046,7 @@ def test_del_key_config_runtime(main: t.Any) -> None:
         pyaud.config.toml.dump(fout)
 
     pyaud.config.configure_global()
-    main("format")
+    main("plugin")
 
     # confirm after running main that no crash occurred and that the
     # essential key was replaced with a default
@@ -1027,23 +1056,37 @@ def test_del_key_config_runtime(main: t.Any) -> None:
     assert "filename" in pyaud.config.toml["logging"]["handlers"]["default"]
 
 
+@pytest.mark.parametrize("temp,expected", [(True, False), (False, True)])
 def test_call_m2r_on_markdown(
-    monkeypatch: pytest.MonkeyPatch, main: t.Any
+    monkeypatch: pytest.MonkeyPatch, temp: bool, expected: bool
 ) -> None:
     """Test creation of an RST README when only markdown is present.
 
     :param monkeypatch: Mock patch environment and attributes.
-    :param main: Patch package entry point.
+    :param temp: Is the RST file temporary? True or False.
+    :param expected: Expected value of ``Path(...).is_file``.
     """
-    path = Path.cwd() / "README.md"
-    path.touch()
+
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name="plugin")
+    class Plugin(pyaud.plugins.Action):
+        """Nothing to do."""
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            """Nothing to do."""
+
+    old_path = Path.cwd() / "README.md"
+    new_path = Path.cwd() / "README.rst"
+    old_path.touch()
     tracker = Tracker()
     tracker.return_values.append("rst text")
     monkeypatch.setattr("pyaud.parsers._m2r.parse_from_file", tracker)
-    main("docs")
-    assert tracker.was_called()
-    assert Path.cwd() / "README.md" in tracker.args[0]
-    assert tracker.kwargs == [{}]
+    with pyaud.parsers.Md2Rst(old_path, temp=temp):
+        # do stuff here
+        pass
+
+    assert tracker
+    assert new_path.is_file() == expected
 
 
 def test_command_not_found_error() -> None:
@@ -1068,3 +1111,512 @@ def test_command_not_found_error() -> None:
         RuntimeWarning, match="not_a_command: Command not found"
     ):
         exe()
+
+
+def test_warn_no_fix(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
+    """Test error when audit fails and cannot be fixed.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param main: Patch package entry point.
+    """
+
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name="lint")
+    class _Lint(pyaud.plugins.Audit):
+        """Lint code with ``pylint``."""
+
+        pylint = "pylint"
+
+        @property
+        def exe(self) -> t.List[str]:
+            return [self.pylint]
+
+        def audit(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            return self.subprocess[self.pylint].call(*args, **kwargs)
+
+    monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
+    pyaud.files.append(Path.cwd() / FILES)
+    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
+    with pytest.raises(pyaud.exceptions.AuditError):
+        main("lint")
+
+
+@pytest.mark.usefixtures("register_plugin")
+def test_check_command_no_files_found(
+    main: t.Any, nocolorcapsys: NoColorCapsys
+) -> None:
+    """Test plugin output when no files are found.
+
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    """
+    # noinspection PyUnresolvedReferences
+    main("plugin")
+    assert nocolorcapsys.stdout().strip() == "No files found"
+
+
+@pytest.mark.usefixtures("register_plugin")
+def test_check_command_fail_on_suppress(
+    main: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
+    nocolorcapsys: NoColorCapsys,
+    make_tree: t.Any,
+) -> None:
+    """Test plugin output when process fails while crash suppressed.
+
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param make_tree: Create directory tree from dict mapping.
+    """
+    make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
+    pyaud.files.append(Path.cwd() / FILES)
+    monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
+    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
+    main("plugin", "--suppress")
+    assert "Failed: returned non-zero exit status" in nocolorcapsys.stderr()
+
+
+def test_audit_error_did_no_pass_all_checks(
+    main: t.Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Test raising of ``AuditError``.
+
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    """
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name="plugin")
+    class Plugin(pyaud.plugins.Action):  # pylint: disable=unused-variable
+        """Nothing to do."""
+
+        not_used = "not-used"
+
+        @property
+        def exe(self) -> t.List[str]:
+            return [self.not_used]
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            raise subprocess.CalledProcessError(
+                1, "returned non-zero exit status"
+            )
+
+    pyaud.files.append(Path.cwd() / FILES)
+    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
+    with pytest.raises(pyaud.exceptions.AuditError):
+        main("plugin")
+
+
+def test_readme_replace() -> None:
+    """Test that ``LineSwitch`` properly edits a file."""
+    path = Path.cwd() / README
+
+    def _test_file_index(title: str, underline: str) -> None:
+        with open(path, encoding="utf-8") as fin:
+            lines = fin.read().splitlines()
+
+        assert lines[0] == title
+        assert lines[1] == len(underline) * "="
+
+    repo = "repo"
+    readme = "README"
+    repo_underline = len(repo) * "="
+    readme_underline = len(readme) * "="
+    with open(path, "w", encoding="utf-8") as fout:
+        fout.write(f"{repo}\n{repo_underline}\n")
+
+    _test_file_index(repo, repo_underline)
+    with pyaud.parsers.LineSwitch(path, {0: readme, 1: readme_underline}):
+        _test_file_index(readme, readme_underline)
+
+    _test_file_index(repo, repo_underline)
+
+
+def test_no_exe_provided(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test default value for exe property.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    """
+    unique = datetime.datetime.now().strftime("%d%m%YT%H%M%S")
+    monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
+    pyaud.files.append(Path.cwd() / FILES)
+
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name=unique)
+    class Plugin(pyaud.plugins.Audit):
+        """Nothing to do."""
+
+        def audit(self, *args: t.Any, **kwargs: bool) -> int:
+            """Nothing to do."""
+
+    assert pyaud.plugins.get(unique).exe == []
+
+
+@pytest.mark.usefixtures("unpatch_register_default_plugins")
+@pytest.mark.parametrize(
+    "exclude,expected",
+    [
+        ([], ""),
+        (
+            [".env_diff", "instance_diff", ".cache_diff"],
+            "Removing .cache_diff\n"
+            "Removing .env_diff\n"
+            "Removing instance_diff\n",
+        ),
+    ],
+    ids=["no-exclude", "exclude"],
+)
+def test_clean_exclude(
+    main: t.Any,
+    nocolorcapsys: NoColorCapsys,
+    exclude: t.List[str],
+    expected: str,
+) -> None:
+    """Test clean with and without exclude parameters.
+
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param exclude: Files to exclude from ``git clean``.
+    :param expected: Expected output from ``pyaud clean``.
+    """
+    Path(Path.cwd() / README).touch()
+    pyaud.git.init(devnull=True)  # type: ignore
+    pyaud.git.add(".")  # type: ignore
+    pyaud.git.commit("-m", "Initial commit", devnull=True)  # type: ignore
+    for exclusion in exclude:
+        Path(Path.cwd() / exclusion).touch()
+
+    main("clean")
+    assert nocolorcapsys.stdout() == expected
+
+
+def test_make_generate_rcfile(nocolorcapsys: NoColorCapsys) -> None:
+    """Test for correct output when running ``generate-rcfile``.
+
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    """
+    # noinspection PyUnresolvedReferences
+    pyaud.register_default_plugins()  # type: ignore
+    pyaud.plugins.get("generate-rcfile")()
+    assert (
+        nocolorcapsys.stdout().strip()
+        == pyaud.config.toml.dumps(pyaud.config.DEFAULT_CONFIG).strip()
+    )
+
+
+@pytest.mark.parametrize(
+    "args,add,first",
+    [([], [], ""), (["--clean"], ["clean"], "pyaud clean")],
+    ids=["no-args", "clean"],
+)
+def test_audit_modules(
+    monkeypatch: pytest.MonkeyPatch,
+    nocolorcapsys: NoColorCapsys,
+    main: t.Any,
+    call_status: t.Any,
+    args: t.List[str],
+    add: t.List[str],
+    first: str,
+) -> None:
+    """Test that the correct functions are called with ``make_audit``.
+
+    Mock all functions in ``MODULES`` to do nothing so the test can
+    confirm that all the functions that are meant to be run are run with
+    the output that is displayed to the console in cyan. Confirm what
+    the first and last functions being run are with the parametrized
+    values.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param main: Patch package entry point.
+    :param call_status: Patch function to not do anything. Optionally
+        returns non-zero exit code (0 by default).
+    :param args: Arguments for ``pyaud audit``.
+    :param add: Function to add to the ``audit_modules`` list
+    :param first: Expected first function executed.
+    """
+    seq = list(pyaud.config.DEFAULT_CONFIG["audit"]["modules"])
+    seq.extend(add)
+    mapping = {i: call_status(i) for i in seq}
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mapping)
+    monkeypatch.setattr("pyaud._main._register_default_plugins", lambda: None)
+    pyaud.plugins._plugins["audit"] = pyaud._default._Audit(  # type: ignore
+        "audit"
+    )
+    main("audit", *args)
+    del mapping["audit"]
+    assert first in nocolorcapsys.stdout()
+
+
+def test_environ_repo() -> None:
+    """Test returning of repo name with env."""
+    assert pyaud.environ.REPO == Path.cwd().name
+
+
+@pytest.mark.usefixtures("unpatch_register_default_plugins")
+@pytest.mark.parametrize(
+    "arg,expected",
+    [
+        ("", pyaud.plugins.registered()),
+        ("audit", ["audit -- Read from [audit] key in config"]),
+        ("all", pyaud.plugins.registered()),
+    ],
+    ids=["no-pos", "module", "all-modules"],
+)
+def test_help_with_plugins(
+    main: t.Any,
+    nocolorcapsys: NoColorCapsys,
+    arg: str,
+    expected: t.Tuple[str, ...],
+) -> None:
+    """Test expected output for help after plugins have been loaded.
+
+    Test no positional argument for json array of keys.
+    Test ``audit`` positional argument and docstring display.
+    Test all and display of all module docstrings.
+
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param arg: Positional argument for ```pyaud modules``.
+    :param expected: Expected result when calling command.
+    """
+    with pytest.raises(SystemExit):
+        main("modules", arg)
+
+    out = nocolorcapsys.stdout()
+    assert all(i in out for i in expected)
+
+
+# noinspection PyUnusedLocal
+@pytest.mark.parametrize(
+    "contents,expected",
+    [
+        (["created"], "created ``whitelist.py``"),
+        (["", "updated"], "updated ``whitelist.py``"),
+        (
+            ["up-to-date", "up-to-date"],
+            "``whitelist.py`` is already up to date",
+        ),
+    ],
+    ids=("created", "updated", "up_to_date"),
+)
+def test_write_command(
+    main: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
+    nocolorcapsys: NoColorCapsys,
+    contents: t.List[str],
+    expected: str,
+) -> None:
+    """Test the ``@write_command`` decorator.
+
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param contents: Content to write to file.
+    :param expected: Expected output.
+    """
+
+    for content in contents:
+        monkeypatch.setattr(
+            "pyaud._main._register_default_plugins", lambda: None
+        )
+
+        @pyaud.plugins.register(name="whitelist")
+        class _Whitelist(pyaud.plugins.Write):
+            vulture = "vulture"
+
+            @property
+            def exe(self) -> t.List[str]:
+                return [self.vulture]
+
+            @property
+            def path(self) -> Path:
+                return Path.cwd() / "whitelist.py"
+
+            def write(self, *args: t.Any, **kwargs: bool) -> t.Any:
+                with open(
+                    Path.cwd() / "whitelist.py", "w", encoding="utf-8"
+                ) as fout:
+                    fout.write(content)
+
+        monkeypatch.setattr("pyaud.plugins.load", lambda: None)
+        main("whitelist")
+
+        # prevent `NameConflictError`
+        pyaud.plugins._plugins.clear()
+
+    assert expected in nocolorcapsys.stdout()
+
+
+def test_hash_cap_no_file(
+    monkeypatch: pytest.MonkeyPatch, main: t.Any
+) -> None:
+    """Test no error raised when running ``Write`` without a file.
+
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    """
+    monkeypatch.setattr("pyaud._main._register_default_plugins", lambda: None)
+
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name="whitelist")
+    class _Whitelist(pyaud.plugins.Write):
+        vulture = "vulture"
+
+        @property
+        def exe(self) -> t.List[str]:
+            return [self.vulture]
+
+        @property
+        def path(self) -> Path:
+            return Path.cwd() / "whitelist.py"
+
+        def write(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            """Nothing to do."""
+
+    monkeypatch.setattr("pyaud.plugins.load", lambda: None)
+    main("whitelist")
+
+
+@pytest.mark.usefixtures("register_plugin", "unpatch_register_default_plugins")
+def test_suppress(
+    main: t.Any,
+    monkeypatch: pytest.MonkeyPatch,
+    nocolorcapsys: NoColorCapsys,
+    make_tree: t.Any,
+) -> None:
+    """Test that audit proceeds through errors with ``--suppress``.
+
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param make_tree: Create directory tree from dict mapping.
+    """
+    default_config = pyaud.config.DEFAULT_CONFIG
+    test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(default_config)
+    test_default["audit"]["modules"] = ["plugin"]
+    configfile = pyaud.config.CONFIGDIR / TOMLFILE
+    with open(configfile, "w", encoding="utf-8") as fout:
+        pyaud.config.toml.dump(fout, test_default)
+
+    make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
+    pyaud.files.append(Path.cwd() / FILES)
+    monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
+    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
+    main("audit", "--suppress")
+    assert "Failed: returned non-zero exit status" in nocolorcapsys.stderr()
+
+
+# noinspection PyUnusedLocal
+def test_parametrize(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
+    """Test class for running multiple plugins.
+
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    """
+
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name="plugin_1")
+    class PluginOne(pyaud.plugins.Action):
+        """Nothing to do."""
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            """Nothing to do."""
+
+    # noinspection PyUnusedLocal
+    @pyaud.plugins.register(name="plugin_2")
+    class PluginTwo(pyaud.plugins.Action):
+        """Nothing to do."""
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            """Nothing to do."""
+
+    @pyaud.plugins.register(name="params")
+    class _Params(  # pylint: disable=too-few-public-methods
+        pyaud.plugins.Parametrize
+    ):
+        def plugins(self) -> t.List[str]:
+            """List of plugin names to run.
+
+            :return: List of plugin names, as defined in ``@register``.
+            """
+            return ["plugin_1", "plugin_2"]
+
+    main("params")
+    out = nocolorcapsys.stdout()
+    assert "pyaud plugin_1" in out
+    assert "pyaud plugin_2" in out
+
+
+# noinspection PyUnusedLocal
+def test_fix_on_pass(main: t.Any) -> None:
+    """Test plugin on pass when using the fix class."""
+    pyaud.files.append(Path.cwd() / FILES)
+
+    @pyaud.plugins.register(name="fixer")
+    class _Fixer(pyaud.plugins.Fix):
+        def audit(self, *args: t.Any, **kwargs: bool) -> int:
+            raise CalledProcessError(1, "cmd")
+
+        def fix(self, *args: t.Any, **kwargs: bool) -> int:
+            """Nothing to do."""
+
+    with pytest.raises(pyaud.exceptions.AuditError) as err:
+        main("fixer")
+
+    assert "pyaud fixer did not pass all checks" in str(err.value)
+
+
+# noinspection PyUnusedLocal
+def test_fix_on_fail(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
+    """Test plugin on fail when using the fix class.
+
+    :param main: Patch package entry point.
+    :param nocolorcapsys: Capture system output while stripping ANSI
+        color codes.
+    """
+    pyaud.files.append(Path.cwd() / FILES)
+
+    @pyaud.plugins.register(name="fixer")
+    class _Fixer(pyaud.plugins.Fix):
+        def audit(self, *args: t.Any, **kwargs: bool) -> int:
+            return 0
+
+        def fix(self, *args: t.Any, **kwargs: bool) -> int:
+            """Nothing to do."""
+
+    main("fixer")
+    out = nocolorcapsys.stdout()
+    assert "Success: no issues found in 1 source files" in out
+
+
+@pytest.mark.usefixtures("unpatch_plugins_load")
+def test_imports(monkeypatch: pytest.MonkeyPatch, make_tree: t.Any) -> None:
+    """Test imports from relative plugin dir.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param make_tree: Create directory tree from dict mapping.
+    """
+    tracker = Tracker()
+    iter_modules = [
+        (None, "pyaud_underscore", None),
+        (None, "pyaud-dash", None),
+    ]
+    monkeypatch.setattr("pyaud.plugins._importlib.import_module", tracker)
+    monkeypatch.setattr(
+        "pyaud.plugins._pkgutil.iter_modules", lambda: iter_modules
+    )
+    make_tree(Path.cwd(), {"plugins": {INIT: None, FILES: None}})
+    pyaud.plugins.load()
+    assert tracker.was_called()
+    assert tracker.args == [("pyaud_underscore",), ("pyaud-dash",)]
+    assert tracker.kwargs == [{}, {}]

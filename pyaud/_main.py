@@ -13,6 +13,7 @@ from pathlib import Path as _Path
 from . import _data
 from . import config as _config
 from . import plugins as _plugins
+from ._default import register_default_plugins as _register_default_plugins
 from ._environ import environ as _environ
 from ._environ import initialize_dirs as _initialize_dirs
 from ._indexing import files as _files
@@ -196,6 +197,7 @@ def main() -> None:
     """
     _version_request()
     _environ.read_env()
+    _register_default_plugins()
     _plugins.load()
     parser = _Parser(_colors.cyan.get(_environ.NAME))
     _initialize_dirs()

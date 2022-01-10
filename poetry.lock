@@ -697,6 +697,39 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
+name = "pyaud-plugins"
+version = "0.2.0"
+description = "Plugin package for Pyaud"
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0"
+
+[package.dependencies]
+appdirs = ">=1.4.4,<2.0.0"
+black = ">=21.12b0,<22.0"
+codecov = ">=2.1.12,<3.0.0"
+coverage = ">=6.2,<7.0"
+docformatter = ">=1.4,<2.0"
+environs = ">=9.4.0,<10.0.0"
+flynt = ">=0.75,<0.76"
+isort = ">=5.10.1,<6.0.0"
+m2r = ">=0.2.1,<0.3.0"
+mistune = "<=0.8.4"
+mypy = ">=0.930,<0.931"
+object-colors = ">=2.0.1,<3.0.0"
+pipfile-requirements = ">=0.3.0,<0.4.0"
+pylint = ">=2.12.2,<3.0.0"
+pytest = ">=6.2.5,<7.0.0"
+pytest-cov = ">=3.0.0,<4.0.0"
+python-dotenv = ">=0.19.2,<0.20.0"
+readmetester = ">=1.0.1,<2.0.0"
+Sphinx = ">=4.3.2,<5.0.0"
+sphinxcontrib-fulltoc = ">=1.2.0,<2.0.0"
+sphinxcontrib-programoutput = ">=0.17,<0.18"
+toml = ">=0.10.2,<0.11.0"
+vulture = ">=2.3,<3.0"
+
+[[package]]
 name = "pygments"
 version = "2.8.1"
 description = "Pygments is a syntax highlighting package written in Python."
@@ -1195,7 +1228,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f37e03bd5aa47a2c231692e84a42085bceff027fb115b929928460135f15682f"
+content-hash = "ba7309a12ffc17ea6b07a4b24c4c636ec902cb40a9210392a95304feb98d60e4"
 
 [metadata.files]
 alabaster = [
@@ -1568,6 +1601,10 @@ ptyprocess = [
 py = [
     {file = "py-1.11.0-py2.py3-none-any.whl", hash = "sha256:607c53218732647dff4acdfcd50cb62615cedf612e72d1724fb1a0cc6405b378"},
     {file = "py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719"},
+]
+pyaud-plugins = [
+    {file = "pyaud-plugins-0.2.0.tar.gz", hash = "sha256:e0a1fe6793fcfc7268b58e6301ebc83878f3245a9d49ec6e43023a96bfda4191"},
+    {file = "pyaud_plugins-0.2.0-py3-none-any.whl", hash = "sha256:83440ddf222cac077e8df4432f80d73d3fff1b8061509e4cc2f841cf8a7cf205"},
 ]
 pygments = [
     {file = "Pygments-2.8.1-py3-none-any.whl", hash = "sha256:534ef71d539ae97d4c3a4cf7d6f110f214b0e687e92f9cb9d2a3b0d3101289c8"},
