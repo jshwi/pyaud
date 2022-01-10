@@ -31,16 +31,6 @@ class _Environ(_Env):
         return _Path.cwd().name
 
     @property
-    def DEFAULT_PLUGINS(self) -> _Path:
-        """Default plugins that ship with this package."""
-        return _Path(__file__).absolute().parent.parent / "pyaud_plugins"
-
-    @property
-    def SITE_PLUGINS(self) -> _Path:
-        """Plugins which may exist in user's current working dir."""
-        return _Path.cwd() / "plugins"
-
-    @property
     def GITHUB_REPOSITORY_OWNER(self) -> _t.Optional[str]:
         """Env variable which may exist in a GitHub workflow."""
         return self.str("GITHUB_REPOSITORY_OWNER", default=None)

@@ -9,6 +9,8 @@ from __future__ import annotations
 import importlib as _importlib
 import inspect as _inspect
 import os as _os
+import pkgutil as _pkgutil
+import re
 import sys as _sys
 import typing as _t
 from abc import abstractmethod as _abstractmethod
@@ -27,11 +29,6 @@ from ._objects import MutableMapping as _MutableMapping
 from ._utils import colors as _colors
 from ._wraps import ClassDecorator as _ClassDecorator
 from ._wraps import check_command as _check_command
-
-_plugin_paths: _t.List[_Path] = [
-    _environ.DEFAULT_PLUGINS,
-    _environ.SITE_PLUGINS,
-]
 
 
 class _SubprocessFactory(  # pylint: disable=too-many-ancestors
@@ -469,16 +466,7 @@ def get(name: str) -> PluginInstance:
 
 
 def load() -> None:
-    """Import all registered plugins from provided plugin  paths."""
-    for plugin_path in _plugin_paths:
-        _sys.path.append(str(plugin_path.parent))
-        if plugin_path.is_dir():
-            for path in plugin_path.iterdir():
-                if (
-                    not path.name.startswith("_")
-                    and not path.name.startswith(".")
-                    and path.name.endswith(".py")
-                ):
-                    _importlib.import_module(
-                        f"{plugin_path.name}.{path.name.replace('.py', '')}"
-                    )
+    """Import all package prefixed with ``pyaud[-_]``."""
+    for _, name, _ in _pkgutil.iter_modules():
+        if re.match("^pyaud[-_].*$", name):
+            _importlib.import_module(name)
