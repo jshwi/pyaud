@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.8.0...HEAD)
 ------------------------------------------------------------------------
+### Changed
+- Improves `pyaud.plugins.load` to search for prefixes
+
 ### Fixed
 - Handles `TypeError`s by returning `typing.Any` attributes
 
