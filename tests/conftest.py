@@ -126,7 +126,7 @@ def fixture_mock_environment(
     with open(Path.home() / ".gitconfig", "w", encoding="utf-8") as fout:
         config.write(fout)
 
-    pyaud._environ.initialize_dirs()
+    pyaud.initialize_dirs()
 
     monkeypatch.setattr("pyaud.git.status", lambda *_, **__: True)
     monkeypatch.setattr("pyaud.git.rev_parse", lambda *_, **__: None)
