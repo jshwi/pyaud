@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.8.0...HEAD)
 ------------------------------------------------------------------------
 ### Added
+- Adds `pyaud.main`
 - Adds `pyaud.initialize_dirs`
 - Adds `pyaud.HashMapping`
 - Adds `pyaud.Environ`

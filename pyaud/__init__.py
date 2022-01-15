@@ -2,6 +2,7 @@
 from . import config, exceptions, parsers, plugins
 from ._environ import Environ, environ, initialize_dirs
 from ._indexing import HashMapping, files
+from ._main import main
 from ._objects import BasePlugin
 from ._utils import (
     branch,
@@ -27,6 +28,7 @@ __all__ = [
     "get_packages",
     "git",
     "initialize_dirs",
+    "main",
     "package",
     "parsers",
     "plugins",
