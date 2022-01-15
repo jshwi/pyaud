@@ -1,7 +1,7 @@
 """Plugin architecture for auditing Python packages."""
 from . import config, exceptions, parsers, plugins
 from ._environ import Environ, environ
-from ._indexing import files
+from ._indexing import HashMapping, files
 from ._objects import BasePlugin
 from ._utils import (
     branch,
@@ -16,6 +16,7 @@ from ._version import __version__
 __all__ = [
     "BasePlugin",
     "Environ",
+    "HashMapping",
     "__version__",
     "branch",
     "config",
