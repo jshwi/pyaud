@@ -14,7 +14,9 @@ from environs import Env as _Env
 from ._version import __version__
 
 
-class _Environ(_Env):
+class Environ(_Env):
+    """Package's environment variables."""
+
     @property
     def NAME(self) -> str:
         """Name of this package."""
@@ -134,7 +136,7 @@ class _Environ(_Env):
 
 #: package environment, both parsed from .env file (with set defaults
 #: for missing keys), and static values
-environ = _Environ()
+environ = Environ()
 
 
 def initialize_dirs() -> None:
