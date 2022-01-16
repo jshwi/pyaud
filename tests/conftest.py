@@ -16,6 +16,9 @@ import pyaud
 
 from . import DEBUG, GH_EMAIL, GH_NAME, GH_TOKEN, REPO, NoColorCapsys
 
+original_hash_mapping_match_file = pyaud.HashMapping.match_file
+original_hash_mapping_unpatched_hash_files = pyaud.HashMapping.hash_files
+
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 @pytest.fixture(name="mock_environment", autouse=True)
@@ -27,14 +30,6 @@ def fixture_mock_environment(
     :param tmp_path: Create and return temporary directory.
     :param monkeypatch: Mock patch environment and attributes.
     """
-    #: UNPATCH
-    pyaud._indexing.HashMapping.unpatched_match_file = (  # type: ignore
-        pyaud._indexing.HashMapping.match_file
-    )
-    pyaud._indexing.HashMapping.unpatched_hash_files = (  # type: ignore
-        pyaud._indexing.HashMapping.hash_files
-    )
-
     #: CONFIG
     default_config: t.Dict[str, t.Any] = copy.deepcopy(
         pyaud.config.DEFAULT_CONFIG
@@ -270,3 +265,31 @@ def fixture_patch_sp_print_called(patch_sp_call: t.Any) -> t.Any:
         return patch_sp_call(_call)
 
     return _patch_sp_print_called
+
+
+@pytest.fixture(name="unpatch_hash_mapping_match_file")
+def fixture_unpatch_hash_mapping_match_file(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Unpatch ``pyaud._indexing.HashMapping.match_file``.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    """
+    monkeypatch.setattr(
+        "pyaud._indexing.HashMapping.match_file",
+        original_hash_mapping_match_file,
+    )
+
+
+@pytest.fixture(name="unpatch_hash_mapping_hash_files")
+def fixture_unpatch_hash_mapping_hash_files(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Unpatch ``pyaud._indexing.HashMapping.hash_files``.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    """
+    monkeypatch.setattr(
+        "pyaud._indexing.HashMapping.hash_files",
+        original_hash_mapping_unpatched_hash_files,
+    )

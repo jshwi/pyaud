@@ -175,6 +175,9 @@ class TestCacheStrategy:
         return {str(k.relative_to(Path.cwd())): v for k, v in o.items()}
 
     # noinspection DuplicatedCode
+    @pytest.mark.usefixtures(
+        "unpatch_hash_mapping_hash_files", "unpatch_hash_mapping_match_file"
+    )
     def test_cache_strategy(
         self, monkeypatch: pytest.MonkeyPatch, nocolorcapsys: NoColorCapsys
     ) -> None:
@@ -184,17 +187,6 @@ class TestCacheStrategy:
         :param nocolorcapsys: Capture system output while stripping ANSI
             color codes.
         """
-        #: Undo the monkey patches to the ``pyaud._indexing.HashMapping``
-        #: object.
-        monkeypatch.setattr(
-            "pyaud._indexing.HashMapping.hash_files",
-            pyaud._indexing.HashMapping.unpatched_hash_files,  # type: ignore
-        )
-        monkeypatch.setattr(
-            "pyaud._indexing.HashMapping.match_file",
-            pyaud._indexing.HashMapping.unpatched_match_file,  # type: ignore
-        )
-
         #: PATHS
         p = (
             Path.cwd() / REPO / "__main__.py",
