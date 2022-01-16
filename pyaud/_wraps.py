@@ -78,7 +78,7 @@ class ClassDecorator:
         def _wrapper(*args: str, **kwargs: bool) -> int:
             package = _package()
             with _data.record.track(
-                package, str(self._cls), _environ.DATADIR / "durations.json"
+                package, self._cls, _environ.DATADIR / "durations.json"
             ) as time_keeper:
                 returncode = func(*args, **kwargs)
 
@@ -86,7 +86,7 @@ class ClassDecorator:
             logged_time = "{}: Execution time: {}s; Average time: {}s".format(
                 self._cls.__name__,
                 time_keeper.elapsed(),
-                _data.record.average(package, str(self._cls)),
+                _data.record.average(package, self._cls),
             )
             self._cls.logger().info(logged_time)
             if kwargs.get("timed", False):

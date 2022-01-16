@@ -8,15 +8,18 @@ from __future__ import annotations
 
 import contextlib as _contextlib
 import json as _json
+import typing as _t
 from time import time as _time
 
+from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
 
 DURATIONS = "durations.json"
 
 
 class _TimeKeeper:
-    def __init__(self) -> None:
+    def __init__(self, cls: _t.Type[_BasePlugin]) -> None:
+        self._cls = cls
         self._start_time = 0.0
         self._end_time = self._start_time
         self._elapsed = self._start_time
@@ -24,6 +27,7 @@ class _TimeKeeper:
     def start(self) -> None:
         """Start the timer."""
         self._start_time = _time()
+        self._cls.logger().info("logging time for %s", self._cls)
         self._end_time = self._start_time
 
     def stop(self) -> None:
@@ -33,6 +37,9 @@ class _TimeKeeper:
         """
         self._end_time = _time()
         self._elapsed = round(self._end_time - self._start_time, 2)
+        self._cls.logger().info(
+            "time elapsed for %s: %ss", self._cls, self._elapsed
+        )
 
     def elapsed(self) -> float:
         """Return the elapsed time.
@@ -45,26 +52,26 @@ class _TimeKeeper:
 class Record(_MutableMapping):
     """Record floats to objects based on calling class."""
 
-    def average(self, package: str, cls: str) -> float:
+    def average(self, package: str, cls: _t.Type[_BasePlugin]) -> float:
         """Get the average of all recorded times.
 
         :return: Float containing the average of elapsed times.
         """
-        items = self.get(package, {}).get(cls, [])
+        items = self.get(package, {}).get(str(cls), [])
         return round(sum(items) / len(items), 2)
 
     @_contextlib.contextmanager
-    def track(self, package: str, cls: str, path):
+    def track(self, package: str, cls: _t.Type[_BasePlugin], path):
         """Context manager for parsing envvars with a common prefix."""
-        time_keeper = _TimeKeeper()
+        time_keeper = _TimeKeeper(cls)
         try:
             self[package] = self.get(package, {})
-            self[package][cls] = self[package].get(cls, [])
+            self[package][str(cls)] = self[package].get(str(cls), [])
             time_keeper.start()
             yield time_keeper
         finally:
             time_keeper.stop()
-            self[package][cls].append(time_keeper.elapsed())
+            self[package][str(cls)].append(time_keeper.elapsed())
             write(self, path)
 
 
