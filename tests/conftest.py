@@ -35,10 +35,7 @@ def fixture_mock_environment(
     name = pyaud.__name__
 
     #: CONFIG
-    default_config: t.Dict[str, t.Any] = copy.deepcopy(
-        pyaud.config.DEFAULT_CONFIG
-    )
-    default_config["logging"]["root"]["level"] = DEBUG
+    default_config = dict(pyaud.config.DEFAULT_CONFIG)
     logfile = Path(home / ".cache" / name / "log" / f"{name}.log")
     default_config["logging"]["handlers"]["default"]["filename"] = str(logfile)
     default_config["logging"]["root"]["level"] = DEBUG
@@ -81,7 +78,6 @@ def fixture_mock_environment(
     monkeypatch.setattr("inspect.currentframe", lambda: current_frame)
     monkeypatch.setattr("pyaud.config.CONFIGDIR", home / ".config" / name)
     monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
-    monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
     monkeypatch.setattr("pyaud.git.status", lambda *_, **__: True)
     monkeypatch.setattr("pyaud.git.rev_parse", lambda *_, **__: None)
     monkeypatch.setattr(
@@ -101,7 +97,6 @@ def fixture_mock_environment(
     #: CREATE
     repo_abs.mkdir()
     pyaud.git.init(devnull=True)
-    logfile.parent.mkdir(parents=True)
     with open(home / ".gitconfig", "w", encoding="utf-8") as fout:
         config.write(fout)
 
