@@ -27,49 +27,46 @@ def fixture_mock_environment(
     :param tmp_path: Create and return temporary directory.
     :param monkeypatch: Mock patch environment and attributes.
     """
-    # set environment variables
-    # =========================
-    # load generic env variables so as to avoid a KeyError and override
-    # relevant variables for test environment
-    monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("CODECOV_SLUG", f"{GH_NAME}/{REPO}")
+    #: UNPATCH
+    pyaud._indexing.HashMapping.unpatched_match_file = (  # type: ignore
+        pyaud._indexing.HashMapping.match_file
+    )
+    pyaud._indexing.HashMapping.unpatched_hash_files = (  # type: ignore
+        pyaud._indexing.HashMapping.hash_files
+    )
 
-    # load plugins dir
-    # ================
-    pyaud.plugins.load()
+    #: CONFIG
+    default_config: t.Dict[str, t.Any] = copy.deepcopy(
+        pyaud.config.DEFAULT_CONFIG
+    )
+    default_config["logging"]["root"]["level"] = DEBUG
+    logfile = Path(
+        tmp_path / ".cache" / pyaud.__name__ / "log" / f"{pyaud.__name__}.log"
+    )
+    default_config["logging"]["handlers"]["default"]["filename"] = str(logfile)
+    default_config["logging"]["root"]["level"] = DEBUG
 
-    # patch 3rd party attributes
-    # ==========================
-    # set the cwd to the temporary project dir
-    # ensure no real .env file interferes with tests
-    # patch ``setuptools.find_package`` to return package as existing
-    monkeypatch.setattr("os.getcwd", lambda: str(tmp_path / REPO))
-    monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [REPO])
-
-    # mock path resolutions for `environs` module
-    # prevent lookup of .env file in this repo's real dir
+    #: DOTENV - prevents lookup of .env file
     current_frame = type("current_frame", (), {})
     current_frame.f_back = type("f_back", (), {})  # type: ignore
     current_frame.f_back.f_code = type("f_code", (), {})  # type: ignore
     current_frame.f_back.f_code.co_filename = str(  # type: ignore
-        Path.cwd() / "_main.py"
-    )
-    monkeypatch.setattr("inspect.currentframe", lambda: current_frame)
-
-    # patch pyaud attributes
-    # ======================
-    # make default testing branch ``master``
-    # replace default config with changes values from above
-    # set config file to test config within the temporary home dir
-    monkeypatch.setattr("pyaud.branch", lambda: "master")
-    monkeypatch.setattr(
-        "pyaud.config.CONFIGDIR", tmp_path / ".config" / pyaud.__name__
+        tmp_path / "_main.py"
     )
 
-    # load default key-value pairs
-    # ============================
-    # monkeypatch implemented on prefixes and override other
-    # noinspection PyProtectedMember
+    #: GIT CONFIG - prevents git warnings
+    config = ConfigParser(default_section="")
+    config.read_dict(
+        {
+            "user": {"name": GH_NAME, "email": GH_EMAIL},
+            "advice": {"detachedHead": "false"},
+            "init": {"defaultBranch": "master"},
+        }
+    )
+
+    #: ENV
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("CODECOV_SLUG", f"{GH_NAME}/{REPO}")
     monkeypatch.setenv("PYAUD_GH_NAME", GH_NAME)
     monkeypatch.setenv("PYAUD_GH_EMAIL", GH_EMAIL)
     monkeypatch.setenv("PYAUD_GH_TOKEN", GH_TOKEN)
@@ -85,57 +82,17 @@ def fixture_mock_environment(
     monkeypatch.setenv("PYAUD_TIMED", "0")
     monkeypatch.setenv("PYAUD_FIX", "0")
 
-    # prepare test locations
-    # ======================
-    # create test directories
-    # ~/.cache/pyaud/log/pyaud.log needs to exist before running
-    # ``logging.config.dictConfig(config: t.Dict[str, t.Any])``
-    Path.cwd().mkdir()
-
-    # initialize repository
-    # =====================
-    pyaud.git.init(devnull=True)
-
-    # prepare default config
-    # ======================
-    # override log file path to point to test repository
-    # loglevel to DEBUG
-    default_config: t.Dict[str, t.Any] = copy.deepcopy(
-        pyaud.config.DEFAULT_CONFIG
+    #: ATTRS
+    monkeypatch.setattr("os.getcwd", lambda: str(tmp_path / REPO))
+    monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [REPO])
+    monkeypatch.setattr("inspect.currentframe", lambda: current_frame)
+    monkeypatch.setattr(
+        "pyaud.config.CONFIGDIR", tmp_path / ".config" / pyaud.__name__
     )
-    default_config["logging"]["root"]["level"] = DEBUG
     monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
-    logfile = Path(
-        tmp_path / ".cache" / pyaud.__name__ / "log" / f"{pyaud.__name__}.log"
-    )
-    default_config["logging"]["handlers"]["default"]["filename"] = str(logfile)
-    default_config["logging"]["root"]["level"] = DEBUG
     monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
-    logfile.parent.mkdir(parents=True)
-
-    # create ~/.gitconfig
-    # ===================
-    config = ConfigParser(default_section="")
-    config.read_dict(
-        {
-            "user": {"name": GH_NAME, "email": GH_EMAIL},
-            "advice": {"detachedHead": "false"},
-            "init": {"defaultBranch": "master"},
-        }
-    )
-    with open(Path.home() / ".gitconfig", "w", encoding="utf-8") as fout:
-        config.write(fout)
-
-    pyaud.initialize_dirs()
-
     monkeypatch.setattr("pyaud.git.status", lambda *_, **__: True)
     monkeypatch.setattr("pyaud.git.rev_parse", lambda *_, **__: None)
-    pyaud._indexing.HashMapping.unpatched_match_file = (  # type: ignore
-        pyaud._indexing.HashMapping.match_file
-    )
-    pyaud._indexing.HashMapping.unpatched_hash_files = (  # type: ignore
-        pyaud._indexing.HashMapping.hash_files
-    )
     monkeypatch.setattr(
         "pyaud._indexing.HashMapping.match_file", lambda *_: False
     )
@@ -146,10 +103,20 @@ def fixture_mock_environment(
         "pyaud.plugins._plugins", copy.deepcopy(pyaud.plugins._plugins)
     )
 
-    # setup singletons
-    # ================
+    #: RESET
     pyaud.files.clear()
     pyaud.config.toml.clear()
+
+    #: CREATE
+    Path.cwd().mkdir()
+    pyaud.git.init(devnull=True)
+    logfile.parent.mkdir(parents=True)
+    with open(Path.home() / ".gitconfig", "w", encoding="utf-8") as fout:
+        config.write(fout)
+
+    #: MAIN - essential setup tasks
+    pyaud.plugins.load()
+    pyaud.initialize_dirs()
     pyaud.files.populate()
     pyaud.config.configure_global()
     pyaud.config.load_config()
