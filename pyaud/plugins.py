@@ -394,7 +394,7 @@ PluginType = _t.Union[
 PluginInstance = _t.Union[Audit, Fix, Action, Parametrize, Write, FixFile]
 
 
-class _Plugins(_MutableMapping):  # pylint: disable=too-many-ancestors
+class Plugins(_MutableMapping):  # pylint: disable=too-many-ancestors
     """Holds registered plugins.
 
     Instantiate plugin on running __setitem__.
@@ -423,7 +423,7 @@ class _Plugins(_MutableMapping):  # pylint: disable=too-many-ancestors
         super().__setitem__(name, plugin(name))
 
 
-_plugins = _Plugins()
+_plugins = Plugins()
 
 
 def register(name: str) -> _t.Callable[[PluginType], PluginType]:
