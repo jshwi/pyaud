@@ -36,7 +36,7 @@ version = "3.8.0"
 [tool.poetry.dependencies]
 Sphinx = "^4.3.2"
 appdirs = "^1.4.4"
-black = "^21.12b0"
+black = ">=21.12,<23.0"
 codecov = "^2.1.12"
 coverage = "^6.2"
 docformatter = "^1.4"
