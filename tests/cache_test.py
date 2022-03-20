@@ -191,7 +191,7 @@ class TestCacheStrategy:
     @pytest.mark.usefixtures(
         "unpatch_hash_mapping_hash_files", "unpatch_hash_mapping_match_file"
     )
-    def test_cache_strategy(
+    def test_cache(
         self, monkeypatch: pytest.MonkeyPatch, nocolorcapsys: NoColorCapsys
     ) -> None:
         """Test cache strategy.

@@ -863,7 +863,9 @@ def test_no_request(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
 
 
 @pytest.mark.parametrize(
-    "stdout,returncode,expected", [([COMMIT], 0, COMMIT), ([], 1, None)]
+    "stdout,returncode,expected",
+    [([COMMIT], 0, COMMIT), ([], 1, None)],
+    ids=["zero", "non-zero"],
 )
 def test_get_commit_hash(
     monkeypatch: pytest.MonkeyPatch,

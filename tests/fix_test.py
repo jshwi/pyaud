@@ -61,7 +61,7 @@ class TestFix:
         pyaud.plugins.register(self.plugin_name)(fixer)
 
     @pytest.mark.parametrize("plugin", (_PassFixer, _PassFileFixer))
-    def test_fix_on_pass(
+    def test_on_pass(
         self,
         main: t.Any,
         nocolorcapsys: NoColorCapsys,
@@ -82,7 +82,7 @@ class TestFix:
         )
 
     @pytest.mark.parametrize("plugin", (_FailFixer, _FailFileFixer))
-    def test_fix_on_fail(
+    def test_on_fail(
         self, main: t.Any, plugin: pyaud.plugins.PluginType
     ) -> None:
         """Test plugin on fail when using the fix class.
@@ -100,7 +100,7 @@ class TestFix:
         )
 
     @pytest.mark.parametrize("plugin", (_FailFixer, _FailFileFixer))
-    def test_fix_with_fix(
+    def test_with_fix(
         self,
         main: t.Any,
         nocolorcapsys: NoColorCapsys,
