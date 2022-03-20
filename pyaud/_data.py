@@ -24,9 +24,15 @@ class _TimeKeeper:
         self._end_time = self._start_time
         self._elapsed = self._start_time
 
+    def _starter(self):
+        self._start_time = _time()
+
+    def _stopper(self):
+        self._end_time = _time()
+
     def start(self) -> None:
         """Start the timer."""
-        self._start_time = _time()
+        self._starter()
         self._cls.logger().info("logging time for %s", self._cls)
         self._end_time = self._start_time
 
@@ -35,7 +41,7 @@ class _TimeKeeper:
 
         :return: Float containing elapsed time.
         """
-        self._end_time = _time()
+        self._stopper()
         self._elapsed = round(self._end_time - self._start_time, 2)
         self._cls.logger().info(
             "time elapsed for %s: %ss", self._cls, self._elapsed

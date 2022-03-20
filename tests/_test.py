@@ -947,17 +947,17 @@ def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     :param monkeypatch: Mock patch environment and attributes.
     :param main: Patch package entry point.
     """
-    times = [1, 5, 2, 3, 1, 0]
     configfile = pyaud.config.CONFIGDIR / "pyaud.toml"
     # noinspection PyUnresolvedReferences
     datafile = pyaud.environ.DATADIR / "durations.json"
     monkeypatch.setattr("pyaud._wraps._package", lambda: REPO)
-    monkeypatch.setattr("pyaud._data._time", times.pop)
+    monkeypatch.setattr("pyaud._data._TimeKeeper._starter", lambda x: 0)
+    monkeypatch.setattr("pyaud._data._TimeKeeper._stopper", lambda x: 1)
     expected = {
         "repo": {
-            "<class 'pyaud_plugins.modules.Audit'>": [1],
-            "<class 'tests._test.test_nested_times.<locals>.P1'>": [2],
-            "<class 'tests._test.test_nested_times.<locals>.P2'>": [3],
+            "<class 'pyaud._default.Audit'>": [1],
+            "<class 'tests._test.test_nested_times.<locals>.P1'>": [1],
+            "<class 'tests._test.test_nested_times.<locals>.P2'>": [1],
         }
     }
     default_config = pyaud.config.DEFAULT_CONFIG
