@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.9.0...HEAD)
 ------------------------------------------------------------------------
+### Changed
+Bumps `pyaud-plugins` from 0.2.0 to 0.3.0
 
 [3.9.0](https://github.com/jshwi/pyaud/releases/tag/v3.9.0) - 2022-03-20
 ------------------------------------------------------------------------
