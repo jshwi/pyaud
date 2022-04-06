@@ -147,7 +147,6 @@ def test_loglevel(
 def test_del_key_in_context() -> None:
     """Confirm there is no error raised when deleting temp key-value."""
     obj: t.Dict[str, str] = {}
-    # noinspection PyProtectedMember
     with pc.TempEnvVar(obj, key=VALUE):  # pylint: disable=protected-access
         assert obj[KEY] == VALUE
         del obj[KEY]
@@ -363,7 +362,6 @@ def test_toml_no_override_all(monkeypatch: pytest.MonkeyPatch) -> None:
     assert dict(pc.toml) == pc.DEFAULT_CONFIG
 
 
-# noinspection DuplicatedCode
 def test_backup_toml() -> None:
     """Test backing up of toml config in case file is corrupted."""
 
@@ -449,23 +447,22 @@ def test_register_plugin_name_conflict_error() -> None:
     """Test ``NameConflictError`` is raised when same name provided."""
     unique = "test-register-plugin-name-conflict-error"
 
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name=unique)
     class PluginOne(pyaud.plugins.Action):
         """Nothing to do."""
 
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
+    pyaud.plugins.register(name=unique)(PluginOne)
     with pytest.raises(pyaud.exceptions.NameConflictError) as err:
 
-        # noinspection PyUnusedLocal
-        @pyaud.plugins.register(name=unique)
         class PluginTwo(pyaud.plugins.Action):
             """Nothing to do."""
 
             def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
                 """Nothing to do."""
+
+        pyaud.plugins.register(name=unique)(PluginTwo)
 
     assert str(err.value) == f"plugin name conflict at PluginTwo: '{unique}'"
 
@@ -505,13 +502,13 @@ def test_plugin_assign_non_type_key() -> None:
 
     with pytest.raises(TypeError) as err:
 
-        # noinspection PyUnusedLocal
-        @pyaud.plugins.register(name=unique)  # type: ignore
         class Plugin(Parent):
             """Nothing to do."""
 
             def __call__(self, *args: t.Any, **kwargs: bool) -> t.Any:
                 """Nothing to do."""
+
+        pyaud.plugins.register(name=unique)(Plugin)  # type: ignore
 
     assert TYPE_ERROR in str(err.value)
 
@@ -660,14 +657,13 @@ def test_exclude_loads_at_main(main: MockMainType) -> None:
     :param main: Patch package entry point.
     """
 
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name=PLUGIN_NAME[1])
     class Plugin(pyaud.plugins.Action):
         """Nothing to do."""
 
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(Plugin)
     default_config = copy.deepcopy(pc.DEFAULT_CONFIG)
     project_config = copy.deepcopy(default_config)
     project_config[INDEXING][EXCLUDE].append(PROJECT)
@@ -716,7 +712,6 @@ def test_exclude(make_tree: MakeTreeType) -> None:
     assert all(Path.cwd() / REPO / p in pyaud.files for p in webapp)
 
 
-# noinspection DuplicatedCode
 def test_filter_logging_config_kwargs() -> None:
     """Test that no errors are raised for additional config kwargs."""
     test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(pc.DEFAULT_CONFIG)
@@ -765,18 +760,17 @@ def test_plugin_mro() -> None:
     children of ``PluginType``s.
     """
 
-    @pyaud.plugins.register(name=PLUGIN_NAME[1])
     class PluginOne(pyaud.plugins.Action):
         """Nothing to do."""
 
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name=PLUGIN_NAME[2])
     class PluginTwo(PluginOne):
         """Nothing to do."""
 
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(PluginOne)
+    pyaud.plugins.register(name=PLUGIN_NAME[2])(PluginTwo)
     assert PLUGIN_NAME[1] in pyaud.plugins.mapping()
     assert PLUGIN_NAME[2] in pyaud.plugins.mapping()
 
@@ -876,27 +870,27 @@ def test_time_output(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
         color codes.
     """
 
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name=PLUGIN_NAME[1])
     class Plugin(pyaud.plugins.Action):
         """Nothing to do."""
 
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(Plugin)
     main(PLUGIN_NAME[1], "-t")
     out = nocolorcapsys.stdout()
     assert "Plugin: Execution time:" in out
 
 
-# noinspection PyUnresolvedReferences
 def test_restore_data_no_json() -> None:
     """Test pass on restoring empty file.
 
     No need to run any assertions; checking that no error is raised.
     """
     pe.DURATIONS_FILE.touch()
+    # noinspection PyUnresolvedReferences
     time_cache = pyaud._data.Record()
+    # noinspection PyUnresolvedReferences
     pyaud._data.read(time_cache, pe.DURATIONS_FILE)
 
     # short-cut for testing ``JSONIO.read`` which is basically identical
@@ -925,7 +919,6 @@ def test_nested_times(
     :param monkeypatch: Mock patch environment and attributes.
     :param main: Patch package entry point.
     """
-    # noinspection PyUnresolvedReferences
     monkeypatch.setattr("pyaud._data._TimeKeeper._starter", lambda x: 0)
     monkeypatch.setattr("pyaud._data._TimeKeeper._stopper", lambda x: 1)
     expected = {
@@ -940,8 +933,7 @@ def test_nested_times(
     test_default[AUDIT][MODULES] = [PLUGIN_NAME[1], PLUGIN_NAME[2]]
     pe.GLOBAL_CONFIG_FILE.write_text(pc.toml.dumps(test_default), pe.ENCODING)
 
-    # noinspection PyUnresolvedReferences
-    pyaud.plugins.register(AUDIT)(pyaud._default._Audit)
+    pyaud.plugins.register("audit")(pyaud._default._Audit)  # type: ignore
 
     class P1(pyaud.plugins.Action):
         """Nothing to do."""
@@ -975,13 +967,14 @@ def test_del_key_config_runtime(main: MockMainType) -> None:
 
     :param main: Patch package entry point.
     """
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name=PLUGIN_NAME[1])
+
     class Plugin(pyaud.plugins.Action):
         """Nothing to do."""
 
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
+
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(Plugin)
 
     # check config file for essential key
     pc.toml.loads(pe.GLOBAL_CONFIG_FILE.read_text(pe.ENCODING))
@@ -1011,8 +1004,7 @@ def test_del_key_config_runtime(main: MockMainType) -> None:
 
 def test_command_not_found_error() -> None:
     """Test ``CommandNotFoundError`` warning with ``Subprocess``."""
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register("test-command-not-found-error")
+
     class Plugin(pyaud.plugins.Action):
         """Test ``CommandNotFoundError``."""
 
@@ -1026,6 +1018,7 @@ def test_command_not_found_error() -> None:
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             self.subprocess[self.not_a_command].call(*args, **kwargs)
 
+    pyaud.plugins.register("test-command-not-found-error")(Plugin)
     exe = pyaud.plugins.get("test-command-not-found-error")
     with pytest.warns(
         RuntimeWarning, match="not_a_command: Command not found"
@@ -1072,7 +1065,6 @@ def test_check_command_no_files_found(
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
     """
-    # noinspection PyUnresolvedReferences
     main(PLUGIN_NAME[1])
     assert nocolorcapsys.stdout().strip() == "No files found"
 
@@ -1108,8 +1100,7 @@ def test_audit_error_did_no_pass_all_checks(
     :param main: Patch package entry point.
     :param monkeypatch: Mock patch environment and attributes.
     """
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name=PLUGIN_NAME[1])
+
     class Plugin(pyaud.plugins.Action):  # pylint: disable=unused-variable
         """Nothing to do."""
 
@@ -1124,7 +1115,8 @@ def test_audit_error_did_no_pass_all_checks(
                 1, "returned non-zero exit status"
             )
 
-    pyaud.files.append(Path.cwd() / FILE)
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(Plugin)
+    pyaud.files.append(Path.cwd() / FILES)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
     with pytest.raises(pyaud.exceptions.AuditError):
         main(PLUGIN_NAME[1])
@@ -1139,14 +1131,13 @@ def test_no_exe_provided(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     pyaud.files.append(Path.cwd() / FILE)
 
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name=unique)
     class Plugin(pyaud.plugins.Audit):
         """Nothing to do."""
 
         def audit(self, *args: t.Any, **kwargs: bool) -> int:
             """Nothing to do."""
 
+    pyaud.plugins.register(name=unique)(Plugin)
     assert pyaud.plugins.get(unique).exe == []
 
 
@@ -1195,7 +1186,6 @@ def test_make_generate_rcfile(nocolorcapsys: NoColorCapsys) -> None:
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
     """
-    # noinspection PyUnresolvedReferences
     pyaud._default.register_default_plugins()  # type: ignore
     pyaud.plugins.get("generate-rcfile")()
     assert (
@@ -1318,7 +1308,6 @@ def test_suppress(
     assert "Failed: returned non-zero exit status" in nocolorcapsys.stderr()
 
 
-# noinspection PyUnusedLocal
 def test_parametrize(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     """Test class for running multiple plugins.
 
@@ -1358,7 +1347,6 @@ def test_parametrize(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     assert "pyaud plugin-2" in out
 
 
-# noinspection PyUnusedLocal
 def test_fix_on_pass(main: MockMainType) -> None:
     """Test plugin on pass when using the fix class."""
     pyaud.files.append(Path.cwd() / FILE)
@@ -1377,7 +1365,6 @@ def test_fix_on_pass(main: MockMainType) -> None:
     assert "pyaud fixer did not pass all checks" in str(err.value)
 
 
-# noinspection PyUnusedLocal
 def test_fix_on_fail(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     """Test plugin on fail when using the fix class.
 

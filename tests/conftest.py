@@ -44,7 +44,7 @@ from . import (
     git,
 )
 
-# noinspection PyUnresolvedReferences,PyProtectedMember
+# noinspection PyProtectedMember,PyUnresolvedReferences
 original_hash_mapping_match_file = pyaud._cache.HashMapping.match_file
 # noinspection PyUnresolvedReferences,PyProtectedMember
 original_hash_mapping_unpatched_hash_files = (
@@ -282,8 +282,6 @@ def fixture_unpatch_setuptools_find_packages(
 def fixture_register_plugin() -> pyaud.plugins.PluginType:
     """Register a plugin."""
 
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name=PLUGIN_NAME[1])
     class Plugin(pyaud.plugins.Action):  # pylint: disable=unused-variable
         """Nothing to do."""
 
@@ -297,7 +295,8 @@ def fixture_register_plugin() -> pyaud.plugins.PluginType:
             """Nothing to do."""
             return self.subprocess[self.command].call(*args, **kwargs)
 
-    # noinspection PyUnresolvedReferences,PyProtectedMember
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(Plugin)
+    # noinspection PyProtectedMember
     Plugin.__call__ = pyaud._wraps.CheckCommand.files(  # type: ignore
         Plugin.__call__
     )
