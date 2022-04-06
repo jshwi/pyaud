@@ -19,6 +19,7 @@ from pyaud._locations import AppFiles
 
 PACKAGE = VarSeq("package", suffix="-")
 PLUGIN_NAME = VarSeq("plugin", suffix="-")
+PLUGIN_CLASS = VarSeq("Plugin")
 
 AUDIT = "audit"
 CLEAN = "clean"
@@ -55,6 +56,7 @@ LINT = "lint"
 LOGGING = "logging"
 MODULE = "module"
 MODULES = "modules"
+NAME = "name"
 NO_ISSUES = "Success: no issues found in 1 source files"
 OS_GETCWD = "os.getcwd"
 PROJECT = "project"
@@ -85,6 +87,8 @@ ClsDict = t.Dict[str, FileHashDict]
 CommitDict = t.Dict[str, ClsDict]
 CacheDict = t.Dict[str, CommitDict]
 CacheUnion = t.Union[CacheDict, CommitDict, ClsDict, FileHashDict]
+MockActionPluginList = t.Sequence[t.Type[pyaud.plugins.Action]]
+MockActionPluginFactoryType = t.Callable[..., MockActionPluginList]
 
 
 class MockCallStatusType(t.Protocol):
@@ -202,3 +206,7 @@ class StrategyMockPlugin(MockCachedPluginType):
 
     def __call__(self, *args, **kwargs):
         return 0
+
+
+class NotSubclassed:
+    """Nothing to do."""

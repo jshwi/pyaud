@@ -46,6 +46,7 @@ from . import (
     VERSION,
     WARNING,
     AppFiles,
+    MockActionPluginFactoryType,
     MockMainType,
 )
 
@@ -318,21 +319,19 @@ def test_backup_toml(app_files: AppFiles) -> None:
 
 
 def test_exclude_loads_at_main(
-    main: MockMainType, app_files: AppFiles
+    main: MockMainType,
+    app_files: AppFiles,
+    mock_action_plugin_factory: MockActionPluginFactoryType,
 ) -> None:
     """Confirm project config is loaded with ``main``.
 
     :param main: Patch package entry point.
     :param app_files: App file locations object.
+    :param mock_action_plugin_factory: Factory for creating mock action
+        plugin objects.
     """
-
-    class Plugin(pyaud.plugins.Action):
-        """Nothing to do."""
-
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            """Nothing to do."""
-
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(Plugin)
+    plugins = mock_action_plugin_factory({"name": "Plugin"})
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugins[0])
     default_config = copy.deepcopy(pc.DEFAULT_CONFIG)
     project_config = copy.deepcopy(default_config)
     project_config[INDEXING][EXCLUDE].append(PROJECT)
