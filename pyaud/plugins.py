@@ -30,9 +30,7 @@ from ._wraps import CheckCommand as _CheckCommand
 from ._wraps import ClassDecorator as _ClassDecorator
 
 
-class _SubprocessFactory(  # pylint: disable=too-many-ancestors
-    _MutableMapping
-):
+class _SubprocessFactory(_MutableMapping):
     """Instantiate collection of ``Subprocess`` objects."""
 
     def __init__(self, args: _t.List[str]) -> None:
@@ -41,7 +39,7 @@ class _SubprocessFactory(  # pylint: disable=too-many-ancestors
             self[arg] = _Subprocess(arg)
 
 
-class Plugin(_BasePlugin):  # pylint: disable=too-few-public-methods
+class Plugin(_BasePlugin):
     """Base class of all plugins.
 
     Raises ``TypeError`` if registered directly.
@@ -300,7 +298,7 @@ class FixAll(BaseFix):
         return super().__call__(*args, **kwargs)
 
 
-class Action(Plugin):  # pylint: disable=too-few-public-methods
+class Action(Plugin):
     """Blueprint for writing generic plugins.
 
     Called within context of defined environment variables.
@@ -332,7 +330,7 @@ class Action(Plugin):  # pylint: disable=too-few-public-methods
                 raise self.audit_error() from err
 
 
-class Parametrize(Plugin):  # pylint: disable=too-few-public-methods
+class Parametrize(Plugin):
     """Define a list of strings to call multiple plugins.
 
     :raises CalledProcessError: Will always be raised if something fails
@@ -449,7 +447,7 @@ PluginInstance = _t.Union[
 ]
 
 
-class Plugins(_MutableMapping):  # pylint: disable=too-many-ancestors
+class Plugins(_MutableMapping):
     """Holds registered plugins.
 
     Instantiate plugin on running __setitem__.

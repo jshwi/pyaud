@@ -2,8 +2,7 @@
 tests.conftest
 ==============
 """
-# pylint: disable=too-many-arguments,too-many-locals,too-few-public-methods
-# pylint: disable=protected-access,no-member,too-many-statements
+# pylint: disable=protected-access,no-member,import-outside-toplevel
 import os
 import typing as t
 from configparser import ConfigParser
@@ -164,7 +163,6 @@ def fixture_main(monkeypatch: pytest.MonkeyPatch) -> MockMainType:
     def _main(*args: str) -> None:
         """Run main with custom args."""
         # noinspection PyProtectedMember
-        # pylint: disable=protected-access,import-outside-toplevel
         from pyaud._main import main
 
         monkeypatch.setattr("sys.argv", [pyaud.__name__, *args])
@@ -282,7 +280,7 @@ def fixture_unpatch_setuptools_find_packages(
 def fixture_register_plugin() -> pyaud.plugins.PluginType:
     """Register a plugin."""
 
-    class Plugin(pyaud.plugins.Action):  # pylint: disable=unused-variable
+    class Plugin(pyaud.plugins.Action):
         """Nothing to do."""
 
         command = "some-command-that-does-not-exist"

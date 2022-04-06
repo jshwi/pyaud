@@ -121,7 +121,7 @@ class _TomlArrayEncoder(_toml_encoder.TomlEncoder):
         return f"{retval[:-2] if retval.endswith(', ') else retval}]"
 
 
-class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
+class _Toml(_MutableMapping):
     """Base class for all ``toml`` object interaction."""
 
     _encoder = _TomlArrayEncoder()
