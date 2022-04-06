@@ -46,6 +46,7 @@ from . import (
     VALUE,
     VERSION,
     WARNING,
+    MockActionPluginFactoryType,
     MockMainType,
 )
 
@@ -308,19 +309,17 @@ def test_backup_toml() -> None:
     assert pc.toml[LOGGING]["disable_existing_loggers"] is False
 
 
-def test_exclude_loads_at_main(main: MockMainType) -> None:
+def test_exclude_loads_at_main(
+    main: MockMainType, mock_action_plugin_factory: MockActionPluginFactoryType
+) -> None:
     """Confirm project config is loaded with ``main``.
 
     :param main: Patch package entry point.
+    :param mock_action_plugin_factory: Factory for creating mock action
+        plugin objects.
     """
-
-    class Plugin(pyaud.plugins.Action):
-        """Nothing to do."""
-
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            """Nothing to do."""
-
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(Plugin)
+    plugins = mock_action_plugin_factory({"name": "Plugin"})
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugins[0])
     default_config = copy.deepcopy(pc.DEFAULT_CONFIG)
     project_config = copy.deepcopy(default_config)
     project_config[INDEXING][EXCLUDE].append(PROJECT)

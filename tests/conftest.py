@@ -36,6 +36,8 @@ from . import (
     ROOT,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
     MakeTreeType,
+    MockActionPluginFactoryType,
+    MockActionPluginList,
     MockCallStatusType,
     MockFuncType,
     MockMainType,
@@ -305,3 +307,43 @@ def fixture_register_plugin() -> pyaud.plugins.PluginType:
 def fixture_bump_index() -> None:
     """Add a dummy file to the ``pyaud.files`` index."""
     pyaud.files.append(Path.cwd() / FILE)
+
+
+@pytest.fixture(name="mock_action_plugin_factory")
+def fixture_mock_action_plugin_factory() -> MockActionPluginFactoryType:
+    """Returns a list of ``Action`` objects.
+
+    Returns variable number, depending on the quantity of names
+        provided.
+
+    :return: List of mock ``Action`` plugin types.
+    """
+
+    def _mock_action_plugin_factory(*params) -> MockActionPluginList:
+        mock_action_plugins = []
+        for param in params:
+            _name = param.get("name")
+
+            class MockActionPlugin(pyaud.plugins.Action):
+                """Nothing to do."""
+
+                exe_str = param.get("exe") or "exe"
+                _action = param.get("action")
+
+                @property
+                def exe(self) -> t.List[str]:
+                    return [self.exe_str]
+
+                def action(self, *args: t.Any, **kwargs: bool) -> int:
+                    """Nothing to do."""
+                    if self._action is not None:
+                        return self._action(self, *args, **kwargs)
+
+                    return 0
+
+            MockActionPlugin.__name__ = _name
+            mock_action_plugins.append(MockActionPlugin)
+
+        return mock_action_plugins
+
+    return _mock_action_plugin_factory

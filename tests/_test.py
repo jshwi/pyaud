@@ -42,9 +42,11 @@ from . import (
     LINT,
     MODULE,
     MODULES,
+    NAME,
     NO_ISSUES,
     OS_GETCWD,
     PACKAGE,
+    PLUGIN_CLASS,
     PLUGIN_NAME,
     PYAUD_FILES_POPULATE,
     PYAUD_PLUGINS_PLUGINS,
@@ -59,9 +61,11 @@ from . import (
     VALUE,
     WHITELIST_PY,
     MakeTreeType,
+    MockActionPluginFactoryType,
     MockCallStatusType,
     MockMainType,
     NoColorCapsys,
+    NotSubclassed,
     Tracker,
     git,
 )
@@ -167,38 +171,29 @@ def test_mapping_class() -> None:
     assert KEY not in pc.toml
 
 
-def test_register_plugin_name_conflict_error() -> None:
-    """Test ``NameConflictError`` is raised when same name provided."""
+def test_register_plugin_name_conflict_error(
+    mock_action_plugin_factory: MockActionPluginFactoryType,
+) -> None:
+    """Test ``NameConflictError`` is raised when same name provided.
+
+    :param mock_action_plugin_factory: Factory for creating mock action
+        plugin objects.
+    """
     unique = "test-register-plugin-name-conflict-error"
-
-    class PluginOne(pyaud.plugins.Action):
-        """Nothing to do."""
-
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            """Nothing to do."""
-
-    pyaud.plugins.register(name=unique)(PluginOne)
+    plugin_one, plugin_two = mock_action_plugin_factory(
+        {NAME: PLUGIN_CLASS[1]}, {NAME: PLUGIN_CLASS[2]}
+    )
+    pyaud.plugins.register(name=unique)(plugin_one)
     with pytest.raises(pyaud.exceptions.NameConflictError) as err:
+        pyaud.plugins.register(name=unique)(plugin_two)
 
-        class PluginTwo(pyaud.plugins.Action):
-            """Nothing to do."""
-
-            def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-                """Nothing to do."""
-
-        pyaud.plugins.register(name=unique)(PluginTwo)
-
-    assert str(err.value) == f"plugin name conflict at PluginTwo: '{unique}'"
+    assert str(err.value) == f"plugin name conflict at Plugin_2: '{unique}'"
 
 
 def test_register_invalid_type() -> None:
     """Test correct error is displayed when registering unknown type."""
     unique = "test-register-invalid-type"
     with pytest.raises(TypeError) as err:
-
-        class NotSubclassed:
-            """Nothing to do."""
-
         pyaud.plugins.register(name=unique)(NotSubclassed)  # type: ignore
 
     assert TYPE_ERROR in str(err.value)
@@ -208,11 +203,7 @@ def test_plugin_assign_non_type_value() -> None:
     """Test assigning of incompatible type to `_Plugin` instance."""
     unique = "test-plugin-assign-non-type-value"
     with pytest.raises(TypeError) as err:
-
-        class _NonType:
-            """Nothing to do."""
-
-        pyaud.plugins.register(name=unique)(_NonType)  # type: ignore
+        pyaud.plugins.register(name=unique)(NotSubclassed)  # type: ignore
 
     assert TYPE_ERROR in str(err.value)
 
@@ -220,13 +211,9 @@ def test_plugin_assign_non_type_value() -> None:
 def test_plugin_assign_non_type_key() -> None:
     """Test assigning of incompatible type to `_Plugin` instance."""
     unique = "test-plugin-assign-non-type-key"
-
-    class Parent:
-        """Nothing to do."""
-
     with pytest.raises(TypeError) as err:
 
-        class Plugin(Parent):
+        class Plugin(NotSubclassed):
             """Nothing to do."""
 
             def __call__(self, *args: t.Any, **kwargs: bool) -> t.Any:
@@ -408,26 +395,24 @@ def test_exclude(make_tree: MakeTreeType) -> None:
     assert all(Path.cwd() / REPO / p in pyaud.files for p in webapp)
 
 
-def test_plugin_mro() -> None:
+def test_plugin_mro(
+    mock_action_plugin_factory: MockActionPluginFactoryType,
+) -> None:
     """Assert that plugins can inherit other plugins.
 
     Prior to this commit ``PluginType``s were only permitted, and not
     children of ``PluginType``s.
+
+    :param mock_action_plugin_factory: Factory for creating mock action
+        plugin objects.
     """
-
-    class PluginOne(pyaud.plugins.Action):
-        """Nothing to do."""
-
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            """Nothing to do."""
-
-    class PluginTwo(PluginOne):
-        """Nothing to do."""
-
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(PluginOne)
-    pyaud.plugins.register(name=PLUGIN_NAME[2])(PluginTwo)
-    assert PLUGIN_NAME[1] in pyaud.plugins.mapping()
-    assert PLUGIN_NAME[2] in pyaud.plugins.mapping()
+    plugin_one, plugin_two = mock_action_plugin_factory(
+        {NAME: PLUGIN_CLASS[1]}, {NAME: PLUGIN_CLASS[2]}
+    )
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugin_one)
+    pyaud.plugins.register(name=PLUGIN_NAME[2])(plugin_two)
+    assert "plugin-1" in pyaud.plugins.mapping()
+    assert "plugin-2" in pyaud.plugins.mapping()
 
 
 def test_get_plugin_logger() -> None:
@@ -517,24 +502,24 @@ def test_working_tree_clean(
     assert not pyaud._utils.working_tree_clean()
 
 
-def test_time_output(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
+def test_time_output(
+    main: MockMainType,
+    nocolorcapsys: NoColorCapsys,
+    mock_action_plugin_factory: MockActionPluginFactoryType,
+) -> None:
     """Test tracking of durations in output.
 
     :param main: Patch package entry point.
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
+    :param mock_action_plugin_factory: Factory for creating mock action
+        plugin objects.
     """
-
-    class Plugin(pyaud.plugins.Action):
-        """Nothing to do."""
-
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            """Nothing to do."""
-
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(Plugin)
+    plugin = mock_action_plugin_factory({NAME: PLUGIN_CLASS[1]})[0]
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugin)
     main(PLUGIN_NAME[1], "-t")
     out = nocolorcapsys.stdout()
-    assert "Plugin: Execution time:" in out
+    assert "Plugin_1: Execution time:" in out
 
 
 def test_restore_data_no_json() -> None:
@@ -567,12 +552,16 @@ def test_plugin_deepcopy_with_new() -> None:
 
 
 def test_nested_times(
-    monkeypatch: pytest.MonkeyPatch, main: MockMainType
+    monkeypatch: pytest.MonkeyPatch,
+    main: MockMainType,
+    mock_action_plugin_factory: MockActionPluginFactoryType,
 ) -> None:
     """Test reading and writing of times within nested processes.
 
     :param monkeypatch: Mock patch environment and attributes.
     :param main: Patch package entry point.
+    :param mock_action_plugin_factory: Factory for creating mock action
+        plugin objects.
     """
     monkeypatch.setattr("pyaud._data._TimeKeeper._starter", lambda x: 0)
     monkeypatch.setattr("pyaud._data._TimeKeeper._stopper", lambda x: 1)
@@ -589,21 +578,11 @@ def test_nested_times(
     pe.GLOBAL_CONFIG_FILE.write_text(pc.toml.dumps(test_default), pe.ENCODING)
 
     pyaud.plugins.register("audit")(pyaud._default._Audit)  # type: ignore
-
-    class P1(pyaud.plugins.Action):
-        """Nothing to do."""
-
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            """Nothing to do."""
-
-    class P2(pyaud.plugins.Action):
-        """Nothing to do."""
-
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            """Nothing to do."""
-
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(P1)
-    pyaud.plugins.register(name=PLUGIN_NAME[2])(P2)
+    plugin_one, plugin_two = mock_action_plugin_factory(
+        {NAME: PLUGIN_CLASS[2]}, {NAME: PLUGIN_CLASS[2]}
+    )
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugin_one)
+    pyaud.plugins.register(name=PLUGIN_NAME[2])(plugin_two)
 
     # noinspection PyUnresolvedReferences
     pyaud._data.record.clear()
@@ -617,23 +596,22 @@ def test_nested_times(
     assert all(i in actual for i in expected)
 
 
-def test_command_not_found_error() -> None:
-    """Test ``CommandNotFoundError`` warning with ``Subprocess``."""
+def test_command_not_found_error(
+    mock_action_plugin_factory: MockActionPluginFactoryType,
+) -> None:
+    """Test ``CommandNotFoundError`` warning with ``Subprocess``.
 
-    class Plugin(pyaud.plugins.Action):
-        """Test ``CommandNotFoundError``."""
-
-        not_a_command = "not_a_command"
-
-        @property
-        def exe(self) -> t.List[str]:
-            """Non-existing command."""
-            return [self.not_a_command]
-
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            self.subprocess[self.not_a_command].call(*args, **kwargs)
-
-    pyaud.plugins.register("test-command-not-found-error")(Plugin)
+    :param mock_action_plugin_factory: Factory for creating mock action
+        plugin objects.
+    """
+    plugins = mock_action_plugin_factory(
+        {
+            NAME: PLUGIN_CLASS[1],
+            "exe": "not_a_command",
+            "action": lambda x, *y, **z: x.subprocess[x.exe_str].call(*y, **z),
+        }
+    )
+    pyaud.plugins.register("test-command-not-found-error")(plugins[0])
     exe = pyaud.plugins.get("test-command-not-found-error")
     with pytest.warns(
         RuntimeWarning, match="not_a_command: Command not found"
@@ -708,29 +686,25 @@ def test_check_command_fail_on_suppress(
 
 
 def test_audit_error_did_no_pass_all_checks(
-    main: MockMainType, monkeypatch: pytest.MonkeyPatch
+    main: MockMainType,
+    monkeypatch: pytest.MonkeyPatch,
+    mock_action_plugin_factory: MockActionPluginFactoryType,
 ) -> None:
     """Test raising of ``AuditError``.
 
     :param main: Patch package entry point.
     :param monkeypatch: Mock patch environment and attributes.
+    :param mock_action_plugin_factory: Factory for creating mock action
+        plugin objects.
     """
 
-    class Plugin(pyaud.plugins.Action):
-        """Nothing to do."""
+    def action(_, *__: int, **___: bool) -> int:
+        raise subprocess.CalledProcessError(1, "returned non-zero exit status")
 
-        not_used = "not-used"
-
-        @property
-        def exe(self) -> t.List[str]:
-            return [self.not_used]
-
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            raise subprocess.CalledProcessError(
-                1, "returned non-zero exit status"
-            )
-
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(Plugin)
+    plugins = mock_action_plugin_factory(
+        {NAME: PLUGIN_CLASS[1], "action": action}
+    )
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugins[0])
     pyaud.files.append(Path.cwd() / FILES)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
     with pytest.raises(pyaud.exceptions.AuditError):
@@ -923,25 +897,19 @@ def test_suppress(
     assert "Failed: returned non-zero exit status" in nocolorcapsys.stderr()
 
 
-def test_parametrize(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
+def test_parametrize(
+    main: MockMainType,
+    nocolorcapsys: NoColorCapsys,
+    mock_action_plugin_factory: MockActionPluginFactoryType,
+) -> None:
     """Test class for running multiple plugins.
 
     :param main: Patch package entry point.
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
+    :param mock_action_plugin_factory: Factory for creating mock action
+        plugin objects.
     """
-
-    class PluginOne(pyaud.plugins.Action):
-        """Nothing to do."""
-
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            """Nothing to do."""
-
-    class PluginTwo(pyaud.plugins.Action):
-        """Nothing to do."""
-
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            """Nothing to do."""
 
     class _Params(pyaud.plugins.Parametrize):
         def plugins(self) -> t.List[str]:
@@ -951,8 +919,11 @@ def test_parametrize(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
             """
             return [PLUGIN_NAME[1], PLUGIN_NAME[2]]
 
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(PluginOne)
-    pyaud.plugins.register(name=PLUGIN_NAME[2])(PluginTwo)
+    plugin_one, plugin_two = mock_action_plugin_factory(
+        {NAME: PLUGIN_CLASS[1]}, {NAME: PLUGIN_CLASS[2]}
+    )
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugin_one)
+    pyaud.plugins.register(name=PLUGIN_NAME[2])(plugin_two)
     pyaud.plugins.register(name="params")(_Params)
     main("params")
     out = nocolorcapsys.stdout()
