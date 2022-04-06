@@ -43,14 +43,13 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: MockMainType) -> None:
     :param main: Patch package entry point.
     """
 
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name=PLUGIN_NAME[1])
     class Plugin(pyaud.plugins.Action):  # pylint: disable=unused-variable
         """Nothing to do."""
 
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(Plugin)
     match_parent = Tracker()
     match_file = Tracker()
     remove = Tracker()
@@ -96,7 +95,6 @@ def test_remove_matched_files(
     assert remove.was_called() is True
 
 
-# noinspection PyUnresolvedReferences
 class TestCacheStrategy:
     """Test strategy."""
 
@@ -104,6 +102,7 @@ class TestCacheStrategy:
     P = (REPO,)
 
     #: COMMITS
+    # noinspection PyUnresolvedReferences
     C = (
         pyaud._cache.HashMapping._FALLBACK,
         "7c57dc943941566f47b9e7ee3208245d0bcd7656",
@@ -178,6 +177,7 @@ class TestCacheStrategy:
         monkeypatch.setattr("pyaud._cache._get_commit_hash", lambda: self.C[c])
         monkeypatch.setattr("pyaud._cache._working_tree_clean", lambda: clean)
         attr = "file" if single_file else FILES
+        # noinspection PyUnresolvedReferences
         check = getattr(pyaud._wraps.CheckCommand, attr)
         strat = copy.deepcopy(StrategyMockPlugin)
         strat.cache_all = cache_all
@@ -194,7 +194,6 @@ class TestCacheStrategy:
     def _fmt(o: t.Dict[Path, str]) -> FileHashDict:
         return {str(k.relative_to(Path.cwd())): v for k, v in o.items()}
 
-    # noinspection DuplicatedCode
     @pytest.mark.usefixtures(
         "unpatch_hash_mapping_hash_files", "unpatch_hash_mapping_match_file"
     )
