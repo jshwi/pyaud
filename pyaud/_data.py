@@ -9,6 +9,7 @@ from __future__ import annotations
 import contextlib as _contextlib
 import json as _json
 import typing as _t
+from pathlib import Path as _Path
 from time import time as _time
 
 from ._objects import BasePlugin as _BasePlugin
@@ -22,10 +23,10 @@ class _TimeKeeper:
         self._end_time = self._start_time
         self._elapsed = self._start_time
 
-    def _starter(self):
+    def _starter(self) -> None:
         self._start_time = _time()
 
-    def _stopper(self):
+    def _stopper(self) -> None:
         self._end_time = _time()
 
     def start(self) -> None:
@@ -64,7 +65,9 @@ class Record(_MutableMapping):
         return round(sum(items) / len(items), 2)
 
     @_contextlib.contextmanager
-    def track(self, repo: str, cls: _t.Type[_BasePlugin], path):
+    def track(
+        self, repo: str, cls: _t.Type[_BasePlugin], path: _Path
+    ) -> _t.Generator[_TimeKeeper, None, None]:
         """Context manager for parsing envvars with a common prefix.
 
         :param repo: Name of package audit is running in.
@@ -84,7 +87,7 @@ class Record(_MutableMapping):
             write(self, path)
 
 
-def read(obj, path) -> None:
+def read(obj: _MutableMapping, path: _Path) -> None:
     """Read from file to object.
 
     :param obj: Object to read file data to.
@@ -97,7 +100,7 @@ def read(obj, path) -> None:
             pass
 
 
-def write(obj, path) -> None:
+def write(obj: _MutableMapping, path: _Path) -> None:
     """Write data to file.
 
     :param obj: Object to write to datafile.

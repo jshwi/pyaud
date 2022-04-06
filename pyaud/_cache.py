@@ -109,7 +109,7 @@ class HashMapping(_JSONIO):
         """
         self._commit = f"{tag}-{self._commit}"
 
-    def read(self):
+    def read(self) -> None:
         """Read data from existing cache file if it exists,
 
         Ensure necessary keys exist regardless.
@@ -133,11 +133,17 @@ class FileCacher:  # pylint: disable=too-few-public-methods
     :param kwargs: Boolean flags for subprocesses.
     """
 
-    def __init__(self, cls, func, *args, **kwargs) -> None:
-        self._cls: _t.Type[_BasePlugin] = cls
-        self.func: _t.Callable = func
-        self.args: _t.Tuple = args
-        self.kwargs: _t.Dict = kwargs
+    def __init__(
+        self,
+        cls: _t.Type[_BasePlugin],
+        func: _t.Callable[..., int],
+        *args: str,
+        **kwargs: bool,
+    ) -> None:
+        self._cls = cls
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
         self.no_cache = self.kwargs.get("no_cache", False)
         self.hashed = HashMapping(
             _e.FILECACHE_FILE, _e.REPO, self._cls, _get_commit_hash()
@@ -148,7 +154,7 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         self.hashed.read()
 
     def _hash_file(
-        self, file: _Path, passed: _t.Callable, *args: _t.Any
+        self, file: _Path, passed: _t.Callable[..., None], *args: _t.Any
     ) -> bool:
         if self.hashed.match_file(file):
             self._cls.logger().debug("hit: %s", file)
@@ -167,7 +173,7 @@ class FileCacher:  # pylint: disable=too-few-public-methods
 
         return self.func(*self.args, **self.kwargs)
 
-    def _write(self, action: _t.Callable) -> None:
+    def _write(self, action: _t.Callable[..., None]) -> None:
         self._cls.logger().debug(
             "%s finished successfully, writing to %s",
             self._cls.__name__,

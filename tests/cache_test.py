@@ -22,20 +22,20 @@ from . import (
     PLUGIN_NAME,
     REPO,
     TESTS,
+    CacheDict,
+    CacheUnion,
+    ClsDict,
+    CommitDict,
+    FileHashDict,
     MockCachedPluginType,
+    MockMainType,
     NoColorCapsys,
     StrategyMockPlugin,
     Tracker,
 )
 
-FileHashDict = t.Dict[str, str]
-ClsDict = t.Dict[str, FileHashDict]
-CommitDict = t.Dict[str, ClsDict]
-CacheDict = t.Dict[str, CommitDict]
-CacheUnion = t.Union[CacheDict, CommitDict, ClsDict, FileHashDict]
 
-
-def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
+def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: MockMainType) -> None:
     """Test all runs as should when ``-n/--no-cache`` arg is passed.
 
     :param monkeypatch: Mock patch environment and attributes.
@@ -155,7 +155,7 @@ class TestCacheStrategy:
         return json.dumps(o1, sort_keys=True) == json.dumps(o2, sort_keys=True)
 
     def _cls_in_commit(
-        self, o: CacheDict, p: int, c: int, n: int, prefix=False
+        self, o: CacheDict, p: int, c: int, n: int, prefix: bool = False
     ) -> bool:
         return self._cls_key(n) in o[self.P[p]][self._get_commit(c, prefix)]
 

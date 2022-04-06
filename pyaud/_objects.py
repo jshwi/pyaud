@@ -6,15 +6,20 @@ import json as _json
 import logging as _logging
 import typing as _t
 from abc import ABC as _ABC
-from collections.abc import MutableMapping as _MutableMapping
 from pathlib import Path as _Path
 
+_KT = _t.TypeVar("_KT")
+_VT = _t.TypeVar("_VT")
+_T_co = _t.TypeVar("_T_co", covariant=True)
 
-class MutableMapping(_MutableMapping):  # pylint: disable=too-many-ancestors
+
+class MutableMapping(  # pylint: disable=too-many-ancestors
+    _t.MutableMapping[_KT, _VT]
+):
     """Inherit to replicate subclassing of ``dict`` objects."""
 
     def __init__(self) -> None:
-        self._dict: _t.Dict[str, _t.Any] = {}
+        self._dict: _t.Dict[_KT, _VT] = {}
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self._dict}>"
@@ -22,21 +27,21 @@ class MutableMapping(_MutableMapping):  # pylint: disable=too-many-ancestors
     def __len__(self) -> int:
         return self._dict.__len__()
 
-    def __delitem__(self, key: _t.Any) -> None:
+    def __delitem__(self, key: _KT) -> None:
         self._dict.__delitem__(key)
 
-    def __setitem__(self, key: _t.Any, value: _t.Any) -> None:
+    def __setitem__(self, key: _KT, value: _VT) -> None:
         self._dict = self._nested_update(self._dict, {key: value})
 
-    def __getitem__(self, key: _t.Any) -> _t.Any:
+    def __getitem__(self, key: _KT) -> _VT:
         return self._dict.__getitem__(key)
 
-    def __iter__(self) -> _t.Iterator:
-        return iter(self._dict)
+    def __iter__(self) -> _t.Iterator[_KT]:
+        return self._dict.__iter__()
 
     def _nested_update(
-        self, obj: _t.Dict[str, _t.Any], update: _t.Dict[str, _t.Any]
-    ) -> _t.Dict[str, _t.Any]:
+        self, obj: _t.Dict[_KT, _t.Any], update: _t.Dict[_KT, _t.Any]
+    ) -> _t.Dict[_KT, _t.Any]:
         # add to __setitem__ to ensure that no entire dict keys with
         # missing nested keys overwrite all other values
         # run recursively to cover all nested objects if value is a dict
