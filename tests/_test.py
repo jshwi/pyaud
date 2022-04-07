@@ -12,7 +12,6 @@ import subprocess
 import time
 import typing as t
 from pathlib import Path
-from subprocess import CalledProcessError
 
 import pytest
 
@@ -30,7 +29,6 @@ from . import (
     EXCLUDE,
     FILE,
     FILES,
-    FIXER,
     FORMAT,
     FORMAT_DOCS,
     GITIGNORE,
@@ -42,7 +40,6 @@ from . import (
     MODULE,
     MODULES,
     NAME,
-    NO_ISSUES,
     OS_GETCWD,
     PACKAGE,
     PLUGIN_CLASS,
@@ -909,49 +906,6 @@ def test_parametrize(
     out = nocolorcapsys.stdout()
     assert f"pyaud {PLUGIN_NAME[1]}" in out
     assert f"pyaud {PLUGIN_NAME[2]}" in out
-
-
-def test_fix_on_pass(main: MockMainType) -> None:
-    """Test plugin on pass when using the fix class.
-
-    :param main: Patch package entry point.
-    """
-    pyaud.files.append(Path.cwd() / FILE)
-
-    class _Fixer(pyaud.plugins.FixAll):
-        def audit(self, *args: t.Any, **kwargs: bool) -> int:
-            raise CalledProcessError(1, "cmd")
-
-        def fix(self, *args: t.Any, **kwargs: bool) -> int:
-            """Nothing to do."""
-
-    pyaud.plugins.register(name=FIXER)(_Fixer)
-    with pytest.raises(pyaud.exceptions.AuditError) as err:
-        main(FIXER)
-
-    assert "pyaud fixer did not pass all checks" in str(err.value)
-
-
-def test_fix_on_fail(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
-    """Test plugin on fail when using the fix class.
-
-    :param main: Patch package entry point.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
-    """
-    pyaud.files.append(Path.cwd() / FILE)
-
-    class _Fixer(pyaud.plugins.FixAll):
-        def audit(self, *args: t.Any, **kwargs: bool) -> int:
-            return 0
-
-        def fix(self, *args: t.Any, **kwargs: bool) -> int:
-            """Nothing to do."""
-
-    pyaud.plugins.register(name=FIXER)(_Fixer)
-    main(FIXER)
-    out = nocolorcapsys.stdout()
-    assert NO_ISSUES in out
 
 
 @pytest.mark.usefixtures("unpatch_plugins_load")
