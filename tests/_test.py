@@ -51,7 +51,6 @@ from . import (
     PYAUD_FILES_POPULATE,
     PYAUD_PLUGINS_PLUGINS,
     README,
-    REGISTER_PLUGIN,
     REPO,
     SP_OPEN_PROC,
     SRC,
@@ -62,6 +61,7 @@ from . import (
     WHITELIST_PY,
     MakeTreeType,
     MockActionPluginFactoryType,
+    MockAudit,
     MockCallStatusType,
     MockMainType,
     NoColorCapsys,
@@ -648,7 +648,6 @@ def test_warn_no_fix(
         main(LINT)
 
 
-@pytest.mark.usefixtures(REGISTER_PLUGIN)
 def test_check_command_no_files_found(
     main: MockMainType, nocolorcapsys: NoColorCapsys
 ) -> None:
@@ -658,11 +657,11 @@ def test_check_command_no_files_found(
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
     """
+    pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
     main(PLUGIN_NAME[1])
     assert nocolorcapsys.stdout().strip() == "No files found"
 
 
-@pytest.mark.usefixtures(REGISTER_PLUGIN)
 def test_check_command_fail_on_suppress(
     main: MockMainType,
     monkeypatch: pytest.MonkeyPatch,
@@ -677,8 +676,9 @@ def test_check_command_fail_on_suppress(
         color codes.
     :param make_tree: Create directory tree from dict mapping.
     """
-    make_tree(Path.cwd(), {FILE: None, DOCS: {CONFPY: None}})
-    pyaud.files.append(Path.cwd() / FILE)
+    pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
+    make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
+    pyaud.files.append(Path.cwd() / FILES)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
     main(PLUGIN_NAME[1], "--suppress")
@@ -718,15 +718,8 @@ def test_no_exe_provided(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     unique = datetime.datetime.now().strftime("%d%m%YT%H%M%S")
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
-    pyaud.files.append(Path.cwd() / FILE)
-
-    class Plugin(pyaud.plugins.Audit):
-        """Nothing to do."""
-
-        def audit(self, *args: t.Any, **kwargs: bool) -> int:
-            """Nothing to do."""
-
-    pyaud.plugins.register(name=unique)(Plugin)
+    pyaud.files.append(Path.cwd() / FILES)
+    pyaud.plugins.register(name=unique)(MockAudit)
     assert pyaud.plugins.get(unique).exe == []
 
 
@@ -868,7 +861,7 @@ def test_help_with_plugins(
     assert all(i in out for i in expected)
 
 
-@pytest.mark.usefixtures(REGISTER_PLUGIN, UNPATCH_REGISTER_DEFAULT_PLUGINS)
+@pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
 def test_suppress(
     main: MockMainType,
     monkeypatch: pytest.MonkeyPatch,
@@ -883,6 +876,7 @@ def test_suppress(
     :param monkeypatch: Mock patch environment and attributes.
     :param make_tree: Create directory tree from dict mapping.
     """
+    pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
     default_config = pc.DEFAULT_CONFIG
     test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(default_config)
     test_default[AUDIT][MODULES] = [PLUGIN_NAME[1]]

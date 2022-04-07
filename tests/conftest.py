@@ -30,8 +30,6 @@ from . import (
     HANDLERS,
     LEVEL,
     LOGGING,
-    PLUGIN_NAME,
-    REGISTER_PLUGIN,
     REPO,
     ROOT,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
@@ -276,31 +274,6 @@ def fixture_unpatch_setuptools_find_packages(
     monkeypatch.setattr(
         "setuptools.find_packages", original_setuptools_find_packages
     )
-
-
-@pytest.fixture(name=REGISTER_PLUGIN)
-def fixture_register_plugin() -> pyaud.plugins.PluginType:
-    """Register a plugin."""
-
-    class Plugin(pyaud.plugins.Action):
-        """Nothing to do."""
-
-        command = "some-command-that-does-not-exist"
-
-        @property
-        def exe(self) -> t.List[str]:
-            return [self.command]
-
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            """Nothing to do."""
-            return self.subprocess[self.command].call(*args, **kwargs)
-
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(Plugin)
-    # noinspection PyProtectedMember
-    Plugin.__call__ = pyaud._wraps.CheckCommand.files(  # type: ignore
-        Plugin.__call__
-    )
-    return Plugin
 
 
 @pytest.fixture(name="bump_index")
