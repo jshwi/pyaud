@@ -148,10 +148,6 @@ class ClassDecorator:
                     f"{str(err).split(':', maxsplit=1)[0]}: Command not found",
                     RuntimeWarning,
                 )
-                _warnings.warn(
-                    "plugin called a subprocess that doesn't exist",
-                    RuntimeWarning,
-                )
 
             return 1
 
