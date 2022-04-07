@@ -63,7 +63,6 @@ PROJECT = "project"
 PYAUD_FILES_POPULATE = "pyaud.files.populate"
 PYAUD_PLUGINS_PLUGINS = "pyaud.plugins._plugins"
 README = "README.rst"
-REGISTER_PLUGIN = "register_plugin"
 REPO = "repo"
 ROOT = "root"
 SP_OPEN_PROC = "spall.Subprocess._open_process"
@@ -210,3 +209,11 @@ class StrategyMockPlugin(MockCachedPluginType):
 
 class NotSubclassed:
     """Nothing to do."""
+
+
+class MockAudit(pyaud.plugins.Audit):
+    """Nothing to do."""
+
+    def audit(self, *args: str, **kwargs: bool) -> int:
+        """Nothing to do."""
+        return 1
