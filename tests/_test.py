@@ -98,7 +98,6 @@ from . import (
     ids=["no-pos", "all-modules", "invalid-pos"],
 )
 def test_help(
-    monkeypatch: pytest.MonkeyPatch,
     main: MockMainType,
     nocolorcapsys: NoColorCapsys,
     arg: str,
@@ -113,7 +112,6 @@ def test_help(
     Test all and display of all module docstrings for assortment of
     test plugins.
 
-    :param monkeypatch: Mock patch environment and attributes.
     :param main: Patch package entry point.
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
@@ -122,7 +120,6 @@ def test_help(
         returns stderr.
     :param expected: Expected result when calling command.
     """
-    monkeypatch.setattr("pyaud.plugins.load", lambda: None)
     with pytest.raises(SystemExit):
         main(MODULES, arg)
 
@@ -254,20 +251,11 @@ def test_files_populate_proc(make_tree: MakeTreeType) -> None:
 
 
 @pytest.mark.usefixtures("unpatch_setuptools_find_packages")
-def test_get_packages(
-    monkeypatch: pytest.MonkeyPatch, make_tree: t.Any
-) -> None:
+def test_get_packages(make_tree: t.Any) -> None:
     """Test process when searching for project's package.
 
-    :param monkeypatch: Mock patch environment and attributes.
     :param make_tree: Create directory tree from dict mapping.
     """
-    # undo patch to ``setuptools``
-    # ============================
-    cwd = os.getcwd()
-    monkeypatch.undo()
-    monkeypatch.setattr(OS_GETCWD, lambda: cwd)
-
     # search for only package
     # =======================
     make_tree(Path.cwd(), {PACKAGE[1]: {INIT: None}})
@@ -297,23 +285,14 @@ def test_get_packages(
     assert pyaud.package() == PACKAGE[2]
 
 
-def test_get_subpackages(
-    monkeypatch: pytest.MonkeyPatch, make_tree: MakeTreeType
-) -> None:
+def test_get_subpackages(make_tree: MakeTreeType) -> None:
     """Test process when searching for project's package.
 
     Assert that subdirectories are not returned with import syntax, i.e.
     dot separated, and that only the parent package names are returned.
 
-    :param monkeypatch: Mock patch environment and attributes.
     :param make_tree: Create directory tree from dict mapping.
     """
-    # undo patch to ``setuptools``
-    # ============================
-    cwd = os.getcwd()
-    monkeypatch.undo()
-    monkeypatch.setattr(OS_GETCWD, lambda: cwd)
-
     # create a tree of sub-packages with their own __init__.py files.
     make_tree(
         Path.cwd(),
