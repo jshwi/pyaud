@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.11.1...HEAD)
 ------------------------------------------------------------------------
+### Added
+- Allows for plugins to be named automatically if no name provided
 
 [3.11.1](https://github.com/jshwi/pyaud/releases/tag/v3.11.1) - 2022-04-23
 ------------------------------------------------------------------------

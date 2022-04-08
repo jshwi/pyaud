@@ -1604,3 +1604,45 @@ def test_imports(monkeypatch: pytest.MonkeyPatch, make_tree: t.Any) -> None:
     assert tracker.was_called()
     assert tracker.args == [("pyaud_underscore",), ("pyaud-dash",)]
     assert tracker.kwargs == [{}, {}]
+
+
+@pytest.mark.parametrize(
+    "classname,expected",
+    [
+        ("Const", "const"),
+        ("Coverage", "coverage"),
+        ("Deploy", "deploy"),
+        ("DeployCov", "deploy-cov"),
+        ("DeployDocs", "deploy-docs"),
+        ("Docs", "docs"),
+        ("Files", "files"),
+        ("Format", "format"),
+        ("FormatDocs", "format-docs"),
+        ("FormatFString", "format-f-string"),
+        ("Imports", "imports"),
+        ("Lint", "lint"),
+        ("Readme", "readme"),
+        ("Requirements", "requirements"),
+        ("Tests", "tests"),
+        ("Toc", "toc"),
+        ("TypeCheck", "type-check"),
+        ("Unused", "unused"),
+        ("Whitelist", "whitelist"),
+    ],
+)
+def test_autoname(classname: str, expected: str) -> None:
+    """Test names are automatically added as they should be.
+
+    :param classname: Name of registered class.
+    :param expected: Expected name of registered plugin.
+    """
+
+    class Plugin(pyaud.plugins.Action):
+        """Nothing to do."""
+
+        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
+            """Nothing to do."""
+
+    Plugin.__name__ = classname
+    pyaud.plugins.register()(Plugin)
+    assert expected in pyaud.plugins.registered()

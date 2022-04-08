@@ -426,15 +426,24 @@ class Plugins(_MutableMapping):  # pylint: disable=too-many-ancestors
 _plugins = Plugins()
 
 
-def register(name: str) -> _t.Callable[[PluginType], PluginType]:
+def _name_plugin(plugin: PluginType) -> str:
+    parts = re.findall("[A-Z][^A-Z]*", plugin.__name__)
+    return "-".join(parts).lower()
+
+
+def register(
+    name: _t.Optional[str] = None,
+) -> _t.Callable[[PluginType], PluginType]:
     """Register subclassed plugin to collection.
+
+    If name is not provided a name will be assigned automatically.
 
     :param name: Name to register plugin as.
     :return: Return registered plugin to call.
     """
 
     def _register(plugin: PluginType):
-        _plugins[name] = plugin
+        _plugins[name or _name_plugin(plugin)] = plugin
         return plugin
 
     return _register
