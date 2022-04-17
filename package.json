@@ -23,7 +23,6 @@
     "lint": "poetry run pyaud lint",
     "test": "poetry run pyaud tests",
     "types": "poetry run pyaud typecheck"
-
   },
   "repository": {
     "type": "git",
