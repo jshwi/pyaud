@@ -1,15 +1,15 @@
-name: ci
+name: CI
 
 on:
   push:
-    branches:
-      - master
+    branches: [master]
 
   pull_request:
+    branches: [master]
 
 jobs:
   ci:
-    name: ${{ matrix.os }}-python${{ matrix.python-version }}
+    name: ${{ matrix.os }}-python${{ matrix.python-version }}-node@${{ matrix.node-version }}
     runs-on: ${{ matrix.os }}
     env:
       PYAUD_GH_NAME: jshwi
@@ -20,8 +20,8 @@ jobs:
 
     strategy:
       matrix:
-        # this works like a loop; think `pytest.mark.parametrize`
         python-version: [3.8]
+        node-version: [16.x.x]
         os: [ubuntu-latest]
 
     steps:
@@ -29,31 +29,32 @@ jobs:
         id: checkout-build
         uses: actions/checkout@v3
 
+      - name: Install Poetry
+        id: install-poetry
+        run: pipx install poetry
+
       - name: Setup Python
         id: setup-python
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
+          cache: poetry
 
-      - name: Install Poetry
-        id: install-poetry
-        run: |
-          pip install --upgrade pip poetry
-
-      - name: Cache Poetry
-        uses: actions/cache@v3
-        id: poetry-cache
+      - name: Setup Node
+        id: setup-node
+        uses: actions/setup-node@v3.1.1
         with:
-          path: ~/.cache/pypoetry/virtualenvs
-          key: ${{ runner.os }}-poetry-${{ secrets.CACHE_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+          node-version: ${{ matrix.node-version }}
+          cache: npm
 
-      - name: Restore cache
-        id: restore-cache
-        if: steps.poetry-cache.outputs.cache-hit != 'true'
-        run: |
-          poetry install
+      - name: Install Python Packages
+        id: install-python-packages
+        run: poetry install
+
+      - name: Install Node Packages
+        id: install-node-packages
+        run: npm install
 
       - name: Audit
         id: audit
-        run: |
-          poetry run pyaud audit --deploy --rcfile .github/pyaud.toml
+        run: npm run audit
