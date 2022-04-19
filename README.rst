@@ -6,6 +6,9 @@ pyaud
 .. image:: https://github.com/jshwi/pyaud/actions/workflows/codeql-analysis.yml/badge.svg
     :target: https://github.com/jshwi/pyaud/actions/workflows/codeql-analysis.yml
     :alt: CodeQL
+.. image:: https://readthedocs.org/projects/pyaud/badge/?version=latest
+    :target: https://pyaud.readthedocs.io/en/latest/?badge=latest
+    :alt: readthedocs.org
 .. image:: https://img.shields.io/badge/python-3.8-blue.svg
     :target: https://www.python.org/downloads/release/python-380
     :alt: python3.8
