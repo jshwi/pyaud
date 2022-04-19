@@ -1,5 +1,5 @@
-PyAud Docs
-===========
+pyaud docs
+==========
 
 |
 
