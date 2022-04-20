@@ -32,7 +32,3 @@ class NameConflictError(Exception):
 
     def __init__(self, plugin: str, name: str) -> None:
         super().__init__(f"plugin name conflict at {plugin}: '{name}'")
-
-
-class PythonPackageNotFoundError(OSError):
-    """Raise if Python package not found in project."""

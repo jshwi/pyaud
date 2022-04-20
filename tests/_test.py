@@ -73,21 +73,6 @@ def test_get_branch_initial_commit() -> None:
     assert pyaud._utils.branch() is None  # pylint: disable=protected-access
 
 
-def test_find_package(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Test error is raised if no Python file exists in project root.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    """
-    cwd = os.getcwd()
-    monkeypatch.undo()
-    monkeypatch.setattr(OS_GETCWD, lambda: cwd)
-    monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [])
-    with pytest.raises(EnvironmentError) as err:
-        pyaud.package()
-
-    assert str(err.value) == "no packages found"
-
-
 @pytest.mark.parametrize("default", [CRITICAL, ERROR, WARNING, INFO, DEBUG])
 @pytest.mark.parametrize("flag", ["", "-v", "-vv", "-vvv", "-vvvv"])
 def test_loglevel(
@@ -587,59 +572,6 @@ def test_files_populate_proc(make_tree: t.Any) -> None:
     time_commit = stop - start
     assert time_no_commit > time_commit
     assert no_commit_files == commit_files
-
-
-def test_get_packages(
-    monkeypatch: pytest.MonkeyPatch, make_tree: t.Any
-) -> None:
-    """Test process when searching for project's package.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    :param make_tree: Create directory tree from dict mapping.
-    """
-    # undo patch to ``setuptools``
-    # ============================
-    cwd = os.getcwd()
-    monkeypatch.undo()
-    monkeypatch.setattr(OS_GETCWD, lambda: cwd)
-
-    # search for only package
-    # =======================
-    make_tree(Path.cwd(), {"first_package": {INIT: None}})
-    assert pyaud.get_packages() == ["first_package"]
-    assert pyaud.package() == "first_package"
-
-    # search for ambiguous package
-    # ============================
-    make_tree(
-        Path.cwd(),
-        {"second_package": {INIT: None}, "third_package": {INIT: None}},
-    )
-    assert pyaud.get_packages() == [
-        "first_package",
-        "second_package",
-        "third_package",
-    ]
-    with pytest.raises(pyaud.exceptions.PythonPackageNotFoundError) as err:
-        pyaud.package()
-
-    assert str(err.value) == "cannot determine primary package"
-
-    # search for package with the same name as repo
-    # =============================================
-    make_tree(Path.cwd(), {"repo": {INIT: None}})
-    assert pyaud.get_packages() == [
-        "first_package",
-        "repo",
-        "second_package",
-        "third_package",
-    ]
-    assert pyaud.package() == "repo"
-
-    # search for configured package
-    # =============================
-    pyaud.config.toml["packages"]["name"] = "second_package"
-    assert pyaud.package() == "second_package"
 
 
 def test_get_subpackages(

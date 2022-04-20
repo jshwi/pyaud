@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.10.0...HEAD)
 ------------------------------------------------------------------------
+### Changed
+- `pyaud.get_packages` now resolves to project root
 
 [3.10.0](https://github.com/jshwi/pyaud/releases/tag/v3.10.0) - 2022-04-01
 ------------------------------------------------------------------------
