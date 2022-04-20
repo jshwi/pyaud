@@ -1,8 +1,10 @@
 """
 pyaud.__main__
 ==============
+
+Module entry point.
 """
-from pyaud._main import main
+from ._main import main
 
 if __name__ == "__main__":
     main()

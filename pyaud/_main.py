@@ -1,6 +1,8 @@
 """
-pyaud.main
-==========
+pyaud._main
+===========
+
+Contains package entry point.
 """
 import logging as _logging
 from pathlib import Path as _Path

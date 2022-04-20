@@ -35,10 +35,7 @@ class _TimeKeeper:
         self._end_time = self._start_time
 
     def stop(self) -> None:
-        """Record the time from entry to exit.
-
-        :return: Float containing elapsed time.
-        """
+        """Record the time from entry to exit."""
         self._stopper()
         self._elapsed = round(self._end_time - self._start_time, 2)
         self._cls.logger().info(
@@ -59,6 +56,8 @@ class Record(_MutableMapping):
     def average(self, repo: str, cls: _t.Type[_BasePlugin]) -> float:
         """Get the average of all recorded times.
 
+        :param repo: Name of package audit is running in.
+        :param cls: Name of class that this is running in.
         :return: Float containing the average of elapsed times.
         """
         items = self.get(repo, {}).get(str(cls), [])
@@ -66,7 +65,13 @@ class Record(_MutableMapping):
 
     @_contextlib.contextmanager
     def track(self, repo: str, cls: _t.Type[_BasePlugin], path):
-        """Context manager for parsing envvars with a common prefix."""
+        """Context manager for parsing envvars with a common prefix.
+
+        :param repo: Name of package audit is running in.
+        :param cls: Name of class that this is running in.
+        :param path: Path to datafile.
+        :return: ``Instantiated _TimeKeeper`` object.
+        """
         time_keeper = _TimeKeeper(cls)
         try:
             self[repo] = self.get(repo, {})
@@ -80,7 +85,11 @@ class Record(_MutableMapping):
 
 
 def read(obj, path) -> None:
-    """Read from file to object."""
+    """Read from file to object.
+
+    :param obj: Object to read file data to.
+    :param path: Path to datafile.
+    """
     if path.is_file():
         try:
             obj.update(_json.loads(path.read_text()))
@@ -89,7 +98,11 @@ def read(obj, path) -> None:
 
 
 def write(obj, path) -> None:
-    """Write data to file."""
+    """Write data to file.
+
+    :param obj: Object to write to datafile.
+    :param path: Path to datafile.
+    """
     path.write_text(_json.dumps(dict(obj), separators=(",", ":")))
 
 

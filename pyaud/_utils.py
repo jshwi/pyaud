@@ -1,8 +1,6 @@
 """
-pyaud.utils
-===========
-
-Utility classes and functions.
+pyaud._utils
+============
 """
 from __future__ import annotations
 

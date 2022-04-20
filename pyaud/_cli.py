@@ -15,16 +15,19 @@ from ._version import __version__
 
 
 class Parser(_ArgumentParser):
-    """Inherited ``argparse.ArgumentParser`` object for the package.
+    """Inherited ``ArgumentParser`` object for package args.
 
-    Assign positional argument to ``self.module``. If there is a
-    positional argument accompanying the ``modules`` argument assign it
-    to ``self.positional``. If ``modules`` has been called run the
-    ``self._module_help`` method for extended documentation on each
-    individual module that can be called. If a valid positional argument
-    has been called and ``sys.exit`` has not been raised by
-    ``argparse.ArgumentParser`` help method then assign the chosen
-    function to ``self.function`` to be called in ``pyaud.main``.
+    Assign positional argument to ``module`` or if there is a positional
+    argument accompanying the ``modules`` argument assign it to
+    ``positional``.
+
+    If ``modules`` has been called run the ``_module_help`` method for
+    extended documentation on each individual module that can be called.
+    Documentation will be parsed from the plugin's docstring.
+
+    If a valid positional argument has been called and ``SystemExit``
+    has not been raised by the ``ArgumentParser`` help method then
+    assign the chosen function to ``function`` to be called in ``main``.
 
     :param prog: Name of the program.
     """
