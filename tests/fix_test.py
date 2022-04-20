@@ -99,6 +99,8 @@ class TestFix:
         :param main: Patch package entry point.
         :param nocolorcapsys: Capture system output while stripping ANSI
             color codes.
+        :param plugin: Plugin to test.
+        :param expected: Expected result.
         """
         pyaud.files[0].touch()
         self._register_fixer(plugin)
@@ -120,6 +122,7 @@ class TestFix:
         """Test plugin on fail when using the fix class.
 
         :param main: Patch package entry point.
+        :param plugin: Plugin type object.
         """
         pyaud.files[0].touch()
         self._register_fixer(plugin)
@@ -158,6 +161,8 @@ class TestFix:
         :param main: Patch package entry point.
         :param nocolorcapsys: Capture system output while stripping ANSI
             color codes.
+        :param plugin: Plugin type object.
+        :param expected: Expected result.
         """
         pyaud.files[0].touch()
         self._register_fixer(plugin)

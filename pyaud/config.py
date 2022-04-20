@@ -195,8 +195,7 @@ class TempEnvVar:
     returned to its original state.
 
     :param obj: Mutable mapping to temporarily change.
-    :param key: Key to temporarily change in supplied object.
-    :param value: Value to temporarily change in supplied object.
+    :param kwargs: Key-values to temporarily change in supplied object.
     """
 
     def __init__(self, obj: _t.MutableMapping, **kwargs: str) -> None:
@@ -254,7 +253,7 @@ def configure_global() -> None:
         toml.dump(fout)
 
 
-def load_config(opt: _t.Optional[_t.Union[str, _os.PathLike]] = None):
+def load_config(opt: _t.Optional[_t.Union[str, _os.PathLike]] = None) -> None:
     """Load configs in order, each one overriding the previous.
 
     :param opt: Optional extra path which will override all others.

@@ -698,7 +698,7 @@ def test_exclude_loads_at_main(main: t.Any) -> None:
 def test_exclude(make_tree: t.Any) -> None:
     """Test exclusions and inclusions with toml config.
 
-    param make_tree: Create directory tree from dict mapping.
+    :param make_tree: Create directory tree from dict mapping.
     """
     webapp = {"_blog.py": None, "_config.py": None, "db.py": None, INIT: None}
     make_tree(
@@ -1388,9 +1388,9 @@ def test_suppress(
     """Test that audit proceeds through errors with ``--suppress``.
 
     :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
-    :param monkeypatch: Mock patch environment and attributes.
     :param make_tree: Create directory tree from dict mapping.
     """
     default_config = pyaud.config.DEFAULT_CONFIG
@@ -1450,7 +1450,10 @@ def test_parametrize(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
 
 # noinspection PyUnusedLocal
 def test_fix_on_pass(main: t.Any) -> None:
-    """Test plugin on pass when using the fix class."""
+    """Test plugin on pass when using the fix class.
+
+    :param main: Patch package entry point.
+    """
     pyaud.files.append(Path.cwd() / FILES)
 
     class _Fixer(pyaud.plugins.FixAll):

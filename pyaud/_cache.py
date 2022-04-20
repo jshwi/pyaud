@@ -125,7 +125,13 @@ class HashMapping(_JSONIO):
 
 
 class FileCacher:  # pylint: disable=too-few-public-methods
-    """Handle caching of file(s)."""
+    """Handle caching of file(s).
+
+    :param cls: Audit that this class is running in.
+    :param func: Call function belonging to cls.
+    :param args: Args that can be passed from other plugins.
+    :param kwargs: Boolean flags for subprocesses.
+    """
 
     FILE_HASHES = "files.json"
 
@@ -225,6 +231,8 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         """Wrap ``__call__`` with a hashing function.
 
         :param func: Function to wrap.
+        :param args: Args that can be passed from other plugins.
+        :param kwargs: Boolean flags for subprocesses.
         :return: Wrapped function.
         """
         no_cache = kwargs.get("no_cache", False)

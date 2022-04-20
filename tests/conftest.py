@@ -243,7 +243,10 @@ def fixture_unpatch_setuptools_find_packages(
 
 @pytest.fixture(name="register_plugin")
 def fixture_register_plugin() -> pyaud.plugins.PluginType:
-    """Register a plugin."""
+    """Register a plugin.
+
+    :return: Registered plugin object.
+    """
 
     # noinspection PyUnusedLocal
     @pyaud.plugins.register(name="plugin")

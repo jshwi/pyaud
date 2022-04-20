@@ -1,6 +1,6 @@
 """
-pyaud.objects
-=============
+pyaud._objects
+==============
 """
 import json as _json
 import logging as _logging

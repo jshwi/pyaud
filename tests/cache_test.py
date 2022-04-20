@@ -386,7 +386,6 @@ class TestCacheStrategy:
     def test_cache_file(self, nocolorcapsys) -> None:
         """Test caching a single file.
 
-        :param monkeypatch: Mock patch environment and attributes.
         :param nocolorcapsys: Capture system output while stripping ANSI
             color codes.
         """

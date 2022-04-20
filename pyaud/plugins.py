@@ -77,19 +77,12 @@ class Plugin(_BasePlugin):  # pylint: disable=too-few-public-methods
 
     @property
     def env(self) -> _t.Dict[str, str]:
-        """Return environment which will remain active for run.
-
-        :return: Dict containing any number of str keys and
-            corresponding str values.
-        """
+        """Return environment which will remain active for run."""
         return {}
 
     @property
     def exe(self) -> _t.List[str]:
-        """List of executables to add to ``subprocess`` dict.
-
-        :return: List of str object to assign to subprocesses
-        """
+        """List of executables to add to ``subprocess`` dict."""
         return []
 
     def __call__(self, *args: str, **kwargs: bool) -> _t.Any:
@@ -388,7 +381,11 @@ class FixFile(Plugin):
 
     @_abstractmethod
     def fail_condition(self) -> _t.Optional[bool]:
-        """Condition to trigger non-subprocess failure."""
+        """Condition to trigger non-subprocess failure.
+
+        :return: Return True for passing condition, false for failing
+            condition, or None for no fail condition.
+        """
 
     @_abstractmethod
     def audit(self, file: _Path, **kwargs: bool) -> int:
@@ -396,6 +393,7 @@ class FixFile(Plugin):
 
         :param file: Individual file.
         :param kwargs: Boolean flags for subprocesses.
+        :return: Returncode.
         """
 
     @_abstractmethod
@@ -404,6 +402,7 @@ class FixFile(Plugin):
 
         :param file: Individual file.
         :param kwargs: Boolean flags for subprocesses.
+        :return: Returncode.
         """
 
     @_CheckCommand.files
