@@ -159,13 +159,11 @@ class TestCacheStrategy:
     def _get_instance(
         self,
         monkeypatch: pytest.MonkeyPatch,
-        p: int,
         c: int,
         n: int,
         clean: bool = True,
         cache_all: bool = False,
     ) -> type:
-        monkeypatch.setattr("pyaud._wraps._package", lambda: self.P[p])
         monkeypatch.setattr("pyaud._wraps._get_commit_hash", lambda: self.C[c])
         monkeypatch.setattr("pyaud._wraps._working_tree_clean", lambda: clean)
         check = pyaud._wraps.check_command
@@ -244,7 +242,7 @@ class TestCacheStrategy:
         #: the primary key, and the plugin which called the process.
         #: Test that the object is identical to the fallback, as the
         #: last process called.
-        i1 = self._get_instance(monkeypatch, 0, 1, 0)
+        i1 = self._get_instance(monkeypatch, 1, 0)
         i1()
         o = json.loads(self._cache_file.read_text())
         assert self._success_msg(len(f)) in nocolorcapsys.stdout()
@@ -281,7 +279,7 @@ class TestCacheStrategy:
         #: start to minimally find any changed files.
         #: Test that the object is identical to the fallback, as it is
         #: the last process that ran.
-        i2 = self._get_instance(monkeypatch, 0, 2, 0)
+        i2 = self._get_instance(monkeypatch, 2, 0)
         i2()
         o = json.loads(self._cache_file.read_text())
         assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()
@@ -302,7 +300,7 @@ class TestCacheStrategy:
         #: as the name and the same plugin which called the process.
         #: Test that the object is still identical to the fallback, as
         #: it is still the last process that ran.
-        i3 = self._get_instance(monkeypatch, 0, 1, 1)
+        i3 = self._get_instance(monkeypatch, 1, 1)
         i3()
         o = json.loads(self._cache_file.read_text())
         assert self._success_msg(len(f)) in nocolorcapsys.stdout()
@@ -327,7 +325,7 @@ class TestCacheStrategy:
         #: the name, the plugin which called the process, and that the
         #: object is identical to the fallback, as it is the last
         #: process that ran.
-        i4 = self._get_instance(monkeypatch, 0, 3, 1)
+        i4 = self._get_instance(monkeypatch, 3, 1)
         i4()
         o = json.loads(self._cache_file.read_text())
         assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()
@@ -346,7 +344,7 @@ class TestCacheStrategy:
         #: commit.
         #: Test this is used as the fallback as it is the last process
         #: called.
-        i5 = self._get_instance(monkeypatch, 0, 3, 1, clean=False)
+        i5 = self._get_instance(monkeypatch, 3, 1, clean=False)
         i5()
         o = json.loads(self._cache_file.read_text())
         assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()
@@ -371,7 +369,7 @@ class TestCacheStrategy:
         #: to True.
         #: ``cache_all`` means that all files must be saved, or
         # otherwise the cache is void.
-        i6 = self._get_instance(monkeypatch, 0, 1, 0, cache_all=True)
+        i6 = self._get_instance(monkeypatch, 1, 0, cache_all=True)
         f[p[1]] = f[p[1]][::-1]
         i6()
         o = json.loads(self._cache_file.read_text())

@@ -8,6 +8,7 @@ import functools as _functools
 import sys as _sys
 import typing as _t
 import warnings as _warnings
+from pathlib import Path as _Path
 
 import spall.exceptions as sp_exceptions
 
@@ -19,7 +20,6 @@ from ._indexing import files as _files
 from ._objects import BasePlugin as _BasePlugin
 from ._utils import colors as _colors
 from ._utils import get_commit_hash as _get_commit_hash
-from ._utils import package as _package
 from ._utils import working_tree_clean as _working_tree_clean
 
 
@@ -76,9 +76,9 @@ class ClassDecorator:
 
         @_functools.wraps(func)
         def _wrapper(*args: str, **kwargs: bool) -> int:
-            package = _package()
+            repo = _Path.cwd().name
             with _data.record.track(
-                package, self._cls, _environ.DATADIR / "durations.json"
+                repo, self._cls, _environ.DATADIR / "durations.json"
             ) as time_keeper:
                 returncode = func(*args, **kwargs)
 
@@ -86,7 +86,7 @@ class ClassDecorator:
             logged_time = "{}: Execution time: {}s; Average time: {}s".format(
                 self._cls.__name__,
                 time_keeper.elapsed(),
-                _data.record.average(package, self._cls),
+                _data.record.average(repo, self._cls),
             )
             self._cls.logger().info(logged_time)
             if kwargs.get("timed", False):
@@ -100,9 +100,8 @@ class ClassDecorator:
         self, func: _t.Callable[..., int], *args: str, **kwargs: bool
     ) -> int:
         cache_file = _environ.CACHEDIR / self.FILE_HASHES
-        package = _package()
         commit = _get_commit_hash()
-        hashed = _HashMapping(cache_file, package, self._cls, commit)
+        hashed = _HashMapping(cache_file, _environ.REPO, self._cls, commit)
         if not _working_tree_clean():
             hashed.tag("uncommitted")
 

@@ -58,26 +58,26 @@ class _TimeKeeper:
 class Record(_MutableMapping):
     """Record floats to objects based on calling class."""
 
-    def average(self, package: str, cls: _t.Type[_BasePlugin]) -> float:
+    def average(self, repo: str, cls: _t.Type[_BasePlugin]) -> float:
         """Get the average of all recorded times.
 
         :return: Float containing the average of elapsed times.
         """
-        items = self.get(package, {}).get(str(cls), [])
+        items = self.get(repo, {}).get(str(cls), [])
         return round(sum(items) / len(items), 2)
 
     @_contextlib.contextmanager
-    def track(self, package: str, cls: _t.Type[_BasePlugin], path):
+    def track(self, repo: str, cls: _t.Type[_BasePlugin], path):
         """Context manager for parsing envvars with a common prefix."""
         time_keeper = _TimeKeeper(cls)
         try:
-            self[package] = self.get(package, {})
-            self[package][str(cls)] = self[package].get(str(cls), [])
+            self[repo] = self.get(repo, {})
+            self[repo][str(cls)] = self[repo].get(str(cls), [])
             time_keeper.start()
             yield time_keeper
         finally:
             time_keeper.stop()
-            self[package][str(cls)].append(time_keeper.elapsed())
+            self[repo][str(cls)].append(time_keeper.elapsed())
             write(self, path)
 
 

@@ -10,6 +10,7 @@ from configparser import ConfigParser
 from pathlib import Path
 
 import pytest
+import setuptools
 
 import pyaud
 
@@ -19,6 +20,7 @@ original_hash_mapping_match_file = pyaud.HashMapping.match_file
 original_hash_mapping_unpatched_hash_files = pyaud.HashMapping.hash_files
 original_pyaud_plugin_load = pyaud.plugins.load
 original_pyaud_main_register_default_plugins = pyaud.register_default_plugins
+original_setuptools_find_packages = setuptools.find_packages
 
 
 @pytest.fixture(name="mock_environment", autouse=True)
@@ -226,6 +228,19 @@ def fixture_unpatch_register_default_plugins(
     monkeypatch.setattr(
         "pyaud._main._register_default_plugins",
         original_pyaud_main_register_default_plugins,
+    )
+
+
+@pytest.fixture(name="unpatch_setuptools_find_packages")
+def fixture_unpatch_setuptools_find_packages(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Unpatch ``setuptools_find_packages``.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    """
+    monkeypatch.setattr(
+        "setuptools.find_packages", original_setuptools_find_packages
     )
 
 

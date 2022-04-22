@@ -18,7 +18,6 @@ from ._environ import environ as _environ
 from ._environ import initialize_dirs as _initialize_dirs
 from ._indexing import files as _files
 from ._utils import colors as _colors
-from ._utils import package as _package
 from ._version import __version__
 
 
@@ -207,7 +206,7 @@ def main() -> None:
     _files.add_exclusions(*_config.toml["indexing"]["exclude"])
     _files.populate()
     _logging.getLogger(__name__).info(
-        "Commencing audit for %s in %s", _package(), _Path.cwd()
+        "Commencing audit for %s in %s", _environ.REPO, _Path.cwd()
     )
     _plugins.get(parser.args.module)(
         clean=parser.args.clean,

@@ -574,6 +574,57 @@ def test_files_populate_proc(make_tree: t.Any) -> None:
     assert no_commit_files == commit_files
 
 
+@pytest.mark.usefixtures("unpatch_setuptools_find_packages")
+def test_get_packages(
+    monkeypatch: pytest.MonkeyPatch, make_tree: t.Any
+) -> None:
+    """Test process when searching for project's package.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param make_tree: Create directory tree from dict mapping.
+    """
+    # undo patch to ``setuptools``
+    # ============================
+    cwd = os.getcwd()
+    monkeypatch.undo()
+    monkeypatch.setattr(OS_GETCWD, lambda: cwd)
+
+    # search for only package
+    # =======================
+    make_tree(Path.cwd(), {"first_package": {INIT: None}})
+    assert pyaud.get_packages() == ["first_package"]
+    assert pyaud.package() == "first_package"
+
+    # search for ambiguous package
+    # ============================
+    make_tree(
+        Path.cwd(),
+        {"second_package": {INIT: None}, "third_package": {INIT: None}},
+    )
+    assert pyaud.get_packages() == [
+        "first_package",
+        "second_package",
+        "third_package",
+    ]
+    assert pyaud.package() is None
+
+    # search for package with the same name as repo
+    # =============================================
+    make_tree(Path.cwd(), {"repo": {INIT: None}})
+    assert pyaud.get_packages() == [
+        "first_package",
+        "repo",
+        "second_package",
+        "third_package",
+    ]
+    assert pyaud.package() == "repo"
+
+    # search for configured package
+    # =============================
+    pyaud.config.toml["packages"]["name"] = "second_package"
+    assert pyaud.package() == "second_package"
+
+
 def test_get_subpackages(
     monkeypatch: pytest.MonkeyPatch, make_tree: t.Any
 ) -> None:
@@ -896,7 +947,6 @@ def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     configfile = pyaud.config.CONFIGDIR / "pyaud.toml"
     # noinspection PyUnresolvedReferences
     datafile = pyaud.environ.DATADIR / "durations.json"
-    monkeypatch.setattr("pyaud._wraps._package", lambda: REPO)
     monkeypatch.setattr("pyaud._data._TimeKeeper._starter", lambda x: 0)
     monkeypatch.setattr("pyaud._data._TimeKeeper._stopper", lambda x: 1)
     expected = {
