@@ -213,6 +213,18 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
+name = "constcheck"
+version = "0.4.1"
+description = "Check Python files for repeat use of strings"
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0"
+
+[package.dependencies]
+object-colors = ">=2.0.1,<3.0.0"
+tomli = ">=2.0.1,<3.0.0"
+
+[[package]]
 name = "coverage"
 version = "6.3.2"
 description = "Code coverage measurement for Python"
@@ -834,7 +846,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "pyaud-plugins"
-version = "0.3.0"
+version = "0.4.0"
 description = "Plugin package for Pyaud"
 category = "main"
 optional = false
@@ -844,6 +856,7 @@ python-versions = ">=3.8,<4.0"
 appdirs = ">=1.4.4,<2.0.0"
 black = ">=21.12,<23.0"
 codecov = ">=2.1.12,<3.0.0"
+constcheck = ">=0.4.1,<0.5.0"
 coverage = ">=6.2,<7.0"
 docformatter = ">=1.4,<2.0"
 environs = ">=9.4.0,<10.0.0"
@@ -863,6 +876,7 @@ Sphinx = ">=4.3.2,<5.0.0"
 sphinxcontrib-fulltoc = ">=1.2.0,<2.0.0"
 sphinxcontrib-programoutput = ">=0.17,<0.18"
 toml = ">=0.10.2,<0.11.0"
+toml-sort = ">=0.20.0,<0.21.0"
 vulture = ">=2.3,<3.0"
 
 [[package]]
@@ -1310,7 +1324,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 name = "toml-sort"
 version = "0.20.0"
 description = "Toml sorting library"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 
@@ -1329,7 +1343,7 @@ python-versions = ">=3.7"
 name = "tomlkit"
 version = "0.10.2"
 description = "Style preserving TOML library"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6,<4.0"
 
@@ -1534,6 +1548,10 @@ codecov = [
 colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
     {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
+]
+constcheck = [
+    {file = "constcheck-0.4.1-py3-none-any.whl", hash = "sha256:41cbe475747d0ca42b9b86211be2d227c7327eabb68d06864fd8909d8023103f"},
+    {file = "constcheck-0.4.1.tar.gz", hash = "sha256:8b5c15b852f7aa9c10d896a7524be8609911edc83f123861f9be66772f75e90a"},
 ]
 coverage = [
     {file = "coverage-6.3.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:9b27d894748475fa858f9597c0ee1d4829f44683f3813633aaf94b19cb5453cf"},
@@ -1873,8 +1891,8 @@ py = [
     {file = "py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719"},
 ]
 pyaud-plugins = [
-    {file = "pyaud-plugins-0.3.0.tar.gz", hash = "sha256:435e6cd980acd82b40730af9311e1bbdcd292871188918384f7c040e0003e6f2"},
-    {file = "pyaud_plugins-0.3.0-py3-none-any.whl", hash = "sha256:634fd461647fc0f7a91b73cc722142c342ae9354000b2e5d9a33a4c60e60cf7a"},
+    {file = "pyaud-plugins-0.4.0.tar.gz", hash = "sha256:9b524764f8fc47aafed1bca1722c93d1db68cae880003bafbd4fff10447fed18"},
+    {file = "pyaud_plugins-0.4.0-py3-none-any.whl", hash = "sha256:f58d4676925915d18e8ec0df36500e4aae1aff8698e8d44897af3f6e051b2a51"},
 ]
 pygments = [
     {file = "Pygments-2.12.0-py3-none-any.whl", hash = "sha256:dc9c10fb40944260f6ed4c688ece0cd2048414940f1cea51b8b226318411c519"},
