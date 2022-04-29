@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.12.1...HEAD)
 ------------------------------------------------------------------------
+### Change
+- Updates `Fix.__call__` for more flexible error handling
 
 [3.12.1](https://github.com/jshwi/pyaud/releases/tag/v3.12.1) - 2022-04-26
 ------------------------------------------------------------------------

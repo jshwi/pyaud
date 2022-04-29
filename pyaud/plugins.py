@@ -193,13 +193,18 @@ class Fix(Audit):
     def __call__(self, *args: str, **kwargs: bool) -> int:
         with _config.TempEnvVar(_os.environ, **self.env):
             try:
-                return self.audit(*args, **kwargs)
+                returncode = self.audit(*args, **kwargs)
 
-            except _CalledProcessError as err:
-                if kwargs.get("fix", False):
-                    return self.fix(**kwargs)
+            except _CalledProcessError:
+                returncode = 1
 
-                raise self.audit_error() from err
+        if returncode:
+            if kwargs.get("fix", False):
+                return self.fix(**kwargs)
+
+            raise self.audit_error()
+
+        return returncode
 
 
 class Action(Plugin):  # pylint: disable=too-few-public-methods
