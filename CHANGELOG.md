@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.13.0...HEAD)
 ------------------------------------------------------------------------
 ### Fixed
+- Fixes file cache to return exit-code for missing files
 - Fixes cache logging
 
 [3.13.0](https://github.com/jshwi/pyaud/releases/tag/v3.13.0) - 2022-04-29

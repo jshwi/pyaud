@@ -382,22 +382,42 @@ class TestCacheStrategy:
     @pytest.mark.usefixtures(
         "unpatch_hash_mapping_hash_files", "unpatch_hash_mapping_match_file"
     )
-    def test_cache_file(self, monkeypatch, nocolorcapsys) -> None:
+    def test_cache_file(self, nocolorcapsys) -> None:
         """Test caching a single file.
 
         :param monkeypatch: Mock patch environment and attributes.
         :param nocolorcapsys: Capture system output while stripping ANSI
             color codes.
         """
-        success = "Success: no issues found in file"
-        p = Path.cwd() / "whitelist.py"
-        i1 = self._get_instance(
-            monkeypatch, 1, 0, cache_file=p, single_file=True
-        )
-        i1()
-        assert nocolorcapsys.stdout() == ""
-        p.touch()
-        i1()
-        assert success in nocolorcapsys.stdout()
-        i1()
+        expected_1 = "Success: no issues found in file"
+        path = Path.cwd() / "whitelist.py"
+
+        class _Fix(pyaud.plugins.Fix):
+            cache_file = path
+
+            def audit(self, *args: str, **kwargs: bool) -> int:
+                if self.cache_file.is_file():
+                    return int(self.cache_file.read_text() != "unused")
+
+                return 1
+
+            def fix(self, *args: str, **kwargs: bool) -> int:
+                path.write_text("unused")
+                return 0
+
+        fix = _Fix("name")
+        with pytest.raises(pyaud.exceptions.AuditError):
+            fix()
+
+        fix(fix=True)
+        assert expected_1 in nocolorcapsys.stdout()
+
+        fix()
         assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()
+
+        path.write_text("change")
+        with pytest.raises(pyaud.exceptions.AuditError):
+            fix()
+
+        fix(fix=True)
+        assert expected_1 in nocolorcapsys.stdout()
