@@ -231,6 +231,9 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         file = self._cls.cache_file
         if file is not None:
             path = _Path.cwd() / file
+            self._cls.logger().info(
+                "%s.cache_file=%s", self._cls.__name__, path
+            )
             if path.is_file():
                 if self.hashed.match_file(path):
                     self._cls.logger().debug("hit: %s", path)
@@ -255,8 +258,8 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         """
         no_cache = kwargs.get("no_cache", False)
         self._cls.logger().info(
-            "NO_CACHE=%s, %s.cache_file=%s",
-            self.no_cache,
+            "NO_CACHE=%s, %s.cache=%s",
+            no_cache,
             self._cls.__name__,
             self._cls.cache,
         )
