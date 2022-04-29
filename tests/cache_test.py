@@ -54,7 +54,7 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     monkeypatch.setattr("pyaud.plugins._files.remove", remove)
     monkeypatch.setattr("pyaud.plugins._files.clear", clear)
     monkeypatch.setattr(
-        "pyaud._indexing.HashMapping.write", lambda *_: save_cache
+        "pyaud._cache.HashMapping.write", lambda *_: save_cache
     )
     main("plugin", "--no-cache")
     assert match_parent.was_called() is False
@@ -73,10 +73,8 @@ def test_remove_matched_files(monkeypatch: pytest.MonkeyPatch) -> None:
     remove = Tracker()
     pyaud.plugins._files.append(Path.cwd() / REPO)
     monkeypatch.setattr("pyaud.plugins._files.remove", remove)
-    monkeypatch.setattr("pyaud._indexing._Path.read_bytes", lambda *_: b"")
-    monkeypatch.setattr(
-        "pyaud._indexing.HashMapping.match_file", lambda *_: True
-    )
+    monkeypatch.setattr("pyaud._cache._Path.read_bytes", lambda *_: b"")
+    monkeypatch.setattr("pyaud._cache.HashMapping.match_file", lambda *_: True)
     # noinspection PyUnresolvedReferences
     class_decorator = pyaud._wraps.ClassDecorator(MockCachedPluginType)
     MockCachedPluginType.__call__ = class_decorator.files(  # type: ignore
@@ -96,7 +94,7 @@ class TestCacheStrategy:
 
     #: COMMITS
     C = (
-        pyaud._indexing.HashMapping._FALLBACK,
+        pyaud._cache.HashMapping._FALLBACK,
         "7c57dc943941566f47b9e7ee3208245d0bcd7656",
         "7c57dc943941566f47b9e7ee3208245d0bcd7657",
         "7c57dc943941566f47b9e7ee3208245d0bcd7658",
@@ -228,8 +226,8 @@ class TestCacheStrategy:
                 """
                 return f[self.path]
 
-        monkeypatch.setattr("pyaud._indexing._Path.read_bytes", lambda x: x)
-        monkeypatch.setattr("pyaud._indexing._hashlib.md5", _Md5)
+        monkeypatch.setattr("pyaud._cache._Path.read_bytes", lambda x: x)
+        monkeypatch.setattr("pyaud._cache._hashlib.md5", _Md5)
         pyaud.files.extend(f.keys())
 
         #: Test when there is no cache file already.

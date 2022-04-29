@@ -1,8 +1,9 @@
 """Plugin architecture for auditing Python packages."""
 from . import config, exceptions, parsers, plugins
+from ._cache import HashMapping
 from ._default import register_default_plugins
 from ._environ import Environ, environ, initialize_dirs
-from ._indexing import HashMapping, files
+from ._indexing import files
 from ._main import main
 from ._objects import BasePlugin
 from ._utils import (

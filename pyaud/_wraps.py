@@ -13,8 +13,8 @@ from pathlib import Path as _Path
 import spall.exceptions as sp_exceptions
 
 from . import _data
+from ._cache import HashMapping as _HashMapping
 from ._environ import environ as _environ
-from ._indexing import HashMapping as _HashMapping
 from ._indexing import IndexedState as _IndexedState
 from ._indexing import files as _files
 from ._objects import BasePlugin as _BasePlugin

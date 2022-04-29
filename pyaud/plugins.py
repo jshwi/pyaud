@@ -21,8 +21,8 @@ from spall import Subprocess as _Subprocess
 
 from . import config as _config
 from . import exceptions as _exceptions
+from ._cache import HashCap as _HashCap
 from ._environ import environ as _environ
-from ._indexing import HashCap as _HashCap
 from ._indexing import files as _files
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping

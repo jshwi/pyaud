@@ -79,11 +79,9 @@ def fixture_mock_environment(
     monkeypatch.setattr("pyaud.git.status", lambda *_, **__: True)
     monkeypatch.setattr("pyaud.git.rev_parse", lambda *_, **__: None)
     monkeypatch.setattr(
-        "pyaud._indexing.HashMapping.match_file", lambda *_: False
+        "pyaud._cache.HashMapping.match_file", lambda *_: False
     )
-    monkeypatch.setattr(
-        "pyaud._indexing.HashMapping.hash_files", lambda _: None
-    )
+    monkeypatch.setattr("pyaud._cache.HashMapping.hash_files", lambda _: None)
     monkeypatch.setattr("pyaud.plugins._plugins", pyaud.plugins.Plugins())
     monkeypatch.setattr("pyaud.plugins.load", lambda: None)
     monkeypatch.setattr("pyaud._main._register_default_plugins", lambda: None)
@@ -184,13 +182,12 @@ def fixture_make_tree() -> t.Any:
 def fixture_unpatch_hash_mapping_match_file(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Unpatch ``pyaud._indexing.HashMapping.match_file``.
+    """Unpatch ``pyaud._cache.HashMapping.match_file``.
 
     :param monkeypatch: Mock patch environment and attributes.
     """
     monkeypatch.setattr(
-        "pyaud._indexing.HashMapping.match_file",
-        original_hash_mapping_match_file,
+        "pyaud._cache.HashMapping.match_file", original_hash_mapping_match_file
     )
 
 
@@ -198,12 +195,12 @@ def fixture_unpatch_hash_mapping_match_file(
 def fixture_unpatch_hash_mapping_hash_files(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Unpatch ``pyaud._indexing.HashMapping.hash_files``.
+    """Unpatch ``pyaud._cache.HashMapping.hash_files``.
 
     :param monkeypatch: Mock patch environment and attributes.
     """
     monkeypatch.setattr(
-        "pyaud._indexing.HashMapping.hash_files",
+        "pyaud._cache.HashMapping.hash_files",
         original_hash_mapping_unpatched_hash_files,
     )
 
