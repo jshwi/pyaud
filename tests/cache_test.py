@@ -162,8 +162,8 @@ class TestCacheStrategy:
         clean: bool = True,
         cache_all: bool = False,
     ) -> type:
-        monkeypatch.setattr("pyaud._wraps._get_commit_hash", lambda: self.C[c])
-        monkeypatch.setattr("pyaud._wraps._working_tree_clean", lambda: clean)
+        monkeypatch.setattr("pyaud._cache._get_commit_hash", lambda: self.C[c])
+        monkeypatch.setattr("pyaud._cache._working_tree_clean", lambda: clean)
         check = pyaud._wraps.CheckCommand.files
         strat = copy.deepcopy(StrategyMockPlugin)
         strat.cache_all = cache_all

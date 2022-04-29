@@ -13,14 +13,11 @@ from pathlib import Path as _Path
 import spall.exceptions as sp_exceptions
 
 from . import _data
-from ._cache import HashMapping as _HashMapping
+from ._cache import FileCacher as _FileCacher
 from ._environ import environ as _environ
-from ._indexing import IndexedState as _IndexedState
 from ._indexing import files as _files
 from ._objects import BasePlugin as _BasePlugin
 from ._utils import colors as _colors
-from ._utils import get_commit_hash as _get_commit_hash
-from ._utils import working_tree_clean as _working_tree_clean
 
 
 class CheckCommand:  # pylint: disable=too-few-public-methods
@@ -89,7 +86,6 @@ class ClassDecorator:
     """
 
     DURATIONS = "durations.json"
-    FILE_HASHES = "files.json"
 
     def __init__(self, cls: _t.Type[_BasePlugin]) -> None:
         self._cls = cls
@@ -123,46 +119,6 @@ class ClassDecorator:
 
         return _wrapper
 
-    def _cache_files(
-        self, func: _t.Callable[..., int], *args: str, **kwargs: bool
-    ) -> int:
-        cache_file = _environ.CACHEDIR / self.FILE_HASHES
-        commit = _get_commit_hash()
-        hashed = _HashMapping(cache_file, _environ.REPO, self._cls, commit)
-        if not _working_tree_clean():
-            hashed.tag("uncommitted")
-
-        hashed.read()
-        with _IndexedState() as state:
-            for file in list(_files):
-                if hashed.match_file(file):
-                    self._cls.logger().debug("hit: %s", file)
-                    _files.remove(file)
-                else:
-                    self._cls.logger().debug("miss: %s", file)
-                    if self._cls.cache_all:
-                        state.restore()
-                        break
-
-            if not _files and state.length:
-                _colors.green.bold.print(
-                    "No changes have been made to audited files"
-                )
-                returncode = 0
-            else:
-                returncode = func(*args, **kwargs)
-
-            if not returncode:
-                self._cls.logger().debug(
-                    "%s finished successfully, writing to %s",
-                    self._cls.__name__,
-                    hashed.path,
-                )
-                hashed.hash_files()
-                hashed.write()
-
-        return returncode
-
     def files(self, func: _t.Callable[..., int]) -> _t.Callable[..., int]:
         """Wrap ``__call__`` with a hashing function.
 
@@ -172,18 +128,8 @@ class ClassDecorator:
 
         @_functools.wraps(func)
         def _wrapper(*args: str, **kwargs: bool) -> int:
-            no_cache = kwargs.get("no_cache", False)
-            self._cls.logger().info(
-                "NO_CACHE=%s, %s.cache=%s",
-                no_cache,
-                self._cls.__name__,
-                self._cls.cache,
-            )
-            if no_cache or not self._cls.cache:
-                self._cls.logger().info("skipping reading and writing to disk")
-                return func(*args, **kwargs)
-
-            return self._cache_files(func, *args, **kwargs)
+            _file_cacher = _FileCacher(self._cls, func, *args, **kwargs)
+            return _file_cacher.files(func, *args, **kwargs)
 
         return _wrapper
 

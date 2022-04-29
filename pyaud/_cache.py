@@ -8,9 +8,14 @@ import hashlib as _hashlib
 import typing as _t
 from pathlib import Path as _Path
 
+from ._environ import environ as _environ
+from ._indexing import IndexedState as _IndexedState
 from ._indexing import files as _files
 from ._objects import JSONIO as _JSONIO
 from ._objects import BasePlugin as _BasePlugin
+from ._utils import colors as _colors
+from ._utils import get_commit_hash as _get_commit_hash
+from ._utils import working_tree_clean as _working_tree_clean
 
 
 class HashCap:
@@ -143,3 +148,90 @@ class HashMapping(_JSONIO):
         self[self._project][self._commit][self._cls] = self[self._project][
             self._commit
         ].get(self._cls, {})
+
+
+class FileCacher:  # pylint: disable=too-few-public-methods
+    """Handle caching of file(s)."""
+
+    FILE_HASHES = "files.json"
+
+    def __init__(self, cls, func, *args, **kwargs) -> None:
+        self._cls: _t.Type[_BasePlugin] = cls
+        self.func: _t.Callable = func
+        self.args: _t.Tuple = args
+        self.kwargs: _t.Dict = kwargs
+        self.no_cache = self.kwargs.get("no_cache", False)
+        self.hashed = HashMapping(
+            _environ.CACHEDIR / self.FILE_HASHES,
+            _environ.REPO,
+            self._cls,
+            _get_commit_hash(),
+        )
+        if not _working_tree_clean():
+            self.hashed.tag("uncommitted")
+
+        self.hashed.read()
+
+    def _hash_file(
+        self, file: _Path, passed: _t.Callable, *args: _t.Any
+    ) -> bool:
+        if self.hashed.match_file(file):
+            self._cls.logger().debug("hit: %s", file)
+            passed(*args)
+            return True
+
+        self._cls.logger().debug("miss: %s", file)
+        return False
+
+    def _post_check(self, condition: bool) -> int:
+        if condition:
+            _colors.green.bold.print(
+                "No changes have been made to audited files"
+            )
+            return 0
+
+        return self.func(*self.args, **self.kwargs)
+
+    def _write(self, returncode: int, action: _t.Callable) -> None:
+        if not returncode:
+            self._cls.logger().debug(
+                "%s finished successfully, writing to %s",
+                self._cls.__name__,
+                self.hashed.path,
+            )
+            action()
+            self.hashed.write()
+
+    def _cache_files(self) -> int:
+        with _IndexedState() as state:
+            for file in list(_files):
+                is_hashed = self._hash_file(file, _files.remove, file)
+                if not is_hashed and self._cls.cache_all:
+                    state.restore()
+                    break
+
+            returncode = self._post_check(bool(not _files and state.length))
+            self._write(returncode, self.hashed.hash_files)
+
+        return returncode
+
+    def files(
+        self, func: _t.Callable[..., int], *args: str, **kwargs: bool
+    ) -> int:
+        """Wrap ``__call__`` with a hashing function.
+
+        :param func: Function to wrap.
+        :return: Wrapped function.
+        """
+        no_cache = kwargs.get("no_cache", False)
+        self._cls.logger().info(
+            "NO_CACHE=%s, %s.cache_file=%s",
+            self.no_cache,
+            self._cls.__name__,
+            self._cls.cache,
+        )
+        if not no_cache and self._cls.cache:
+            return self._cache_files()
+
+        self._cls.logger().info("skipping reading and writing to disk")
+        return func(*args, **kwargs)
