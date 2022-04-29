@@ -264,7 +264,7 @@ def fixture_register_plugin() -> pyaud.plugins.PluginType:
             return self.subprocess[self.command].call(*args, **kwargs)
 
     # noinspection PyUnresolvedReferences,PyProtectedMember
-    Plugin.__call__ = pyaud._wraps.check_command(  # type: ignore
+    Plugin.__call__ = pyaud._wraps.CheckCommand.files(  # type: ignore
         Plugin.__call__
     )
     return Plugin

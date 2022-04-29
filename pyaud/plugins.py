@@ -27,8 +27,8 @@ from ._indexing import files as _files
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
 from ._utils import colors as _colors
+from ._wraps import CheckCommand as _CheckCommand
 from ._wraps import ClassDecorator as _ClassDecorator
-from ._wraps import check_command as _check_command
 
 
 class _SubprocessFactory(  # pylint: disable=too-many-ancestors
@@ -127,7 +127,7 @@ class Audit(Plugin):
             notify call whether process has succeeded or failed.
         """
 
-    @_check_command
+    @_CheckCommand.files
     def __call__(self, *args: str, **kwargs: bool) -> int:
         with _config.TempEnvVar(_os.environ, **self.env):
             try:
@@ -189,7 +189,7 @@ class Fix(Audit):
             notify __call__ whether process has succeeded or failed.
         """
 
-    @_check_command
+    @_CheckCommand.files
     def __call__(self, *args: str, **kwargs: bool) -> int:
         with _config.TempEnvVar(_os.environ, **self.env):
             try:
@@ -358,7 +358,7 @@ class FixFile(Plugin):
         :param kwargs: Boolean flags for subprocesses.
         """
 
-    @_check_command
+    @_CheckCommand.files
     def __call__(self, *args: str, **kwargs: bool) -> int:
         returncode = 0
         files = [p for p in _files if p.is_file()]

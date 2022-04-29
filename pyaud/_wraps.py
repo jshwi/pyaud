@@ -23,33 +23,42 @@ from ._utils import get_commit_hash as _get_commit_hash
 from ._utils import working_tree_clean as _working_tree_clean
 
 
-def check_command(func: _t.Callable[..., int]) -> _t.Callable[..., int]:
-    """Run the routine common with all functions in this package.
+class CheckCommand:  # pylint: disable=too-few-public-methods
+    """Decorate callable with status of completion."""
 
-    :param func: Function to decorate.
-    :return: Wrapped function.
-    """
-
-    @_functools.wraps(func)
-    def _wrapper(*args: str, **kwargs: bool) -> int:
-        returncode = 0
-        if not _files.reduce():
-            print("No files found")
+    @staticmethod
+    def _announce_completion(success_message: str, returncode: int) -> None:
+        if returncode:
+            _colors.red.bold.print(
+                f"Failed: returned non-zero exit status {returncode}",
+                file=_sys.stderr,
+            )
         else:
-            returncode = func(*args, **kwargs)
-            if returncode:
-                _colors.red.bold.print(
-                    f"Failed: returned non-zero exit status {returncode}",
-                    file=_sys.stderr,
-                )
+            _colors.green.bold.print(success_message)
+
+    @classmethod
+    def files(cls, func: _t.Callable[..., int]) -> _t.Callable[..., int]:
+        """Run the routine common with multiple source file fixes.
+
+        :param func: Function to decorate.
+        :return: Wrapped function.
+        """
+
+        @_functools.wraps(func)
+        def _wrapper(*args: str, **kwargs: bool) -> int:
+            returncode = 0
+            if not _files.reduce():
+                print("No files found")
             else:
-                _colors.green.bold.print(
-                    f"Success: no issues found in {len(_files)} source files"
+                returncode = func(*args, **kwargs)
+                cls._announce_completion(
+                    f"Success: no issues found in {len(_files)} source files",
+                    returncode,
                 )
 
-        return returncode
+            return returncode
 
-    return _wrapper
+        return _wrapper
 
 
 class ClassDecorator:
