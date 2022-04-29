@@ -44,7 +44,7 @@ class Environ(_Env):
         """Where to store cache."""
         with self.prefixed(self.PREFIX):
             return self.path(
-                "DATADIR",
+                "CACHEDIR",
                 default=_Path(
                     _appdirs.user_cache_dir(self.NAME, version=__version__)
                 ),

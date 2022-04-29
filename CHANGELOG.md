@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.13.1...HEAD)
 ------------------------------------------------------------------------
+### Fixed
+- Fixed `PYAUD_CACHEDIR` which was pointing to `PYAUD_DATADIR`
 
 [3.13.1](https://github.com/jshwi/pyaud/releases/tag/v3.13.1) - 2022-04-29
 ------------------------------------------------------------------------
