@@ -68,6 +68,9 @@ class BasePlugin(_ABC):  # pylint: disable=too-few-public-methods
     #: to be valid.
     cache_all = False
 
+    #: set a single cache file for plugin subclass.
+    cache_file: _t.Optional[_t.Union[str, _Path]] = None
+
     @classmethod
     def logger(cls) -> _logging.Logger:
         """Assign an audit logger dynamically, post logging config.

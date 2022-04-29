@@ -161,12 +161,16 @@ class TestCacheStrategy:
         n: int,
         clean: bool = True,
         cache_all: bool = False,
+        cache_file: t.Optional[Path] = None,
+        single_file: bool = False,
     ) -> type:
         monkeypatch.setattr("pyaud._cache._get_commit_hash", lambda: self.C[c])
         monkeypatch.setattr("pyaud._cache._working_tree_clean", lambda: clean)
-        check = pyaud._wraps.CheckCommand.files
+        attr = "file" if single_file else "files"
+        check = getattr(pyaud._wraps.CheckCommand, attr)
         strat = copy.deepcopy(StrategyMockPlugin)
         strat.cache_all = cache_all
+        strat.cache_file = cache_file
         plugin = type(self.N[n], (StrategyMockPlugin,), {})
         plugin.__call__ = check(plugin.__call__)  # type: ignore
         return plugin(self.N[n])
@@ -374,3 +378,26 @@ class TestCacheStrategy:
         assert self._success_msg(len(f)) in nocolorcapsys.stdout()
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
+
+    @pytest.mark.usefixtures(
+        "unpatch_hash_mapping_hash_files", "unpatch_hash_mapping_match_file"
+    )
+    def test_cache_file(self, monkeypatch, nocolorcapsys) -> None:
+        """Test caching a single file.
+
+        :param monkeypatch: Mock patch environment and attributes.
+        :param nocolorcapsys: Capture system output while stripping ANSI
+            color codes.
+        """
+        success = "Success: no issues found in file"
+        p = Path.cwd() / "whitelist.py"
+        i1 = self._get_instance(
+            monkeypatch, 1, 0, cache_file=p, single_file=True
+        )
+        i1()
+        assert nocolorcapsys.stdout() == ""
+        p.touch()
+        i1()
+        assert success in nocolorcapsys.stdout()
+        i1()
+        assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()

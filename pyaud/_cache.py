@@ -128,6 +128,17 @@ class HashMapping(_JSONIO):
             self[self._project][self._commit]
         )
 
+    def hash_file(self, path: _Path) -> None:
+        """Populate file hash.
+
+        :param path: Path to hash.
+        """
+        if path.is_file():
+            self._set_hash(path)
+            self[self._project][self._FALLBACK] = dict(
+                self[self._project][self._commit]
+            )
+
     def tag(self, tag: str) -> None:
         """Tag commit key with a prefix.
 
@@ -215,6 +226,25 @@ class FileCacher:  # pylint: disable=too-few-public-methods
 
         return returncode
 
+    def _cache_file(self) -> int:
+        returncode = 0
+        file = self._cls.cache_file
+        if file is not None:
+            path = _Path.cwd() / file
+            if path.is_file():
+                if self.hashed.match_file(path):
+                    self._cls.logger().debug("hit: %s", path)
+                    _colors.green.bold.print(
+                        "No changes have been made to audited files"
+                    )
+                    return 0
+
+                self._cls.logger().debug("miss: %s", path)
+                returncode = self.func(*self.args, **self.kwargs)
+                self._write(returncode, lambda: self.hashed.hash_file(path))
+
+        return returncode
+
     def files(
         self, func: _t.Callable[..., int], *args: str, **kwargs: bool
     ) -> int:
@@ -230,8 +260,12 @@ class FileCacher:  # pylint: disable=too-few-public-methods
             self._cls.__name__,
             self._cls.cache,
         )
-        if not no_cache and self._cls.cache:
-            return self._cache_files()
+        if not no_cache:
+            if self._cls.cache_file is not None:
+                return self._cache_file()
+
+            if self._cls.cache:
+                return self._cache_files()
 
         self._cls.logger().info("skipping reading and writing to disk")
         return func(*args, **kwargs)
