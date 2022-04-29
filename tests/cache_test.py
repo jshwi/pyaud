@@ -2,7 +2,7 @@
 tests.cache_test
 ================
 """
-# pylint: disable=protected-access,too-few-public-methods,no-member
+# pylint: disable=protected-access,too-few-public-methods,no-member,no-self-use
 # pylint: disable=too-many-arguments,too-many-statements,invalid-name
 import copy
 import json
@@ -413,7 +413,10 @@ class TestCacheStrategy:
         assert expected_1 in nocolorcapsys.stdout()
 
         fix()
-        assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()
+        assert (
+            "No changes have been made to audited file"
+            in nocolorcapsys.stdout()
+        )
 
         path.write_text("change")
         with pytest.raises(pyaud.exceptions.AuditError):
