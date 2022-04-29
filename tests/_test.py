@@ -1547,7 +1547,7 @@ def test_fix_on_pass(main: t.Any) -> None:
     pyaud.files.append(Path.cwd() / FILES)
 
     @pyaud.plugins.register(name="fixer")
-    class _Fixer(pyaud.plugins.Fix):
+    class _Fixer(pyaud.plugins.FixAll):
         def audit(self, *args: t.Any, **kwargs: bool) -> int:
             raise CalledProcessError(1, "cmd")
 
@@ -1571,7 +1571,7 @@ def test_fix_on_fail(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
     pyaud.files.append(Path.cwd() / FILES)
 
     @pyaud.plugins.register(name="fixer")
-    class _Fixer(pyaud.plugins.Fix):
+    class _Fixer(pyaud.plugins.FixAll):
         def audit(self, *args: t.Any, **kwargs: bool) -> int:
             return 0
 

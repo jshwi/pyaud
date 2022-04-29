@@ -137,7 +137,8 @@ class Audit(Plugin):
                 raise self.audit_error() from err
 
 
-class Fix(Audit):
+#: Blueprint for writing audit and fix plugins.
+class BaseFix(Audit):
     """Blueprint for writing audit and fix plugins.
 
     Audit will be called from here.
@@ -189,7 +190,6 @@ class Fix(Audit):
             notify __call__ whether process has succeeded or failed.
         """
 
-    @_CheckCommand.files
     def __call__(self, *args: str, **kwargs: bool) -> int:
         with _config.TempEnvVar(_os.environ, **self.env):
             try:
@@ -205,6 +205,100 @@ class Fix(Audit):
             raise self.audit_error()
 
         return returncode
+
+
+class Fix(BaseFix):
+    """Blueprint for writing audit and fix plugins for single files.
+
+    Announce file status.
+
+    :raises CalledProcessError: Will always be raised if something fails
+        that is not to do with the audit condition. Will be excepted and
+        reraised as ``AuditError`` if the audit fails and ``-f/--fix``
+        is not passed to the commandline.
+    :raises AuditError: Raised from ``CalledProcessError`` if audit
+        fails and ``-f/--fix`` flag if not passed to the commandline.
+    :return: If any error has not been raised for any reason int object
+        must be returned, from subprocess or written, to notify call
+        whether process has succeeded or failed. No value will actually
+        return from __call__ as it will be passed to the decorator.
+    """
+
+    @_abstractmethod
+    def audit(self, *args: str, **kwargs: bool) -> int:
+        """All audit logic to be written within this method.
+
+        :param args: Args that can be passed from other plugins.
+        :param kwargs: Boolean flags for subprocesses.
+        :return: If any error has not been raised for any reason int
+            object must be returned, from subprocess or written, to
+            notify __call__ whether process has succeeded or failed. If
+            non-zero exist is returned and ``-f/--fix`` has been passed
+            to the commandline run the ``fix`` method, otherwise raise
+            ``AuditError``.
+        """
+
+    @_abstractmethod
+    def fix(self, *args: str, **kwargs: bool) -> int:
+        """Run if audit fails but only if running a fix.
+
+        :param args: Args that can be passed from other plugins.
+        :param kwargs: Boolean flags for subprocesses.
+        :return: If any error has not been raised for any reason int
+            object must be returned, from subprocess or written, to
+            notify __call__ whether process has succeeded or failed.
+        """
+
+    @_CheckCommand.file
+    def __call__(self, *args: str, **kwargs: bool) -> int:
+        return super().__call__(*args, **kwargs)
+
+
+class FixAll(BaseFix):
+    """Blueprint for writing audit and fix plugins for Python files.
+
+    Announce Python file status.
+
+    :raises CalledProcessError: Will always be raised if something fails
+        that is not to do with the audit condition. Will be excepted and
+        reraised as ``AuditError`` if the audit fails and ``-f/--fix``
+        is not passed to the commandline.
+    :raises AuditError: Raised from ``CalledProcessError`` if audit
+        fails and ``-f/--fix`` flag if not passed to the commandline.
+    :return: If any error has not been raised for any reason int object
+        must be returned, from subprocess or written, to notify call
+        whether process has succeeded or failed. No value will actually
+        return from __call__ as it will be passed to the decorator.
+    """
+
+    @_abstractmethod
+    def audit(self, *args: str, **kwargs: bool) -> int:
+        """All audit logic to be written within this method.
+
+        :param args: Args that can be passed from other plugins.
+        :param kwargs: Boolean flags for subprocesses.
+        :return: If any error has not been raised for any reason int
+            object must be returned, from subprocess or written, to
+            notify __call__ whether process has succeeded or failed. If
+            non-zero exist is returned and ``-f/--fix`` has been passed
+            to the commandline run the ``fix`` method, otherwise raise
+            ``AuditError``.
+        """
+
+    @_abstractmethod
+    def fix(self, *args: str, **kwargs: bool) -> int:
+        """Run if audit fails but only if running a fix.
+
+        :param args: Args that can be passed from other plugins.
+        :param kwargs: Boolean flags for subprocesses.
+        :return: If any error has not been raised for any reason int
+            object must be returned, from subprocess or written, to
+            notify __call__ whether process has succeeded or failed.
+        """
+
+    @_CheckCommand.files
+    def __call__(self, *args: str, **kwargs: bool) -> int:
+        return super().__call__(*args, **kwargs)
 
 
 class Action(Plugin):  # pylint: disable=too-few-public-methods

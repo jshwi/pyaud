@@ -37,6 +37,24 @@ class CheckCommand:  # pylint: disable=too-few-public-methods
             _colors.green.bold.print(success_message)
 
     @classmethod
+    def file(cls, func: _t.Callable[..., int]) -> _t.Callable[..., int]:
+        """Run the routine common with single file fixes.
+
+        :param func: Function to decorate.
+        :return: Wrapped function.
+        """
+
+        @_functools.wraps(func)
+        def _wrapper(*args: str, **kwargs: bool) -> int:
+            returncode = func(*args, **kwargs)
+            cls._announce_completion(
+                "Success: no issues found in file", returncode
+            )
+            return returncode
+
+        return _wrapper
+
+    @classmethod
     def files(cls, func: _t.Callable[..., int]) -> _t.Callable[..., int]:
         """Run the routine common with multiple source file fixes.
 

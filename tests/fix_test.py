@@ -2,6 +2,7 @@
 tests.fix_test
 ==============
 """
+# pylint: disable=no-self-use
 import typing as t
 from pathlib import Path
 from subprocess import CalledProcessError
@@ -13,22 +14,32 @@ import pyaud
 from . import NoColorCapsys
 
 
-class _BaseFixer(pyaud.plugins.Fix):
-    def audit(self, *args: t.Any, **kwargs: bool) -> int:
-        """Nothing to do."""
+def _get_pass_fixer(
+    base: t.Type[pyaud.plugins.BaseFix],
+) -> t.Type[pyaud.plugins.BaseFix]:
+    class _PassFixer(base):  # type: ignore
+        def audit(self, *_: t.Any, **__: bool) -> int:
+            """Return 0."""
+            return 0
 
-    def fix(self, *args: t.Any, **kwargs: bool) -> int:
-        """Nothing to do."""
+        def fix(self, *_: t.Any, **__: bool) -> int:
+            """Nothing to do."""
+
+    return _PassFixer
 
 
-class _PassFixer(_BaseFixer):
-    def audit(self, *args: t.Any, **kwargs: bool) -> int:
-        return 0
+def _get_fail_fixer(
+    base: t.Type[pyaud.plugins.BaseFix],
+) -> t.Type[pyaud.plugins.BaseFix]:
+    class _FailFixer(base):  # type: ignore
+        def audit(self, *args: t.Any, **kwargs: bool) -> int:
+            """Raise ``CalledProcessError``."""
+            raise CalledProcessError(1, "cmd")
 
+        def fix(self, *args: t.Any, **kwargs: bool) -> int:
+            """Nothing to do."""
 
-class _FailFixer(_BaseFixer):
-    def audit(self, *args: t.Any, **kwargs: bool) -> int:
-        raise CalledProcessError(1, "cmd")
+    return _FailFixer
 
 
 class _BaseFileFixer(pyaud.plugins.FixFile):
@@ -55,19 +66,34 @@ class _FailFileFixer(_BaseFileFixer):
 
 @pytest.mark.usefixtures("bump_index")
 class TestFix:
-    """Test various implementations of ``pyaud.plugins.Fix``."""
+    """Test various implementations of ``pyaud.plugins.FixAll``."""
 
     plugin_name = "fixer"
 
     def _register_fixer(self, fixer: pyaud.plugins.PluginType) -> None:
         pyaud.plugins.register(self.plugin_name)(fixer)
 
-    @pytest.mark.parametrize("plugin", (_PassFixer, _PassFileFixer))
+    @pytest.mark.parametrize(
+        "plugin,expected",
+        [
+            (
+                _get_pass_fixer(pyaud.plugins.Fix),  # type: ignore
+                "Success: no issues found in file",
+            ),
+            (
+                _get_pass_fixer(pyaud.plugins.FixAll),  # type: ignore
+                "Success: no issues found in 1 source files",
+            ),
+            (_PassFileFixer, "Success: no issues found in 1 source files"),
+        ],
+        ids=["fix", "fix-all", "fix-file"],
+    )
     def test_on_pass(
         self,
         main: t.Any,
         nocolorcapsys: NoColorCapsys,
         plugin: pyaud.plugins.PluginType,
+        expected: str,
     ) -> None:
         """Test plugin on pass when using the fix class.
 
@@ -78,12 +104,17 @@ class TestFix:
         pyaud.files[0].touch()
         self._register_fixer(plugin)
         main(self.plugin_name)
-        assert (
-            "Success: no issues found in 1 source files"
-            in nocolorcapsys.stdout()
-        )
+        assert expected in nocolorcapsys.stdout()
 
-    @pytest.mark.parametrize("plugin", (_FailFixer, _FailFileFixer))
+    @pytest.mark.parametrize(
+        "plugin",
+        [
+            _get_fail_fixer(pyaud.plugins.Fix),  # type: ignore
+            _get_fail_fixer(pyaud.plugins.FixAll),  # type: ignore
+            _FailFileFixer,
+        ],
+        ids=["fix", "fix-all", "fix-file"],
+    )
     def test_on_fail(
         self, main: t.Any, plugin: pyaud.plugins.PluginType
     ) -> None:
@@ -101,12 +132,27 @@ class TestFix:
             in str(err.value)
         )
 
-    @pytest.mark.parametrize("plugin", (_FailFixer, _FailFileFixer))
+    @pytest.mark.parametrize(
+        "plugin,expected",
+        [
+            (
+                _get_fail_fixer(pyaud.plugins.Fix),  # type: ignore
+                "Success: no issues found in file",
+            ),
+            (
+                _get_fail_fixer(pyaud.plugins.FixAll),  # type: ignore
+                "Success: no issues found in 1 source files",
+            ),
+            (_FailFileFixer, "Success: no issues found in 1 source files"),
+        ],
+        ids=["fix", "fix-all", "fix-file"],
+    )
     def test_with_fix(
         self,
         main: t.Any,
         nocolorcapsys: NoColorCapsys,
         plugin: pyaud.plugins.PluginType,
+        expected: str,
     ) -> None:
         """Test plugin when using the fix class with ``-f/--fix``.
 
@@ -117,7 +163,4 @@ class TestFix:
         pyaud.files[0].touch()
         self._register_fixer(plugin)
         main(self.plugin_name, "--fix")
-        assert (
-            "Success: no issues found in 1 source files"
-            in nocolorcapsys.stdout()
-        )
+        assert expected in nocolorcapsys.stdout()
