@@ -35,11 +35,13 @@ class _BaseFileFixer(pyaud.plugins.FixFile):
     def fail_condition(self) -> t.Optional[bool]:
         """Nothing to do."""
 
-    def audit(self, file: Path, **kwargs: bool) -> None:
+    def audit(self, file: Path, **kwargs: bool) -> int:
         """Nothing to do."""
+        return 0
 
-    def fix(self, file: Path, **kwargs: bool) -> None:
+    def fix(self, file: Path, **kwargs: bool) -> int:
         """Nothing to do."""
+        return 0
 
 
 class _PassFileFixer(_BaseFileFixer):

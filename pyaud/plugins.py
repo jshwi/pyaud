@@ -190,7 +190,7 @@ class Fix(Audit):
         """
 
     @_check_command
-    def __call__(self, *args: str, **kwargs: bool) -> _t.Any:
+    def __call__(self, *args: str, **kwargs: bool) -> int:
         with _config.TempEnvVar(_os.environ, **self.env):
             try:
                 return self.audit(*args, **kwargs)
@@ -217,7 +217,7 @@ class Action(Plugin):  # pylint: disable=too-few-public-methods
     """
 
     @_abstractmethod
-    def action(self, *args: str, **kwargs: bool) -> _t.Any:
+    def action(self, *args: str, **kwargs: bool) -> int:
         """All logic to be written within this method.
 
         :param args: Args that can be passed from other plugins.
@@ -225,7 +225,7 @@ class Action(Plugin):  # pylint: disable=too-few-public-methods
         :return: Any value and type can be returned.
         """
 
-    def __call__(self, *args: str, **kwargs: bool) -> _t.Any:
+    def __call__(self, *args: str, **kwargs: bool) -> int:
         with _config.TempEnvVar(_os.environ, **self.env):
             try:
                 return self.action(*args, **kwargs)
@@ -343,7 +343,7 @@ class FixFile(Plugin):
         """Condition to trigger non-subprocess failure."""
 
     @_abstractmethod
-    def audit(self, file: _Path, **kwargs: bool) -> None:
+    def audit(self, file: _Path, **kwargs: bool) -> int:
         """All logic written within this method for each file's audit.
 
         :param file: Individual file.
@@ -351,7 +351,7 @@ class FixFile(Plugin):
         """
 
     @_abstractmethod
-    def fix(self, file: _Path, **kwargs: bool) -> None:
+    def fix(self, file: _Path, **kwargs: bool) -> int:
         """All logic written within this method for each file's fix.
 
         :param file: Individual file.
@@ -360,18 +360,19 @@ class FixFile(Plugin):
 
     @_check_command
     def __call__(self, *args: str, **kwargs: bool) -> int:
+        returncode = 0
         files = [p for p in _files if p.is_file()]
         for file in files:
-            self.audit(file, **kwargs)
+            returncode = self.audit(file, **kwargs)
             fail = self.fail_condition()
             if fail is not None and fail:
                 if kwargs.get("fix", False):
-                    self.fix(file, **kwargs)
-                else:
-                    raise self.audit_error()
+                    return self.fix(file, **kwargs)
+
+                raise self.audit_error()
 
         # if no error raised return 0 to decorator
-        return 0
+        return returncode
 
 
 # array of plugins
