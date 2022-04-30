@@ -53,7 +53,7 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: MockMainType) -> None:
     match_file = Tracker()
     remove = Tracker()
     clear = Tracker()
-    hash_files = Tracker()
+    save_hashs = Tracker()
     save_cache = Tracker()
     monkeypatch.setattr("pyaud.plugins._files.remove", remove)
     monkeypatch.setattr("pyaud.plugins._files.clear", clear)
@@ -65,7 +65,7 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: MockMainType) -> None:
     assert match_file.was_called() is False
     assert remove.was_called() is False
     assert clear.was_called() is False
-    assert hash_files.was_called() is False
+    assert save_hashs.was_called() is False
     assert save_cache.was_called() is False
 
 
@@ -98,7 +98,7 @@ class TestCacheStrategy:
     #: COMMITS
     # noinspection PyUnresolvedReferences
     C = (
-        pyaud._cache.HashMapping._FALLBACK,
+        pyaud._cache.HashMapping._FB,
         "7c57dc943941566f47b9e7ee3208245d0bcd7656",
         "7c57dc943941566f47b9e7ee3208245d0bcd7657",
         "7c57dc943941566f47b9e7ee3208245d0bcd7658",
@@ -189,7 +189,7 @@ class TestCacheStrategy:
         return {str(k.relative_to(Path.cwd())): v for k, v in o.items()}
 
     @pytest.mark.usefixtures(
-        "unpatch_hash_mapping_hash_files", "unpatch_hash_mapping_match_file"
+        "unpatch_hash_mapping_save_hash", "unpatch_hash_mapping_match_file"
     )
     def test_cache(
         self, monkeypatch: pytest.MonkeyPatch, nocolorcapsys: NoColorCapsys
@@ -231,8 +231,10 @@ class TestCacheStrategy:
                 return f[self.path]
 
         monkeypatch.setattr("pyaud._cache._Path.read_bytes", lambda x: x)
+        monkeypatch.setattr("pyaud._cache._Path.is_file", lambda x: True)
         monkeypatch.setattr("pyaud._cache._hashlib.md5", _Md5)
         pyaud.files.extend(f.keys())
+        pyaud.environ.FILECACHE_FILE.touch()
 
         #: Test when there is no cache file already.
         #: Test that a new instance is created wrapped with a cache
@@ -380,7 +382,7 @@ class TestCacheStrategy:
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
 
     @pytest.mark.usefixtures(
-        "unpatch_hash_mapping_hash_files", "unpatch_hash_mapping_match_file"
+        "unpatch_hash_mapping_save_hash", "unpatch_hash_mapping_match_file"
     )
     def test_cache_file(self, nocolorcapsys) -> None:
         """Test caching a single file.
