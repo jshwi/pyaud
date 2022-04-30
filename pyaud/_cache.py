@@ -235,7 +235,11 @@ class FileCacher:  # pylint: disable=too-few-public-methods
                 "%s.cache_file=%s", self._cls.__name__, path
             )
             returncode = self.func(*self.args, **self.kwargs)
-            if not returncode and self.hashed.match_file(path):
+            if (
+                not returncode
+                and path.is_file()
+                and self.hashed.match_file(path)
+            ):
                 self._cls.logger().debug("hit: %s", path)
                 _colors.green.print(
                     "No changes have been made to audited file"
