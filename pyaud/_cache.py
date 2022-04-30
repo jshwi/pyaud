@@ -8,6 +8,7 @@ import hashlib as _hashlib
 import typing as _t
 from pathlib import Path as _Path
 
+from . import exceptions as _exceptions
 from ._environ import environ as _environ
 from ._indexing import IndexedState as _IndexedState
 from ._indexing import files as _files
@@ -107,6 +108,12 @@ class HashMapping(_JSONIO):
             self._fmt(path)
         )
 
+    def _delitem(self, path: _Path) -> None:
+        formatted = self._fmt(path)
+        cls = self[self._project][self._commit][self._cls]
+        if formatted in cls:
+            del cls[formatted]
+
     def _set_hash(self, path: _Path) -> None:
         # get already existing hash
         self._setitem(path, self._get_new_hash(path))
@@ -138,6 +145,8 @@ class HashMapping(_JSONIO):
             self[self._project][self._FALLBACK] = dict(
                 self[self._project][self._commit]
             )
+        else:
+            self._delitem(path)
 
     def tag(self, tag: str) -> None:
         """Tag commit key with a prefix.
@@ -203,15 +212,14 @@ class FileCacher:  # pylint: disable=too-few-public-methods
 
         return self.func(*self.args, **self.kwargs)
 
-    def _write(self, returncode: int, action: _t.Callable) -> None:
-        if not returncode:
-            self._cls.logger().debug(
-                "%s finished successfully, writing to %s",
-                self._cls.__name__,
-                self.hashed.path,
-            )
-            action()
-            self.hashed.write()
+    def _write(self, action: _t.Callable) -> None:
+        self._cls.logger().debug(
+            "%s finished successfully, writing to %s",
+            self._cls.__name__,
+            self.hashed.path,
+        )
+        action()
+        self.hashed.write()
 
     def _cache_files(self) -> int:
         with _IndexedState() as state:
@@ -222,7 +230,7 @@ class FileCacher:  # pylint: disable=too-few-public-methods
                     break
 
             returncode = self._post_check(bool(not _files and state.length))
-            self._write(returncode, self.hashed.hash_files)
+            self._write(self.hashed.hash_files)
 
         return returncode
 
@@ -234,7 +242,13 @@ class FileCacher:  # pylint: disable=too-few-public-methods
             self._cls.logger().info(
                 "%s.cache_file=%s", self._cls.__name__, path
             )
-            returncode = self.func(*self.args, **self.kwargs)
+            try:
+                returncode = self.func(*self.args, **self.kwargs)
+            except _exceptions.AuditError as err:
+                self._cls.logger().debug("miss: %s", path)
+                self._write(lambda: self.hashed.hash_file(path))
+                raise _exceptions.AuditError(str(err)) from err
+
             if (
                 not returncode
                 and path.is_file()
@@ -247,7 +261,7 @@ class FileCacher:  # pylint: disable=too-few-public-methods
                 return 0
 
             self._cls.logger().debug("miss: %s", path)
-            self._write(returncode, lambda: self.hashed.hash_file(path))
+            self._write(lambda: self.hashed.hash_file(path))
 
         return returncode
 

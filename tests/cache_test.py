@@ -6,6 +6,7 @@ tests.cache_test
 # pylint: disable=too-many-arguments,too-many-statements,invalid-name
 import copy
 import json
+import os
 import typing as t
 from pathlib import Path
 
@@ -424,3 +425,13 @@ class TestCacheStrategy:
 
         fix(fix=True)
         assert expected_1 in nocolorcapsys.stdout()
+
+        os.remove(path)
+        with pytest.raises(pyaud.exceptions.AuditError):
+            fix()
+
+        fix(fix=True)
+        assert (
+            "No changes have been made to audited file"
+            not in nocolorcapsys.stdout()
+        )
