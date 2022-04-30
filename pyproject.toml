@@ -30,7 +30,7 @@ packages = [
     { include = "pyaud" },
 ]
 readme = "README.rst"
-version = "3.13.3"
+version = "3.13.4"
 
 [tool.poetry.dependencies]
 appdirs = "^1.4.4"
