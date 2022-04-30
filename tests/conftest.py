@@ -30,7 +30,6 @@ from . import (
     LEVEL,
     LOGGING,
     OS_GETCWD,
-    PYAUD_PLUGINS_PLUGINS,
     REPO,
     ROOT,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
@@ -48,9 +47,7 @@ from . import (
 # noinspection PyProtectedMember,PyUnresolvedReferences
 original_hash_mapping_match_file = pyaud._cache.HashMapping.match_file
 # noinspection PyUnresolvedReferences,PyProtectedMember
-original_hash_mapping_unpatched_hash_files = (
-    pyaud._cache.HashMapping.hash_files
-)
+original_hash_mapping_unpatched_save_hash = pyaud._cache.HashMapping.save_hash
 original_pyaud_plugin_load = pyaud.plugins.load
 original_pyaud_main_register_default_plugins = (
     _default.register_default_plugins
@@ -130,8 +127,10 @@ def fixture_mock_environment(
     monkeypatch.setattr(
         "pyaud._cache.HashMapping.match_file", lambda *_: False
     )
-    monkeypatch.setattr("pyaud._cache.HashMapping.hash_files", lambda _: None)
-    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, pyaud.plugins.Plugins())
+    monkeypatch.setattr(
+        "pyaud._cache.HashMapping.save_hash", lambda _, __: None
+    )
+    monkeypatch.setattr("pyaud.plugins._plugins", pyaud.plugins.Plugins())
     monkeypatch.setattr("pyaud.plugins.load", lambda: None)
     monkeypatch.setattr("pyaud._main._register_default_plugins", lambda: None)
 
@@ -239,17 +238,17 @@ def fixture_unpatch_hash_mapping_match_file(
     )
 
 
-@pytest.fixture(name="unpatch_hash_mapping_hash_files")
-def fixture_unpatch_hash_mapping_hash_files(
+@pytest.fixture(name="unpatch_hash_mapping_save_hash")
+def fixture_unpatch_hash_mapping_save_hashs(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Unpatch ``pyaud._cache.HashMapping.hash_files``.
+    """Unpatch ``pyaud._cache.HashMapping.save_hashs``.
 
     :param monkeypatch: Mock patch environment and attributes.
     """
     monkeypatch.setattr(
-        "pyaud._cache.HashMapping.hash_files",
-        original_hash_mapping_unpatched_hash_files,
+        "pyaud._cache.HashMapping.save_hash",
+        original_hash_mapping_unpatched_save_hash,
     )
 
 

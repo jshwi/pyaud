@@ -27,7 +27,7 @@ class HashMapping(_JSONIO):
     :param commit: Commit that this audit is being run on.
     """
 
-    _FALLBACK = "fallback"
+    _FB = "fallback"
 
     def __init__(
         self,
@@ -37,68 +37,9 @@ class HashMapping(_JSONIO):
     ) -> None:
         super().__init__(app_files.cache_file)
         self._project = app_files.user_project_dir.name
-        self._commit = commit or self._FALLBACK
+        self._commit = commit or self._FB
         self._cls = str(cls)
-
-    @staticmethod
-    def _get_new_hash(path: _Path) -> str:
-        # get a new md5 file hash
-        return _hashlib.md5(path.read_bytes()).hexdigest()
-
-    @staticmethod
-    def _fmt(path: _Path) -> str:
-        # format the `Path` object to JSON appropriate `str`
-        # remove path from current working dir for flexible location
-        return str(path.relative_to(_Path.cwd()))
-
-    def _setitem(self, path: _Path, value: str) -> None:
-        self[self._project][self._commit][self._cls][self._fmt(path)] = value
-
-    def _getitem(self, path: _Path) -> str:
-        # get path within the session object
-        return self[self._project][self._commit][self._cls].get(
-            self._fmt(path)
-        )
-
-    def _delitem(self, path: _Path) -> None:
-        formatted = self._fmt(path)
-        cls = self[self._project][self._commit][self._cls]
-        if formatted in cls:
-            del cls[formatted]
-
-    def _set_hash(self, path: _Path) -> None:
-        # get already existing hash
-        self._setitem(path, self._get_new_hash(path))
-
-    def match_file(self, path: _Path) -> bool:
-        """Match selected class against a file relevant to it.
-
-        :param path: Path to the file to check if it has changed.
-        :return: Is the file a match (not changed)? True or False.
-        """
-        return self._get_new_hash(path) == self._getitem(path)
-
-    def hash_files(self) -> None:
-        """Populate file hashes."""
-        for file in _files:
-            self._set_hash(file)
-
-        self[self._project][self._FALLBACK] = dict(
-            self[self._project][self._commit]
-        )
-
-    def hash_file(self, path: _Path) -> None:
-        """Populate file hash.
-
-        :param path: Path to hash.
-        """
-        if path.is_file():
-            self._set_hash(path)
-            self[self._project][self._FALLBACK] = dict(
-                self[self._project][self._commit]
-            )
-        else:
-            self._delitem(path)
+        self._session: _t.Dict[str, str] = {}
 
     def tag(self, tag: str) -> None:
         """Tag commit key with a prefix.
@@ -107,19 +48,42 @@ class HashMapping(_JSONIO):
         """
         self._commit = f"{tag}-{self._commit}"
 
-    def read(self) -> None:
-        """Read data from existing cache file if it exists,
+    def match_file(self, path: _Path) -> bool:
+        """Match selected class against a file relevant to it.
 
-        Ensure necessary keys exist regardless.
+        :param path: Path to the file to check if it has changed.
+        :return: Is the file a match (not changed)? True or False.
         """
+        relpath = str(path.relative_to(_Path.cwd()))
+        newhash = _hashlib.md5(path.read_bytes()).hexdigest()
+        return newhash == self._session.get(relpath)
+
+    def save_hash(self, path: _Path) -> None:
+        """Populate file hash.
+
+        :param path: Path to hash.
+        """
+        relpath = str(path.relative_to(_Path.cwd()))
+        if path.is_file():
+            newhash = _hashlib.md5(path.read_bytes()).hexdigest()
+            self._session[relpath] = newhash
+        else:
+            if relpath in self._session:
+                del self._session[relpath]
+
+    def read(self) -> None:
+        """Read from file to object."""
         super().read()
-        self[self._project] = self.get(self._project, {})
-        self[self._project][self._commit] = self[self._project].get(
-            self._commit, self[self._project].get(self._FALLBACK, {})
-        )
-        self[self._project][self._commit][self._cls] = self[self._project][
-            self._commit
-        ].get(self._cls, {})
+        project = self.get(self._project, {})
+        fallback = project.get(self._FB, {})
+        project[self._commit] = project.get(self._commit, fallback)
+        self._session = project[self._commit].get(self._cls, {})
+
+    def write(self) -> None:
+        """Write data to file."""
+        cls = {self._cls: dict(self._session)}
+        self[self._project] = {self._FB: cls, self._commit: cls}
+        super().write()
 
 
 class FileCacher:  # pylint: disable=too-few-public-methods
@@ -145,51 +109,42 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         self.args = args
         self.kwargs = kwargs
         self.no_cache = self.kwargs.get("no_cache", False)
+        self._cache_file_path = app_files.cache_file
         self.hashed = HashMapping(app_files, self._cls, _get_commit_hash())
         if not _working_tree_clean():
             self.hashed.tag("uncommitted")
 
         self.hashed.read()
 
-    def _hash_file(
-        self, file: _Path, passed: _t.Callable[..., None], *args: _t.Any
-    ) -> bool:
-        if self.hashed.match_file(file):
-            self._cls.logger().debug("hit: %s", file)
-            passed(*args)
-            return True
+    def _on_completion(self, *paths: _Path) -> None:
+        self._cls.logger().debug("writing to %s", self._cache_file_path)
+        for path in paths:
+            self.hashed.save_hash(path)
 
-        self._cls.logger().debug("miss: %s", file)
-        return False
-
-    def _post_check(self, condition: bool) -> int:
-        if condition:
-            _colors.green.bold.print(
-                "No changes have been made to audited files"
-            )
-            return 0
-
-        return self.func(*self.args, **self.kwargs)
-
-    def _write(self, action: _t.Callable[..., None]) -> None:
-        self._cls.logger().debug(
-            "%s finished successfully, writing to %s",
-            self._cls.__name__,
-            self.hashed.path,
-        )
-        action()
         self.hashed.write()
 
     def _cache_files(self) -> int:
+        returncode = 0
         with _IndexedState() as state:
             for file in list(_files):
-                is_hashed = self._hash_file(file, _files.remove, file)
-                if not is_hashed and self._cls.cache_all:
-                    state.restore()
-                    break
+                if self.hashed.match_file(file):
+                    self._cls.logger().debug("hit: %s", file)
+                    _files.remove(file)
+                else:
+                    self._cls.logger().debug("miss: %s", file)
+                    if self._cls.cache_all:
+                        state.restore()
+                        break
 
-            returncode = self._post_check(bool(not _files and state.length))
-            self._write(self.hashed.hash_files)
+            if not _files and state.length:
+                _colors.green.bold.print(
+                    "No changes have been made to audited files"
+                )
+            else:
+                returncode = self.func(*self.args, **self.kwargs)
+
+            if not returncode:
+                self._on_completion(*_files)
 
         return returncode
 
@@ -198,14 +153,10 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         file = self._cls.cache_file
         if file is not None:
             path = _Path.cwd() / file
-            self._cls.logger().info(
-                "%s.cache_file=%s", self._cls.__name__, path
-            )
             try:
                 returncode = self.func(*self.args, **self.kwargs)
             except _exceptions.AuditError as err:
-                self._cls.logger().debug("miss: %s", path)
-                self._write(lambda: self.hashed.hash_file(path))
+                self._on_completion(path)
                 raise _exceptions.AuditError(str(err)) from err
 
             if (
@@ -220,7 +171,7 @@ class FileCacher:  # pylint: disable=too-few-public-methods
                 return 0
 
             self._cls.logger().debug("miss: %s", path)
-            self._write(lambda: self.hashed.hash_file(path))
+            self._on_completion(path)
 
         return returncode
 
@@ -236,10 +187,12 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         """
         no_cache = kwargs.get("no_cache", False)
         self._cls.logger().info(
-            "NO_CACHE=%s, %s.cache=%s",
+            "NO_CACHE=%s, %s.cache=%s, %s.cache_file=%s",
             no_cache,
             self._cls.__name__,
             self._cls.cache,
+            self._cls.__name__,
+            self._cls.cache_file,
         )
         if not no_cache:
             if self._cls.cache_file is not None:

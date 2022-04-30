@@ -9,6 +9,7 @@ import re
 import typing as t
 from pathlib import Path
 
+import pytest
 from gitspy import Git
 from templatest.utils import VarSeq
 
@@ -33,7 +34,7 @@ DEFAULT_KEY = "default_key"
 DOCS = "docs"
 ERROR = LEVELS[3]
 EXCLUDE = "exclude"
-FILE = "file.py"
+FILE: str = "file.py"
 FILENAME = "filename"
 FILES = "files"
 FIX = "fix"
@@ -110,7 +111,7 @@ class NoColorCapsys:
     :param capsys: Capture and return stdout and stderr stream.
     """
 
-    def __init__(self, capsys: t.Any) -> None:
+    def __init__(self, capsys: pytest.CaptureFixture) -> None:
         self.capsys = capsys
 
     @staticmethod
@@ -203,7 +204,7 @@ class StrategyMockPlugin(MockCachedPluginType):
     cache = True
     cache_all = False
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: str, **kwargs: bool) -> int:
         return 0
 
 
