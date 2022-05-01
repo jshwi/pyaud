@@ -7,13 +7,12 @@ Persistent data for use between runs.
 from __future__ import annotations
 
 import contextlib as _contextlib
-import json as _json
 import typing as _t
 from pathlib import Path as _Path
 from time import time as _time
 
+from ._objects import JSONIO as _JSONIO
 from ._objects import BasePlugin as _BasePlugin
-from ._objects import MutableMapping as _MutableMapping
 
 
 class _TimeKeeper:
@@ -23,10 +22,10 @@ class _TimeKeeper:
         self._end_time = self._start_time
         self._elapsed = self._start_time
 
-    def _starter(self) -> None:
+    def _starter(self):
         self._start_time = _time()
 
-    def _stopper(self) -> None:
+    def _stopper(self):
         self._end_time = _time()
 
     def start(self) -> None:
@@ -51,7 +50,7 @@ class _TimeKeeper:
         return self._elapsed
 
 
-class Record(_MutableMapping):
+class Record(_JSONIO):
     """Record floats to objects based on calling class."""
 
     def average(self, repo: str, cls: _t.Type[_BasePlugin]) -> float:
@@ -84,29 +83,7 @@ class Record(_MutableMapping):
         finally:
             time_keeper.stop()
             self[repo][str(cls)].append(time_keeper.elapsed())
-            write(self, path)
-
-
-def read(obj: _MutableMapping, path: _Path) -> None:
-    """Read from file to object.
-
-    :param obj: Object to read file data to.
-    :param path: Path to datafile.
-    """
-    if path.is_file():
-        try:
-            obj.update(_json.loads(path.read_text()))
-        except _json.decoder.JSONDecodeError:
-            pass
-
-
-def write(obj: _MutableMapping, path: _Path) -> None:
-    """Write data to file.
-
-    :param obj: Object to write to datafile.
-    :param path: Path to datafile.
-    """
-    path.write_text(_json.dumps(dict(obj), separators=(",", ":")))
+            super().write(path)
 
 
 record = Record()

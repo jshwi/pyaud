@@ -31,12 +31,11 @@ class HashMapping(_JSONIO):
 
     def __init__(
         self,
-        path: _Path,
         project: str,
         cls: _t.Type[_BasePlugin],
         commit: _t.Optional[str] = None,
     ) -> None:
-        super().__init__(path)
+        super().__init__()
         self._project = project
         self._commit = commit or self._FB
         self._cls = str(cls)
@@ -72,19 +71,19 @@ class HashMapping(_JSONIO):
             if relpath in self._session:
                 del self._session[relpath]
 
-    def read(self) -> None:
+    def read(self, path: _Path) -> None:
         """Read from file to object."""
-        super().read()
+        super().read(path)
         project = self.get(self._project, {})
         fallback = project.get(self._FB, {})
         project[self._commit] = project.get(self._commit, fallback)
         self._session = project[self._commit].get(self._cls, {})
 
-    def write(self) -> None:
+    def write(self, path: _Path) -> None:
         """Write data to file."""
         cls = {self._cls: dict(self._session)}
         self[self._project] = {self._FB: cls, self._commit: cls}
-        super().write()
+        super().write(path)
 
 
 class FileCacher:  # pylint: disable=too-few-public-methods
@@ -108,20 +107,18 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         self.args = args
         self.kwargs = kwargs
         self.no_cache = self.kwargs.get("no_cache", False)
-        self.hashed = HashMapping(
-            _e.FILECACHE_FILE, _e.REPO, self._cls, _get_commit_hash()
-        )
+        self.hashed = HashMapping(_e.REPO, self._cls, _get_commit_hash())
         if not _working_tree_clean():
             self.hashed.tag("uncommitted")
 
-        self.hashed.read()
+        self.hashed.read(_e.FILECACHE_FILE)
 
     def _on_completion(self, *paths: _Path) -> None:
         self._cls.logger().debug("writing to %s", _e.FILECACHE_FILE)
         for path in paths:
             self.hashed.save_hash(path)
 
-        self.hashed.write()
+        self.hashed.write(_e.FILECACHE_FILE)
 
     def _cache_files(self) -> int:
         returncode = 0

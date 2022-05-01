@@ -28,7 +28,7 @@ def main() -> None:
     _plugins.load()
     parser = _Parser(_colors.cyan.get(_e.NAME))
     _initialize_dirs()
-    _data.read(_data.record, _e.DURATIONS_FILE)
+    _data.record.read(_e.DURATIONS_FILE)
     _config.load_config(parser.args.rcfile)
     _config.configure_logging(parser.args.verbose)
     _files.add_exclusions(*_config.toml["indexing"]["exclude"])

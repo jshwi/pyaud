@@ -103,7 +103,7 @@ class ClassDecorator:
             ) as time_keeper:
                 returncode = func(*args, **kwargs)
 
-            _data.write(_data.record, _e.DURATIONS_FILE)
+            _data.record.write(_e.DURATIONS_FILE)
             logged_time = "{}: Execution time: {}s; Average time: {}s".format(
                 self._cls.__name__,
                 time_keeper.elapsed(),
