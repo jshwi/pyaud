@@ -17,6 +17,29 @@ exclude = '''
 line-length = 79
 skip-magic-trailing-comma = true
 
+[tool.constcheck]
+filter = true
+
+[tool.constcheck.ignore_from]
+"pyaud/_cache.py" = [
+    "miss: %s",
+]
+"pyaud/_default.py" = [
+    "clean",
+]
+"pyaud/_cli.py" = [
+    "store_true",
+]
+"pyaud/_config.py" = [
+    "default",
+    "exclude",
+    "formatter",
+    "handlers",
+    "level",
+    "root",
+    "class",
+]
+
 [tool.coverage.report]
 fail_under = 100
 
@@ -86,6 +109,7 @@ modules = [
     "typecheck",
     "unused",
     "lint",
+    "const",
     "params",
     "test",
     "docs",
