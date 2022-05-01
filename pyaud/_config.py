@@ -60,30 +60,11 @@ from ._environ import environ as _e
 from ._objects import MutableMapping as _MutableMapping
 
 DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
-    clean={"exclude": ["*.egg*", ".mypy_cache", ".env", "instance"]},
-    logging={
-        "version": 1,
-        "disable_existing_loggers": True,
-        "formatters": {
-            "standard": {
-                "format": "%(asctime)s %(levelname)s %(name)s %(message)s"
-            }
-        },
-        "handlers": {
-            "default": {
-                "class": "logging.handlers.TimedRotatingFileHandler",
-                "formatter": "standard",
-                "when": "d",
-                "backupCount": 60,
-                "filename": str(_e.LOG_FILE),
-            }
-        },
-        "root": {"level": "INFO", "handlers": ["default"], "propagate": False},
-    },
-    indexing={"exclude": ["whitelist.py", "conf.py", "setup.py"]},
-    packages={"exclude": ["tests"]},
     audit={
         "modules": [
+            "toc",
+            "whitelist",
+            "sort-pyproject",
             "format",
             "format-docs",
             "format-str",
@@ -91,12 +72,33 @@ DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
             "typecheck",
             "unused",
             "lint",
-            "coverage",
-            "readme",
+            "const",
+            "test",
             "docs",
         ]
     },
-    addopts=["timed"],
+    clean={"exclude": ["*.egg*", ".mypy_cache", ".env"]},
+    indexing={"exclude": ["whitelist.py", "conf.py"]},
+    logging={
+        "disable_existing_loggers": True,
+        "version": 1,
+        "formatters": {
+            "standard": {
+                "format": "%(asctime)s %(levelname)s %(name)s %(message)s"
+            }
+        },
+        "handlers": {
+            "default": {
+                "backupCount": 60,
+                "class": "logging.handlers.TimedRotatingFileHandler",
+                "filename": str(_e.LOG_FILE),
+                "formatter": "standard",
+                "when": "d",
+            }
+        },
+        "root": {"handlers": ["default"], "level": "INFO", "propagate": False},
+    },
+    packages={"exclude": []},
 )
 
 

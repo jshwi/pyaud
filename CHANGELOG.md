@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Adds more properties to `pyaud.environ`
 
 ### Changed
+- Updates default config
 - Removes second warning for single issue
 - Updates public scope
 
