@@ -137,21 +137,6 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
 
         return obj
 
-    def dump(
-        self, fout: _t.TextIO, obj: _t.Optional[_t.MutableMapping] = None
-    ) -> str:
-        """Native ``dump`` method to include encoder.
-
-        :param fout: TextIO file stream.
-        :param obj: Mutable mapping dict-like object.
-        :return: str object in toml encoded form.
-        """
-        return _toml_encoder.dump(
-            self._format_dump(dict(self) if obj is None else dict(obj)),
-            fout,
-            encoder=self._encoder,
-        )
-
     def dumps(self, obj: _t.Optional[_t.MutableMapping] = None) -> str:
         """Native ``dump(from)s(tr)`` method to include encoder.
 
@@ -173,6 +158,13 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
             obj = obj.get(arg, obj)
 
         self.update(obj)
+
+    def loads(self, string: str) -> None:
+        """Native ``load (from file)`` method.
+
+        :param string: Toml as str.
+        """
+        self.update(_toml_decoder.loads(string))
 
 
 class TempEnvVar:
@@ -224,25 +216,23 @@ def configure_global() -> None:
     toml.update(default_config)
     if _e.GLOBAL_CONFIG_FILE.is_file():
         while True:
-            with open(_e.GLOBAL_CONFIG_FILE, encoding=_e.ENCODING) as fin:
-                try:
-                    toml.load(fin)
-                    _shutil.copyfile(
-                        _e.GLOBAL_CONFIG_FILE, _e.GLOBAL_CONFIG_BAK_FILE
+            try:
+                toml.loads(_e.GLOBAL_CONFIG_FILE.read_text(_e.ENCODING))
+                _shutil.copyfile(
+                    _e.GLOBAL_CONFIG_FILE, _e.GLOBAL_CONFIG_BAK_FILE
+                )
+                break
+
+            except _toml_decoder.TomlDecodeError:
+                if _e.GLOBAL_CONFIG_BAK_FILE.is_file():
+                    _os.rename(
+                        _e.GLOBAL_CONFIG_BAK_FILE, _e.GLOBAL_CONFIG_FILE
                     )
+                else:
                     break
 
-                except _toml_decoder.TomlDecodeError:
-                    if _e.GLOBAL_CONFIG_BAK_FILE.is_file():
-                        _os.rename(
-                            _e.GLOBAL_CONFIG_BAK_FILE, _e.GLOBAL_CONFIG_FILE
-                        )
-                    else:
-                        break
-
     _e.CONFIGDIR.mkdir(exist_ok=True, parents=True)
-    with open(_e.GLOBAL_CONFIG_FILE, "w", encoding=_e.ENCODING) as fout:
-        toml.dump(fout)
+    _e.GLOBAL_CONFIG_FILE.write_text(toml.dumps(), _e.ENCODING)
 
 
 def load_config(opt: _t.Optional[_t.Union[str, _os.PathLike]] = None) -> None:
