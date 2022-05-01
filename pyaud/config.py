@@ -53,12 +53,8 @@ import typing as _t
 from pathlib import Path as _Path
 
 import appdirs as _appdirs
-
-# noinspection PyUnresolvedReferences
-import toml.decoder as _toml_decoder
-
-# noinspection PyUnresolvedReferences
-import toml.encoder as _toml_encoder
+import tomli as _tomli
+import tomli_w as _tomli_w
 
 from . import _typing as _pt
 from ._locations import NAME as _NAME
@@ -108,72 +104,28 @@ DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
 )
 
 
-class _TomlArrayEncoder(_toml_encoder.TomlEncoder):
-    """Pass to ``toml.encoder`` functions (dump and dumps).
-
-    Set rule for string encoding so arrays are collapsed if they exceed
-    line limit.
-    """
-
-    def dump_list(self, v: _t.Iterable[object]) -> str:
-        """Rule for dumping arrays.
-
-        :param v: Array from toml file.
-        :return: toml encoded to str.
-        """
-        start, stop = (4 * " ", "\n") if len(str(v)) > 79 else ("", "")
-        retval = f"[{stop}"
-        for item in v:
-            retval += f"{start}{self.dump_value(item)}, {stop}"
-
-        return f"{retval[:-2] if retval.endswith(', ') else retval}]"
-
-
 class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
     """Base class for all ``toml`` object interaction."""
 
-    _encoder = _TomlArrayEncoder()
-
-    def _format_dump(self, obj: _t.MutableMapping) -> _t.MutableMapping:
-        for key, value in obj.items():
-            if isinstance(value, dict):
-                value = self._format_dump(value)
-
-            if isinstance(value, str):
-                value = value.replace(str(_Path.home()), "~")
-
-            obj[key] = value
-
-        return obj
-
-    def dumps(self, obj: _t.Optional[_t.MutableMapping] = None) -> str:
+    def dumps(self, __obj: _t.Optional[_t.Dict[str, _t.Any]] = None) -> str:
         """Native ``dump(from)s(tr)`` method to include encoder.
 
-        :param obj: Mutable mapping dict-like object.
+        :param __obj: Mutable mapping dict-like object.
         :return: str object in toml encoded form.
         """
-        return _toml_encoder.dumps(
-            self._format_dump(dict(self) if obj is None else dict(obj)),
-            encoder=self._encoder,
-        )
+        return _tomli_w.dumps(dict(self) if __obj is None else dict(__obj))
 
-    def load(self, fin: _t.TextIO, *args: str) -> None:
+    def loads(self, __s: str, *args: str) -> None:
         """Native ``load (from file)`` method.
 
-        :param fin: File stream.
+        :param __s: Toml as str.
+        :param args: Keys to search for.
         """
-        obj = _toml_decoder.load(fin)
+        obj = _tomli.loads(__s)
         for arg in args:
             obj = obj.get(arg, obj)
 
         self.update(obj)
-
-    def loads(self, string: str) -> None:
-        """Native ``load (from file)`` method.
-
-        :param string: Toml as str.
-        """
-        self.update(_toml_decoder.loads(string))
 
 
 class TempEnvVar:
@@ -234,7 +186,7 @@ def configure_global(app_files: _AppFiles) -> None:
                 )
                 break
 
-            except _toml_decoder.TomlDecodeError:
+            except _tomli.TOMLDecodeError:
                 if app_files.global_config_file_backup.is_file():
                     _os.rename(
                         app_files.global_config_file_backup,
@@ -265,8 +217,7 @@ def load_config(
 
     for file in files:
         if file.is_file():
-            with open(file, encoding="utf-8") as fin:
-                toml.load(fin, "tool", _NAME)
+            toml.loads(file.read_text(), "tool", _NAME)
 
 
 def _extract_logger(default: _t.Dict[str, _t.Any]) -> _logging.Logger:
