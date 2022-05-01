@@ -22,7 +22,7 @@ from ._utils import working_tree_clean as _working_tree_clean
 class HashMapping(_JSONIO):
     """Persistent data object.
 
-    :param app_files: App file locations object.
+    :param project: Project name.
     :param cls: Audit that this class is running in.
     :param commit: Commit that this audit is being run on.
     """
@@ -31,12 +31,12 @@ class HashMapping(_JSONIO):
 
     def __init__(
         self,
-        app_files: _AppFiles,
+        project: str,
         cls: _t.Type[_BasePlugin],
         commit: _t.Optional[str] = None,
     ) -> None:
-        super().__init__(app_files.cache_file)
-        self._project = app_files.user_project_dir.name
+        super().__init__()
+        self._project = project
         self._commit = commit or self._FB
         self._cls = str(cls)
         self._session: _t.Dict[str, str] = {}
@@ -71,19 +71,25 @@ class HashMapping(_JSONIO):
             if relpath in self._session:
                 del self._session[relpath]
 
-    def read(self) -> None:
-        """Read from file to object."""
-        super().read()
+    def read(self, path: _Path) -> None:
+        """Read from file to object.
+
+        :param path: Path to cache file.
+        """
+        super().read(path)
         project = self.get(self._project, {})
         fallback = project.get(self._FB, {})
         project[self._commit] = project.get(self._commit, fallback)
         self._session = project[self._commit].get(self._cls, {})
 
-    def write(self) -> None:
-        """Write data to file."""
+    def write(self, path: _Path) -> None:
+        """Write data to file.
+
+        :param path: Path to cache file.
+        """
         cls = {self._cls: dict(self._session)}
         self[self._project] = {self._FB: cls, self._commit: cls}
-        super().write()
+        super().write(path)
 
 
 class FileCacher:  # pylint: disable=too-few-public-methods
@@ -110,18 +116,20 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         self.kwargs = kwargs
         self.no_cache = self.kwargs.get("no_cache", False)
         self._cache_file_path = app_files.cache_file
-        self.hashed = HashMapping(app_files, self._cls, _get_commit_hash())
+        self.hashed = HashMapping(
+            app_files.user_project_dir.name, self._cls, _get_commit_hash()
+        )
         if not _working_tree_clean():
             self.hashed.tag("uncommitted")
 
-        self.hashed.read()
+        self.hashed.read(app_files.cache_file)
 
     def _on_completion(self, *paths: _Path) -> None:
         self._cls.logger().debug("writing to %s", self._cache_file_path)
         for path in paths:
             self.hashed.save_hash(path)
 
-        self.hashed.write()
+        self.hashed.write(self._cache_file_path)
 
     def _cache_files(self) -> int:
         returncode = 0

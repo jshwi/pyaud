@@ -485,13 +485,7 @@ def test_restore_data_no_json(app_files: AppFiles) -> None:
     app_files.durations_file.touch()
     # noinspection PyUnresolvedReferences
     time_cache = pyaud._data.Record()
-    # noinspection PyUnresolvedReferences
-    pyaud._data.read(time_cache, app_files.durations_file)
-
-    # short-cut for testing ``JSONIO.read`` which is basically identical
-    # to ``pyaud._data.read``
-    time_cache.path = app_files.durations_file  # type: ignore
-    pyaud._objects.JSONIO.read(time_cache)  # type: ignore
+    time_cache.read(app_files.durations_file)
 
 
 def test_plugin_deepcopy_with_new() -> None:

@@ -54,7 +54,7 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: MockMainType) -> None:
     match_file = Tracker()
     remove = Tracker()
     clear = Tracker()
-    save_hashs = Tracker()
+    save_hash = Tracker()
     save_cache = Tracker()
     monkeypatch.setattr("pyaud.plugins._files.remove", remove)
     monkeypatch.setattr("pyaud.plugins._files.clear", clear)
@@ -66,7 +66,7 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: MockMainType) -> None:
     assert match_file.was_called() is False
     assert remove.was_called() is False
     assert clear.was_called() is False
-    assert save_hashs.was_called() is False
+    assert save_hash.was_called() is False
     assert save_cache.was_called() is False
 
 

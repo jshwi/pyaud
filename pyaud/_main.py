@@ -27,7 +27,7 @@ def main() -> None:
     _register_default_plugins()
     _plugins.load()
     parser = _Parser()
-    _data.read(_data.record, app_files.durations_file)
+    _data.record.read(app_files.durations_file)
     _config.load_config(app_files, parser.args.rcfile)
     _config.configure_logging(parser.args.verbose)
     _files.add_exclusions(*_config.toml["indexing"]["exclude"])

@@ -239,10 +239,10 @@ def fixture_unpatch_hash_mapping_match_file(
 
 
 @pytest.fixture(name="unpatch_hash_mapping_save_hash")
-def fixture_unpatch_hash_mapping_save_hashs(
+def fixture_unpatch_hash_mapping_save_hash(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Unpatch ``pyaud._cache.HashMapping.save_hashs``.
+    """Unpatch ``pyaud._cache.HashMapping.save_hash``.
 
     :param monkeypatch: Mock patch environment and attributes.
     """

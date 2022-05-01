@@ -84,23 +84,22 @@ class BasePlugin(_ABC):  # pylint: disable=too-few-public-methods
 
 
 class JSONIO(MutableMapping):
-    """Base class JSON input/output actions.
+    """Base class JSON input/output actions."""
 
-    :param path: Path to data file.
-    """
+    def read(self, path: _Path) -> None:
+        """Read from file to object.
 
-    def __init__(self, path: _Path) -> None:
-        super().__init__()
-        self.path = path
-
-    def read(self) -> None:
-        """Read from file to object."""
-        if self.path.is_file():
+        :param path: Path to json file.
+        """
+        if path.is_file():
             try:
-                self.update(_json.loads(self.path.read_text()))
+                self.update(_json.loads(path.read_text()))
             except _json.decoder.JSONDecodeError:
                 pass
 
-    def write(self) -> None:
-        """Write data to file."""
-        self.path.write_text(_json.dumps(dict(self), separators=(",", ":")))
+    def write(self, path: _Path) -> None:
+        """Write data to file.
+
+        :param path: Path to json file.
+        """
+        path.write_text(_json.dumps(dict(self), separators=(",", ":")))
