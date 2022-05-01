@@ -9,7 +9,7 @@ import typing as _t
 from pathlib import Path as _Path
 
 from . import exceptions as _exceptions
-from ._environ import environ as _environ
+from ._environ import environ as _e
 from ._indexing import IndexedState as _IndexedState
 from ._indexing import files as _files
 from ._objects import JSONIO as _JSONIO
@@ -134,10 +134,7 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         self.kwargs: _t.Dict = kwargs
         self.no_cache = self.kwargs.get("no_cache", False)
         self.hashed = HashMapping(
-            _environ.FILECACHE_FILE,
-            _environ.REPO,
-            self._cls,
-            _get_commit_hash(),
+            _e.FILECACHE_FILE, _e.REPO, self._cls, _get_commit_hash()
         )
         if not _working_tree_clean():
             self.hashed.tag("uncommitted")

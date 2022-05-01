@@ -55,7 +55,7 @@ from pathlib import Path as _Path
 import toml.decoder as _toml_decoder
 import toml.encoder as _toml_encoder
 
-from ._environ import environ as _environ
+from ._environ import environ as _e
 from ._objects import MutableMapping as _MutableMapping
 
 DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
@@ -74,7 +74,7 @@ DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
                 "formatter": "standard",
                 "when": "d",
                 "backupCount": 60,
-                "filename": str(_environ.LOG_FILE),
+                "filename": str(_e.LOG_FILE),
             }
         },
         "root": {"level": "INFO", "handlers": ["default"], "propagate": False},
@@ -222,32 +222,26 @@ def configure_global() -> None:
     """
     default_config = _copy.deepcopy(DEFAULT_CONFIG)
     toml.update(default_config)
-    if _environ.GLOBAL_CONFIG_FILE.is_file():
+    if _e.GLOBAL_CONFIG_FILE.is_file():
         while True:
-            with open(
-                _environ.GLOBAL_CONFIG_FILE, encoding=_environ.ENCODING
-            ) as fin:
+            with open(_e.GLOBAL_CONFIG_FILE, encoding=_e.ENCODING) as fin:
                 try:
                     toml.load(fin)
                     _shutil.copyfile(
-                        _environ.GLOBAL_CONFIG_FILE,
-                        _environ.GLOBAL_CONFIG_BAK_FILE,
+                        _e.GLOBAL_CONFIG_FILE, _e.GLOBAL_CONFIG_BAK_FILE
                     )
                     break
 
                 except _toml_decoder.TomlDecodeError:
-                    if _environ.GLOBAL_CONFIG_BAK_FILE.is_file():
+                    if _e.GLOBAL_CONFIG_BAK_FILE.is_file():
                         _os.rename(
-                            _environ.GLOBAL_CONFIG_BAK_FILE,
-                            _environ.GLOBAL_CONFIG_FILE,
+                            _e.GLOBAL_CONFIG_BAK_FILE, _e.GLOBAL_CONFIG_FILE
                         )
                     else:
                         break
 
-    _environ.CONFIGDIR.mkdir(exist_ok=True, parents=True)
-    with open(
-        _environ.GLOBAL_CONFIG_FILE, "w", encoding=_environ.ENCODING
-    ) as fout:
+    _e.CONFIGDIR.mkdir(exist_ok=True, parents=True)
+    with open(_e.GLOBAL_CONFIG_FILE, "w", encoding=_e.ENCODING) as fout:
         toml.dump(fout)
 
 
@@ -257,18 +251,18 @@ def load_config(opt: _t.Optional[_t.Union[str, _os.PathLike]] = None) -> None:
     :param opt: Optional extra path which will override all others.
     """
     files = [
-        _environ.GLOBAL_CONFIG_FILE,
-        _environ.USER_CONFIG_FILE,
-        _environ.PROJECT_CONFIG_FILE,
-        _environ.PYPROJECT,
+        _e.GLOBAL_CONFIG_FILE,
+        _e.USER_CONFIG_FILE,
+        _e.PROJECT_CONFIG_FILE,
+        _e.PYPROJECT,
     ]
     if opt is not None:
         files.append(_Path(opt))
 
     for file in files:
         if file.is_file():
-            with open(file, encoding=_environ.ENCODING) as fin:
-                toml.load(fin, "tool", _environ.NAME)
+            with open(file, encoding=_e.ENCODING) as fin:
+                toml.load(fin, "tool", _e.NAME)
 
 
 def _extract_logger(default: _t.Dict[str, _t.Any]) -> _logging.Logger:

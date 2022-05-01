@@ -14,7 +14,7 @@ import spall.exceptions as sp_exceptions
 
 from . import _data
 from ._cache import FileCacher as _FileCacher
-from ._environ import environ as _environ
+from ._environ import environ as _e
 from ._indexing import files as _files
 from ._objects import BasePlugin as _BasePlugin
 from ._utils import colors as _colors
@@ -99,11 +99,11 @@ class ClassDecorator:
         def _wrapper(*args: str, **kwargs: bool) -> int:
             repo = _Path.cwd().name
             with _data.record.track(
-                repo, self._cls, _environ.DURATIONS_FILE
+                repo, self._cls, _e.DURATIONS_FILE
             ) as time_keeper:
                 returncode = func(*args, **kwargs)
 
-            _data.write(_data.record, _environ.DURATIONS_FILE)
+            _data.write(_data.record, _e.DURATIONS_FILE)
             logged_time = "{}: Execution time: {}s; Average time: {}s".format(
                 self._cls.__name__,
                 time_keeper.elapsed(),

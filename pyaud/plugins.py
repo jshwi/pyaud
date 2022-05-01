@@ -21,7 +21,7 @@ from spall import Subprocess as _Subprocess
 
 from . import config as _config
 from . import exceptions as _exceptions
-from ._environ import environ as _environ
+from ._environ import environ as _e
 from ._indexing import files as _files
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
@@ -354,7 +354,7 @@ class Parametrize(Plugin):  # pylint: disable=too-few-public-methods
 
     def __call__(self, *args: str, **kwargs: bool) -> None:
         for name in self.plugins():
-            _colors.cyan.bold.print(f"\n{_environ.NAME} {name}")
+            _colors.cyan.bold.print(f"\n{_e.NAME} {name}")
             _plugins[name](*args, **kwargs)
 
 

@@ -9,7 +9,7 @@ from argparse import SUPPRESS as _SUPPRESS
 from argparse import ArgumentParser as _ArgumentParser
 
 from . import plugins as _plugins
-from ._environ import environ as _environ
+from ._environ import environ as _e
 from ._utils import colors as _colors
 from ._version import __version__
 
@@ -51,7 +51,7 @@ class Parser(_ArgumentParser):
             "-c",
             "--clean",
             action="store_true",
-            default=_environ.CLEAN,
+            default=_e.CLEAN,
             help="clean unversioned files prior to any process",
         )
         self.add_argument(
@@ -64,41 +64,41 @@ class Parser(_ArgumentParser):
             "-f",
             "--fix",
             action="store_true",
-            default=_environ.FIX,
+            default=_e.FIX,
             help="suppress and fix all fixable issues",
         )
         self.add_argument(
             "-n",
             "--no-cache",
             action="store_true",
-            default=_environ.NO_CACHE,
+            default=_e.NO_CACHE,
             help="disable file caching",
         )
         self.add_argument(
             "-s",
             "--suppress",
             action="store_true",
-            default=_environ.SUPPRESS,
+            default=_e.SUPPRESS,
             help="continue without stopping for errors",
         )
         self.add_argument(
             "-t",
             "--timed",
             action="store_true",
-            default=_environ.TIMED,
+            default=_e.TIMED,
             help="track the length of time for each plugin",
         )
         self.add_argument(
             "-v",
             "--verbose",
             action="count",
-            default=_environ.VERBOSE,
+            default=_e.VERBOSE,
             help="incrementally increase logging verbosity",
         )
         self.add_argument(
             "--rcfile",
             action="store",
-            default=_environ.RCFILE,
+            default=_e.RCFILE,
             help="select file to override config hierarchy",
         )
         self.add_argument(
@@ -132,9 +132,7 @@ class Parser(_ArgumentParser):
         # print summary of module use if no module is selected or an
         # invalid module name os provided
         _colors.yellow.print(
-            "{} modules [<module> | all] for more on each module\n".format(
-                _environ.NAME
-            )
+            f"{_e.NAME} modules [<module> | all] for more on each module\n"
         )
         print(
             "modules = {}".format(

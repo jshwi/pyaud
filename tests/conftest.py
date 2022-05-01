@@ -13,6 +13,7 @@ import pytest
 import setuptools
 
 import pyaud
+from pyaud import environ as pe
 
 from . import DEBUG, FILES, GH_EMAIL, GH_NAME, REPO, NoColorCapsys
 
@@ -95,9 +96,7 @@ def fixture_mock_environment(
     #: CREATE
     repo_abs.mkdir()
     pyaud.git.init(devnull=True)
-    with open(
-        home / ".gitconfig", "w", encoding=pyaud.environ.ENCODING
-    ) as fout:
+    with open(home / ".gitconfig", "w", encoding=pe.ENCODING) as fout:
         config.write(fout)
 
     #: MAIN - essential setup tasks
