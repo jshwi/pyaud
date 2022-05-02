@@ -477,10 +477,10 @@ def test_register_invalid_type() -> None:
     unique = "test-register-invalid-type"
     with pytest.raises(TypeError) as err:
 
-        # noinspection PyUnusedLocal
-        @pyaud.plugins.register(name=unique)  # type: ignore
         class NotSubclassed:
             """Nothing to do."""
+
+        pyaud.plugins.register(name=unique)(NotSubclassed)  # type: ignore
 
     assert TYPE_ERROR in str(err.value)
 
@@ -490,10 +490,10 @@ def test_plugin_assign_non_type_value() -> None:
     unique = "test-plugin-assign-non-type-value"
     with pytest.raises(TypeError) as err:
 
-        # noinspection PyUnusedLocal
-        @pyaud.plugins.register(name=unique)  # type: ignore
         class _NonType:
             """Nothing to do."""
+
+        pyaud.plugins.register(name=unique)(_NonType)  # type: ignore
 
     assert TYPE_ERROR in str(err.value)
 
@@ -964,21 +964,20 @@ def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
 
     pyaud.plugins.register("audit")(pyaud._default._Audit)
 
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin_1")
     class P1(pyaud.plugins.Action):
         """Nothing to do."""
 
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin_2")
     class P2(pyaud.plugins.Action):
         """Nothing to do."""
 
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
+
+    pyaud.plugins.register(name="plugin_1")(P1)
+    pyaud.plugins.register(name="plugin_2")(P2)
 
     # noinspection PyUnresolvedReferences
     pyaud._data.record.clear()
@@ -1104,8 +1103,6 @@ def test_warn_no_fix(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     :param main: Patch package entry point.
     """
 
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="lint")
     class _Lint(pyaud.plugins.Audit):
         """Lint code with ``pylint``."""
 
@@ -1118,6 +1115,7 @@ def test_warn_no_fix(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
         def audit(self, *args: t.Any, **kwargs: bool) -> t.Any:
             return self.subprocess[self.pylint].call(*args, **kwargs)
 
+    pyaud.plugins.register(name="lint")(_Lint)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     pyaud.files.append(Path.cwd() / FILES)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
@@ -1412,7 +1410,6 @@ def test_write_command(
             "pyaud._main._register_default_plugins", lambda: None
         )
 
-        @pyaud.plugins.register(name="whitelist")
         class _Whitelist(pyaud.plugins.Write):
             vulture = "vulture"
 
@@ -1430,6 +1427,7 @@ def test_write_command(
                 ) as fout:
                     fout.write(content)
 
+        pyaud.plugins.register(name="whitelist")(_Whitelist)
         monkeypatch.setattr("pyaud.plugins.load", lambda: None)
         main("whitelist")
 
@@ -1450,7 +1448,6 @@ def test_hash_cap_no_file(
     monkeypatch.setattr("pyaud._main._register_default_plugins", lambda: None)
 
     # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="whitelist")
     class _Whitelist(pyaud.plugins.Write):
         vulture = "vulture"
 
@@ -1465,6 +1462,7 @@ def test_hash_cap_no_file(
         def write(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
+    pyaud.plugins.register(name="whitelist")(_Whitelist)
     monkeypatch.setattr("pyaud.plugins.load", lambda: None)
     main("whitelist")
 
@@ -1508,23 +1506,18 @@ def test_parametrize(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
         color codes.
     """
 
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin_1")
     class PluginOne(pyaud.plugins.Action):
         """Nothing to do."""
 
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin_2")
     class PluginTwo(pyaud.plugins.Action):
         """Nothing to do."""
 
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
-    @pyaud.plugins.register(name="params")
     class _Params(  # pylint: disable=too-few-public-methods
         pyaud.plugins.Parametrize
     ):
@@ -1535,6 +1528,9 @@ def test_parametrize(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
             """
             return ["plugin_1", "plugin_2"]
 
+    pyaud.plugins.register(name="plugin_1")(PluginOne)
+    pyaud.plugins.register(name="plugin_2")(PluginTwo)
+    pyaud.plugins.register(name="params")(_Params)
     main("params")
     out = nocolorcapsys.stdout()
     assert "pyaud plugin_1" in out
@@ -1546,7 +1542,6 @@ def test_fix_on_pass(main: t.Any) -> None:
     """Test plugin on pass when using the fix class."""
     pyaud.files.append(Path.cwd() / FILES)
 
-    @pyaud.plugins.register(name="fixer")
     class _Fixer(pyaud.plugins.FixAll):
         def audit(self, *args: t.Any, **kwargs: bool) -> int:
             raise CalledProcessError(1, "cmd")
@@ -1554,6 +1549,7 @@ def test_fix_on_pass(main: t.Any) -> None:
         def fix(self, *args: t.Any, **kwargs: bool) -> int:
             """Nothing to do."""
 
+    pyaud.plugins.register(name="fixer")(_Fixer)
     with pytest.raises(pyaud.exceptions.AuditError) as err:
         main("fixer")
 
@@ -1570,7 +1566,6 @@ def test_fix_on_fail(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
     """
     pyaud.files.append(Path.cwd() / FILES)
 
-    @pyaud.plugins.register(name="fixer")
     class _Fixer(pyaud.plugins.FixAll):
         def audit(self, *args: t.Any, **kwargs: bool) -> int:
             return 0
@@ -1578,6 +1573,7 @@ def test_fix_on_fail(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
         def fix(self, *args: t.Any, **kwargs: bool) -> int:
             """Nothing to do."""
 
+    pyaud.plugins.register(name="fixer")(_Fixer)
     main("fixer")
     out = nocolorcapsys.stdout()
     assert "Success: no issues found in 1 source files" in out
