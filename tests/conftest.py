@@ -13,14 +13,26 @@ import pytest
 import setuptools
 
 import pyaud
+
+# noinspection PyProtectedMember
+import pyaud._config as pc
+
+# noinspection PyUnresolvedReferences,PyProtectedMember
+from pyaud import _default
 from pyaud import environ as pe
 
-from . import DEBUG, FILES, GH_EMAIL, GH_NAME, REPO, NoColorCapsys
+from . import DEBUG, FILES, GH_EMAIL, GH_NAME, REPO, NoColorCapsys, git
 
-original_hash_mapping_match_file = pyaud.HashMapping.match_file
-original_hash_mapping_unpatched_hash_files = pyaud.HashMapping.hash_files
+# noinspection PyUnresolvedReferences,PyProtectedMember
+original_hash_mapping_match_file = pyaud._cache.HashMapping.match_file
+# noinspection PyUnresolvedReferences,PyProtectedMember
+original_hash_mapping_unpatched_hash_files = (
+    pyaud._cache.HashMapping.hash_files
+)
 original_pyaud_plugin_load = pyaud.plugins.load
-original_pyaud_main_register_default_plugins = pyaud.register_default_plugins
+original_pyaud_main_register_default_plugins = (
+    _default.register_default_plugins
+)
 original_setuptools_find_packages = setuptools.find_packages
 
 
@@ -38,7 +50,7 @@ def fixture_mock_environment(
     name = pyaud.__name__
 
     #: CONFIG
-    default_config = dict(pyaud.config.DEFAULT_CONFIG)
+    default_config = dict(pc.DEFAULT_CONFIG)
     logfile = Path(home / ".cache" / name / "log" / f"{name}.log")
     default_config["logging"]["handlers"]["default"]["filename"] = str(logfile)
     default_config["logging"]["root"]["level"] = DEBUG
@@ -78,9 +90,9 @@ def fixture_mock_environment(
     monkeypatch.setattr("os.getcwd", lambda: str(repo_abs))
     monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [REPO])
     monkeypatch.setattr("inspect.currentframe", lambda: current_frame)
-    monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
-    monkeypatch.setattr("pyaud.git.status", lambda *_, **__: True)
-    monkeypatch.setattr("pyaud.git.rev_parse", lambda *_, **__: None)
+    monkeypatch.setattr("pyaud._config.DEFAULT_CONFIG", default_config)
+    monkeypatch.setattr("pyaud._utils.git.status", lambda *_, **__: True)
+    monkeypatch.setattr("pyaud._utils.git.rev_parse", lambda *_, **__: None)
     monkeypatch.setattr(
         "pyaud._cache.HashMapping.match_file", lambda *_: False
     )
@@ -91,20 +103,21 @@ def fixture_mock_environment(
 
     #: RESET
     pyaud.files.clear()
-    pyaud.config.toml.clear()
+    pc.toml.clear()
 
     #: CREATE
     repo_abs.mkdir()
-    pyaud.git.init(devnull=True)
+    git.init(devnull=True)
     with open(home / ".gitconfig", "w", encoding=pe.ENCODING) as fout:
         config.write(fout)
 
     #: MAIN - essential setup tasks
-    pyaud.initialize_dirs()
+    # noinspection PyProtectedMember
+    pyaud._environ.initialize_dirs()
     pyaud.files.populate()
-    pyaud.config.configure_global()
-    pyaud.config.load_config()
-    pyaud.config.configure_logging()
+    pc.configure_global()
+    pc.load_config()
+    pc.configure_logging()
 
 
 @pytest.fixture(name="nocolorcapsys")

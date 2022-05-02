@@ -8,6 +8,8 @@ import re
 import typing as t
 from pathlib import Path
 
+from gitspy import Git
+
 import pyaud
 
 FILES: str = "file.py"
@@ -33,6 +35,7 @@ PYAUD_FILES_POPULATE = "pyaud.files.populate"
 OS_GETCWD = "os.getcwd"
 WHITELIST_PY = "whitelist.py"
 COMMIT = "7c57dc943941566f47b9e7ee3208245d0bcd7656"
+git = Git()
 
 
 class NoColorCapsys:
@@ -105,7 +108,6 @@ class Tracker:  # pylint: disable=too-few-public-methods
     """Track calls in mocked functions."""
 
     def __init__(self) -> None:
-        self.return_values: t.List[t.Any] = []
         self._called = False
         self.args: t.List[t.Tuple[str, ...]] = []
         self.kwargs: t.List[t.Dict[str, t.Any]] = []
@@ -117,7 +119,7 @@ class Tracker:  # pylint: disable=too-few-public-methods
         """
         return self._called
 
-    def __call__(self, *args: t.Any, **kwargs: t.Any) -> t.Optional[t.Any]:
+    def __call__(self, *args: t.Any, **kwargs: t.Any) -> None:
         """Call the object, update its fields, and return values passed.
 
         Fields to update:
@@ -135,10 +137,6 @@ class Tracker:  # pylint: disable=too-few-public-methods
         self._called = True
         self.args.append(args)
         self.kwargs.append(kwargs)
-        if self.return_values:
-            return self.return_values.pop()
-
-        return None
 
 
 class StrategyMockPlugin(MockCachedPluginType):

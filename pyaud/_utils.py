@@ -13,7 +13,7 @@ import setuptools as _setuptools
 from gitspy import Git as _Git
 from object_colors import Color as _Color
 
-from . import config as _config
+from . import _config
 
 colors = _Color()
 git = _Git()

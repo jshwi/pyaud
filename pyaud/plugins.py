@@ -19,7 +19,7 @@ from subprocess import CalledProcessError as _CalledProcessError
 
 from spall import Subprocess as _Subprocess
 
-from . import config as _config
+from . import _config
 from . import exceptions as _exceptions
 from ._environ import environ as _e
 from ._indexing import files as _files

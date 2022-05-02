@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Adds more properties to `pyaud.environ`
 
+### Changed
+- Updates public scope
+
 ### Removed
 - Removes `Write` plugin
 

@@ -2,7 +2,7 @@
 pyaud._default
 ==============
 """
-from . import config as _config
+from . import _config
 from . import plugins as _plugins
 from ._environ import environ as _e
 from ._utils import colors as _colors
