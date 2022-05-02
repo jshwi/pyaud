@@ -21,7 +21,6 @@ from spall import Subprocess as _Subprocess
 
 from . import config as _config
 from . import exceptions as _exceptions
-from ._cache import HashCap as _HashCap
 from ._environ import environ as _environ
 from ._indexing import files as _files
 from ._objects import BasePlugin as _BasePlugin
@@ -359,56 +358,6 @@ class Parametrize(Plugin):  # pylint: disable=too-few-public-methods
             _plugins[name](*args, **kwargs)
 
 
-class Write(Plugin):
-    """Blueprint for writing file manipulation processes.
-
-    Announce:
-
-        - If the file did not exist and a file has been created
-        - If the file did exist and the file has not been changed
-        - If the file did exist and the file has been changed
-    """
-
-    def required(self) -> _t.Optional[_Path]:
-        """Pre-requisite for working on file (if there is one).
-
-        :return: Path object, otherwise None.
-        """
-
-    @property
-    @_abstractmethod
-    def path(self) -> _Path:
-        """Path to file, absolute or relative, that will be worked on.
-
-        :return: Returned value needs to be a Path object.
-        """
-
-    def write(self, *args: str, **kwargs: bool) -> _t.Any:
-        """All write logic to be written within this method.
-
-        :param args: Args that can be passed from other plugins.
-        :param kwargs: Boolean flags for subprocesses.
-        """
-
-    def __call__(self, *args: str, **kwargs: bool) -> None:
-        if (
-            self.required() is None  # type: ignore
-            or self.required().exists()  # type: ignore
-        ):
-            path = _Path(self.path)
-            print(f"Updating ``{path}``")
-            with _HashCap(path) as cap:
-                self.write(*args, **kwargs)
-
-            if cap.new:
-                print(f"created ``{path.name}``")
-
-            elif cap.compare:
-                print(f"``{path.name}`` is already up to date")
-            else:
-                print(f"updated ``{path.name}``")
-
-
 class FixFile(Plugin):
     """Blueprint for writing audit and fix plugins for individual files.
 
@@ -475,7 +424,7 @@ class FixFile(Plugin):
 
 
 # array of plugins
-PLUGINS = [Audit, Fix, Action, Parametrize, Write, FixFile]
+PLUGINS = [Audit, Fix, Action, Parametrize, FixFile]
 
 # array of plugin names
 PLUGIN_NAMES = [t.__name__ for t in PLUGINS]
@@ -486,12 +435,11 @@ PluginType = _t.Union[
     _t.Type[Fix],
     _t.Type[Action],
     _t.Type[Parametrize],
-    _t.Type[Write],
     _t.Type[FixFile],
 ]
 
 # array of plugin types after instantiation
-PluginInstance = _t.Union[Audit, Fix, Action, Parametrize, Write, FixFile]
+PluginInstance = _t.Union[Audit, Fix, Action, Parametrize, FixFile]
 
 
 class Plugins(_MutableMapping):  # pylint: disable=too-many-ancestors
