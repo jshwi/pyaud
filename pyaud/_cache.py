@@ -19,52 +19,6 @@ from ._utils import get_commit_hash as _get_commit_hash
 from ._utils import working_tree_clean as _working_tree_clean
 
 
-class HashCap:
-    """Analyze hashes for before and after.
-
-    :param file: The path of the file to hash.
-    """
-
-    def __init__(self, file: _Path) -> None:
-        self.file = file
-        self.before: _t.Optional[str] = None
-        self.after: _t.Optional[str] = None
-        self.compare = False
-        self.new = not self.file.is_file()
-        if not self.new:
-            self.before = self._hash_file()
-
-    def _hash_file(self) -> str:
-        """Open the files and inspect it to get its hash.
-
-        :return: Hash as a string.
-        """
-        with open(self.file, "rb") as lines:
-            _hash = _hashlib.blake2b(lines.read())
-
-        return _hash.hexdigest()
-
-    def _compare(self) -> bool:
-        """Compare two hashes in the ``snapshot`` list.
-
-        :return: Boolean: True for both match, False if they don't.
-        """
-        return self.before == self.after
-
-    def __enter__(self) -> HashCap:
-        return self
-
-    def __exit__(
-        self, exc_type: _t.Any, exc_val: _t.Any, exc_tb: _t.Any
-    ) -> None:
-        try:
-            self.after = self._hash_file()
-        except FileNotFoundError:
-            pass
-
-        self.compare = self._compare()
-
-
 class HashMapping(_JSONIO):
     """Persistent data object.
 
