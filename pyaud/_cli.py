@@ -55,12 +55,6 @@ class Parser(_ArgumentParser):
             help="clean unversioned files prior to any process",
         )
         self.add_argument(
-            "-d",
-            "--deploy",
-            action="store_true",
-            help="include test and docs deployment after audit",
-        )
-        self.add_argument(
             "-f",
             "--fix",
             action="store_true",

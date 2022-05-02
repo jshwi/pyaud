@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updates public scope
 
 ### Removed
+- Removes `-d/--deploy` arg
 - Removes `Write` plugin
 
 [3.13.5](https://github.com/jshwi/pyaud/releases/tag/v3.13.5) - 2022-05-05

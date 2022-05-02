@@ -37,7 +37,6 @@ def main() -> None:
     _plugins.get(parser.args.module)(
         clean=parser.args.clean,
         suppress=parser.args.suppress,
-        deploy=parser.args.deploy,
         fix=parser.args.fix,
         timed=parser.args.timed,
         no_cache=parser.args.no_cache,
