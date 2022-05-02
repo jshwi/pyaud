@@ -51,6 +51,7 @@ class Parser(_ArgumentParser):
             "-c",
             "--clean",
             action="store_true",
+            default=_environ.CLEAN,
             help="clean unversioned files prior to any process",
         )
         self.add_argument(
@@ -70,12 +71,14 @@ class Parser(_ArgumentParser):
             "-n",
             "--no-cache",
             action="store_true",
+            default=_environ.NO_CACHE,
             help="disable file caching",
         )
         self.add_argument(
             "-s",
             "--suppress",
             action="store_true",
+            default=_environ.SUPPRESS,
             help="continue without stopping for errors",
         )
         self.add_argument(
@@ -89,12 +92,13 @@ class Parser(_ArgumentParser):
             "-v",
             "--verbose",
             action="count",
-            default=0,
+            default=_environ.VERBOSE,
             help="incrementally increase logging verbosity",
         )
         self.add_argument(
             "--rcfile",
             action="store",
+            default=_environ.RCFILE,
             help="select file to override config hierarchy",
         )
         self.add_argument(

@@ -66,7 +66,10 @@ def fixture_mock_environment(
     monkeypatch.delenv("CODECOV_TOKEN")
     monkeypatch.setenv("PYAUD_GH_REMOTE", str(home / "origin.git"))
     monkeypatch.setenv("PYAUD_DATADIR", str(home / ".local" / "share" / name))
-    monkeypatch.setenv("PYAUD_CACHEDIR", str(home / ".cache" / name))
+    monkeypatch.setenv(
+        "PYAUD_CACHEDIR", str(home / ".cache" / name / pyaud.__version__)
+    )
+    monkeypatch.setenv("PYAUD_CONFIGDIR", str(home / ".config" / name))
     monkeypatch.setenv("PYAUD_TIMED", "0")
     monkeypatch.setenv("PYAUD_FIX", "0")
 
@@ -74,7 +77,6 @@ def fixture_mock_environment(
     monkeypatch.setattr("os.getcwd", lambda: str(repo_abs))
     monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [REPO])
     monkeypatch.setattr("inspect.currentframe", lambda: current_frame)
-    monkeypatch.setattr("pyaud.config.CONFIGDIR", home / ".config" / name)
     monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
     monkeypatch.setattr("pyaud.git.status", lambda *_, **__: True)
     monkeypatch.setattr("pyaud.git.rev_parse", lambda *_, **__: None)
@@ -93,7 +95,9 @@ def fixture_mock_environment(
     #: CREATE
     repo_abs.mkdir()
     pyaud.git.init(devnull=True)
-    with open(home / ".gitconfig", "w", encoding="utf-8") as fout:
+    with open(
+        home / ".gitconfig", "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         config.write(fout)
 
     #: MAIN - essential setup tasks

@@ -85,8 +85,6 @@ class ClassDecorator:
     :param cls: The class whose ``__call__`` method will be wrapped.
     """
 
-    DURATIONS = "durations.json"
-
     def __init__(self, cls: _t.Type[_BasePlugin]) -> None:
         self._cls = cls
 
@@ -101,11 +99,11 @@ class ClassDecorator:
         def _wrapper(*args: str, **kwargs: bool) -> int:
             repo = _Path.cwd().name
             with _data.record.track(
-                repo, self._cls, _environ.DATADIR / "durations.json"
+                repo, self._cls, _environ.DURATIONS_FILE
             ) as time_keeper:
                 returncode = func(*args, **kwargs)
 
-            _data.write(_data.record, _environ.DATADIR / _data.DURATIONS)
+            _data.write(_data.record, _environ.DURATIONS_FILE)
             logged_time = "{}: Execution time: {}s; Average time: {}s".format(
                 self._cls.__name__,
                 time_keeper.elapsed(),

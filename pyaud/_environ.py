@@ -1,10 +1,10 @@
 """
-pyaud.environ
-=============
-
-Set up the environment variables for the current project.
+pyaud._environ
+==============
 """
 # pylint: disable=invalid-name,too-many-public-methods
+import os as _os
+import typing as _t
 from pathlib import Path as _Path
 
 import appdirs as _appdirs
@@ -51,6 +51,22 @@ class Environ(_Env):
             )
 
     @property
+    def CONFIGDIR(self) -> _Path:
+        """Where to store config."""
+        with self.prefixed(self.PREFIX):
+            return self.path(
+                "CONFIGDIR", default=_Path(_appdirs.user_config_dir(self.NAME))
+            )
+
+    @property
+    def LOGDIR(self) -> _Path:
+        """Where to store logs."""
+        with self.prefixed(self.PREFIX):
+            return self.path(
+                "LOGDIR", default=_Path(_appdirs.user_log_dir(self.NAME))
+            )
+
+    @property
     def TIMED(self) -> bool:
         """Set ``timed`` to True without needing to pass arg."""
         with self.prefixed(self.PREFIX):
@@ -61,6 +77,107 @@ class Environ(_Env):
         """Set ``fix`` to True without needing to pass arg."""
         with self.prefixed(self.PREFIX):
             return self.bool("FIX", default=False)
+
+    @property
+    def ENCODING(self) -> str:
+        """Default encoding."""
+        with self.prefixed(self.PREFIX):
+            return self.str("ENCODING", default="utf-8")
+
+    @property
+    def GLOBAL_CONFIG_FILE(self) -> _Path:
+        """Path to this package's toml config."""
+        with self.prefixed(self.PREFIX):
+            return self.CONFIGDIR / self.path(
+                "GLOBAL_CONFIG_FILE", default=_Path(f"{self.NAME}.toml")
+            )
+
+    @property
+    def GLOBAL_CONFIG_BAK_FILE(self) -> _Path:
+        """Path to this package's toml config backup."""
+        with self.prefixed(self.PREFIX):
+            return self.CONFIGDIR / self.path(
+                "GLOBAL_CONFIG_BAK_FILE",
+                default=_Path(f".{self.NAME}.toml.bak"),
+            )
+
+    @property
+    def USER_CONFIG_FILE(self) -> _Path:
+        """Path to this package's rc config."""
+        with self.prefixed(self.PREFIX):
+            return self.path(
+                "RC_FILE", default=_Path.home() / f".{self.NAME}rc"
+            )
+
+    @property
+    def PROJECT_CONFIG_FILE(self) -> _Path:
+        """Path to this package's rc config."""
+        with self.prefixed(self.PREFIX):
+            return self.path(
+                "PROJECT_CONFIG_FILE", default=_Path.cwd() / f".{self.NAME}rc"
+            )
+
+    @property
+    def PYPROJECT(self) -> _Path:
+        """Path to pyproject.toml."""
+        with self.prefixed(self.PREFIX):
+            return self.path(
+                "PYPROJECT", default=_Path.cwd() / "pyproject.toml"
+            )
+
+    @property
+    def FILECACHE_FILE(self) -> _Path:
+        """Path to file cache file."""
+        with self.prefixed(self.PREFIX):
+            return self.path(
+                "FILECACHE_FILE", default=self.CACHEDIR / "files.json"
+            )
+
+    @property
+    def DURATIONS_FILE(self) -> _Path:
+        """Path to durations data file."""
+        with self.prefixed(self.PREFIX):
+            return self.path(
+                "DURATIONS_FILE", default=self.DATADIR / "durations.json"
+            )
+
+    @property
+    def LOG_FILE(self) -> _Path:
+        """Path to log file."""
+        with self.prefixed(self.PREFIX):
+            return self.path(
+                "LOG_FILE", default=self.LOGDIR / f"{self.NAME}.log"
+            )
+
+    @property
+    def CLEAN(self) -> bool:
+        """Set ``clean`` to True without needing to pass arg."""
+        with self.prefixed(self.PREFIX):
+            return self.bool("CLEAN", default=False)
+
+    @property
+    def SUPPRESS(self) -> bool:
+        """Set ``suppress`` to True without needing to pass arg."""
+        with self.prefixed(self.PREFIX):
+            return self.bool("SUPPRESS", default=False)
+
+    @property
+    def NO_CACHE(self) -> bool:
+        """Set ``no_cache`` to True without needing to pass arg."""
+        with self.prefixed(self.PREFIX):
+            return self.bool("NO_CACHE", default=False)
+
+    @property
+    def RCFILE(self) -> _t.Optional[_t.Union[str, _os.PathLike]]:
+        """Set default rcfile without needing to pass arg."""
+        with self.prefixed(self.PREFIX):
+            return self.path("RCFILE", default=None)
+
+    @property
+    def VERBOSE(self) -> int:
+        """Set default verbosity without needing to pass arg."""
+        with self.prefixed(self.PREFIX):
+            return self.int("VERBOSE", default=0)
 
 
 #: package environment, both parsed from .env file (with set defaults

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v3.13.5...HEAD)
 ------------------------------------------------------------------------
+### Added
+- Adds more properties to `pyaud.environ`
+
 ### Removed
 - Removes `Write` plugin
 

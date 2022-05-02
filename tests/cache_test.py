@@ -180,10 +180,6 @@ class TestCacheStrategy:
     def _success_msg(i: int) -> str:
         return f"Success: no issues found in {i} source files"
 
-    @property
-    def _cache_file(self) -> Path:
-        return pyaud.environ.CACHEDIR / "files.json"
-
     @staticmethod
     def _fmt(o: t.Dict[Path, str]) -> FileHashDict:
         return {str(k.relative_to(Path.cwd())): v for k, v in o.items()}
@@ -247,7 +243,7 @@ class TestCacheStrategy:
         #: last process called.
         i1 = self._get_instance(monkeypatch, 1, 0)
         i1()
-        o = json.loads(self._cache_file.read_text())
+        o = json.loads(pyaud.environ.FILECACHE_FILE.read_text())
         assert self._success_msg(len(f)) in nocolorcapsys.stdout()
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._d_eq(self._idx(o, 0, 1, 0), self._fmt(f))
@@ -258,7 +254,7 @@ class TestCacheStrategy:
         #: Test that a success message notifies user that no changes
         #: have been made, so no process needed to be run.
         i1()
-        o = json.loads(self._cache_file.read_text())
+        o = json.loads(pyaud.environ.FILECACHE_FILE.read_text())
         assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
@@ -269,7 +265,7 @@ class TestCacheStrategy:
         #: have been made, so only a partial process needed to be run.
         f[p[0]] = f[p[0]][::-1]
         i1()
-        o = json.loads(self._cache_file.read_text())
+        o = json.loads(pyaud.environ.FILECACHE_FILE.read_text())
         assert self._success_msg(1) in nocolorcapsys.stdout()
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
@@ -284,7 +280,7 @@ class TestCacheStrategy:
         #: the last process that ran.
         i2 = self._get_instance(monkeypatch, 2, 0)
         i2()
-        o = json.loads(self._cache_file.read_text())
+        o = json.loads(pyaud.environ.FILECACHE_FILE.read_text())
         assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
@@ -305,7 +301,7 @@ class TestCacheStrategy:
         #: it is still the last process that ran.
         i3 = self._get_instance(monkeypatch, 1, 1)
         i3()
-        o = json.loads(self._cache_file.read_text())
+        o = json.loads(pyaud.environ.FILECACHE_FILE.read_text())
         assert self._success_msg(len(f)) in nocolorcapsys.stdout()
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._cls_in_commit(o, 0, 1, 1)
@@ -330,7 +326,7 @@ class TestCacheStrategy:
         #: process that ran.
         i4 = self._get_instance(monkeypatch, 3, 1)
         i4()
-        o = json.loads(self._cache_file.read_text())
+        o = json.loads(pyaud.environ.FILECACHE_FILE.read_text())
         assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._cls_in_commit(o, 0, 1, 1)
@@ -349,7 +345,7 @@ class TestCacheStrategy:
         #: called.
         i5 = self._get_instance(monkeypatch, 3, 1, clean=False)
         i5()
-        o = json.loads(self._cache_file.read_text())
+        o = json.loads(pyaud.environ.FILECACHE_FILE.read_text())
         assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._cls_in_commit(o, 0, 1, 1)
@@ -375,7 +371,7 @@ class TestCacheStrategy:
         i6 = self._get_instance(monkeypatch, 1, 0, cache_all=True)
         f[p[1]] = f[p[1]][::-1]
         i6()
-        o = json.loads(self._cache_file.read_text())
+        o = json.loads(pyaud.environ.FILECACHE_FILE.read_text())
         assert self._success_msg(len(f)) in nocolorcapsys.stdout()
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))

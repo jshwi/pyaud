@@ -52,18 +52,12 @@ import shutil as _shutil
 import typing as _t
 from pathlib import Path as _Path
 
-import appdirs as _appdirs
-
-# noinspection PyUnresolvedReferences
 import toml.decoder as _toml_decoder
-
-# noinspection PyUnresolvedReferences
 import toml.encoder as _toml_encoder
 
 from ._environ import environ as _environ
 from ._objects import MutableMapping as _MutableMapping
 
-CONFIGDIR = _Path(_appdirs.user_config_dir(_environ.NAME))
 DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
     clean={"exclude": ["*.egg*", ".mypy_cache", ".env", "instance"]},
     logging={
@@ -80,10 +74,7 @@ DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
                 "formatter": "standard",
                 "when": "d",
                 "backupCount": 60,
-                "filename": str(
-                    _Path(_appdirs.user_log_dir(_environ.NAME))
-                    / f"{_environ.NAME}.log"
-                ),
+                "filename": str(_environ.LOG_FILE),
             }
         },
         "root": {"level": "INFO", "handlers": ["default"], "propagate": False},
@@ -106,8 +97,6 @@ DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
     },
     addopts=["timed"],
 )
-
-_TOMLFILE = f"{_environ.NAME}.toml"
 
 
 class _TomlArrayEncoder(_toml_encoder.TomlEncoder):
@@ -231,47 +220,54 @@ def configure_global() -> None:
     Load base config file which may, or may not, still have the default
     settings configured.
     """
-    configfile = CONFIGDIR / _TOMLFILE
-    backupfile = CONFIGDIR / f".{_TOMLFILE}.bak"
     default_config = _copy.deepcopy(DEFAULT_CONFIG)
     toml.update(default_config)
-    if configfile.is_file():
+    if _environ.GLOBAL_CONFIG_FILE.is_file():
         while True:
-            with open(configfile, encoding="utf-8") as fin:
+            with open(
+                _environ.GLOBAL_CONFIG_FILE, encoding=_environ.ENCODING
+            ) as fin:
                 try:
                     toml.load(fin)
-                    _shutil.copyfile(configfile, backupfile)
+                    _shutil.copyfile(
+                        _environ.GLOBAL_CONFIG_FILE,
+                        _environ.GLOBAL_CONFIG_BAK_FILE,
+                    )
                     break
 
                 except _toml_decoder.TomlDecodeError:
-                    if backupfile.is_file():
-                        _os.rename(backupfile, configfile)
+                    if _environ.GLOBAL_CONFIG_BAK_FILE.is_file():
+                        _os.rename(
+                            _environ.GLOBAL_CONFIG_BAK_FILE,
+                            _environ.GLOBAL_CONFIG_FILE,
+                        )
                     else:
                         break
 
-    CONFIGDIR.mkdir(exist_ok=True, parents=True)
-    with open(configfile, "w", encoding="utf-8") as fout:
+    _environ.CONFIGDIR.mkdir(exist_ok=True, parents=True)
+    with open(
+        _environ.GLOBAL_CONFIG_FILE, "w", encoding=_environ.ENCODING
+    ) as fout:
         toml.dump(fout)
 
 
-def load_config(opt: _t.Optional[_t.Union[str, _os.PathLike]] = None):
+def load_config(opt: _t.Optional[_t.Union[str, _os.PathLike]] = None) -> None:
     """Load configs in order, each one overriding the previous.
 
     :param opt: Optional extra path which will override all others.
     """
-    rcfile = f".{_environ.NAME}rc"
     files = [
-        CONFIGDIR / _TOMLFILE,
-        _Path.home() / rcfile,
-        _Path.cwd() / rcfile,
-        _Path.cwd() / "pyproject.toml",
+        _environ.GLOBAL_CONFIG_FILE,
+        _environ.USER_CONFIG_FILE,
+        _environ.PROJECT_CONFIG_FILE,
+        _environ.PYPROJECT,
     ]
     if opt is not None:
         files.append(_Path(opt))
 
     for file in files:
         if file.is_file():
-            with open(file, encoding="utf-8") as fin:
+            with open(file, encoding=_environ.ENCODING) as fin:
                 toml.load(fin, "tool", _environ.NAME)
 
 

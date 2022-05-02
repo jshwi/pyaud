@@ -127,8 +127,6 @@ class HashMapping(_JSONIO):
 class FileCacher:  # pylint: disable=too-few-public-methods
     """Handle caching of file(s)."""
 
-    FILE_HASHES = "files.json"
-
     def __init__(self, cls, func, *args, **kwargs) -> None:
         self._cls: _t.Type[_BasePlugin] = cls
         self.func: _t.Callable = func
@@ -136,7 +134,7 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         self.kwargs: _t.Dict = kwargs
         self.no_cache = self.kwargs.get("no_cache", False)
         self.hashed = HashMapping(
-            _environ.CACHEDIR / self.FILE_HASHES,
+            _environ.FILECACHE_FILE,
             _environ.REPO,
             self._cls,
             _get_commit_hash(),

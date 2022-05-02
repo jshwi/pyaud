@@ -35,12 +35,9 @@ from . import (
     OS_GETCWD,
     PYAUD_FILES_POPULATE,
     PYAUD_PLUGINS_PLUGINS,
-    PYPROJECT,
-    RCFILE,
     README,
     REPO,
     SP_OPEN_PROC,
-    TOMLFILE,
     TYPE_ERROR,
     WARNING,
     WHITELIST_PY,
@@ -94,7 +91,7 @@ def test_loglevel(
     }
     pyaud.config.toml["logging"]["root"]["level"] = default
     with open(
-        pyaud.config.CONFIGDIR / TOMLFILE, "w", encoding="utf-8"
+        pyaud.environ.GLOBAL_CONFIG_FILE, "w", encoding=pyaud.environ.ENCODING
     ) as fout:
         pyaud.config.toml.dump(fout)
 
@@ -209,9 +206,6 @@ def test_toml() -> None:
     """
     # base config is created and loaded
     # =================================
-    project_dir = Path.cwd()
-    project_rc = project_dir / RCFILE
-    pyproject_path = project_dir / PYPROJECT
     test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(
         pyaud.config.DEFAULT_CONFIG
     )
@@ -226,7 +220,9 @@ def test_toml() -> None:
         {"class": "logging.handlers.StreamHandler"}
     )
     home_rcfile["logging"]["version"] = 2
-    with open(Path.home() / RCFILE, "w", encoding="utf-8") as fout:
+    with open(
+        pyaud.environ.USER_CONFIG_FILE, "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         pyaud.config.toml.dump(fout, home_rcfile)
 
     # reset the dict to the test default
@@ -235,7 +231,9 @@ def test_toml() -> None:
     # config hierarchy but not configured in this dict
     project_rcfile = dict(test_default)
     project_rcfile["logging"]["version"] = 3
-    with open(project_rc, "w", encoding="utf-8") as fout:
+    with open(
+        pyaud.environ.PROJECT_CONFIG_FILE, "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         pyaud.config.toml.dump(fout, project_rcfile)
 
     # load "$HOME/.pyaudrc" and then "$PROJECT_DIR/.pyaudrc"
@@ -257,7 +255,9 @@ def test_toml() -> None:
     pyproject_dict = {"tool": {pyaud.__name__: test_default}}
     changes = {"clean": {"exclude": []}, "logging": {"version": 4}}
     pyproject_dict["tool"][pyaud.__name__].update(changes)
-    with open(pyproject_path, "w", encoding="utf-8") as fout:
+    with open(
+        pyaud.environ.PYPROJECT, "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         pyaud.config.toml.dump(fout, pyproject_dict)
 
     # load "$HOME/.pyaudrc" and then "$PROJECT_DIR/.pyaudrc"
@@ -273,7 +273,7 @@ def test_toml() -> None:
     # this will override all others when passed to the commandline
     pos = {"audit": {"modules": ["files", "format", "format-docs"]}}
     opt_rc = Path.cwd() / "opt_rc"
-    with open(opt_rc, "w", encoding="utf-8") as fout:
+    with open(opt_rc, "w", encoding=pyaud.environ.ENCODING) as fout:
         pyaud.config.toml.dump(fout, pos)
 
     # load "$HOME/.pyaudrc" and then "$Path.cwd()/.pyaudrc"
@@ -305,11 +305,15 @@ def test_toml_no_override_all(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     pyaud.config.toml.clear()
     pyaud.config.load_config()  # base key-values
-    with open(pyaud.config.CONFIGDIR / TOMLFILE, encoding="utf-8") as fin:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, encoding=pyaud.environ.ENCODING
+    ) as fin:
         pyaud.config.toml.load(fin)  # base key-values
 
     assert dict(pyaud.config.toml) == pyaud.config.DEFAULT_CONFIG
-    with open(Path.home() / RCFILE, "w", encoding="utf-8") as fout:
+    with open(
+        pyaud.environ.USER_CONFIG_FILE, "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         pyaud.config.toml.dump(fout, {"logging": {"root": {"level": "INFO"}}})
 
     # should override:
@@ -346,8 +350,6 @@ def test_toml_no_override_all(monkeypatch: pytest.MonkeyPatch) -> None:
 # noinspection DuplicatedCode
 def test_backup_toml() -> None:
     """Test backing up of toml config in case file is corrupted."""
-    configfile = pyaud.config.CONFIGDIR / TOMLFILE
-    backupfile = pyaud.config.CONFIGDIR / f".{TOMLFILE}.bak"
 
     def _corrupt_file(_configfile_contents: str) -> None:
         # make a non-parsable change to the configfile (corrupt it)
@@ -357,7 +359,11 @@ def test_backup_toml() -> None:
             if _line == _string:
                 _lines.insert(_count, _string[-6:])
 
-        with open(configfile, "w", encoding="utf-8") as _fout:
+        with open(
+            pyaud.environ.GLOBAL_CONFIG_FILE,
+            "w",
+            encoding=pyaud.environ.ENCODING,
+        ) as _fout:
             _fout.write("\n".join(_lines))
 
     # initialisation
@@ -365,15 +371,19 @@ def test_backup_toml() -> None:
     # originally there is no backup file (not until configure_global is
     # run)
     default_config = dict(pyaud.config.toml)
-    assert not backupfile.is_file()
+    assert not pyaud.environ.GLOBAL_CONFIG_BAK_FILE.is_file()
 
     # assert corrupt configfile with no backup will simply reset
-    with open(configfile, encoding="utf-8") as fin:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, encoding=pyaud.environ.ENCODING
+    ) as fin:
         configfile_contents = fin.read()
 
     _corrupt_file(configfile_contents)
     pyaud.config.configure_global()
-    with open(configfile, encoding="utf-8") as fin:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, encoding=pyaud.environ.ENCODING
+    ) as fin:
         pyaud.config.toml.load(fin)
 
     # assert corrupt configfile is no same as default
@@ -381,12 +391,14 @@ def test_backup_toml() -> None:
 
     # create backupfile
     pyaud.config.configure_global()
-    assert backupfile.is_file()
+    assert pyaud.environ.GLOBAL_CONFIG_BAK_FILE.is_file()
 
     # ensure backupfile is a copy of the original config file
     # (overridden at every initialisation in the case of a change)
-    with open(configfile, encoding="utf-8") as cfin, open(
-        backupfile, encoding="utf-8"
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, encoding=pyaud.environ.ENCODING
+    ) as cfin, open(
+        pyaud.environ.GLOBAL_CONFIG_BAK_FILE, encoding=pyaud.environ.ENCODING
     ) as bfin:
         configfile_contents = cfin.read()
         backupfile_contents = bfin.read()
@@ -397,21 +409,27 @@ def test_backup_toml() -> None:
     # ================
     # this setting, by default, is True
     pyaud.config.toml["logging"]["disable_existing_loggers"] = False
-    with open(configfile, "w", encoding="utf-8") as fout:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         pyaud.config.toml.dump(fout)
 
     # now that there is a change the backup should be different to the
     # original until configure_global is run again
     # read configfile as only that file has been changed
-    with open(configfile, encoding="utf-8") as fin:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, encoding=pyaud.environ.ENCODING
+    ) as fin:
         configfile_contents = fin.read()
 
     assert configfile_contents != backupfile_contents
     pyaud.config.configure_global()
 
     # read both, as both have been changed
-    with open(configfile, encoding="utf-8") as cfin, open(
-        backupfile, encoding="utf-8"
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, encoding=pyaud.environ.ENCODING
+    ) as cfin, open(
+        pyaud.environ.GLOBAL_CONFIG_BAK_FILE, encoding=pyaud.environ.ENCODING
     ) as bfin:
         configfile_contents = cfin.read()
         backupfile_contents = bfin.read()
@@ -423,7 +441,9 @@ def test_backup_toml() -> None:
     _corrupt_file(configfile_contents)
 
     # read configfile as only that file has been changed
-    with open(configfile, encoding="utf-8") as fin:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, encoding=pyaud.environ.ENCODING
+    ) as fin:
         configfile_contents = fin.read()
 
     # only configfile is corrupt, so check backup is not the same
@@ -432,8 +452,10 @@ def test_backup_toml() -> None:
     # resolve corruption
     # ==================
     pyaud.config.configure_global()
-    with open(configfile, encoding="utf-8") as cfin, open(
-        backupfile, encoding="utf-8"
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, encoding=pyaud.environ.ENCODING
+    ) as cfin, open(
+        pyaud.environ.GLOBAL_CONFIG_BAK_FILE, encoding=pyaud.environ.ENCODING
     ) as bfin:
         configfile_contents = cfin.read()
         backupfile_contents = bfin.read()
@@ -441,7 +463,9 @@ def test_backup_toml() -> None:
     # configfile should equal the backup file and all changes should be
     # retained
     assert configfile_contents == backupfile_contents
-    with open(configfile, encoding="utf-8") as fin:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, encoding=pyaud.environ.ENCODING
+    ) as fin:
         pyaud.config.toml.load(fin)
 
     assert pyaud.config.toml["logging"]["disable_existing_loggers"] is False
@@ -544,7 +568,9 @@ def test_files_populate_proc(make_tree: t.Any) -> None:
     )
 
     # add venv to .gitignore
-    with open(Path.cwd() / GITIGNORE, "w", encoding="utf-8") as fout:
+    with open(
+        Path.cwd() / GITIGNORE, "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         fout.write("venv\n")
 
     def _old_files_populate():
@@ -685,7 +711,9 @@ def test_exclude_loads_at_main(main: t.Any) -> None:
         pyaud.config._Toml()  # pylint: disable=protected-access
     )
     test_project_toml_object.update(project_config)
-    with open(Path.cwd() / ".pyaudrc", "w", encoding="utf-8") as fout:
+    with open(
+        pyaud.environ.PROJECT_CONFIG_FILE, "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         test_project_toml_object.dump(fout)
 
     assert "project" not in pyaud.config.toml["indexing"]["exclude"]
@@ -731,8 +759,6 @@ def test_exclude(make_tree: t.Any) -> None:
 # noinspection DuplicatedCode
 def test_filter_logging_config_kwargs() -> None:
     """Test that no errors are raised for additional config kwargs."""
-    project_dir = Path.cwd()
-    project_rc = project_dir / RCFILE
     test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(
         pyaud.config.DEFAULT_CONFIG
     )
@@ -741,7 +767,9 @@ def test_filter_logging_config_kwargs() -> None:
     logfile = str(Path.cwd() / ".cache" / "pyaud" / "log" / "pyaud.log")
     test_default["logging"]["handlers"]["default"]["filename"] = logfile
     rcfile = dict(test_default)
-    with open(project_rc, "w", encoding="utf-8") as fout:
+    with open(
+        pyaud.environ.PROJECT_CONFIG_FILE, "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         pyaud.config.toml.dump(fout, rcfile)
 
     pyaud.config.load_config()
@@ -755,7 +783,9 @@ def test_filter_logging_config_kwargs() -> None:
 
     # patch `DEFAULT_CONFIG` for `StreamHandler`
     rcfile["logging"]["handlers"]["default"]["class"] = "logging.StreamHandler"
-    with open(project_rc, "w", encoding="utf-8") as fout:
+    with open(
+        pyaud.environ.PROJECT_CONFIG_FILE, "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         pyaud.config.toml.dump(fout, rcfile)
 
     pyaud.config.load_config()
@@ -911,18 +941,13 @@ def test_restore_data_no_json() -> None:
 
     No need to run any assertions; checking that no error is raised.
     """
-    path = Path(
-        Path.cwd()
-        / pyaud.environ.DATADIR
-        / pyaud._wraps.ClassDecorator.DURATIONS
-    )
-    path.touch()
+    pyaud.environ.DURATIONS_FILE.touch()
     time_cache = pyaud._data.Record()
-    pyaud._data.read(time_cache, path)
+    pyaud._data.read(time_cache, pyaud.environ.DURATIONS_FILE)
 
     # short-cut for testing ``JSONIO.read`` which is basically identical
     # to ``pyaud._data.read``
-    time_cache.path = path  # type: ignore
+    time_cache.path = pyaud.environ.DURATIONS_FILE  # type: ignore
     pyaud._objects.JSONIO.read(time_cache)  # type: ignore
 
 
@@ -944,9 +969,7 @@ def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     :param monkeypatch: Mock patch environment and attributes.
     :param main: Patch package entry point.
     """
-    configfile = pyaud.config.CONFIGDIR / "pyaud.toml"
     # noinspection PyUnresolvedReferences
-    datafile = pyaud.environ.DATADIR / "durations.json"
     monkeypatch.setattr("pyaud._data._TimeKeeper._starter", lambda x: 0)
     monkeypatch.setattr("pyaud._data._TimeKeeper._stopper", lambda x: 1)
     expected = {
@@ -959,7 +982,9 @@ def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     default_config = pyaud.config.DEFAULT_CONFIG
     test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(default_config)
     test_default["audit"]["modules"] = ["plugin_1", "plugin_2"]
-    with open(configfile, "w", encoding="utf-8") as fout:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         pyaud.config.toml.dump(fout, test_default)
 
     pyaud.plugins.register("audit")(pyaud._default._Audit)
@@ -987,7 +1012,9 @@ def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
         "plugin_2",
     ]
     main("audit")
-    actual = json.loads(datafile.read_text(encoding="utf-8"))
+    actual = json.loads(
+        pyaud.environ.DURATIONS_FILE.read_text(encoding=pyaud.environ.ENCODING)
+    )
     assert all(i in actual for i in expected)
 
 
@@ -996,8 +1023,6 @@ def test_del_key_config_runtime(main: t.Any) -> None:
 
     :param main: Patch package entry point.
     """
-    tomlfile = Path.home() / pyaud.config.CONFIGDIR / pyaud.config._TOMLFILE
-
     # noinspection PyUnusedLocal
     @pyaud.plugins.register(name="plugin")
     class Plugin(pyaud.plugins.Action):
@@ -1007,25 +1032,33 @@ def test_del_key_config_runtime(main: t.Any) -> None:
             """Nothing to do."""
 
     # check config file for essential key
-    with open(tomlfile, encoding="utf-8") as fin:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, encoding=pyaud.environ.ENCODING
+    ) as fin:
         pyaud.config.toml.load(fin)
 
     assert "filename" in pyaud.config.toml["logging"]["handlers"]["default"]
 
     del pyaud.config.toml["logging"]["handlers"]["default"]["filename"]
 
-    with open(tomlfile, "w", encoding="utf-8") as fout:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         pyaud.config.toml.dump(fout)
 
     # check config file to confirm essential key was removed
-    with open(tomlfile, encoding="utf-8") as fin:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, encoding=pyaud.environ.ENCODING
+    ) as fin:
         pyaud.config.toml.load(fin)
 
     assert (
         "filename" not in pyaud.config.toml["logging"]["handlers"]["default"]
     )
 
-    with open(tomlfile, "w", encoding="utf-8") as fout:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         pyaud.config.toml.dump(fout)
 
     pyaud.config.configure_global()
@@ -1033,7 +1066,9 @@ def test_del_key_config_runtime(main: t.Any) -> None:
 
     # confirm after running main that no crash occurred and that the
     # essential key was replaced with a default
-    with open(tomlfile, encoding="utf-8") as fin:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, encoding=pyaud.environ.ENCODING
+    ) as fin:
         pyaud.config.toml.load(fin)
 
     assert "filename" in pyaud.config.toml["logging"]["handlers"]["default"]
@@ -1196,7 +1231,7 @@ def test_readme_replace() -> None:
     path = Path.cwd() / README
 
     def _test_file_index(title: str, underline: str) -> None:
-        with open(path, encoding="utf-8") as fin:
+        with open(path, encoding=pyaud.environ.ENCODING) as fin:
             lines = fin.read().splitlines()
 
         assert lines[0] == title
@@ -1206,7 +1241,7 @@ def test_readme_replace() -> None:
     readme = "README"
     repo_underline = len(repo) * "="
     readme_underline = len(readme) * "="
-    with open(path, "w", encoding="utf-8") as fout:
+    with open(path, "w", encoding=pyaud.environ.ENCODING) as fout:
         fout.write(f"{repo}\n{repo_underline}\n")
 
     _test_file_index(repo, repo_underline)
@@ -1393,8 +1428,9 @@ def test_suppress(
     default_config = pyaud.config.DEFAULT_CONFIG
     test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(default_config)
     test_default["audit"]["modules"] = ["plugin"]
-    configfile = pyaud.config.CONFIGDIR / TOMLFILE
-    with open(configfile, "w", encoding="utf-8") as fout:
+    with open(
+        pyaud.environ.GLOBAL_CONFIG_FILE, "w", encoding=pyaud.environ.ENCODING
+    ) as fout:
         pyaud.config.toml.dump(fout, test_default)
 
     make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
