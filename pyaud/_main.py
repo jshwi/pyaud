@@ -42,6 +42,7 @@ class _Parser(_ArgumentParser):
         self._registered = _plugins.registered()
         self._returncode = 0
         self._add_arguments()
+        self._version_request()
         self.args = self.parse_args()
         if self.args.module == "modules":
             _sys.exit(self._module_help())
@@ -177,15 +178,15 @@ class _Parser(_ArgumentParser):
 
         return self._returncode
 
-
-def _version_request() -> None:
-    try:
-        # the only exception for not providing positional args
-        if _sys.argv[1] == "--version":
-            print(__version__)
-            _sys.exit(0)
-    except IndexError:
-        pass
+    @staticmethod
+    def _version_request() -> None:
+        try:
+            # the only exception for not providing positional args
+            if _sys.argv[1] == "--version":
+                print(__version__)
+                _sys.exit(0)
+        except IndexError:
+            pass
 
 
 def main() -> None:
@@ -194,7 +195,6 @@ def main() -> None:
     Parse commandline arguments and run the selected choice from the
     dictionary of functions which matches the key.
     """
-    _version_request()
     _environ.read_env()
     _register_default_plugins()
     _plugins.load()
