@@ -34,7 +34,7 @@ def main() -> None:
     _files.add_exclusions(*_config.toml["indexing"]["exclude"])
     _files.populate()
     _logging.getLogger(__name__).info(
-        "Commencing audit for %s in %s", _e.REPO, _Path.cwd()
+        "commencing audit for %s in %s", _e.REPO, _Path.cwd()
     )
     _plugins.get(parser.args.module)(
         clean=parser.args.clean,
