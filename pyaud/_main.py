@@ -33,7 +33,7 @@ def main() -> None:
     _files.add_exclusions(*_config.toml["indexing"]["exclude"])
     _files.populate()
     _logging.getLogger(__name__).info(
-        "Commencing audit for %s in %s",
+        "commencing audit for %s in %s",
         app_files.user_project_dir.name,
         _Path.cwd(),
     )
