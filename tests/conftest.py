@@ -21,7 +21,24 @@ import pyaud._config as pc
 from pyaud import _default
 from pyaud import environ as pe
 
-from . import DEBUG, FILES, GH_EMAIL, GH_NAME, REPO, NoColorCapsys, git
+from . import (
+    DEBUG,
+    DEFAULT,
+    FILE,
+    FILENAME,
+    GH_EMAIL,
+    GH_NAME,
+    HANDLERS,
+    LEVEL,
+    LOGGING,
+    PLUGIN_NAME,
+    REGISTER_PLUGIN,
+    REPO,
+    ROOT,
+    UNPATCH_REGISTER_DEFAULT_PLUGINS,
+    NoColorCapsys,
+    git,
+)
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 original_hash_mapping_match_file = pyaud._cache.HashMapping.match_file
@@ -52,8 +69,8 @@ def fixture_mock_environment(
     #: CONFIG
     default_config = dict(pc.DEFAULT_CONFIG)
     logfile = Path(home / ".cache" / name / "log" / f"{name}.log")
-    default_config["logging"]["handlers"]["default"]["filename"] = str(logfile)
-    default_config["logging"]["root"]["level"] = DEBUG
+    default_config[LOGGING][HANDLERS][DEFAULT][FILENAME] = str(logfile)
+    default_config[LOGGING][ROOT][LEVEL] = DEBUG
 
     #: DOTENV - prevents lookup of .env file
     current_frame = type("current_frame", (), {})
@@ -230,7 +247,7 @@ def fixture_unpatch_plugins_load(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("pyaud.plugins.load", original_pyaud_plugin_load)
 
 
-@pytest.fixture(name="unpatch_register_default_plugins")
+@pytest.fixture(name=UNPATCH_REGISTER_DEFAULT_PLUGINS)
 def fixture_unpatch_register_default_plugins(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -257,12 +274,12 @@ def fixture_unpatch_setuptools_find_packages(
     )
 
 
-@pytest.fixture(name="register_plugin")
+@pytest.fixture(name=REGISTER_PLUGIN)
 def fixture_register_plugin() -> pyaud.plugins.PluginType:
     """Register a plugin."""
 
     # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin")
+    @pyaud.plugins.register(name=PLUGIN_NAME[1])
     class Plugin(pyaud.plugins.Action):  # pylint: disable=unused-variable
         """Nothing to do."""
 
@@ -286,4 +303,4 @@ def fixture_register_plugin() -> pyaud.plugins.PluginType:
 @pytest.fixture(name="bump_index")
 def fixture_bump_index() -> None:
     """Add a dummy file to the ``pyaud.files`` index."""
-    pyaud.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILE)

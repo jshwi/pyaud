@@ -11,7 +11,7 @@ import pytest
 
 import pyaud
 
-from . import NoColorCapsys
+from . import FIX, FIX_ALL, FIX_FILE, FIXER, NO_ISSUES, NoColorCapsys
 
 
 def _get_pass_fixer(
@@ -68,7 +68,7 @@ class _FailFileFixer(_BaseFileFixer):
 class TestFix:
     """Test various implementations of ``pyaud.plugins.FixAll``."""
 
-    plugin_name = "fixer"
+    plugin_name = FIXER
 
     def _register_fixer(self, fixer: pyaud.plugins.PluginType) -> None:
         pyaud.plugins.register(self.plugin_name)(fixer)
@@ -80,13 +80,10 @@ class TestFix:
                 _get_pass_fixer(pyaud.plugins.Fix),  # type: ignore
                 "Success: no issues found in file",
             ),
-            (
-                _get_pass_fixer(pyaud.plugins.FixAll),  # type: ignore
-                "Success: no issues found in 1 source files",
-            ),
-            (_PassFileFixer, "Success: no issues found in 1 source files"),
+            (_get_pass_fixer(pyaud.plugins.FixAll), NO_ISSUES),  # type: ignore
+            (_PassFileFixer, NO_ISSUES),
         ],
-        ids=["fix", "fix-all", "fix-file"],
+        ids=[FIX, FIX_ALL, FIX_FILE],
     )
     def test_on_pass(
         self,
@@ -113,7 +110,7 @@ class TestFix:
             _get_fail_fixer(pyaud.plugins.FixAll),  # type: ignore
             _FailFileFixer,
         ],
-        ids=["fix", "fix-all", "fix-file"],
+        ids=[FIX, FIX_ALL, FIX_FILE],
     )
     def test_on_fail(
         self, main: t.Any, plugin: pyaud.plugins.PluginType
@@ -139,13 +136,10 @@ class TestFix:
                 _get_fail_fixer(pyaud.plugins.Fix),  # type: ignore
                 "Success: no issues found in file",
             ),
-            (
-                _get_fail_fixer(pyaud.plugins.FixAll),  # type: ignore
-                "Success: no issues found in 1 source files",
-            ),
-            (_FailFileFixer, "Success: no issues found in 1 source files"),
+            (_get_fail_fixer(pyaud.plugins.FixAll), NO_ISSUES),  # type: ignore
+            (_FailFileFixer, NO_ISSUES),
         ],
-        ids=["fix", "fix-all", "fix-file"],
+        ids=[FIX, FIX_ALL, FIX_FILE],
     )
     def test_with_fix(
         self,
