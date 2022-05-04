@@ -846,7 +846,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "pyaud-plugins"
-version = "0.5.0"
+version = "0.6.0"
 description = "Plugin package for Pyaud"
 category = "main"
 optional = false
@@ -1891,8 +1891,8 @@ py = [
     {file = "py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719"},
 ]
 pyaud-plugins = [
-    {file = "pyaud-plugins-0.5.0.tar.gz", hash = "sha256:b0c79884b3e63ea935d7715292e4d782ecae9ee7a66fa9bac1523adb84af7039"},
-    {file = "pyaud_plugins-0.5.0-py3-none-any.whl", hash = "sha256:242f640e70f5673b1202be23762f2526403acfe967049cf588696181f0275c5d"},
+    {file = "pyaud-plugins-0.6.0.tar.gz", hash = "sha256:df732d265a9d03f609ba87a050da59f46d2faba90147b328917b1d209585126f"},
+    {file = "pyaud_plugins-0.6.0-py3-none-any.whl", hash = "sha256:0baf959ba3f8e665e471c384f9ffb49d3eec5b72d048ed57a1125524abcecddc"},
 ]
 pygments = [
     {file = "Pygments-2.12.0-py3-none-any.whl", hash = "sha256:dc9c10fb40944260f6ed4c688ece0cd2048414940f1cea51b8b226318411c519"},
