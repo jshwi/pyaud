@@ -5,7 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-[Unreleased](https://github.com/jshwi/pyaud/compare/v3.13.4...HEAD)
+[Unreleased](https://github.com/jshwi/pyaud/compare/v3.13.5...HEAD)
+------------------------------------------------------------------------
+
+[3.13.5](https://github.com/jshwi/pyaud/releases/tag/v3.13.5) - 2022-05-05
 ------------------------------------------------------------------------
 ### Fixed
 - Relaxes version constraints on some dependencies

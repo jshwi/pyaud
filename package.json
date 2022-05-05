@@ -1,6 +1,6 @@
 {
   "name": "pyaud",
-  "version": "3.13.4",
+  "version": "3.13.5",
   "description": "Framework for writing Python package audits",
   "private": true,
   "directories": {
