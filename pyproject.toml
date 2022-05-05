@@ -35,14 +35,14 @@ version = "3.13.4"
 [tool.poetry.dependencies]
 appdirs = "^1.4.4"
 environs = "^9.4.0"
-gitspy = "^0.1.0"
-lsfiles = "^0.1.1"
+gitspy = "^0"
+lsfiles = "^0"
 m2r = "^0.2.1"
 mistune = "<=0.8.4"
 object-colors = "^2.0.1"
-pyaud-plugins = "*"
+pyaud-plugins = "^0"
 python = "^3.8"
-spall = "^0.1.0"
+spall = "^0"
 toml = "^0.10.2"
 
 [tool.poetry.dev-dependencies]
