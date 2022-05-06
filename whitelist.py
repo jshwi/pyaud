@@ -1,4 +1,4 @@
-GH_TOKEN  # unused variable (tests/__init__.py:15)
+GH_TOKEN  # unused variable (tests/__init__.py:17)
 NotSubclassed  # unused class (tests/_test.py:481)
 P1  # unused class (tests/_test.py:968)
 P2  # unused class (tests/_test.py:976)

@@ -1,4 +1,4 @@
-"""Plugin architecture for auditing Python packages."""
+"""Framework for writing Python package audits."""
 from . import config, exceptions, parsers, plugins
 from ._cache import HashMapping
 from ._default import register_default_plugins
