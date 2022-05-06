@@ -1,12 +1,8 @@
-# Default ignored files
+/dataSources.local.xml
+/dataSources/
+/httpRequests/
 /shelf/
-/workspace.xml
+/sonarlint/
 /tasks.xml
 /usage.statistics.xml
-# Datasource local storage ignored files
-/dataSources/
-/dataSources.local.xml
-# Editor-based HTTP Client requests
-/httpRequests/
-# Plugin files
-/sonarlint/
+/workspace.xml
