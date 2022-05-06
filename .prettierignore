@@ -1,7 +1,6 @@
 .mypy_cache/
 .pytest_cache/
 CHANGELOG.md
-Pipfile.lock
 dist/
 docs/_build/
 docs/_themes/
