@@ -39,6 +39,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinxcontrib.fulltoc",
     "sphinxcontrib.programoutput",
+    "sphinx_toolbox.more_autodoc.autonamedtuple",
 ]
 
 
