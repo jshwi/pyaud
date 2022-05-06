@@ -34,7 +34,8 @@
     "audit",
     "fix",
     "ci",
-    "python3.8"
+    "style",
+    "format"
   ],
   "author": "Stephen Whitlock",
   "license": "MIT",
