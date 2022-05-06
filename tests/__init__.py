@@ -1,6 +1,8 @@
-"""Register tests as a package.
+"""
+tests
+=====
 
-Imports from ``tests.static`` and ``tests.utils``
+Test package for ``pyaud``.
 """
 import re
 import typing as t
