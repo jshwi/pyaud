@@ -59,6 +59,50 @@ toml-sort = "^0.20.0"
 [tool.poetry.scripts]
 pyaud = "pyaud.__main__:main"
 
+[tool.pyaud.audit]
+modules = [
+    "files",
+    "format",
+    "format-docs",
+    "format-str",
+    "imports",
+    "typecheck",
+    "unused",
+    "lint",
+    "coverage",
+    "readme",
+    "docs",
+]
+
+[tool.pyaud.clean]
+exclude = ["*.egg*", ".mypy_cache", ".env", "instance"]
+
+[tool.pyaud.indexing]
+exclude = ["whitelist.py", "conf.py", "setup.py"]
+
+[tool.pyaud.logging]
+disable_existing_loggers = true
+version = 1
+
+[tool.pyaud.logging.formatters.standard]
+format = "%(asctime)s %(levelname)s %(name)s %(message)s"
+
+[tool.pyaud.logging.handlers.default]
+backupCount = 60
+class = "logging.handlers.TimedRotatingFileHandler"
+filename = "~/.cache/pyaud/log/pyaud.log"
+formatter = "standard"
+when = "d"
+
+[tool.pyaud.logging.root]
+handlers = ["default"]
+level = "DEBUG"
+propagate = false
+
+[tool.pyaud.packages]
+exclude = []
+name = "pyaud"
+
 [tool.pytest.ini_options]
 addopts = [
     "--durations=5",
