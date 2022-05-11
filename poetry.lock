@@ -758,14 +758,14 @@ icu = ["PyICU (>=1.0.0)"]
 
 [[package]]
 name = "object-colors"
-version = "2.0.1"
-description = "Adding colours to Python simplified into a single class"
+version = "2.1.0"
+description = "Object-oriented library for stylizing terminal output"
 category = "main"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
-colorama = "0.4.4"
+colorama = ">=0.4.4,<0.5.0"
 
 [[package]]
 name = "packaging"
@@ -2055,8 +2055,8 @@ natsort = [
     {file = "natsort-8.1.0.tar.gz", hash = "sha256:c7c1f3f27c375719a4dfcab353909fe39f26c2032a062a8c80cc844eaaca0445"},
 ]
 object-colors = [
-    {file = "object_colors-2.0.1-py3-none-any.whl", hash = "sha256:dd62c7cecd0360a73286609f12b92e09b557a50ea0bb367c2bc31e25e077feb4"},
-    {file = "object_colors-2.0.1.tar.gz", hash = "sha256:5a70dc0927cbbeb45ae9534b6688ad947af6d56636421ff661727e5eef0455f2"},
+    {file = "object-colors-2.1.0.tar.gz", hash = "sha256:9788bffd73706dd1a7ee383b0d137ae33705d58a0228870863c6a67ec4891a41"},
+    {file = "object_colors-2.1.0-py3-none-any.whl", hash = "sha256:c8c9ef773b3f388154e7fe8266061d77b91d9b15b6684dc4535fb7f1f56f8c92"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
