@@ -934,7 +934,10 @@ def test_plugin_deepcopy_with_new() -> None:
     """
     copy.deepcopy(pyaud.plugins._plugins)
     assert isinstance(
-        pyaud.plugins.Plugin(REPO).__deepcopy__(REPO), pyaud.plugins.Plugin
+        pyaud.plugins.Plugin(  # pylint: disable=unnecessary-dunder-call
+            REPO
+        ).__deepcopy__(REPO),
+        pyaud.plugins.Plugin,
     )
 
 

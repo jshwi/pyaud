@@ -2,7 +2,6 @@
 tests.fix_test
 ==============
 """
-# pylint: disable=no-self-use
 import typing as t
 from pathlib import Path
 from subprocess import CalledProcessError

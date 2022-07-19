@@ -2,7 +2,7 @@
 tests.cache_test
 ================
 """
-# pylint: disable=protected-access,too-few-public-methods,no-member,no-self-use
+# pylint: disable=protected-access,too-few-public-methods,no-member
 # pylint: disable=too-many-arguments,too-many-statements,invalid-name
 import copy
 import json
@@ -215,7 +215,7 @@ class TestCacheStrategy:
         )
 
         #: FILES & HASHES
-        f = {p[c]: self.H[c] for c, _ in enumerate(p)}
+        f = {i: self.H[c] for c, i in enumerate(p)}
 
         #: When hashlib.md5(path.read_bytes()).hexdigest() is called
         #: `Path`'s returned self will match to the key in init and
