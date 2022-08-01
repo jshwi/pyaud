@@ -92,7 +92,7 @@ def fixture_mock_environment(
 
     #: CREATE
     repo_abs.mkdir()
-    pyaud.git.init(devnull=True)
+    pyaud.git.init(file=os.devnull)
     with open(home / ".gitconfig", "w", encoding="utf-8") as fout:
         config.write(fout)
 

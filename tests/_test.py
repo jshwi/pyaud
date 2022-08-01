@@ -53,9 +53,9 @@ def test_get_branch_unique() -> None:
     """Test that ``get_branch`` returns correct branch."""
     Path(Path.cwd() / README).touch()
     branch = datetime.datetime.now().strftime("%d%m%YT%H%M%S")
-    pyaud.git.add(".", devnull=True)
-    pyaud.git.commit("-m", INITIAL_COMMIT, devnull=True)
-    pyaud.git.checkout("-b", branch, devnull=True)
+    pyaud.git.add(".", file=os.devnull)
+    pyaud.git.commit("-m", INITIAL_COMMIT, file=os.devnull)
+    pyaud.git.checkout("-b", branch, file=os.devnull)
     assert pyaud._utils.branch() == branch  # pylint: disable=protected-access
 
 
@@ -553,7 +553,7 @@ def test_files_populate_proc(make_tree: t.Any) -> None:
             if path.name not in pyaud.config.DEFAULT_CONFIG["indexing"][
                 "exclude"
             ] and not pyaud.git.ls_files(
-                "--error-unmatch", path, devnull=True, suppress=True
+                "--error-unmatch", path, file=os.devnull, suppress=True
             ):
                 indexed.append(path)
 
@@ -1270,9 +1270,9 @@ def test_clean_exclude(
     :param expected: Expected output from ``pyaud clean``.
     """
     Path(Path.cwd() / README).touch()
-    pyaud.git.init(devnull=True)  # type: ignore
+    pyaud.git.init(file=os.devnull)  # type: ignore
     pyaud.git.add(".")  # type: ignore
-    pyaud.git.commit("-m", "Initial commit", devnull=True)  # type: ignore
+    pyaud.git.commit("-m", "Initial commit", file=os.devnull)  # type: ignore
     for exclusion in exclude:
         Path(Path.cwd() / exclusion).touch()
 
