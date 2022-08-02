@@ -19,7 +19,6 @@ FILES: str = "file.py"
 REPO = "repo"
 GH_NAME = "test_user"
 GH_EMAIL = "test_email.com"
-INITIAL_COMMIT = "Initial commit"
 INIT = "__init__.py"
 CONFPY = "conf.py"
 LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")

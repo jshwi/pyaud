@@ -7,7 +7,6 @@ from ._indexing import files
 from ._main import main
 from ._objects import BasePlugin
 from ._utils import (
-    branch,
     get_commit_hash,
     get_packages,
     git,
@@ -21,7 +20,6 @@ __all__ = [
     "Environ",
     "HashMapping",
     "__version__",
-    "branch",
     "config",
     "environ",
     "exceptions",

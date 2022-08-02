@@ -31,7 +31,6 @@ from . import (
     GITIGNORE,
     INFO,
     INIT,
-    INITIAL_COMMIT,
     OS_GETCWD,
     PYAUD_FILES_POPULATE,
     PYAUD_PLUGINS_PLUGINS,
@@ -48,30 +47,6 @@ from . import (
     NoColorCapsys,
     Tracker,
 )
-
-
-def test_get_branch_unique() -> None:
-    """Test that ``get_branch`` returns correct branch."""
-    Path(Path.cwd() / README).touch()
-    branch = datetime.datetime.now().strftime("%d%m%YT%H%M%S")
-    pyaud.git.add(".", file=os.devnull)
-    pyaud.git.commit("-m", INITIAL_COMMIT, file=os.devnull)
-    pyaud.git.checkout("-b", branch, file=os.devnull)
-    assert pyaud._utils.branch() == branch  # pylint: disable=protected-access
-
-
-def test_get_branch_initial_commit() -> None:
-    """Test that ``get_branch`` returns None.
-
-    Test when run from a commit with no parent commits i.e. initial
-    commit.
-    """
-    Path(Path.cwd() / README).touch()
-    pyaud.git.add(".")
-    pyaud.git.commit("-m", INITIAL_COMMIT)
-    pyaud.git.rev_list("--max-parents=0", "HEAD", capture=True)
-    pyaud.git.checkout(pyaud.git.stdout()[0])
-    assert pyaud._utils.branch() is None  # pylint: disable=protected-access
 
 
 @pytest.mark.parametrize("default", [CRITICAL, ERROR, WARNING, INFO, DEBUG])

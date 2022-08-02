@@ -19,19 +19,6 @@ git = _Git()
 colors.populate_colors()
 
 
-def branch() -> _t.Optional[str]:
-    """Return current Git branch if in Git repository.
-
-    :return: Checked out branch or None if no parent commit or repo.
-    """
-    git.symbolic_ref("--short", "HEAD", suppress=True, capture=True)
-    stdout = git.stdout()
-    if stdout:
-        return stdout[-1]
-
-    return None
-
-
 def get_packages() -> _t.List[str]:
     """Return list of Python package names currently in project.
 
