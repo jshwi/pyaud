@@ -20,6 +20,7 @@ from . import (
     GH_EMAIL,
     GH_NAME,
     REPO,
+    AppFiles,
     MakeTreeType,
     MockCallStatusType,
     MockFuncType,
@@ -34,14 +35,30 @@ original_pyaud_main_register_default_plugins = pyaud.register_default_plugins
 original_setuptools_find_packages = setuptools.find_packages
 
 
+@pytest.fixture(name="app_files")
+def fixture_app_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> AppFiles:
+    """App files for testing.
+
+    :param tmp_path: Create and return temporary directory.
+    :param monkeypatch: Mock patch environment and attributes.
+    :return: Instantiated ``AppFiles`` object.
+    """
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / ".config"))
+    return AppFiles()
+
+
 @pytest.fixture(name="mock_environment", autouse=True)
 def fixture_mock_environment(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, app_files: AppFiles
 ) -> None:
     """Mock imports to reflect the temporary testing environment.
 
     :param tmp_path: Create and return temporary directory.
     :param monkeypatch: Mock patch environment and attributes.
+    :param app_files: App file locations object.
     """
     home = tmp_path
     repo_abs = home / REPO
@@ -72,7 +89,6 @@ def fixture_mock_environment(
     )
 
     #: ENV
-    monkeypatch.setenv("HOME", str(home))
     monkeypatch.setenv("CODECOV_TOKEN", "")
     monkeypatch.delenv("CODECOV_TOKEN")
     monkeypatch.setenv("PYAUD_GH_REMOTE", str(home / "origin.git"))
@@ -85,7 +101,6 @@ def fixture_mock_environment(
     monkeypatch.setattr("os.getcwd", lambda: str(repo_abs))
     monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [REPO])
     monkeypatch.setattr("inspect.currentframe", lambda: current_frame)
-    monkeypatch.setattr("pyaud.config.CONFIGDIR", home / ".config" / name)
     monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
     monkeypatch.setattr("pyaud.git.status", lambda *_, **__: True)
     monkeypatch.setattr("pyaud.git.rev_parse", lambda *_, **__: None)
@@ -108,10 +123,11 @@ def fixture_mock_environment(
         config.write(fout)
 
     #: MAIN - essential setup tasks
-    pyaud.initialize_dirs()
     pyaud.files.populate()
-    pyaud.config.configure_global()
-    pyaud.config.load_config()
+    # noinspection PyUnresolvedReferences,PyProtectedMember
+    pyaud.config.configure_global(app_files)
+    # noinspection PyUnresolvedReferences,PyProtectedMember
+    pyaud.config.load_config(app_files)
     pyaud.config.configure_logging()
 
 

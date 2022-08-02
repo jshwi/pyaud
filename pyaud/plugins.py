@@ -21,8 +21,9 @@ from spall import Subprocess as _Subprocess
 
 from . import config as _config
 from . import exceptions as _exceptions
-from ._environ import environ as _environ
 from ._indexing import files as _files
+from ._locations import NAME as _NAME
+from ._locations import AppFiles as _AppFiles
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
 from ._utils import colors as _colors
@@ -54,7 +55,8 @@ class Plugin(_BasePlugin):  # pylint: disable=too-few-public-methods
     """
 
     def __new__(cls, name: str) -> Plugin:  # pylint: disable=unused-argument
-        class_decorator = _ClassDecorator(cls)
+        app_files = _AppFiles()
+        class_decorator = _ClassDecorator(cls, app_files)
         cls.__call__ = class_decorator.not_found(cls.__call__)  # type: ignore
         cls.__call__ = class_decorator.files(cls.__call__)  # type: ignore
         cls.__call__ = class_decorator.time(cls.__call__)  # type: ignore
@@ -347,7 +349,7 @@ class Parametrize(Plugin):  # pylint: disable=too-few-public-methods
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
         for name in self.plugins():
-            _colors.cyan.bold.print(f"\n{_environ.NAME} {name}")
+            _colors.cyan.bold.print(f"\n{_NAME} {name}")
             _plugins[name](*args, **kwargs)
 
         # all parametrized plugins will have succeeded to make it here

@@ -12,6 +12,9 @@ import pytest
 
 import pyaud
 
+# noinspection PyUnresolvedReferences,PyProtectedMember
+from pyaud._locations import AppFiles
+
 FILES: str = "file.py"
 REPO = "repo"
 GH_NAME = "test_user"
@@ -29,9 +32,6 @@ SP_OPEN_PROC = "spall.Subprocess._open_process"
 README = Path("README.rst")
 PYAUD_PLUGINS_PLUGINS = "pyaud.plugins._plugins"
 TYPE_ERROR = "can only register one of the following:"
-RCFILE = f".{pyaud.__name__}rc"
-TOMLFILE = f"{pyaud.__name__}.toml"
-PYPROJECT = "pyproject.toml"
 GITIGNORE = ".gitignore"
 PYAUD_FILES_POPULATE = "pyaud.files.populate"
 OS_GETCWD = "os.getcwd"

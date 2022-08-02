@@ -4,7 +4,7 @@ pyaud._default
 """
 from . import config as _config
 from . import plugins as _plugins
-from ._environ import environ as _environ
+from ._locations import NAME as _NAME
 from ._utils import colors as _colors
 from ._utils import git as _git
 
@@ -19,7 +19,7 @@ class _Audit(_plugins.Action):
 
         for func in funcs:
             if func in _plugins.registered():
-                _colors.cyan.bold.print(f"\n{_environ.NAME} {func}")
+                _colors.cyan.bold.print(f"\n{_NAME} {func}")
                 _plugins.get(func)(**kwargs)
 
         return 0

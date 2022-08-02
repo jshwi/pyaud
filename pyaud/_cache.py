@@ -9,9 +9,9 @@ import typing as _t
 from pathlib import Path as _Path
 
 from . import exceptions as _exceptions
-from ._environ import environ as _environ
 from ._indexing import IndexedState as _IndexedState
 from ._indexing import files as _files
+from ._locations import AppFiles as _AppFiles
 from ._objects import JSONIO as _JSONIO
 from ._objects import BasePlugin as _BasePlugin
 from ._utils import colors as _colors
@@ -22,8 +22,7 @@ from ._utils import working_tree_clean as _working_tree_clean
 class HashMapping(_JSONIO):
     """Persistent data object.
 
-    :param path: Path to data file.
-    :param project: Name of the project that this package is auditing.
+    :param app_files: App file locations object.
     :param cls: Audit that this class is running in.
     :param commit: Commit that this audit is being run on.
     """
@@ -32,13 +31,12 @@ class HashMapping(_JSONIO):
 
     def __init__(
         self,
-        path: _Path,
-        project: str,
+        app_files: _AppFiles,
         cls: _t.Type[_BasePlugin],
         commit: _t.Optional[str] = None,
     ) -> None:
-        super().__init__(path)
-        self._project = project
+        super().__init__(app_files.cache_file)
+        self._project = app_files.user_project_dir.name
         self._commit = commit or self._FALLBACK
         self._cls = str(cls)
 
@@ -129,16 +127,16 @@ class FileCacher:  # pylint: disable=too-few-public-methods
 
     :param cls: Audit that this class is running in.
     :param func: Call function belonging to cls.
+    :param app_files: App file locations object.
     :param args: Args that can be passed from other plugins.
     :param kwargs: Boolean flags for subprocesses.
     """
-
-    FILE_HASHES = "files.json"
 
     def __init__(
         self,
         cls: _t.Type[_BasePlugin],
         func: _t.Callable[..., int],
+        app_files: _AppFiles,
         *args: str,
         **kwargs: bool,
     ) -> None:
@@ -147,12 +145,7 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         self.args = args
         self.kwargs = kwargs
         self.no_cache = self.kwargs.get("no_cache", False)
-        self.hashed = HashMapping(
-            _environ.CACHEDIR / self.FILE_HASHES,
-            _environ.REPO,
-            self._cls,
-            _get_commit_hash(),
-        )
+        self.hashed = HashMapping(app_files, self._cls, _get_commit_hash())
         if not _working_tree_clean():
             self.hashed.tag("uncommitted")
 

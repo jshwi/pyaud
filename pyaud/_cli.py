@@ -10,6 +10,7 @@ from argparse import ArgumentParser as _ArgumentParser
 
 from . import plugins as _plugins
 from ._environ import environ as _environ
+from ._locations import NAME as _NAME
 from ._utils import colors as _colors
 from ._version import __version__
 
@@ -131,9 +132,7 @@ class Parser(_ArgumentParser):
         # print summary of module use if no module is selected or an
         # invalid module name os provided
         _colors.yellow.print(
-            "{} modules [<module> | all] for more on each module\n".format(
-                _environ.NAME
-            )
+            f"{_NAME} modules [<module> | all] for more on each module\n"
         )
         print(
             "modules = {}".format(

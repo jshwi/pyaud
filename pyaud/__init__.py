@@ -2,7 +2,7 @@
 from . import config, exceptions, parsers, plugins
 from ._cache import HashMapping
 from ._default import register_default_plugins
-from ._environ import Environ, environ, initialize_dirs
+from ._environ import Environ, environ
 from ._indexing import files
 from ._main import main
 from ._objects import BasePlugin
@@ -29,7 +29,6 @@ __all__ = [
     "get_commit_hash",
     "get_packages",
     "git",
-    "initialize_dirs",
     "main",
     "package",
     "parsers",

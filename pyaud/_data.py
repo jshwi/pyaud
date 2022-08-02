@@ -15,8 +15,6 @@ from time import time as _time
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
 
-DURATIONS = "durations.json"
-
 
 class _TimeKeeper:
     def __init__(self, cls: _t.Type[_BasePlugin]) -> None:
