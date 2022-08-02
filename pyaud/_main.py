@@ -14,6 +14,7 @@ from ._environ import environ as _environ
 from ._environ import initialize_dirs as _initialize_dirs
 from ._indexing import files as _files
 from ._utils import colors as _colors
+from .config import configure_global as _configure_global
 
 
 def main() -> None:
@@ -22,6 +23,7 @@ def main() -> None:
     Parse commandline arguments and run the selected choice from the
     dictionary of functions which matches the key.
     """
+    _configure_global()
     _environ.read_env()
     _register_default_plugins()
     _plugins.load()
