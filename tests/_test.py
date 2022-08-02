@@ -81,7 +81,6 @@ def test_loglevel(
     monkeypatch.setattr(
         PYAUD_PLUGINS_PLUGINS, {"module": lambda *_, **__: None}
     )
-    pyaud.config.configure_global(app_files)
     main("module", flag)
     assert (
         logging.getLevelName(logging.root.level)
