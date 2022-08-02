@@ -26,6 +26,9 @@ omit = [
     "pyaud/__main__.py",
 ]
 
+[tool.docsig]
+check-class = true
+
 [tool.poetry]
 authors = [
     "jshwi <stephen@jshwisolutions.com>",
@@ -83,6 +86,7 @@ modules = [
     "typecheck",
     "unused",
     "lint",
+    "params",
     "test",
     "docs",
 ]
