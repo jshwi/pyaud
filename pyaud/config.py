@@ -146,21 +146,6 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
 
         return obj
 
-    def dump(
-        self, fout: _t.TextIO, obj: _t.Optional[_t.MutableMapping] = None
-    ) -> str:
-        """Native ``dump`` method to include encoder.
-
-        :param fout: TextIO file stream.
-        :param obj: Mutable mapping dict-like object.
-        :return: str object in toml encoded form.
-        """
-        return _toml_encoder.dump(
-            self._format_dump(dict(self) if obj is None else dict(obj)),
-            fout,
-            encoder=self._encoder,
-        )
-
     def dumps(self, obj: _t.Optional[_t.MutableMapping] = None) -> str:
         """Native ``dump(from)s(tr)`` method to include encoder.
 
@@ -182,6 +167,13 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
             obj = obj.get(arg, obj)
 
         self.update(obj)
+
+    def loads(self, string: str) -> None:
+        """Native ``load (from file)`` method.
+
+        :param string: Toml as str.
+        """
+        self.update(_toml_decoder.loads(string))
 
 
 class TempEnvVar:
@@ -234,26 +226,24 @@ def configure_global(app_files: _AppFiles) -> None:
     toml.update(default_config)
     if app_files.global_config_file.is_file():
         while True:
-            with open(app_files.global_config_file, encoding="utf-8") as fin:
-                try:
-                    toml.load(fin)
-                    _shutil.copyfile(
-                        app_files.global_config_file,
+            try:
+                toml.loads(app_files.global_config_file.read_text())
+                _shutil.copyfile(
+                    app_files.global_config_file,
+                    app_files.global_config_file_backup,
+                )
+                break
+
+            except _toml_decoder.TomlDecodeError:
+                if app_files.global_config_file_backup.is_file():
+                    _os.rename(
                         app_files.global_config_file_backup,
+                        app_files.global_config_file,
                     )
+                else:
                     break
 
-                except _toml_decoder.TomlDecodeError:
-                    if app_files.global_config_file_backup.is_file():
-                        _os.rename(
-                            app_files.global_config_file_backup,
-                            app_files.global_config_file,
-                        )
-                    else:
-                        break
-
-    with open(app_files.global_config_file, "w", encoding="utf-8") as fout:
-        toml.dump(fout)
+    app_files.global_config_file.write_text(toml.dumps())
 
 
 def load_config(
