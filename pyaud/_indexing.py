@@ -5,6 +5,7 @@ pyaud._indexing
 from __future__ import annotations
 
 import typing as _t
+from types import TracebackType as _TracebackType
 
 from lsfiles import LSFiles as _LSFiles
 
@@ -21,7 +22,10 @@ class IndexedState:
         return self
 
     def __exit__(
-        self, exc_type: _t.Any, exc_val: _t.Any, exc_tb: _t.Any
+        self,
+        exc_type: _t.Optional[_t.Type[BaseException]],
+        exc_val: _t.Optional[BaseException],
+        exc_tb: _t.Optional[_TracebackType],
     ) -> None:
         if not self._restored:
             files.extend(self._index)

@@ -35,7 +35,7 @@ class _SubprocessFactory(  # pylint: disable=too-many-ancestors
 ):
     """Instantiate collection of ``Subprocess`` objects."""
 
-    def __init__(self, args: _t.List[str]):
+    def __init__(self, args: _t.List[str]) -> None:
         super().__init__()
         for arg in args:
             self[arg] = _Subprocess(arg)
@@ -85,7 +85,7 @@ class Plugin(_BasePlugin):  # pylint: disable=too-few-public-methods
         """List of executables to add to ``subprocess`` dict."""
         return []
 
-    def __call__(self, *args: str, **kwargs: bool) -> _t.Any:
+    def __call__(self, *args: str, **kwargs: bool) -> int:
         """Enables calling of all plugin instances."""
 
 
@@ -345,10 +345,13 @@ class Parametrize(Plugin):  # pylint: disable=too-few-public-methods
         :return: List of plugin names, as defined in ``@register``.
         """
 
-    def __call__(self, *args: str, **kwargs: bool) -> None:
+    def __call__(self, *args: str, **kwargs: bool) -> int:
         for name in self.plugins():
             _colors.cyan.bold.print(f"\n{_environ.NAME} {name}")
             _plugins[name](*args, **kwargs)
+
+        # all parametrized plugins will have succeeded to make it here
+        return 0
 
 
 class FixFile(Plugin):
@@ -423,7 +426,7 @@ class FixFile(Plugin):
 
 
 # array of plugins
-PLUGINS = [Audit, Fix, Action, Parametrize, FixFile]
+PLUGINS = [Audit, BaseFix, Fix, FixAll, Action, Parametrize, FixFile]
 
 # array of plugin names
 PLUGIN_NAMES = [t.__name__ for t in PLUGINS]
@@ -431,14 +434,18 @@ PLUGIN_NAMES = [t.__name__ for t in PLUGINS]
 # array of plugin types before instantiation
 PluginType = _t.Union[
     _t.Type[Audit],
+    _t.Type[BaseFix],
     _t.Type[Fix],
+    _t.Type[FixAll],
     _t.Type[Action],
     _t.Type[Parametrize],
     _t.Type[FixFile],
 ]
 
 # array of plugin types after instantiation
-PluginInstance = _t.Union[Audit, Fix, Action, Parametrize, FixFile]
+PluginInstance = _t.Union[
+    Audit, BaseFix, Fix, FixAll, Action, Parametrize, FixFile
+]
 
 
 class Plugins(_MutableMapping):  # pylint: disable=too-many-ancestors
@@ -489,7 +496,7 @@ def register(
     :return: Return registered plugin to call.
     """
 
-    def _register(plugin: PluginType):
+    def _register(plugin: PluginType) -> PluginType:
         _plugins[name or _name_plugin(plugin)] = plugin
         return plugin
 

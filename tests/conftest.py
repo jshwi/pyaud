@@ -14,7 +14,18 @@ import setuptools
 
 import pyaud
 
-from . import DEBUG, FILES, GH_EMAIL, GH_NAME, REPO, NoColorCapsys
+from . import (
+    DEBUG,
+    FILES,
+    GH_EMAIL,
+    GH_NAME,
+    REPO,
+    MakeTreeType,
+    MockCallStatusType,
+    MockFuncType,
+    MockMainType,
+    NoColorCapsys,
+)
 
 original_hash_mapping_match_file = pyaud.HashMapping.match_file
 original_hash_mapping_unpatched_hash_files = pyaud.HashMapping.hash_files
@@ -117,7 +128,7 @@ def fixture_nocolorcapsys(capsys: pytest.CaptureFixture) -> NoColorCapsys:
 
 
 @pytest.fixture(name="main")
-def fixture_main(monkeypatch: pytest.MonkeyPatch) -> t.Any:
+def fixture_main(monkeypatch: pytest.MonkeyPatch) -> MockMainType:
     """Pass patched commandline arguments to package's main function.
 
     :param monkeypatch: Mock patch environment and attributes.
@@ -137,7 +148,7 @@ def fixture_main(monkeypatch: pytest.MonkeyPatch) -> t.Any:
 
 
 @pytest.fixture(name="call_status")
-def fixture_call_status() -> t.Any:
+def fixture_call_status() -> MockCallStatusType:
     """Disable all usage of function apart from selected returncode.
 
     Useful for processes programmed to return a value for the function
@@ -146,8 +157,8 @@ def fixture_call_status() -> t.Any:
     :return: Function for using this fixture.
     """
 
-    def _call_status(module: str, returncode: int = 0) -> t.Any:
-        def _func(*_, **__) -> int:
+    def _call_status(module: str, returncode: int = 0) -> MockFuncType:
+        def _func(*_: str, **__: bool) -> int:
             return returncode
 
         _func.__name__ = module
@@ -157,7 +168,7 @@ def fixture_call_status() -> t.Any:
 
 
 @pytest.fixture(name="make_tree")
-def fixture_make_tree() -> t.Any:
+def fixture_make_tree() -> MakeTreeType:
     """Recursively create directory tree from dict mapping.
 
     :return: Function for using this fixture.

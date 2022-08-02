@@ -107,7 +107,7 @@ class Parser(_ArgumentParser):
         # pos argument following [modules] argument
         self.add_argument("pos", nargs="?", default=None, help=_SUPPRESS)
 
-    def _print_module_docs(self):
+    def _print_module_docs(self) -> None:
         # iterate over ``modules`` object to print documentation on
         # particular module or all modules, depending on argument passed
         # to commandline
@@ -127,7 +127,7 @@ class Parser(_ArgumentParser):
                     )
                 )
 
-    def _print_module_summary(self):
+    def _print_module_summary(self) -> None:
         # print summary of module use if no module is selected or an
         # invalid module name os provided
         _colors.yellow.print(
@@ -141,7 +141,7 @@ class Parser(_ArgumentParser):
             )
         )
 
-    def _print_err(self):
+    def _print_err(self) -> None:
         # announce selected module does not exist
         self._returncode = 0
         _colors.red.print(f"No such module: {self.args.pos}", file=_sys.stderr)

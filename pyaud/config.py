@@ -60,6 +60,7 @@ import toml.decoder as _toml_decoder
 # noinspection PyUnresolvedReferences
 import toml.encoder as _toml_encoder
 
+from . import _typing as _pt
 from ._environ import environ as _environ
 from ._objects import MutableMapping as _MutableMapping
 
@@ -117,7 +118,7 @@ class _TomlArrayEncoder(_toml_encoder.TomlEncoder):
     line limit.
     """
 
-    def dump_list(self, v: _t.Any) -> str:
+    def dump_list(self, v: _t.Iterable[object]) -> str:
         """Rule for dumping arrays.
 
         :param v: Array from toml file.
@@ -136,7 +137,7 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
 
     _encoder = _TomlArrayEncoder()
 
-    def _format_dump(self, obj: _t.Dict[str, _t.Any]) -> _t.Dict[str, _t.Any]:
+    def _format_dump(self, obj: _t.MutableMapping) -> _t.MutableMapping:
         for key, value in obj.items():
             if isinstance(value, dict):
                 value = self._format_dump(value)
@@ -174,7 +175,7 @@ class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
             encoder=self._encoder,
         )
 
-    def load(self, fin: _t.TextIO, *args: _t.Any) -> None:
+    def load(self, fin: _t.TextIO, *args: str) -> None:
         """Native ``load (from file)`` method.
 
         :param fin: File stream.
@@ -207,7 +208,7 @@ class TempEnvVar:
         return self
 
     def __exit__(
-        self, exc_type: _t.Any, exc_val: _t.Any, exc_tb: _t.Any
+        self, exc_type: _pt.Exc, exc_val: _pt.ExcVal, exc_tb: _pt.ExcTB
     ) -> None:
         for key, value in self._default.items():
             if value is None:

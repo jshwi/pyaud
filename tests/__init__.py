@@ -8,6 +8,8 @@ import re
 import typing as t
 from pathlib import Path
 
+import pytest
+
 import pyaud
 
 FILES: str = "file.py"
@@ -36,6 +38,22 @@ OS_GETCWD = "os.getcwd"
 WHITELIST_PY = "whitelist.py"
 COMMIT = "7c57dc943941566f47b9e7ee3208245d0bcd7656"
 
+MockMainType = t.Callable[..., None]
+MockFuncType = t.Callable[..., int]
+MakeTreeType = t.Callable[[Path, t.Dict[t.Any, t.Any]], None]
+FileHashDict = t.Dict[str, str]
+ClsDict = t.Dict[str, FileHashDict]
+CommitDict = t.Dict[str, ClsDict]
+CacheDict = t.Dict[str, CommitDict]
+CacheUnion = t.Union[CacheDict, CommitDict, ClsDict, FileHashDict]
+
+
+class MockCallStatusType(t.Protocol):  # pylint: disable=too-few-public-methods
+    """Type that mocks call status returns from functions."""
+
+    def __call__(self, module: str, returncode: int = ..., /) -> MockFuncType:
+        """Signature of type."""
+
 
 class NoColorCapsys:
     """Capsys but with a regex to remove ANSI escape codes.
@@ -50,7 +68,7 @@ class NoColorCapsys:
     :param capsys: Capture and return stdout and stderr stream.
     """
 
-    def __init__(self, capsys: t.Any) -> None:
+    def __init__(self, capsys: pytest.CaptureFixture) -> None:
         self.capsys = capsys
 
     @staticmethod
@@ -150,5 +168,5 @@ class StrategyMockPlugin(MockCachedPluginType):
     cache = True
     cache_all = False
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: str, **kwargs: bool) -> int:
         return 0

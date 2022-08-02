@@ -44,6 +44,9 @@ from . import (
     TYPE_ERROR,
     WARNING,
     WHITELIST_PY,
+    MakeTreeType,
+    MockCallStatusType,
+    MockMainType,
     NoColorCapsys,
     Tracker,
 )
@@ -76,7 +79,10 @@ def test_get_branch_initial_commit() -> None:
 @pytest.mark.parametrize("default", [CRITICAL, ERROR, WARNING, INFO, DEBUG])
 @pytest.mark.parametrize("flag", ["", "-v", "-vv", "-vvv", "-vvvv"])
 def test_loglevel(
-    monkeypatch: pytest.MonkeyPatch, main: t.Any, default: str, flag: str
+    monkeypatch: pytest.MonkeyPatch,
+    main: MockMainType,
+    default: str,
+    flag: str,
 ) -> None:
     """Test the right loglevel is set when parsing the commandline.
 
@@ -111,9 +117,9 @@ def test_loglevel(
     )
 
 
-def test_del_key_in_context():
+def test_del_key_in_context() -> None:
     """Confirm there is no error raised when deleting temp key-value."""
-    obj = {}
+    obj: t.Dict[str, str] = {}
     # noinspection PyProtectedMember
     with pyaud.config.TempEnvVar(  # pylint: disable=protected-access
         obj, key="value"
@@ -153,7 +159,7 @@ def test_del_key_in_context():
 )
 def test_help(
     monkeypatch: pytest.MonkeyPatch,
-    main: t.Any,
+    main: MockMainType,
     nocolorcapsys: NoColorCapsys,
     arg: str,
     index: int,
@@ -518,7 +524,7 @@ def test_plugin_assign_non_type_key() -> None:
     assert TYPE_ERROR in str(err.value)
 
 
-def test_files_populate_proc(make_tree: t.Any) -> None:
+def test_files_populate_proc(make_tree: MakeTreeType) -> None:
     """Test that populating an index is quicker when there are commits.
 
     Once there is a committed index we can index the paths from the
@@ -626,7 +632,7 @@ def test_get_packages(
 
 
 def test_get_subpackages(
-    monkeypatch: pytest.MonkeyPatch, make_tree: t.Any
+    monkeypatch: pytest.MonkeyPatch, make_tree: MakeTreeType
 ) -> None:
     """Test process when searching for project's package.
 
@@ -664,7 +670,7 @@ def test_get_subpackages(
     assert pyaud.get_packages() == ["repo"]
 
 
-def test_exclude_loads_at_main(main: t.Any) -> None:
+def test_exclude_loads_at_main(main: MockMainType) -> None:
     """Confirm project config is loaded with ``main``.
 
     :param main: Patch package entry point.
@@ -695,7 +701,7 @@ def test_exclude_loads_at_main(main: t.Any) -> None:
     assert "project" in pyaud.config.toml["indexing"]["exclude"]
 
 
-def test_exclude(make_tree: t.Any) -> None:
+def test_exclude(make_tree: MakeTreeType) -> None:
     """Test exclusions and inclusions with toml config.
 
     :param make_tree: Create directory tree from dict mapping.
@@ -808,7 +814,9 @@ def test_get_plugin_logger() -> None:
 
 
 def test_print_version(
-    monkeypatch: pytest.MonkeyPatch, main: t.Any, nocolorcapsys: NoColorCapsys
+    monkeypatch: pytest.MonkeyPatch,
+    main: MockMainType,
+    nocolorcapsys: NoColorCapsys,
 ) -> None:
     """Test printing of version on commandline.
 
@@ -825,7 +833,7 @@ def test_print_version(
     assert out == "1.0.0"
 
 
-def test_no_request(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
+def test_no_request(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     """Test continuation of regular ``argparse`` process.
 
     If ``IndexError`` is not captured with
@@ -884,7 +892,7 @@ def test_working_tree_clean(
     assert not pyaud._utils.working_tree_clean()
 
 
-def test_time_output(main: t.Any, nocolorcapsys: t.Any) -> None:
+def test_time_output(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     """Test tracking of durations in output.
 
     :param main: Patch package entry point.
@@ -941,7 +949,9 @@ def test_plugin_deepcopy_with_new() -> None:
     )
 
 
-def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
+def test_nested_times(
+    monkeypatch: pytest.MonkeyPatch, main: MockMainType
+) -> None:
     """Test reading and writing of times within nested processes.
 
     :param monkeypatch: Mock patch environment and attributes.
@@ -994,7 +1004,7 @@ def test_nested_times(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
     assert all(i in actual for i in expected)
 
 
-def test_del_key_config_runtime(main: t.Any) -> None:
+def test_del_key_config_runtime(main: MockMainType) -> None:
     """Test a key can be removed and will be replaced if essential.
 
     :param main: Patch package entry point.
@@ -1099,7 +1109,9 @@ def test_command_not_found_error() -> None:
         exe()
 
 
-def test_warn_no_fix(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
+def test_warn_no_fix(
+    monkeypatch: pytest.MonkeyPatch, main: MockMainType
+) -> None:
     """Test error when audit fails and cannot be fixed.
 
     :param monkeypatch: Mock patch environment and attributes.
@@ -1128,7 +1140,7 @@ def test_warn_no_fix(monkeypatch: pytest.MonkeyPatch, main: t.Any) -> None:
 
 @pytest.mark.usefixtures("register_plugin")
 def test_check_command_no_files_found(
-    main: t.Any, nocolorcapsys: NoColorCapsys
+    main: MockMainType, nocolorcapsys: NoColorCapsys
 ) -> None:
     """Test plugin output when no files are found.
 
@@ -1143,10 +1155,10 @@ def test_check_command_no_files_found(
 
 @pytest.mark.usefixtures("register_plugin")
 def test_check_command_fail_on_suppress(
-    main: t.Any,
+    main: MockMainType,
     monkeypatch: pytest.MonkeyPatch,
     nocolorcapsys: NoColorCapsys,
-    make_tree: t.Any,
+    make_tree: MakeTreeType,
 ) -> None:
     """Test plugin output when process fails while crash suppressed.
 
@@ -1165,7 +1177,7 @@ def test_check_command_fail_on_suppress(
 
 
 def test_audit_error_did_no_pass_all_checks(
-    main: t.Any, monkeypatch: pytest.MonkeyPatch
+    main: MockMainType, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Test raising of ``AuditError``.
 
@@ -1254,7 +1266,7 @@ def test_no_exe_provided(monkeypatch: pytest.MonkeyPatch) -> None:
     ids=["no-exclude", "exclude"],
 )
 def test_clean_exclude(
-    main: t.Any,
+    main: MockMainType,
     nocolorcapsys: NoColorCapsys,
     exclude: t.List[str],
     expected: str,
@@ -1301,8 +1313,8 @@ def test_make_generate_rcfile(nocolorcapsys: NoColorCapsys) -> None:
 def test_audit_modules(
     monkeypatch: pytest.MonkeyPatch,
     nocolorcapsys: NoColorCapsys,
-    main: t.Any,
-    call_status: t.Any,
+    main: MockMainType,
+    call_status: MockCallStatusType,
     args: t.List[str],
     add: t.List[str],
     first: str,
@@ -1354,7 +1366,7 @@ def test_environ_repo() -> None:
     ids=["no-pos", "module", "all-modules"],
 )
 def test_help_with_plugins(
-    main: t.Any,
+    main: MockMainType,
     nocolorcapsys: NoColorCapsys,
     arg: str,
     expected: t.Tuple[str, ...],
@@ -1380,10 +1392,10 @@ def test_help_with_plugins(
 
 @pytest.mark.usefixtures("register_plugin", "unpatch_register_default_plugins")
 def test_suppress(
-    main: t.Any,
+    main: MockMainType,
     monkeypatch: pytest.MonkeyPatch,
     nocolorcapsys: NoColorCapsys,
-    make_tree: t.Any,
+    make_tree: MakeTreeType,
 ) -> None:
     """Test that audit proceeds through errors with ``--suppress``.
 
@@ -1409,7 +1421,7 @@ def test_suppress(
 
 
 # noinspection PyUnusedLocal
-def test_parametrize(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
+def test_parametrize(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     """Test class for running multiple plugins.
 
     :param main: Patch package entry point.
@@ -1449,7 +1461,7 @@ def test_parametrize(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
 
 
 # noinspection PyUnusedLocal
-def test_fix_on_pass(main: t.Any) -> None:
+def test_fix_on_pass(main: MockMainType) -> None:
     """Test plugin on pass when using the fix class.
 
     :param main: Patch package entry point.
@@ -1471,7 +1483,7 @@ def test_fix_on_pass(main: t.Any) -> None:
 
 
 # noinspection PyUnusedLocal
-def test_fix_on_fail(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
+def test_fix_on_fail(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     """Test plugin on fail when using the fix class.
 
     :param main: Patch package entry point.
@@ -1494,7 +1506,9 @@ def test_fix_on_fail(main: t.Any, nocolorcapsys: NoColorCapsys) -> None:
 
 
 @pytest.mark.usefixtures("unpatch_plugins_load")
-def test_imports(monkeypatch: pytest.MonkeyPatch, make_tree: t.Any) -> None:
+def test_imports(
+    monkeypatch: pytest.MonkeyPatch, make_tree: MakeTreeType
+) -> None:
     """Test imports from relative plugin dir.
 
     :param monkeypatch: Mock patch environment and attributes.

@@ -57,7 +57,7 @@ class Environ(_Env):
             return self.bool("TIMED", default=False)
 
     @property
-    def FIX(self):
+    def FIX(self) -> bool:
         """Set ``fix`` to True without needing to pass arg."""
         with self.prefixed(self.PREFIX):
             return self.bool("FIX", default=False)
