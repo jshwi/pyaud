@@ -29,12 +29,10 @@ class Parser(_ArgumentParser):
     If a valid positional argument has been called and ``SystemExit``
     has not been raised by the ``ArgumentParser`` help method then
     assign the chosen function to ``function`` to be called in ``main``.
-
-    :param prog: Name of the program.
     """
 
-    def __init__(self, prog: str) -> None:
-        super().__init__(prog=prog)
+    def __init__(self) -> None:
+        super().__init__(prog=_colors.cyan.get(_NAME))
         self._mapping = _plugins.mapping()
         self._registered = _plugins.registered()
         self._returncode = 0

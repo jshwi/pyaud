@@ -13,9 +13,7 @@ from . import plugins as _plugins
 from ._cli import Parser as _Parser
 from ._default import register_default_plugins as _register_default_plugins
 from ._indexing import files as _files
-from ._locations import NAME as _NAME
 from ._locations import AppFiles as _AppFiles
-from ._utils import colors as _colors
 from .config import configure_global as _configure_global
 
 
@@ -29,7 +27,7 @@ def main() -> None:
     _configure_global(app_files)
     _register_default_plugins()
     _plugins.load()
-    parser = _Parser(_colors.cyan.get(_NAME))
+    parser = _Parser()
     _data.read(_data.record, app_files.durations_file)
     _config.load_config(app_files, parser.args.rcfile)
     _config.configure_logging(parser.args.verbose)
