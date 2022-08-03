@@ -4,6 +4,7 @@ tests
 
 Test package for ``pyaud``.
 """
+# pylint: disable=too-few-public-methods
 import re
 import typing as t
 from pathlib import Path
@@ -86,7 +87,7 @@ CacheDict = t.Dict[str, CommitDict]
 CacheUnion = t.Union[CacheDict, CommitDict, ClsDict, FileHashDict]
 
 
-class MockCallStatusType(t.Protocol):  # pylint: disable=too-few-public-methods
+class MockCallStatusType(t.Protocol):
     """Type that mocks call status returns from functions."""
 
     def __call__(self, module: str, returncode: int = ..., /) -> MockFuncType:
@@ -130,9 +131,7 @@ class NoColorCapsys:
         :return: A tuple (just like the capsys) containing stdout in the
             first index and stderr in the second
         """
-        return tuple(  # pylint: disable=consider-using-generator
-            [self._regex(r) for r in self.capsys.readouterr()]
-        )
+        return tuple(self._regex(r) for r in self.capsys.readouterr())
 
     def stdout(self) -> str:
         """Return stdout without referencing the tuple indices.
@@ -159,7 +158,7 @@ class MockCachedPluginType(MockPluginType):
     cache = True
 
 
-class Tracker:  # pylint: disable=too-few-public-methods
+class Tracker:
     """Track calls in mocked functions."""
 
     def __init__(self) -> None:

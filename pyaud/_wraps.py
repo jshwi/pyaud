@@ -20,7 +20,7 @@ from ._objects import BasePlugin as _BasePlugin
 from ._utils import colors as _colors
 
 
-class CheckCommand:  # pylint: disable=too-few-public-methods
+class CheckCommand:
     """Decorate callable with status of completion."""
 
     @staticmethod

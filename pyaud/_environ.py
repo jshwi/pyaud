@@ -4,7 +4,7 @@ pyaud.environ
 
 Set up the environment variables for the current project.
 """
-# pylint: disable=invalid-name,too-many-public-methods
+# pylint: disable=invalid-name
 from environs import Env as _Env
 
 from ._locations import NAME as _NAME

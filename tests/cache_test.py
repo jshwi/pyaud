@@ -2,8 +2,8 @@
 tests.cache_test
 ================
 """
-# pylint: disable=protected-access,too-few-public-methods,no-member
-# pylint: disable=too-many-arguments,too-many-statements,invalid-name
+# pylint: disable=protected-access,too-few-public-methods,too-many-arguments
+# pylint: disable=too-many-statements,invalid-name
 import copy
 import json
 import os
@@ -43,7 +43,7 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: MockMainType) -> None:
     :param main: Patch package entry point.
     """
 
-    class Plugin(pyaud.plugins.Action):  # pylint: disable=unused-variable
+    class Plugin(pyaud.plugins.Action):
         """Nothing to do."""
 
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:

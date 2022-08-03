@@ -2,8 +2,8 @@
 tests._test
 ===========
 """
-# pylint: disable=too-many-lines,too-many-arguments,cell-var-from-loop
-# pylint: disable=too-few-public-methods,unused-variable,protected-access
+# pylint: disable=too-many-lines,too-many-arguments,too-few-public-methods
+# pylint: disable=protected-access
 import copy
 import datetime
 import json
@@ -698,7 +698,7 @@ def test_audit_error_did_no_pass_all_checks(
     :param monkeypatch: Mock patch environment and attributes.
     """
 
-    class Plugin(pyaud.plugins.Action):  # pylint: disable=unused-variable
+    class Plugin(pyaud.plugins.Action):
         """Nothing to do."""
 
         not_used = "not-used"
@@ -928,9 +928,7 @@ def test_parametrize(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
-    class _Params(  # pylint: disable=too-few-public-methods
-        pyaud.plugins.Parametrize
-    ):
+    class _Params(pyaud.plugins.Parametrize):
         def plugins(self) -> t.List[str]:
             """List of plugin names to run.
 

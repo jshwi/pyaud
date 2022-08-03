@@ -104,7 +104,7 @@ DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
 )
 
 
-class _Toml(_MutableMapping):  # pylint: disable=too-many-ancestors
+class _Toml(_MutableMapping):
     """Base class for all ``toml`` object interaction."""
 
     def dumps(self, __obj: _t.Optional[_t.Dict[str, _t.Any]] = None) -> str:

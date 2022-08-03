@@ -90,7 +90,7 @@ def test_loglevel(
 def test_del_key_in_context() -> None:
     """Confirm there is no error raised when deleting temp key-value."""
     obj: t.Dict[str, str] = {}
-    with pc.TempEnvVar(obj, key=VALUE):  # pylint: disable=protected-access
+    with pc.TempEnvVar(obj, key=VALUE):
         assert obj[KEY] == VALUE
         del obj[KEY]
 
@@ -336,7 +336,7 @@ def test_exclude_loads_at_main(
     default_config = copy.deepcopy(pc.DEFAULT_CONFIG)
     project_config = copy.deepcopy(default_config)
     project_config[INDEXING][EXCLUDE].append(PROJECT)
-    test_project_toml_object = pc._Toml()  # pylint: disable=protected-access
+    test_project_toml_object = pc._Toml()
     test_project_toml_object.update(project_config)
     app_files.project_config_file.write_text(test_project_toml_object.dumps())
     assert PROJECT not in pc.toml[INDEXING][EXCLUDE]
@@ -382,9 +382,7 @@ def test_filter_logging_config_kwargs(app_files: AppFiles) -> None:
 def test_default_key() -> None:
     """Test setting and restoring of existing dict keys."""
     obj = {DEFAULT_KEY: "default_value"}
-    with pc.TempEnvVar(  # pylint: disable=protected-access
-        obj, default_key="temp_value"
-    ):
+    with pc.TempEnvVar(obj, default_key="temp_value"):
         assert obj[DEFAULT_KEY] == "temp_value"
 
     assert obj[DEFAULT_KEY] == "default_value"

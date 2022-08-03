@@ -13,9 +13,7 @@ _VT = _t.TypeVar("_VT")
 _T_co = _t.TypeVar("_T_co", covariant=True)
 
 
-class MutableMapping(  # pylint: disable=too-many-ancestors
-    _t.MutableMapping[_KT, _VT]
-):
+class MutableMapping(_t.MutableMapping[_KT, _VT]):
     """Inherit to replicate subclassing of ``dict`` objects."""
 
     def __init__(self) -> None:
