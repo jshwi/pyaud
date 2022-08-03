@@ -552,7 +552,7 @@ def test_get_packages(
     # search for only package
     # =======================
     make_tree(Path.cwd(), {"first_package": {INIT: None}})
-    assert pyaud.get_packages() == ["first_package"]
+    assert pyaud._utils.get_packages() == ["first_package"]
     assert pyaud.package() == "first_package"
 
     # search for ambiguous package
@@ -561,7 +561,7 @@ def test_get_packages(
         Path.cwd(),
         {"second_package": {INIT: None}, "third_package": {INIT: None}},
     )
-    assert pyaud.get_packages() == [
+    assert pyaud._utils.get_packages() == [
         "first_package",
         "second_package",
         "third_package",
@@ -571,7 +571,7 @@ def test_get_packages(
     # search for package with the same name as repo
     # =============================================
     make_tree(Path.cwd(), {"repo": {INIT: None}})
-    assert pyaud.get_packages() == [
+    assert pyaud._utils.get_packages() == [
         "first_package",
         "repo",
         "second_package",
@@ -621,7 +621,7 @@ def test_get_subpackages(
 
     # assert no dot separated packages are returned and that only the
     # parent packages name is returned
-    assert pyaud.get_packages() == ["repo"]
+    assert pyaud._utils.get_packages() == ["repo"]
 
 
 def test_exclude_loads_at_main(
