@@ -992,39 +992,6 @@ def test_del_key_config_runtime(
     assert "filename" in pyaud.config.toml["logging"]["handlers"]["default"]
 
 
-@pytest.mark.parametrize("temp,expected", [(True, False), (False, True)])
-def test_call_m2r_on_markdown(
-    monkeypatch: pytest.MonkeyPatch, temp: bool, expected: bool
-) -> None:
-    """Test creation of an RST README when only markdown is present.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    :param temp: Is the RST file temporary? True or False.
-    :param expected: Expected value of ``Path(...).is_file``.
-    """
-
-    # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin")
-    class Plugin(pyaud.plugins.Action):
-        """Nothing to do."""
-
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            """Nothing to do."""
-
-    old_path = Path.cwd() / "README.md"
-    new_path = Path.cwd() / "README.rst"
-    old_path.touch()
-    tracker = Tracker()
-    tracker.return_values.append("rst text")
-    monkeypatch.setattr("pyaud.parsers._m2r.parse_from_file", tracker)
-    with pyaud.parsers.Md2Rst(old_path, temp=temp):
-        # do stuff here
-        pass
-
-    assert tracker
-    assert new_path.is_file() == expected
-
-
 def test_command_not_found_error() -> None:
     """Test ``CommandNotFoundError`` warning with ``Subprocess``."""
     # noinspection PyUnusedLocal
@@ -1144,27 +1111,6 @@ def test_audit_error_did_no_pass_all_checks(
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
     with pytest.raises(pyaud.exceptions.AuditError):
         main("plugin")
-
-
-def test_readme_replace() -> None:
-    """Test that ``LineSwitch`` properly edits a file."""
-    path = Path.cwd() / README
-
-    def _test_file_index(title: str, underline: str) -> None:
-        lines = path.read_text().splitlines()
-        assert lines[0] == title
-        assert lines[1] == len(underline) * "="
-
-    repo = "repo"
-    readme = "README"
-    repo_underline = len(repo) * "="
-    readme_underline = len(readme) * "="
-    path.write_text(f"{repo}\n{repo_underline}\n")
-    _test_file_index(repo, repo_underline)
-    with pyaud.parsers.LineSwitch(path, {0: readme, 1: readme_underline}):
-        _test_file_index(readme, readme_underline)
-
-    _test_file_index(repo, repo_underline)
 
 
 def test_no_exe_provided(monkeypatch: pytest.MonkeyPatch) -> None:

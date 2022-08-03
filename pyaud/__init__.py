@@ -1,5 +1,5 @@
 """Framework for writing Python package audits."""
-from . import config, exceptions, parsers, plugins
+from . import config, exceptions, plugins
 from ._cache import HashMapping
 from ._default import register_default_plugins
 from ._environ import Environ, environ
@@ -29,7 +29,6 @@ __all__ = [
     "git",
     "main",
     "package",
-    "parsers",
     "plugins",
     "register_default_plugins",
     "working_tree_clean",
