@@ -28,8 +28,12 @@ from . import (
     NoColorCapsys,
 )
 
-original_hash_mapping_match_file = pyaud.HashMapping.match_file
-original_hash_mapping_unpatched_hash_files = pyaud.HashMapping.hash_files
+# noinspection PyUnresolvedReferences,PyProtectedMember
+original_hash_mapping_match_file = pyaud._cache.HashMapping.match_file
+# noinspection PyUnresolvedReferences,PyProtectedMember
+original_hash_mapping_unpatched_hash_files = (
+    pyaud._cache.HashMapping.hash_files
+)
 original_pyaud_plugin_load = pyaud.plugins.load
 original_pyaud_main_register_default_plugins = pyaud.register_default_plugins
 original_setuptools_find_packages = setuptools.find_packages
