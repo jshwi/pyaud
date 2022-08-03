@@ -2,7 +2,6 @@
 from . import config, exceptions, plugins
 from ._environ import environ
 from ._indexing import files
-from ._main import main
 from ._objects import BasePlugin
 from ._utils import (
     get_commit_hash,
@@ -23,7 +22,6 @@ __all__ = [
     "get_commit_hash",
     "get_packages",
     "git",
-    "main",
     "package",
     "plugins",
     "working_tree_clean",
