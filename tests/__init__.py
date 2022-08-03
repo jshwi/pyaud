@@ -8,35 +8,71 @@ import re
 import typing as t
 from pathlib import Path
 
-import pytest
 from gitspy import Git
+from templatest.utils import VarSeq
 
 import pyaud
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 from pyaud._locations import AppFiles
 
-FILES: str = "file.py"
-REPO = "repo"
-GH_NAME = "test_user"
-GH_EMAIL = "test_email.com"
-INIT = "__init__.py"
+PACKAGE = VarSeq("package", suffix="-")
+PLUGIN_NAME = VarSeq("plugin", suffix="-")
+
+AUDIT = "audit"
+CLEAN = "clean"
+COMMIT = "7c57dc943941566f47b9e7ee3208245d0bcd7656"
 CONFPY = "conf.py"
 LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
-DEBUG = LEVELS[0]
-INFO = LEVELS[1]
-WARNING = LEVELS[2]
-ERROR = LEVELS[3]
 CRITICAL = LEVELS[4]
-SP_OPEN_PROC = "spall.Subprocess._open_process"
-README = Path("README.rst")
-PYAUD_PLUGINS_PLUGINS = "pyaud.plugins._plugins"
-TYPE_ERROR = "can only register one of the following:"
+DEBUG = LEVELS[0]
+DEFAULT = "default"
+DEFAULT_KEY = "default_key"
+DOCS = "docs"
+ERROR = LEVELS[3]
+EXCLUDE = "exclude"
+FILE = "file.py"
+FILENAME = "filename"
+FILES = "files"
+FIX = "fix"
+FIXER = "fixer"
+FIX_ALL = "fix-all"
+FIX_FILE = "fix-file"
+FORMAT = "format"
+FORMAT_DOCS = "format-docs"
+GH_EMAIL = "test_email.com"
+GH_NAME = "test_user"
 GITIGNORE = ".gitignore"
-PYAUD_FILES_POPULATE = "pyaud.files.populate"
+HANDLERS = "handlers"
+INDEXING = "indexing"
+INFO = LEVELS[1]
+INIT = "__init__.py"
+INITIAL_COMMIT = "Initial commit"
+KEY = "key"
+LEVEL = "level"
+LINT = "lint"
+LOGGING = "logging"
+MODULE = "module"
+MODULES = "modules"
+NO_ISSUES = "Success: no issues found in 1 source files"
 OS_GETCWD = "os.getcwd"
+PROJECT = "project"
+PYAUD_FILES_POPULATE = "pyaud.files.populate"
+PYAUD_PLUGINS_PLUGINS = "pyaud.plugins._plugins"
+README = "README.rst"
+REGISTER_PLUGIN = "register_plugin"
+REPO = "repo"
+ROOT = "root"
+SP_OPEN_PROC = "spall.Subprocess._open_process"
+SRC = "src"
+TESTS = "tests"
+TYPE_ERROR = "can only register one of the following:"
+UNPATCH_REGISTER_DEFAULT_PLUGINS = "unpatch_register_default_plugins"
+VALUE = "value"
+VERSION = "version"
+WARNING = LEVELS[2]
 WHITELIST_PY = "whitelist.py"
-COMMIT = "7c57dc943941566f47b9e7ee3208245d0bcd7656"
+
 
 git = Git()
 
@@ -70,7 +106,7 @@ class NoColorCapsys:
     :param capsys: Capture and return stdout and stderr stream.
     """
 
-    def __init__(self, capsys: pytest.CaptureFixture) -> None:
+    def __init__(self, capsys: t.Any) -> None:
         self.capsys = capsys
 
     @staticmethod
@@ -165,5 +201,5 @@ class StrategyMockPlugin(MockCachedPluginType):
     cache = True
     cache_all = False
 
-    def __call__(self, *args: str, **kwargs: bool) -> int:
+    def __call__(self, *args, **kwargs):
         return 0

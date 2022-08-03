@@ -22,10 +22,21 @@ from pyaud import _default
 
 from . import (
     DEBUG,
-    FILES,
+    DEFAULT,
+    FILE,
+    FILENAME,
     GH_EMAIL,
     GH_NAME,
+    HANDLERS,
+    LEVEL,
+    LOGGING,
+    OS_GETCWD,
+    PLUGIN_NAME,
+    PYAUD_PLUGINS_PLUGINS,
+    REGISTER_PLUGIN,
     REPO,
+    ROOT,
+    UNPATCH_REGISTER_DEFAULT_PLUGINS,
     AppFiles,
     MakeTreeType,
     MockCallStatusType,
@@ -80,8 +91,8 @@ def fixture_mock_environment(
     #: CONFIG
     default_config = dict(pc.DEFAULT_CONFIG)
     logfile = Path(home / ".cache" / name / "log" / f"{name}.log")
-    default_config["logging"]["handlers"]["default"]["filename"] = str(logfile)
-    default_config["logging"]["root"]["level"] = DEBUG
+    default_config[LOGGING][HANDLERS][DEFAULT][FILENAME] = str(logfile)
+    default_config[LOGGING][ROOT][LEVEL] = DEBUG
 
     #: DOTENV - prevents lookup of .env file
     current_frame = type("current_frame", (), {})
@@ -111,7 +122,7 @@ def fixture_mock_environment(
     monkeypatch.setenv("PYAUD_FIX", "0")
 
     #: ATTRS
-    monkeypatch.setattr("os.getcwd", lambda: str(repo_abs))
+    monkeypatch.setattr(OS_GETCWD, lambda: str(repo_abs))
     monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [REPO])
     monkeypatch.setattr("inspect.currentframe", lambda: current_frame)
     monkeypatch.setattr("pyaud._config.DEFAULT_CONFIG", default_config)
@@ -121,7 +132,7 @@ def fixture_mock_environment(
         "pyaud._cache.HashMapping.match_file", lambda *_: False
     )
     monkeypatch.setattr("pyaud._cache.HashMapping.hash_files", lambda _: None)
-    monkeypatch.setattr("pyaud.plugins._plugins", pyaud.plugins.Plugins())
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, pyaud.plugins.Plugins())
     monkeypatch.setattr("pyaud.plugins.load", lambda: None)
     monkeypatch.setattr("pyaud._main._register_default_plugins", lambda: None)
 
@@ -253,7 +264,7 @@ def fixture_unpatch_plugins_load(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("pyaud.plugins.load", original_pyaud_plugin_load)
 
 
-@pytest.fixture(name="unpatch_register_default_plugins")
+@pytest.fixture(name=UNPATCH_REGISTER_DEFAULT_PLUGINS)
 def fixture_unpatch_register_default_plugins(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -280,7 +291,7 @@ def fixture_unpatch_setuptools_find_packages(
     )
 
 
-@pytest.fixture(name="register_plugin")
+@pytest.fixture(name=REGISTER_PLUGIN)
 def fixture_register_plugin() -> pyaud.plugins.PluginType:
     """Register a plugin.
 
@@ -288,7 +299,7 @@ def fixture_register_plugin() -> pyaud.plugins.PluginType:
     """
 
     # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin")
+    @pyaud.plugins.register(name=PLUGIN_NAME[1])
     class Plugin(pyaud.plugins.Action):  # pylint: disable=unused-variable
         """Nothing to do."""
 
@@ -312,4 +323,4 @@ def fixture_register_plugin() -> pyaud.plugins.PluginType:
 @pytest.fixture(name="bump_index")
 def fixture_bump_index() -> None:
     """Add a dummy file to the ``pyaud.files`` index."""
-    pyaud.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILE)

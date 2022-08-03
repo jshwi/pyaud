@@ -15,9 +15,13 @@ import pytest
 import pyaud
 
 from . import (
+    FILE,
     FILES,
     INIT,
+    PLUGIN_NAME,
     REPO,
+    TESTS,
+    WHITELIST_PY,
     AppFiles,
     CacheDict,
     CacheUnion,
@@ -40,7 +44,7 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: MockMainType) -> None:
     """
 
     # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin")
+    @pyaud.plugins.register(name=PLUGIN_NAME[1])
     class Plugin(pyaud.plugins.Action):  # pylint: disable=unused-variable
         """Nothing to do."""
 
@@ -58,7 +62,7 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: MockMainType) -> None:
     monkeypatch.setattr(
         "pyaud._cache.HashMapping.write", lambda *_: save_cache
     )
-    main("plugin", "--no-cache")
+    main(PLUGIN_NAME[1], "--no-cache")
     assert match_parent.was_called() is False
     assert match_file.was_called() is False
     assert remove.was_called() is False
@@ -173,7 +177,7 @@ class TestCacheStrategy:
     ) -> type:
         monkeypatch.setattr("pyaud._cache._get_commit_hash", lambda: self.C[c])
         monkeypatch.setattr("pyaud._cache._working_tree_clean", lambda: clean)
-        attr = "file" if single_file else "files"
+        attr = "file" if single_file else FILES
         check = getattr(pyaud._wraps.CheckCommand, attr)
         strat = copy.deepcopy(StrategyMockPlugin)
         strat.cache_all = cache_all
@@ -212,12 +216,12 @@ class TestCacheStrategy:
             Path.cwd() / REPO / "__main__.py",
             Path.cwd() / REPO / "_version.py",
             Path.cwd() / REPO / INIT,
-            Path.cwd() / REPO / FILES,
+            Path.cwd() / REPO / FILE,
             Path.cwd() / "plugins" / INIT,
-            Path.cwd() / "plugins" / FILES,
-            Path.cwd() / "tests" / INIT,
-            Path.cwd() / "tests" / "_test.py",
-            Path.cwd() / "tests" / "conftest.py",
+            Path.cwd() / "plugins" / FILE,
+            Path.cwd() / TESTS / INIT,
+            Path.cwd() / TESTS / "_test.py",
+            Path.cwd() / TESTS / "conftest.py",
         )
 
         #: FILES & HASHES
@@ -396,7 +400,7 @@ class TestCacheStrategy:
             color codes.
         """
         expected_1 = "Success: no issues found in file"
-        path = Path.cwd() / "whitelist.py"
+        path = Path.cwd() / WHITELIST_PY
 
         class _Fix(pyaud.plugins.Fix):
             cache_file = path

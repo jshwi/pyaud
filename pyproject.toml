@@ -69,6 +69,7 @@ pytest-sugar = "^0.9.5"
 pytest-xdist = "^2.5.0"
 restview = "^3.0.0"
 sphinx-toolbox = "^3.1.2"
+templatest = "^0.5.0"
 
 [tool.poetry.scripts]
 pyaud = "pyaud.__main__:main"

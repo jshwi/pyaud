@@ -25,22 +25,53 @@ import pyaud
 import pyaud._config as pc
 
 from . import (
+    AUDIT,
+    CLEAN,
     COMMIT,
     CONFPY,
     CRITICAL,
     DEBUG,
+    DEFAULT,
+    DEFAULT_KEY,
+    DOCS,
     ERROR,
+    EXCLUDE,
+    FILE,
+    FILENAME,
     FILES,
+    FIXER,
+    FORMAT,
+    FORMAT_DOCS,
     GITIGNORE,
+    HANDLERS,
+    INDEXING,
     INFO,
     INIT,
+    INITIAL_COMMIT,
+    KEY,
+    LEVEL,
+    LINT,
+    LOGGING,
+    MODULE,
+    MODULES,
+    NO_ISSUES,
     OS_GETCWD,
+    PACKAGE,
+    PLUGIN_NAME,
+    PROJECT,
     PYAUD_FILES_POPULATE,
     PYAUD_PLUGINS_PLUGINS,
     README,
+    REGISTER_PLUGIN,
     REPO,
+    ROOT,
     SP_OPEN_PROC,
+    SRC,
+    TESTS,
     TYPE_ERROR,
+    UNPATCH_REGISTER_DEFAULT_PLUGINS,
+    VALUE,
+    VERSION,
     WARNING,
     WHITELIST_PY,
     AppFiles,
@@ -53,7 +84,7 @@ from . import (
 )
 
 
-@pytest.mark.parametrize("default", [CRITICAL, ERROR, WARNING, INFO, DEBUG])
+@pytest.mark.parametrize(DEFAULT, [CRITICAL, ERROR, WARNING, INFO, DEBUG])
 @pytest.mark.parametrize("flag", ["", "-v", "-vv", "-vvv", "-vvvv"])
 def test_loglevel(
     monkeypatch: pytest.MonkeyPatch,
@@ -77,15 +108,13 @@ def test_loglevel(
         "-vvv": [INFO, DEBUG, DEBUG, DEBUG, DEBUG],
         "-vvvv": [DEBUG, DEBUG, DEBUG, DEBUG, DEBUG],
     }
-    pc.toml["logging"]["root"]["level"] = default
+    pc.toml[LOGGING][ROOT][LEVEL] = default
     app_files.global_config_file.write_text(pc.toml.dumps())
 
     # dummy call to non-existing plugin to evaluate multiple -v
     # arguments
-    monkeypatch.setattr(
-        PYAUD_PLUGINS_PLUGINS, {"module": lambda *_, **__: None}
-    )
-    main("module", flag)
+    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, {MODULE: lambda *_, **__: None})
+    main(MODULE, flag)
     assert (
         logging.getLevelName(logging.root.level)
         == levels[flag][levels[""].index(default)]
@@ -96,12 +125,12 @@ def test_del_key_in_context() -> None:
     """Confirm there is no error raised when deleting temp key-value."""
     obj: t.Dict[str, str] = {}
     # noinspection PyProtectedMember
-    with pc.TempEnvVar(obj, key="value"):  # pylint: disable=protected-access
-        assert obj["key"] == "value"
-        del obj["key"]
+    with pc.TempEnvVar(obj, key=VALUE):  # pylint: disable=protected-access
+        assert obj[KEY] == VALUE
+        del obj[KEY]
 
 
-@pytest.mark.usefixtures("unpatch_register_default_plugins")
+@pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
 @pytest.mark.parametrize(
     "arg,index,expected",
     [
@@ -157,7 +186,7 @@ def test_help(
     """
     monkeypatch.setattr("pyaud.plugins.load", lambda: None)
     with pytest.raises(SystemExit):
-        main("modules", arg)
+        main(MODULES, arg)
 
     # index 0 returns stdout from ``readouterr`` and 1 returns stderr
     out = nocolorcapsys.readouterr()[index]
@@ -168,13 +197,13 @@ def test_mapping_class() -> None:
     """Get coverage on ``Mapping`` abstract methods."""
     pc.toml.clear()
     assert repr(pc.toml) == "<_Toml {}>"
-    pc.toml.update({"key": "value"})
+    pc.toml.update({KEY: VALUE})
     assert len(pc.toml) == 1
     for key in pc.toml:
-        assert key == "key"
+        assert key == KEY
 
-    del pc.toml["key"]
-    assert "key" not in pc.toml
+    del pc.toml[KEY]
+    assert KEY not in pc.toml
 
 
 def test_toml(app_files: AppFiles) -> None:
@@ -197,11 +226,11 @@ def test_toml(app_files: AppFiles) -> None:
     # =============================
     # preserve the test default config
     home_rcfile = dict(test_default)
-    home_rcfile["clean"]["exclude"].append("_build")
-    home_rcfile["logging"]["handlers"]["default"].update(
+    home_rcfile[CLEAN][EXCLUDE].append("_build")
+    home_rcfile[LOGGING][HANDLERS][DEFAULT].update(
         {"class": "logging.handlers.StreamHandler"}
     )
-    home_rcfile["logging"]["version"] = 2
+    home_rcfile[LOGGING][VERSION] = 2
     app_files.home_config_file.write_text(pc.toml.dumps(home_rcfile))
 
     # reset the dict to the test default
@@ -209,7 +238,7 @@ def test_toml(app_files: AppFiles) -> None:
     # test the the changes made to clean are inherited through the
     # config hierarchy but not configured in this dict
     project_rcfile = dict(test_default)
-    project_rcfile["logging"]["version"] = 3
+    project_rcfile[LOGGING][VERSION] = 3
     app_files.pyproject_toml.write_text(pc.toml.dumps(project_rcfile))
 
     # load "$HOME/.pyaudrc" and then "$PROJECT_DIR/.pyaudrc"
@@ -217,11 +246,9 @@ def test_toml(app_files: AppFiles) -> None:
     # override "$HOME/.pyaudrc"
     pc.load_config(app_files)
     subtotal: t.Dict[str, t.Any] = dict(home_rcfile)
-    subtotal["logging"]["version"] = 3
-    subtotal["logging"]["handlers"]["default"]["filename"] = str(
-        Path(
-            subtotal["logging"]["handlers"]["default"]["filename"]
-        ).expanduser()
+    subtotal[LOGGING][VERSION] = 3
+    subtotal[LOGGING][HANDLERS][DEFAULT][FILENAME] = str(
+        Path(subtotal[LOGGING][HANDLERS][DEFAULT][FILENAME]).expanduser()
     )
     assert dict(pc.toml) == subtotal
 
@@ -229,7 +256,7 @@ def test_toml(app_files: AppFiles) -> None:
     # ===================
     # pyproject.toml tools start with [tool.<PACKAGE_REPO>]
     pyproject_dict = {"tool": {pyaud.__name__: test_default}}
-    changes = {"clean": {"exclude": []}, "logging": {"version": 4}}
+    changes = {CLEAN: {EXCLUDE: []}, LOGGING: {VERSION: 4}}
     pyproject_dict["tool"][pyaud.__name__].update(changes)
     app_files.pyproject_toml.write_text(pc.toml.dumps(pyproject_dict))
 
@@ -237,14 +264,14 @@ def test_toml(app_files: AppFiles) -> None:
     # ======================================================
     # override "$HOME/.pyaudrc"
     pc.load_config(app_files)
-    subtotal["clean"]["exclude"] = []
-    subtotal["logging"]["version"] = 4
+    subtotal[CLEAN][EXCLUDE] = []
+    subtotal[LOGGING][VERSION] = 4
     assert dict(pc.toml) == subtotal
 
     # load optional rcfile
     # ====================
     # this will override all others when passed to the commandline
-    pos = {"audit": {"modules": ["files", "format", "format-docs"]}}
+    pos = {AUDIT: {MODULES: [FILES, FORMAT, FORMAT_DOCS]}}
     opt_rc = Path.cwd() / "opt_rc"
     opt_rc.write_text(pc.toml.dumps(pos))
 
@@ -252,7 +279,7 @@ def test_toml(app_files: AppFiles) -> None:
     # ======================================================
     # override "$HOME/.pyaudrc"
     pc.load_config(app_files, opt_rc)
-    subtotal["audit"] = {"modules": ["files", "format", "format-docs"]}
+    subtotal[AUDIT] = {MODULES: [FILES, FORMAT, FORMAT_DOCS]}
     assert dict(pc.toml) == subtotal
 
 
@@ -283,37 +310,37 @@ def test_toml_no_override_all(
     pc.toml.loads(app_files.global_config_file.read_text())
     assert dict(pc.toml) == pc.DEFAULT_CONFIG
     app_files.home_config_file.write_text(
-        pc.toml.dumps({"logging": {"root": {"level": "INFO"}}})
+        pc.toml.dumps({LOGGING: {ROOT: {LEVEL: "INFO"}}})
     )
 
     # should override:
     # {
-    #      "version": 1,
+    #      VERSION: 1,
     #      "disable_existing_loggers": True,
     #      "formatters": {...},
-    #      "handlers": {...},
-    #      "root": {
-    #          "level": "DEBUG", "handlers": [...], "propagate": False,
+    #      HANDLERS: {...},
+    #      ROOT: {
+    #          LEVEL: "DEBUG", HANDLERS: [...], "propagate": False,
     #      },
     # },
     # with:
     # {
-    #      "version": 1,
+    #      VERSION: 1,
     #      "disable_existing_loggers": True,
     #      "formatters": {...},
-    #      "handlers": {...},
-    #      "root": {
-    #          "level": "INFO", "handlers": [...], "propagate": False,
+    #      HANDLERS: {...},
+    #      ROOT: {
+    #          LEVEL: "INFO", HANDLERS: [...], "propagate": False,
     #      },
     # },
     # and not reduce it to:
-    # {"root": {"level": "INFO"}}
+    # {ROOT: {LEVEL: "INFO"}}
     pc.load_config(app_files)
 
     # this here would raise a ``ValueError`` if not working as expected,
     # so on its own is an assertion
-    logging_config.dictConfig(pc.toml["logging"])
-    pc.DEFAULT_CONFIG["logging"]["root"]["level"] = "INFO"
+    logging_config.dictConfig(pc.toml[LOGGING])
+    pc.DEFAULT_CONFIG[LOGGING][ROOT][LEVEL] = "INFO"
     assert dict(pc.toml) == pc.DEFAULT_CONFIG
 
 
@@ -363,7 +390,7 @@ def test_backup_toml(app_files: AppFiles) -> None:
     # change to config
     # ================
     # this setting, by default, is True
-    pc.toml["logging"]["disable_existing_loggers"] = False
+    pc.toml[LOGGING]["disable_existing_loggers"] = False
     app_files.global_config_file.write_text(pc.toml.dumps())
 
     # now that there is a change the backup should be different to the
@@ -400,7 +427,7 @@ def test_backup_toml(app_files: AppFiles) -> None:
     # retained
     assert configfile_contents == backupfile_contents
     pc.toml.loads(app_files.global_config_file.read_text())
-    assert pc.toml["logging"]["disable_existing_loggers"] is False
+    assert pc.toml[LOGGING]["disable_existing_loggers"] is False
 
 
 def test_register_plugin_name_conflict_error() -> None:
@@ -486,13 +513,13 @@ def test_files_populate_proc(make_tree: MakeTreeType) -> None:
     make_tree(
         Path.cwd(),
         {
-            REPO: {"src": {INIT: None}},
+            REPO: {SRC: {INIT: None}},
             "venv": {
                 "pyvenv.cfg": None,
                 "bin": {},
                 "include": {},
                 "share": {},
-                "src": {},
+                SRC: {},
                 "lib": {"python3.8": {"site-packages": {"six.py": None}}},
                 "lib64": "lib",
             },
@@ -506,8 +533,8 @@ def test_files_populate_proc(make_tree: MakeTreeType) -> None:
     def _old_files_populate():
         indexed = []
         for path in Path.cwd().rglob("*.py"):
-            if path.name not in pc.DEFAULT_CONFIG["indexing"][
-                "exclude"
+            if path.name not in pc.DEFAULT_CONFIG[INDEXING][
+                EXCLUDE
             ] and not git.ls_files(
                 "--error-unmatch", path, file=os.devnull, suppress=True
             ):
@@ -547,38 +574,31 @@ def test_get_packages(
 
     # search for only package
     # =======================
-    make_tree(Path.cwd(), {"first_package": {INIT: None}})
-    assert pyaud._utils.get_packages() == ["first_package"]
-    assert pyaud.package() == "first_package"
+    make_tree(Path.cwd(), {PACKAGE[1]: {INIT: None}})
+    assert pyaud._utils.get_packages() == [PACKAGE[1]]
+    assert pyaud.package() == PACKAGE[1]
 
     # search for ambiguous package
     # ============================
-    make_tree(
-        Path.cwd(),
-        {"second_package": {INIT: None}, "third_package": {INIT: None}},
-    )
-    assert pyaud._utils.get_packages() == [
-        "first_package",
-        "second_package",
-        "third_package",
-    ]
+    make_tree(Path.cwd(), {PACKAGE[2]: {INIT: None}, PACKAGE[3]: {INIT: None}})
+    assert pyaud._utils.get_packages() == [PACKAGE[1], PACKAGE[2], PACKAGE[3]]
     assert pyaud.package() is None
 
     # search for package with the same name as repo
     # =============================================
-    make_tree(Path.cwd(), {"repo": {INIT: None}})
+    make_tree(Path.cwd(), {REPO: {INIT: None}})
     assert pyaud._utils.get_packages() == [
-        "first_package",
-        "repo",
-        "second_package",
-        "third_package",
+        PACKAGE[1],
+        PACKAGE[2],
+        PACKAGE[3],
+        REPO,
     ]
-    assert pyaud.package() == "repo"
+    assert pyaud.package() == REPO
 
     # search for configured package
     # =============================
-    pc.toml["packages"]["name"] = "second_package"
-    assert pyaud.package() == "second_package"
+    pc.toml["packages"]["name"] = PACKAGE[2]
+    assert pyaud.package() == PACKAGE[2]
 
 
 def test_get_subpackages(
@@ -602,9 +622,9 @@ def test_get_subpackages(
     make_tree(
         Path.cwd(),
         {
-            "repo": {
+            REPO: {
                 INIT: None,
-                "src": {
+                SRC: {
                     INIT: None,
                     "client": {INIT: None},
                     "server": {INIT: None},
@@ -617,7 +637,7 @@ def test_get_subpackages(
 
     # assert no dot separated packages are returned and that only the
     # parent packages name is returned
-    assert pyaud._utils.get_packages() == ["repo"]
+    assert pyaud._utils.get_packages() == [REPO]
 
 
 def test_exclude_loads_at_main(
@@ -630,7 +650,7 @@ def test_exclude_loads_at_main(
     """
 
     # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin")
+    @pyaud.plugins.register(name=PLUGIN_NAME[1])
     class Plugin(pyaud.plugins.Action):
         """Nothing to do."""
 
@@ -639,15 +659,15 @@ def test_exclude_loads_at_main(
 
     default_config = copy.deepcopy(pc.DEFAULT_CONFIG)
     project_config = copy.deepcopy(default_config)
-    project_config["indexing"]["exclude"].append("project")
+    project_config[INDEXING][EXCLUDE].append(PROJECT)
     test_project_toml_object = pc._Toml()  # pylint: disable=protected-access
     test_project_toml_object.update(project_config)
     app_files.project_config_file.write_text(test_project_toml_object.dumps())
-    assert "project" not in pc.toml["indexing"]["exclude"]
+    assert PROJECT not in pc.toml[INDEXING][EXCLUDE]
 
-    main("plugin")
+    main(PLUGIN_NAME[1])
 
-    assert "project" in pc.toml["indexing"]["exclude"]
+    assert PROJECT in pc.toml[INDEXING][EXCLUDE]
 
 
 def test_exclude(make_tree: MakeTreeType) -> None:
@@ -660,7 +680,7 @@ def test_exclude(make_tree: MakeTreeType) -> None:
         Path.cwd(),
         {
             WHITELIST_PY: None,
-            "docs": {"conf.py": None},
+            DOCS: {CONFPY: None},
             "setup.py": None,
             "migrations": {
                 "alembic.ini": None,
@@ -672,15 +692,15 @@ def test_exclude(make_tree: MakeTreeType) -> None:
                     "2c5aaad1d65e_add_adds_user_table.py": None,
                 },
             },
-            "repo": webapp,
+            REPO: webapp,
         },
     )
-    exclude = (WHITELIST_PY, "conf.py", "setup.py", "migrations")
+    exclude = (WHITELIST_PY, CONFPY, "setup.py", "migrations")
     git.add(".")
     pyaud.files.add_exclusions(*exclude)
     pyaud.files.populate()
     assert not any(i in p.parts for i in exclude for p in pyaud.files)
-    assert all(Path.cwd() / "repo" / p in pyaud.files for p in webapp)
+    assert all(Path.cwd() / REPO / p in pyaud.files for p in webapp)
 
 
 # noinspection DuplicatedCode
@@ -693,12 +713,12 @@ def test_filter_logging_config_kwargs(app_files: AppFiles) -> None:
 
     # patch `DEFAULT_CONFIG` for `TimedRotatingFileHandler`
     logfile = str(Path.cwd() / ".cache" / "pyaud" / "log" / "pyaud.log")
-    test_default["logging"]["handlers"]["default"]["filename"] = logfile
+    test_default[LOGGING][HANDLERS][DEFAULT][FILENAME] = logfile
     rcfile = dict(test_default)
     app_files.project_config_file.write_text(pc.toml.dumps(rcfile))
     pc.load_config(app_files)
     pc.configure_logging()
-    logger = logging.getLogger("default").root
+    logger = logging.getLogger(DEFAULT).root
     handler = logger.handlers[0]
     assert isinstance(handler, logging_handlers.TimedRotatingFileHandler)
     assert handler.when.casefold() == "d"  # type: ignore
@@ -706,11 +726,11 @@ def test_filter_logging_config_kwargs(app_files: AppFiles) -> None:
     assert handler.stream.buffer.name == logfile  # type: ignore
 
     # patch `DEFAULT_CONFIG` for `StreamHandler`
-    rcfile["logging"]["handlers"]["default"]["class"] = "logging.StreamHandler"
+    rcfile[LOGGING][HANDLERS][DEFAULT]["class"] = "logging.StreamHandler"
     app_files.project_config_file.write_text(pc.toml.dumps(rcfile))
     pc.load_config(app_files)
     pc.configure_logging()
-    logger = logging.getLogger("default").root
+    logger = logging.getLogger(DEFAULT).root
     handler = logger.handlers[0]
     assert isinstance(handler, logging.StreamHandler)
     assert getattr(handler, "when", None) is None
@@ -719,13 +739,13 @@ def test_filter_logging_config_kwargs(app_files: AppFiles) -> None:
 
 def test_default_key() -> None:
     """Test setting and restoring of existing dict keys."""
-    obj = {"default_key": "default_value"}
+    obj = {DEFAULT_KEY: "default_value"}
     with pc.TempEnvVar(  # pylint: disable=protected-access
         obj, default_key="temp_value"
     ):
-        assert obj["default_key"] == "temp_value"
+        assert obj[DEFAULT_KEY] == "temp_value"
 
-    assert obj["default_key"] == "default_value"
+    assert obj[DEFAULT_KEY] == "default_value"
 
 
 def test_plugin_mro() -> None:
@@ -735,7 +755,7 @@ def test_plugin_mro() -> None:
     children of ``PluginType``s.
     """
 
-    @pyaud.plugins.register(name="plugin_1")
+    @pyaud.plugins.register(name=PLUGIN_NAME[1])
     class PluginOne(pyaud.plugins.Action):
         """Nothing to do."""
 
@@ -743,12 +763,12 @@ def test_plugin_mro() -> None:
             """Nothing to do."""
 
     # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin_2")
+    @pyaud.plugins.register(name=PLUGIN_NAME[2])
     class PluginTwo(PluginOne):
         """Nothing to do."""
 
-    assert "plugin_1" in pyaud.plugins.mapping()
-    assert "plugin_2" in pyaud.plugins.mapping()
+    assert PLUGIN_NAME[1] in pyaud.plugins.mapping()
+    assert PLUGIN_NAME[2] in pyaud.plugins.mapping()
 
 
 def test_get_plugin_logger() -> None:
@@ -832,9 +852,9 @@ def test_working_tree_clean(
     :param monkeypatch: Mock patch environment and attributes.
     """
     monkeypatch.undo()
-    monkeypatch.setattr("os.getcwd", lambda: str(tmp_path / REPO))
+    monkeypatch.setattr(OS_GETCWD, lambda: str(tmp_path / REPO))
     assert pyaud._utils.working_tree_clean()
-    Path(Path.cwd() / FILES).touch()
+    Path(Path.cwd() / FILE).touch()
     assert not pyaud._utils.working_tree_clean()
 
 
@@ -847,14 +867,14 @@ def test_time_output(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     """
 
     # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin")
+    @pyaud.plugins.register(name=PLUGIN_NAME[1])
     class Plugin(pyaud.plugins.Action):
         """Nothing to do."""
 
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
-    main("plugin", "-t")
+    main(PLUGIN_NAME[1], "-t")
     out = nocolorcapsys.stdout()
     assert "Plugin: Execution time:" in out
 
@@ -905,7 +925,7 @@ def test_nested_times(
     monkeypatch.setattr("pyaud._data._TimeKeeper._starter", lambda x: 0)
     monkeypatch.setattr("pyaud._data._TimeKeeper._stopper", lambda x: 1)
     expected = {
-        "repo": {
+        REPO: {
             "<class 'pyaud._default.Audit'>": [1],
             "<class 'tests._test.test_nested_times.<locals>.P1'>": [1],
             "<class 'tests._test.test_nested_times.<locals>.P2'>": [1],
@@ -913,9 +933,9 @@ def test_nested_times(
     }
     default_config = pc.DEFAULT_CONFIG
     test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(default_config)
-    test_default["audit"]["modules"] = ["plugin_1", "plugin_2"]
+    test_default[AUDIT][MODULES] = [PLUGIN_NAME[1], PLUGIN_NAME[2]]
     app_files.global_config_file.write_text(pc.toml.dumps(test_default))
-    pyaud.plugins.register("audit")(pyaud._default._Audit)  # type: ignore
+    pyaud.plugins.register(AUDIT)(pyaud._default._Audit)  # type: ignore
 
     class P1(pyaud.plugins.Action):
         """Nothing to do."""
@@ -929,17 +949,17 @@ def test_nested_times(
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
-    pyaud.plugins.register(name="plugin_1")(P1)
-    pyaud.plugins.register(name="plugin_2")(P2)
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(P1)
+    pyaud.plugins.register(name=PLUGIN_NAME[2])(P2)
 
     # noinspection PyUnresolvedReferences
     pyaud._data.record.clear()
     assert sorted(pyaud.plugins.registered()) == [
-        "audit",
-        "plugin_1",
-        "plugin_2",
+        AUDIT,
+        PLUGIN_NAME[1],
+        PLUGIN_NAME[2],
     ]
-    main("audit")
+    main(AUDIT)
     actual = json.loads(app_files.durations_file.read_text(encoding="utf-8"))
     assert all(i in actual for i in expected)
 
@@ -953,7 +973,7 @@ def test_del_key_config_runtime(
     :param app_files: App file locations object.
     """
     # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin")
+    @pyaud.plugins.register(name=PLUGIN_NAME[1])
     class Plugin(pyaud.plugins.Action):
         """Nothing to do."""
 
@@ -962,24 +982,24 @@ def test_del_key_config_runtime(
 
     # check config file for essential key
     pc.toml.loads(app_files.global_config_file.read_text())
-    assert "filename" in pc.toml["logging"]["handlers"]["default"]
+    assert FILENAME in pc.toml[LOGGING][HANDLERS][DEFAULT]
 
-    del pc.toml["logging"]["handlers"]["default"]["filename"]
+    del pc.toml[LOGGING][HANDLERS][DEFAULT][FILENAME]
 
     app_files.global_config_file.write_text(pc.toml.dumps())
 
     # check config file to confirm essential key was removed
     pc.toml.loads(app_files.global_config_file.read_text())
-    assert "filename" not in pc.toml["logging"]["handlers"]["default"]
+    assert FILENAME not in pc.toml[LOGGING][HANDLERS][DEFAULT]
 
     app_files.global_config_file.write_text(pc.toml.dumps())
     pc.configure_global(app_files)
-    main("plugin")
+    main(PLUGIN_NAME[1])
 
     # confirm after running main that no crash occurred and that the
     # essential key was replaced with a default
     pc.toml.loads(app_files.global_config_file.read_text())
-    assert "filename" in pc.toml["logging"]["handlers"]["default"]
+    assert FILENAME in pc.toml[LOGGING][HANDLERS][DEFAULT]
 
 
 def test_command_not_found_error() -> None:
@@ -1027,15 +1047,15 @@ def test_warn_no_fix(
         def audit(self, *args: t.Any, **kwargs: bool) -> t.Any:
             return self.subprocess[self.pylint].call(*args, **kwargs)
 
-    pyaud.plugins.register(name="lint")(_Lint)
+    pyaud.plugins.register(name=LINT)(_Lint)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
-    pyaud.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILE)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
     with pytest.raises(pyaud.exceptions.AuditError):
-        main("lint")
+        main(LINT)
 
 
-@pytest.mark.usefixtures("register_plugin")
+@pytest.mark.usefixtures(REGISTER_PLUGIN)
 def test_check_command_no_files_found(
     main: MockMainType, nocolorcapsys: NoColorCapsys
 ) -> None:
@@ -1046,11 +1066,11 @@ def test_check_command_no_files_found(
         color codes.
     """
     # noinspection PyUnresolvedReferences
-    main("plugin")
+    main(PLUGIN_NAME[1])
     assert nocolorcapsys.stdout().strip() == "No files found"
 
 
-@pytest.mark.usefixtures("register_plugin")
+@pytest.mark.usefixtures(REGISTER_PLUGIN)
 def test_check_command_fail_on_suppress(
     main: MockMainType,
     monkeypatch: pytest.MonkeyPatch,
@@ -1065,11 +1085,11 @@ def test_check_command_fail_on_suppress(
         color codes.
     :param make_tree: Create directory tree from dict mapping.
     """
-    make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
-    pyaud.files.append(Path.cwd() / FILES)
+    make_tree(Path.cwd(), {FILE: None, DOCS: {CONFPY: None}})
+    pyaud.files.append(Path.cwd() / FILE)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
-    main("plugin", "--suppress")
+    main(PLUGIN_NAME[1], "--suppress")
     assert "Failed: returned non-zero exit status" in nocolorcapsys.stderr()
 
 
@@ -1082,7 +1102,7 @@ def test_audit_error_did_no_pass_all_checks(
     :param monkeypatch: Mock patch environment and attributes.
     """
     # noinspection PyUnusedLocal
-    @pyaud.plugins.register(name="plugin")
+    @pyaud.plugins.register(name=PLUGIN_NAME[1])
     class Plugin(pyaud.plugins.Action):  # pylint: disable=unused-variable
         """Nothing to do."""
 
@@ -1097,10 +1117,10 @@ def test_audit_error_did_no_pass_all_checks(
                 1, "returned non-zero exit status"
             )
 
-    pyaud.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILE)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
     with pytest.raises(pyaud.exceptions.AuditError):
-        main("plugin")
+        main(PLUGIN_NAME[1])
 
 
 def test_no_exe_provided(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1110,7 +1130,7 @@ def test_no_exe_provided(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     unique = datetime.datetime.now().strftime("%d%m%YT%H%M%S")
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
-    pyaud.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILE)
 
     # noinspection PyUnusedLocal
     @pyaud.plugins.register(name=unique)
@@ -1123,7 +1143,7 @@ def test_no_exe_provided(monkeypatch: pytest.MonkeyPatch) -> None:
     assert pyaud.plugins.get(unique).exe == []
 
 
-@pytest.mark.usefixtures("unpatch_register_default_plugins")
+@pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
 @pytest.mark.parametrize(
     "exclude,expected",
     [
@@ -1135,7 +1155,7 @@ def test_no_exe_provided(monkeypatch: pytest.MonkeyPatch) -> None:
             "Removing instance_diff\n",
         ),
     ],
-    ids=["no-exclude", "exclude"],
+    ids=["no-exclude", EXCLUDE],
 )
 def test_clean_exclude(
     main: MockMainType,
@@ -1154,11 +1174,11 @@ def test_clean_exclude(
     Path(Path.cwd() / README).touch()
     git.init(file=os.devnull)  # type: ignore
     git.add(".")  # type: ignore
-    git.commit("-m", "Initial commit", file=os.devnull)  # type: ignore
+    git.commit("-m", INITIAL_COMMIT, file=os.devnull)  # type: ignore
     for exclusion in exclude:
         Path(Path.cwd() / exclusion).touch()
 
-    main("clean")
+    main(CLEAN)
     assert nocolorcapsys.stdout() == expected
 
 
@@ -1179,8 +1199,8 @@ def test_make_generate_rcfile(nocolorcapsys: NoColorCapsys) -> None:
 
 @pytest.mark.parametrize(
     "args,add,first",
-    [([], [], ""), (["--clean"], ["clean"], "pyaud clean")],
-    ids=["no-args", "clean"],
+    [([], [], ""), (["--clean"], [CLEAN], "pyaud clean")],
+    ids=["no-args", CLEAN],
 )
 def test_audit_modules(
     monkeypatch: pytest.MonkeyPatch,
@@ -1209,16 +1229,16 @@ def test_audit_modules(
     :param add: Function to add to the ``audit_modules`` list
     :param first: Expected first function executed.
     """
-    seq = list(pc.DEFAULT_CONFIG["audit"]["modules"])
+    seq = list(pc.DEFAULT_CONFIG[AUDIT][MODULES])
     seq.extend(add)
     mapping = {i: call_status(i) for i in seq}
     monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mapping)
     monkeypatch.setattr("pyaud._main._register_default_plugins", lambda: None)
-    pyaud.plugins._plugins["audit"] = pyaud._default._Audit(  # type: ignore
-        "audit"
+    pyaud.plugins._plugins[AUDIT] = pyaud._default._Audit(  # type: ignore
+        AUDIT
     )
-    main("audit", *args)
-    del mapping["audit"]
+    main(AUDIT, *args)
+    del mapping[AUDIT]
     assert first in nocolorcapsys.stdout()
 
 
@@ -1230,15 +1250,15 @@ def test_environ_repo(app_files: AppFiles) -> None:
     assert app_files.user_project_dir.name == Path.cwd().name
 
 
-@pytest.mark.usefixtures("unpatch_register_default_plugins")
+@pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
 @pytest.mark.parametrize(
     "arg,expected",
     [
         ("", pyaud.plugins.registered()),
-        ("audit", ["audit -- Read from [audit] key in config"]),
+        (AUDIT, ["audit -- Read from [audit] key in config"]),
         ("all", pyaud.plugins.registered()),
     ],
-    ids=["no-pos", "module", "all-modules"],
+    ids=["no-pos", MODULE, "all-modules"],
 )
 def test_help_with_plugins(
     main: MockMainType,
@@ -1259,13 +1279,13 @@ def test_help_with_plugins(
     :param expected: Expected result when calling command.
     """
     with pytest.raises(SystemExit):
-        main("modules", arg)
+        main(MODULES, arg)
 
     out = nocolorcapsys.stdout()
     assert all(i in out for i in expected)
 
 
-@pytest.mark.usefixtures("register_plugin", "unpatch_register_default_plugins")
+@pytest.mark.usefixtures(REGISTER_PLUGIN, UNPATCH_REGISTER_DEFAULT_PLUGINS)
 def test_suppress(
     main: MockMainType,
     monkeypatch: pytest.MonkeyPatch,
@@ -1284,13 +1304,13 @@ def test_suppress(
     """
     default_config = pc.DEFAULT_CONFIG
     test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(default_config)
-    test_default["audit"]["modules"] = ["plugin"]
+    test_default[AUDIT][MODULES] = [PLUGIN_NAME[1]]
     app_files.global_config_file.write_text(pc.toml.dumps(test_default))
-    make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
-    pyaud.files.append(Path.cwd() / FILES)
+    make_tree(Path.cwd(), {FILE: None, DOCS: {CONFPY: None}})
+    pyaud.files.append(Path.cwd() / FILE)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
-    main("audit", "--suppress")
+    main(AUDIT, "--suppress")
     assert "Failed: returned non-zero exit status" in nocolorcapsys.stderr()
 
 
@@ -1323,15 +1343,15 @@ def test_parametrize(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
 
             :return: List of plugin names, as defined in ``@register``.
             """
-            return ["plugin_1", "plugin_2"]
+            return [PLUGIN_NAME[1], PLUGIN_NAME[2]]
 
-    pyaud.plugins.register(name="plugin_1")(PluginOne)
-    pyaud.plugins.register(name="plugin_2")(PluginTwo)
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(PluginOne)
+    pyaud.plugins.register(name=PLUGIN_NAME[2])(PluginTwo)
     pyaud.plugins.register(name="params")(_Params)
     main("params")
     out = nocolorcapsys.stdout()
-    assert "pyaud plugin_1" in out
-    assert "pyaud plugin_2" in out
+    assert f"pyaud {PLUGIN_NAME[1]}" in out
+    assert f"pyaud {PLUGIN_NAME[2]}" in out
 
 
 # noinspection PyUnusedLocal
@@ -1340,7 +1360,7 @@ def test_fix_on_pass(main: MockMainType) -> None:
 
     :param main: Patch package entry point.
     """
-    pyaud.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILE)
 
     class _Fixer(pyaud.plugins.FixAll):
         def audit(self, *args: t.Any, **kwargs: bool) -> int:
@@ -1349,9 +1369,9 @@ def test_fix_on_pass(main: MockMainType) -> None:
         def fix(self, *args: t.Any, **kwargs: bool) -> int:
             """Nothing to do."""
 
-    pyaud.plugins.register(name="fixer")(_Fixer)
+    pyaud.plugins.register(name=FIXER)(_Fixer)
     with pytest.raises(pyaud.exceptions.AuditError) as err:
-        main("fixer")
+        main(FIXER)
 
     assert "pyaud fixer did not pass all checks" in str(err.value)
 
@@ -1364,7 +1384,7 @@ def test_fix_on_fail(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
     """
-    pyaud.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / FILE)
 
     class _Fixer(pyaud.plugins.FixAll):
         def audit(self, *args: t.Any, **kwargs: bool) -> int:
@@ -1373,10 +1393,10 @@ def test_fix_on_fail(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
         def fix(self, *args: t.Any, **kwargs: bool) -> int:
             """Nothing to do."""
 
-    pyaud.plugins.register(name="fixer")(_Fixer)
-    main("fixer")
+    pyaud.plugins.register(name=FIXER)(_Fixer)
+    main(FIXER)
     out = nocolorcapsys.stdout()
-    assert "Success: no issues found in 1 source files" in out
+    assert NO_ISSUES in out
 
 
 @pytest.mark.usefixtures("unpatch_plugins_load")
@@ -1397,7 +1417,7 @@ def test_imports(
     monkeypatch.setattr(
         "pyaud.plugins._pkgutil.iter_modules", lambda: iter_modules
     )
-    make_tree(Path.cwd(), {"plugins": {INIT: None, FILES: None}})
+    make_tree(Path.cwd(), {"plugins": {INIT: None, FILE: None}})
     pyaud.plugins.load()
     assert tracker.was_called()
     assert tracker.args == [("pyaud_underscore",), ("pyaud-dash",)]
@@ -1412,16 +1432,16 @@ def test_imports(
         ("Deploy", "deploy"),
         ("DeployCov", "deploy-cov"),
         ("DeployDocs", "deploy-docs"),
-        ("Docs", "docs"),
-        ("Files", "files"),
-        ("Format", "format"),
-        ("FormatDocs", "format-docs"),
+        ("Docs", DOCS),
+        ("Files", FILES),
+        ("Format", FORMAT),
+        ("FormatDocs", FORMAT_DOCS),
         ("FormatFString", "format-f-string"),
         ("Imports", "imports"),
-        ("Lint", "lint"),
+        ("Lint", LINT),
         ("Readme", "readme"),
         ("Requirements", "requirements"),
-        ("Tests", "tests"),
+        ("Tests", TESTS),
         ("Toc", "toc"),
         ("TypeCheck", "type-check"),
         ("Unused", "unused"),
