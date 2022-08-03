@@ -923,7 +923,7 @@ def test_nested_times(
     app_files.global_config_file.write_text(
         pyaud.config.toml.dumps(test_default)
     )
-    pyaud.plugins.register("audit")(pyaud._default._Audit)
+    pyaud.plugins.register("audit")(pyaud._default._Audit)  # type: ignore
 
     class P1(pyaud.plugins.Action):
         """Nothing to do."""
@@ -1179,7 +1179,7 @@ def test_make_generate_rcfile(nocolorcapsys: NoColorCapsys) -> None:
         color codes.
     """
     # noinspection PyUnresolvedReferences
-    pyaud.register_default_plugins()  # type: ignore
+    pyaud._default.register_default_plugins()  # type: ignore
     pyaud.plugins.get("generate-rcfile")()
     assert (
         nocolorcapsys.stdout().strip()

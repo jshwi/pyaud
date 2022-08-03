@@ -14,6 +14,9 @@ import setuptools
 
 import pyaud
 
+# noinspection PyUnresolvedReferences,PyProtectedMember
+from pyaud import _default
+
 from . import (
     DEBUG,
     FILES,
@@ -35,7 +38,9 @@ original_hash_mapping_unpatched_hash_files = (
     pyaud._cache.HashMapping.hash_files
 )
 original_pyaud_plugin_load = pyaud.plugins.load
-original_pyaud_main_register_default_plugins = pyaud.register_default_plugins
+original_pyaud_main_register_default_plugins = (
+    _default.register_default_plugins
+)
 original_setuptools_find_packages = setuptools.find_packages
 
 

@@ -1,6 +1,5 @@
 """Framework for writing Python package audits."""
 from . import config, exceptions, plugins
-from ._default import register_default_plugins
 from ._environ import Environ, environ
 from ._indexing import files
 from ._main import main
@@ -28,6 +27,5 @@ __all__ = [
     "main",
     "package",
     "plugins",
-    "register_default_plugins",
     "working_tree_clean",
 ]
