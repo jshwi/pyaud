@@ -10,7 +10,7 @@ from environs import Env as _Env
 from ._locations import NAME as _NAME
 
 
-class Environ(_Env):
+class _Environ(_Env):
     """Package's environment variables."""
 
     @property
@@ -33,4 +33,4 @@ class Environ(_Env):
 
 #: package environment, both parsed from .env file (with set defaults
 #: for missing keys), and static values
-environ = Environ()
+environ = _Environ()
