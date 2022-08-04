@@ -21,6 +21,9 @@ import pytest
 
 import pyaud
 
+# noinspection PyProtectedMember
+import pyaud._config as pc
+
 from . import (
     COMMIT,
     CONFPY,
@@ -73,8 +76,8 @@ def test_loglevel(
         "-vvv": [INFO, DEBUG, DEBUG, DEBUG, DEBUG],
         "-vvvv": [DEBUG, DEBUG, DEBUG, DEBUG, DEBUG],
     }
-    pyaud.config.toml["logging"]["root"]["level"] = default
-    app_files.global_config_file.write_text(pyaud.config.toml.dumps())
+    pc.toml["logging"]["root"]["level"] = default
+    app_files.global_config_file.write_text(pc.toml.dumps())
 
     # dummy call to non-existing plugin to evaluate multiple -v
     # arguments
@@ -92,9 +95,7 @@ def test_del_key_in_context() -> None:
     """Confirm there is no error raised when deleting temp key-value."""
     obj: t.Dict[str, str] = {}
     # noinspection PyProtectedMember
-    with pyaud.config.TempEnvVar(  # pylint: disable=protected-access
-        obj, key="value"
-    ):
+    with pc.TempEnvVar(obj, key="value"):  # pylint: disable=protected-access
         assert obj["key"] == "value"
         del obj["key"]
 
@@ -164,15 +165,15 @@ def test_help(
 
 def test_mapping_class() -> None:
     """Get coverage on ``Mapping`` abstract methods."""
-    pyaud.config.toml.clear()
-    assert repr(pyaud.config.toml) == "<_Toml {}>"
-    pyaud.config.toml.update({"key": "value"})
-    assert len(pyaud.config.toml) == 1
-    for key in pyaud.config.toml:
+    pc.toml.clear()
+    assert repr(pc.toml) == "<_Toml {}>"
+    pc.toml.update({"key": "value"})
+    assert len(pc.toml) == 1
+    for key in pc.toml:
         assert key == "key"
 
-    del pyaud.config.toml["key"]
-    assert "key" not in pyaud.config.toml
+    del pc.toml["key"]
+    assert "key" not in pc.toml
 
 
 def test_toml(app_files: AppFiles) -> None:
@@ -188,10 +189,8 @@ def test_toml(app_files: AppFiles) -> None:
     """
     # base config is created and loaded
     # =================================
-    test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(
-        pyaud.config.DEFAULT_CONFIG
-    )
-    assert dict(pyaud.config.toml) == test_default
+    test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(pc.DEFAULT_CONFIG)
+    assert dict(pc.toml) == test_default
 
     # instantiate a new dict object
     # =============================
@@ -202,7 +201,7 @@ def test_toml(app_files: AppFiles) -> None:
         {"class": "logging.handlers.StreamHandler"}
     )
     home_rcfile["logging"]["version"] = 2
-    app_files.home_config_file.write_text(pyaud.config.toml.dumps(home_rcfile))
+    app_files.home_config_file.write_text(pc.toml.dumps(home_rcfile))
 
     # reset the dict to the test default
     # ==================================
@@ -210,14 +209,12 @@ def test_toml(app_files: AppFiles) -> None:
     # config hierarchy but not configured in this dict
     project_rcfile = dict(test_default)
     project_rcfile["logging"]["version"] = 3
-    app_files.pyproject_toml.write_text(
-        pyaud.config.toml.dumps(project_rcfile)
-    )
+    app_files.pyproject_toml.write_text(pc.toml.dumps(project_rcfile))
 
     # load "$HOME/.pyaudrc" and then "$PROJECT_DIR/.pyaudrc"
     # ======================================================
     # override "$HOME/.pyaudrc"
-    pyaud.config.load_config(app_files)
+    pc.load_config(app_files)
     subtotal: t.Dict[str, t.Any] = dict(home_rcfile)
     subtotal["logging"]["version"] = 3
     subtotal["logging"]["handlers"]["default"]["filename"] = str(
@@ -225,7 +222,7 @@ def test_toml(app_files: AppFiles) -> None:
             subtotal["logging"]["handlers"]["default"]["filename"]
         ).expanduser()
     )
-    assert dict(pyaud.config.toml) == subtotal
+    assert dict(pc.toml) == subtotal
 
     # load pyproject.toml
     # ===================
@@ -233,31 +230,29 @@ def test_toml(app_files: AppFiles) -> None:
     pyproject_dict = {"tool": {pyaud.__name__: test_default}}
     changes = {"clean": {"exclude": []}, "logging": {"version": 4}}
     pyproject_dict["tool"][pyaud.__name__].update(changes)
-    app_files.pyproject_toml.write_text(
-        pyaud.config.toml.dumps(pyproject_dict)
-    )
+    app_files.pyproject_toml.write_text(pc.toml.dumps(pyproject_dict))
 
     # load "$HOME/.pyaudrc" and then "$PROJECT_DIR/.pyaudrc"
     # ======================================================
     # override "$HOME/.pyaudrc"
-    pyaud.config.load_config(app_files)
+    pc.load_config(app_files)
     subtotal["clean"]["exclude"] = []
     subtotal["logging"]["version"] = 4
-    assert dict(pyaud.config.toml) == subtotal
+    assert dict(pc.toml) == subtotal
 
     # load optional rcfile
     # ====================
     # this will override all others when passed to the commandline
     pos = {"audit": {"modules": ["files", "format", "format-docs"]}}
     opt_rc = Path.cwd() / "opt_rc"
-    opt_rc.write_text(pyaud.config.toml.dumps(pos))
+    opt_rc.write_text(pc.toml.dumps(pos))
 
     # load "$HOME/.pyaudrc" and then "$Path.cwd()/.pyaudrc"
     # ======================================================
     # override "$HOME/.pyaudrc"
-    pyaud.config.load_config(app_files, opt_rc)
+    pc.load_config(app_files, opt_rc)
     subtotal["audit"] = {"modules": ["files", "format", "format-docs"]}
-    assert dict(pyaud.config.toml) == subtotal
+    assert dict(pc.toml) == subtotal
 
 
 def test_toml_no_override_all(
@@ -279,15 +274,15 @@ def test_toml_no_override_all(
     :param app_files: App file locations object.
     """
     monkeypatch.setattr(
-        "pyaud.config.DEFAULT_CONFIG",
-        copy.deepcopy(pyaud.config.DEFAULT_CONFIG),
+        "pyaud._config.DEFAULT_CONFIG",
+        copy.deepcopy(pyaud._config.DEFAULT_CONFIG),
     )
-    pyaud.config.toml.clear()
-    pyaud.config.load_config(app_files)  # base key-values
-    pyaud.config.toml.loads(app_files.global_config_file.read_text())
-    assert dict(pyaud.config.toml) == pyaud.config.DEFAULT_CONFIG
+    pc.toml.clear()
+    pc.load_config(app_files)  # base key-values
+    pc.toml.loads(app_files.global_config_file.read_text())
+    assert dict(pc.toml) == pc.DEFAULT_CONFIG
     app_files.home_config_file.write_text(
-        pyaud.config.toml.dumps({"logging": {"root": {"level": "INFO"}}})
+        pc.toml.dumps({"logging": {"root": {"level": "INFO"}}})
     )
 
     # should override:
@@ -312,13 +307,13 @@ def test_toml_no_override_all(
     # },
     # and not reduce it to:
     # {"root": {"level": "INFO"}}
-    pyaud.config.load_config(app_files)
+    pc.load_config(app_files)
 
     # this here would raise a ``ValueError`` if not working as expected,
     # so on its own is an assertion
-    logging_config.dictConfig(pyaud.config.toml["logging"])
-    pyaud.config.DEFAULT_CONFIG["logging"]["root"]["level"] = "INFO"
-    assert dict(pyaud.config.toml) == pyaud.config.DEFAULT_CONFIG
+    logging_config.dictConfig(pc.toml["logging"])
+    pc.DEFAULT_CONFIG["logging"]["root"]["level"] = "INFO"
+    assert dict(pc.toml) == pc.DEFAULT_CONFIG
 
 
 # noinspection DuplicatedCode
@@ -342,20 +337,20 @@ def test_backup_toml(app_files: AppFiles) -> None:
     # ==============
     # originally there is no backup file (not until configure_global is
     # run)
-    default_config = dict(pyaud.config.toml)
+    default_config = dict(pc.toml)
     assert not app_files.global_config_file_backup.is_file()
 
     # assert corrupt configfile with no backup will simply reset
     configfile_contents = app_files.global_config_file.read_text()
     _corrupt_file(configfile_contents)
-    pyaud.config.configure_global(app_files)
-    pyaud.config.toml.loads(app_files.global_config_file.read_text())
+    pc.configure_global(app_files)
+    pc.toml.loads(app_files.global_config_file.read_text())
 
     # assert corrupt configfile is no same as default
-    assert dict(pyaud.config.toml) == default_config
+    assert dict(pc.toml) == default_config
 
     # create backupfile
-    pyaud.config.configure_global(app_files)
+    pc.configure_global(app_files)
     assert app_files.global_config_file_backup.is_file()
 
     # ensure backupfile is a copy of the original config file
@@ -367,8 +362,8 @@ def test_backup_toml(app_files: AppFiles) -> None:
     # change to config
     # ================
     # this setting, by default, is True
-    pyaud.config.toml["logging"]["disable_existing_loggers"] = False
-    app_files.global_config_file.write_text(pyaud.config.toml.dumps())
+    pc.toml["logging"]["disable_existing_loggers"] = False
+    app_files.global_config_file.write_text(pc.toml.dumps())
 
     # now that there is a change the backup should be different to the
     # original until configure_global is run again
@@ -376,7 +371,7 @@ def test_backup_toml(app_files: AppFiles) -> None:
     configfile_contents = app_files.global_config_file.read_text()
 
     assert configfile_contents != backupfile_contents
-    pyaud.config.configure_global(app_files)
+    pc.configure_global(app_files)
 
     # read both, as both have been changed
     configfile_contents = app_files.global_config_file.read_text()
@@ -395,7 +390,7 @@ def test_backup_toml(app_files: AppFiles) -> None:
 
     # resolve corruption
     # ==================
-    pyaud.config.configure_global(app_files)
+    pc.configure_global(app_files)
     configfile_contents = app_files.global_config_file.read_text()
     backupfile_contents = app_files.global_config_file_backup.read_text()
     assert configfile_contents == backupfile_contents
@@ -403,8 +398,8 @@ def test_backup_toml(app_files: AppFiles) -> None:
     # configfile should equal the backup file and all changes should be
     # retained
     assert configfile_contents == backupfile_contents
-    pyaud.config.toml.loads(app_files.global_config_file.read_text())
-    assert pyaud.config.toml["logging"]["disable_existing_loggers"] is False
+    pc.toml.loads(app_files.global_config_file.read_text())
+    assert pc.toml["logging"]["disable_existing_loggers"] is False
 
 
 def test_register_plugin_name_conflict_error() -> None:
@@ -510,7 +505,7 @@ def test_files_populate_proc(make_tree: MakeTreeType) -> None:
     def _old_files_populate():
         indexed = []
         for path in Path.cwd().rglob("*.py"):
-            if path.name not in pyaud.config.DEFAULT_CONFIG["indexing"][
+            if path.name not in pc.DEFAULT_CONFIG["indexing"][
                 "exclude"
             ] and not pyaud.git.ls_files(
                 "--error-unmatch", path, file=os.devnull, suppress=True
@@ -581,7 +576,7 @@ def test_get_packages(
 
     # search for configured package
     # =============================
-    pyaud.config.toml["packages"]["name"] = "second_package"
+    pc.toml["packages"]["name"] = "second_package"
     assert pyaud.package() == "second_package"
 
 
@@ -641,19 +636,17 @@ def test_exclude_loads_at_main(
         def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
             """Nothing to do."""
 
-    default_config = copy.deepcopy(pyaud.config.DEFAULT_CONFIG)
+    default_config = copy.deepcopy(pc.DEFAULT_CONFIG)
     project_config = copy.deepcopy(default_config)
     project_config["indexing"]["exclude"].append("project")
-    test_project_toml_object = (
-        pyaud.config._Toml()  # pylint: disable=protected-access
-    )
+    test_project_toml_object = pc._Toml()  # pylint: disable=protected-access
     test_project_toml_object.update(project_config)
     app_files.project_config_file.write_text(test_project_toml_object.dumps())
-    assert "project" not in pyaud.config.toml["indexing"]["exclude"]
+    assert "project" not in pc.toml["indexing"]["exclude"]
 
     main("plugin")
 
-    assert "project" in pyaud.config.toml["indexing"]["exclude"]
+    assert "project" in pc.toml["indexing"]["exclude"]
 
 
 def test_exclude(make_tree: MakeTreeType) -> None:
@@ -695,17 +688,15 @@ def test_filter_logging_config_kwargs(app_files: AppFiles) -> None:
 
     :param app_files: App file locations object.
     """
-    test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(
-        pyaud.config.DEFAULT_CONFIG
-    )
+    test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(pc.DEFAULT_CONFIG)
 
     # patch `DEFAULT_CONFIG` for `TimedRotatingFileHandler`
     logfile = str(Path.cwd() / ".cache" / "pyaud" / "log" / "pyaud.log")
     test_default["logging"]["handlers"]["default"]["filename"] = logfile
     rcfile = dict(test_default)
-    app_files.project_config_file.write_text(pyaud.config.toml.dumps(rcfile))
-    pyaud.config.load_config(app_files)
-    pyaud.config.configure_logging()
+    app_files.project_config_file.write_text(pc.toml.dumps(rcfile))
+    pc.load_config(app_files)
+    pc.configure_logging()
     logger = logging.getLogger("default").root
     handler = logger.handlers[0]
     assert isinstance(handler, logging_handlers.TimedRotatingFileHandler)
@@ -715,9 +706,9 @@ def test_filter_logging_config_kwargs(app_files: AppFiles) -> None:
 
     # patch `DEFAULT_CONFIG` for `StreamHandler`
     rcfile["logging"]["handlers"]["default"]["class"] = "logging.StreamHandler"
-    app_files.project_config_file.write_text(pyaud.config.toml.dumps(rcfile))
-    pyaud.config.load_config(app_files)
-    pyaud.config.configure_logging()
+    app_files.project_config_file.write_text(pc.toml.dumps(rcfile))
+    pc.load_config(app_files)
+    pc.configure_logging()
     logger = logging.getLogger("default").root
     handler = logger.handlers[0]
     assert isinstance(handler, logging.StreamHandler)
@@ -728,7 +719,7 @@ def test_filter_logging_config_kwargs(app_files: AppFiles) -> None:
 def test_default_key() -> None:
     """Test setting and restoring of existing dict keys."""
     obj = {"default_key": "default_value"}
-    with pyaud.config.TempEnvVar(  # pylint: disable=protected-access
+    with pc.TempEnvVar(  # pylint: disable=protected-access
         obj, default_key="temp_value"
     ):
         assert obj["default_key"] == "temp_value"
@@ -823,8 +814,10 @@ def test_get_commit_hash(
     :param returncode: Mock return code from subprocess.
     :param expected: Expected result.
     """
-    monkeypatch.setattr("pyaud.git.rev_parse", lambda *_, **__: returncode)
-    monkeypatch.setattr("pyaud.git.stdout", lambda: stdout)
+    monkeypatch.setattr(
+        "pyaud._utils.git.rev_parse", lambda *_, **__: returncode
+    )
+    monkeypatch.setattr("pyaud._utils.git.stdout", lambda: stdout)
     assert pyaud._utils.get_commit_hash() == expected
 
 
@@ -917,12 +910,10 @@ def test_nested_times(
             "<class 'tests._test.test_nested_times.<locals>.P2'>": [1],
         }
     }
-    default_config = pyaud.config.DEFAULT_CONFIG
+    default_config = pc.DEFAULT_CONFIG
     test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(default_config)
     test_default["audit"]["modules"] = ["plugin_1", "plugin_2"]
-    app_files.global_config_file.write_text(
-        pyaud.config.toml.dumps(test_default)
-    )
+    app_files.global_config_file.write_text(pc.toml.dumps(test_default))
     pyaud.plugins.register("audit")(pyaud._default._Audit)  # type: ignore
 
     class P1(pyaud.plugins.Action):
@@ -969,27 +960,25 @@ def test_del_key_config_runtime(
             """Nothing to do."""
 
     # check config file for essential key
-    pyaud.config.toml.loads(app_files.global_config_file.read_text())
-    assert "filename" in pyaud.config.toml["logging"]["handlers"]["default"]
+    pc.toml.loads(app_files.global_config_file.read_text())
+    assert "filename" in pc.toml["logging"]["handlers"]["default"]
 
-    del pyaud.config.toml["logging"]["handlers"]["default"]["filename"]
+    del pc.toml["logging"]["handlers"]["default"]["filename"]
 
-    app_files.global_config_file.write_text(pyaud.config.toml.dumps())
+    app_files.global_config_file.write_text(pc.toml.dumps())
 
     # check config file to confirm essential key was removed
-    pyaud.config.toml.loads(app_files.global_config_file.read_text())
-    assert (
-        "filename" not in pyaud.config.toml["logging"]["handlers"]["default"]
-    )
+    pc.toml.loads(app_files.global_config_file.read_text())
+    assert "filename" not in pc.toml["logging"]["handlers"]["default"]
 
-    app_files.global_config_file.write_text(pyaud.config.toml.dumps())
-    pyaud.config.configure_global(app_files)
+    app_files.global_config_file.write_text(pc.toml.dumps())
+    pc.configure_global(app_files)
     main("plugin")
 
     # confirm after running main that no crash occurred and that the
     # essential key was replaced with a default
-    pyaud.config.toml.loads(app_files.global_config_file.read_text())
-    assert "filename" in pyaud.config.toml["logging"]["handlers"]["default"]
+    pc.toml.loads(app_files.global_config_file.read_text())
+    assert "filename" in pc.toml["logging"]["handlers"]["default"]
 
 
 def test_command_not_found_error() -> None:
@@ -1183,7 +1172,7 @@ def test_make_generate_rcfile(nocolorcapsys: NoColorCapsys) -> None:
     pyaud.plugins.get("generate-rcfile")()
     assert (
         nocolorcapsys.stdout().strip()
-        == pyaud.config.toml.dumps(pyaud.config.DEFAULT_CONFIG).strip()
+        == pc.toml.dumps(pc.DEFAULT_CONFIG).strip()
     )
 
 
@@ -1219,7 +1208,7 @@ def test_audit_modules(
     :param add: Function to add to the ``audit_modules`` list
     :param first: Expected first function executed.
     """
-    seq = list(pyaud.config.DEFAULT_CONFIG["audit"]["modules"])
+    seq = list(pc.DEFAULT_CONFIG["audit"]["modules"])
     seq.extend(add)
     mapping = {i: call_status(i) for i in seq}
     monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mapping)
@@ -1292,12 +1281,10 @@ def test_suppress(
         color codes.
     :param make_tree: Create directory tree from dict mapping.
     """
-    default_config = pyaud.config.DEFAULT_CONFIG
+    default_config = pc.DEFAULT_CONFIG
     test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(default_config)
     test_default["audit"]["modules"] = ["plugin"]
-    app_files.global_config_file.write_text(
-        pyaud.config.toml.dumps(test_default)
-    )
+    app_files.global_config_file.write_text(pc.toml.dumps(test_default))
     make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
     pyaud.files.append(Path.cwd() / FILES)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)

@@ -14,6 +14,9 @@ import setuptools
 
 import pyaud
 
+# noinspection PyProtectedMember
+import pyaud._config as pc
+
 # noinspection PyUnresolvedReferences,PyProtectedMember
 from pyaud import _default
 
@@ -74,7 +77,7 @@ def fixture_mock_environment(
     name = pyaud.__name__
 
     #: CONFIG
-    default_config = dict(pyaud.config.DEFAULT_CONFIG)
+    default_config = dict(pc.DEFAULT_CONFIG)
     logfile = Path(home / ".cache" / name / "log" / f"{name}.log")
     default_config["logging"]["handlers"]["default"]["filename"] = str(logfile)
     default_config["logging"]["root"]["level"] = DEBUG
@@ -110,9 +113,9 @@ def fixture_mock_environment(
     monkeypatch.setattr("os.getcwd", lambda: str(repo_abs))
     monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [REPO])
     monkeypatch.setattr("inspect.currentframe", lambda: current_frame)
-    monkeypatch.setattr("pyaud.config.DEFAULT_CONFIG", default_config)
-    monkeypatch.setattr("pyaud.git.status", lambda *_, **__: True)
-    monkeypatch.setattr("pyaud.git.rev_parse", lambda *_, **__: None)
+    monkeypatch.setattr("pyaud._config.DEFAULT_CONFIG", default_config)
+    monkeypatch.setattr("pyaud._utils.git.status", lambda *_, **__: True)
+    monkeypatch.setattr("pyaud._utils.git.rev_parse", lambda *_, **__: None)
     monkeypatch.setattr(
         "pyaud._cache.HashMapping.match_file", lambda *_: False
     )
@@ -123,7 +126,7 @@ def fixture_mock_environment(
 
     #: RESET
     pyaud.files.clear()
-    pyaud.config.toml.clear()
+    pc.toml.clear()
 
     #: CREATE
     repo_abs.mkdir()
@@ -133,11 +136,9 @@ def fixture_mock_environment(
 
     #: MAIN - essential setup tasks
     pyaud.files.populate()
-    # noinspection PyUnresolvedReferences,PyProtectedMember
-    pyaud.config.configure_global(app_files)
-    # noinspection PyUnresolvedReferences,PyProtectedMember
-    pyaud.config.load_config(app_files)
-    pyaud.config.configure_logging()
+    pc.configure_global(app_files)
+    pc.load_config(app_files)
+    pc.configure_logging()
 
 
 @pytest.fixture(name="nocolorcapsys")

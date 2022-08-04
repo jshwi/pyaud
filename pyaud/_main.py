@@ -7,14 +7,13 @@ Contains package entry point.
 import logging as _logging
 from pathlib import Path as _Path
 
-from . import _data
-from . import config as _config
+from . import _config, _data
 from . import plugins as _plugins
 from ._cli import Parser as _Parser
+from ._config import configure_global as _configure_global
 from ._default import register_default_plugins as _register_default_plugins
 from ._indexing import files as _files
 from ._locations import AppFiles as _AppFiles
-from .config import configure_global as _configure_global
 
 
 def main() -> None:
