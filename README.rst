@@ -85,23 +85,6 @@ To view available plugins see ``pyaud-plugins`` `README <https://github.com/jshw
 
 For writing plugins see `docs <https://jshwi.github.io/pyaud/pyaud.html#pyaud-plugins>`_
 
-Environment
------------
-
-Default environment variables:
-
-.. code-block:: shell
-
-    PYAUD_WHITELIST     = "whitelist.py"
-    PYAUD_COVERAGE_XML  = "coverage.xml"
-    PYAUD_REQUIREMENTS  = "requirements.txt"
-    PYAUD_GH_NAME       = ""
-    PYAUD_GH_EMAIL      = ""
-    PYAUD_GH_TOKEN      = ""
-    PYAUD_GH_REMOTE     = ""
-
-Environment variables should be placed in an .env file in the project root and override all config files
-
 Configure
 ---------
 

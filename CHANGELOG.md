@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removes second warning for single issue
 
 ### Removed
+- Removes env variables
 - Removes `pyaud.git`
 - Removes `pyaud.config`
 - Removes `pyaud.working_tree_clean`

@@ -9,7 +9,6 @@ from argparse import SUPPRESS as _SUPPRESS
 from argparse import ArgumentParser as _ArgumentParser
 
 from . import plugins as _plugins
-from ._environ import environ as _environ
 from ._locations import NAME as _NAME
 from ._utils import colors as _colors
 from ._version import __version__
@@ -59,7 +58,6 @@ class Parser(_ArgumentParser):
             "-f",
             "--fix",
             action="store_true",
-            default=_environ.FIX,
             help="suppress and fix all fixable issues",
         )
         self.add_argument(
@@ -78,7 +76,6 @@ class Parser(_ArgumentParser):
             "-t",
             "--timed",
             action="store_true",
-            default=_environ.TIMED,
             help="track the length of time for each plugin",
         )
         self.add_argument(
