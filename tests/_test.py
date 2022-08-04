@@ -49,6 +49,7 @@ from . import (
     MockMainType,
     NoColorCapsys,
     Tracker,
+    git,
 )
 
 
@@ -507,14 +508,14 @@ def test_files_populate_proc(make_tree: MakeTreeType) -> None:
         for path in Path.cwd().rglob("*.py"):
             if path.name not in pc.DEFAULT_CONFIG["indexing"][
                 "exclude"
-            ] and not pyaud.git.ls_files(
+            ] and not git.ls_files(
                 "--error-unmatch", path, file=os.devnull, suppress=True
             ):
                 indexed.append(path)
 
         return indexed
 
-    pyaud.git.add(".")
+    git.add(".")
     start = time.process_time()
     no_commit_files = _old_files_populate()
     stop = time.process_time()
@@ -675,7 +676,7 @@ def test_exclude(make_tree: MakeTreeType) -> None:
         },
     )
     exclude = (WHITELIST_PY, "conf.py", "setup.py", "migrations")
-    pyaud.git.add(".")
+    git.add(".")
     pyaud.files.add_exclusions(*exclude)
     pyaud.files.populate()
     assert not any(i in p.parts for i in exclude for p in pyaud.files)
@@ -1151,9 +1152,9 @@ def test_clean_exclude(
     :param expected: Expected output from ``pyaud clean``.
     """
     Path(Path.cwd() / README).touch()
-    pyaud.git.init(file=os.devnull)  # type: ignore
-    pyaud.git.add(".")  # type: ignore
-    pyaud.git.commit("-m", "Initial commit", file=os.devnull)  # type: ignore
+    git.init(file=os.devnull)  # type: ignore
+    git.add(".")  # type: ignore
+    git.commit("-m", "Initial commit", file=os.devnull)  # type: ignore
     for exclusion in exclude:
         Path(Path.cwd() / exclusion).touch()
 

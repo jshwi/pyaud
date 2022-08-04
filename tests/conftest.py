@@ -32,6 +32,7 @@ from . import (
     MockFuncType,
     MockMainType,
     NoColorCapsys,
+    git,
 )
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
@@ -130,11 +131,12 @@ def fixture_mock_environment(
 
     #: CREATE
     repo_abs.mkdir()
-    pyaud.git.init(file=os.devnull)
+    git.init(file=os.devnull)
     with open(home / ".gitconfig", "w", encoding="utf-8") as fout:
         config.write(fout)
 
     #: MAIN - essential setup tasks
+    # noinspection PyProtectedMember
     pyaud.files.populate()
     pc.configure_global(app_files)
     pc.load_config(app_files)

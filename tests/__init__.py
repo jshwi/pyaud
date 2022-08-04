@@ -9,6 +9,7 @@ import typing as t
 from pathlib import Path
 
 import pytest
+from gitspy import Git
 
 import pyaud
 
@@ -36,6 +37,8 @@ PYAUD_FILES_POPULATE = "pyaud.files.populate"
 OS_GETCWD = "os.getcwd"
 WHITELIST_PY = "whitelist.py"
 COMMIT = "7c57dc943941566f47b9e7ee3208245d0bcd7656"
+
+git = Git()
 
 MockMainType = t.Callable[..., None]
 MockFuncType = t.Callable[..., int]
@@ -124,7 +127,6 @@ class Tracker:  # pylint: disable=too-few-public-methods
     """Track calls in mocked functions."""
 
     def __init__(self) -> None:
-        self.return_values: t.List[t.Any] = []
         self._called = False
         self.args: t.List[t.Tuple[str, ...]] = []
         self.kwargs: t.List[t.Dict[str, t.Any]] = []
