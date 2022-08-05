@@ -292,3 +292,4 @@ def configure_logging(verbose: int = 0) -> None:
 
 
 toml = _Toml()
+configure_global(_AppFiles())
