@@ -21,7 +21,7 @@ def _get_pass_fixer(
             """Return 0."""
             return 0
 
-        def fix(self, *_: t.Any, **__: bool) -> int:
+        def fix(self, *_: t.Any, **__: bool) -> int:  # type: ignore
             """Nothing to do."""
 
     return _PassFixer
@@ -35,8 +35,9 @@ def _get_fail_fixer(
             """Raise ``CalledProcessError``."""
             raise CalledProcessError(1, "cmd")
 
-        def fix(self, *args: t.Any, **kwargs: bool) -> int:
+        def fix(self, *_: t.Any, **__: bool) -> int:
             """Nothing to do."""
+            return 0
 
     return _FailFixer
 
