@@ -32,7 +32,7 @@ def get_packages() -> _t.List[str]:
     :return: List of Python packages.
     """
     packages = list(
-        set(
+        {
             i.split(".", maxsplit=1)[0]
             for i in _setuptools.find_packages(
                 # in response to an update to `setuptools` stubs:
@@ -41,7 +41,7 @@ def get_packages() -> _t.List[str]:
                 where=str(_Path.cwd()),
                 exclude=_config.toml["packages"]["exclude"],
             )
-        )
+        }
     )
     return sorted(packages)
 
