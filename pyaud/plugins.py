@@ -87,6 +87,7 @@ class Plugin(_BasePlugin):
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
         """Enables calling of all plugin instances."""
+        return 0
 
 
 class Audit(Plugin):
