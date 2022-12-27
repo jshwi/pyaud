@@ -215,7 +215,7 @@ class NotSubclassed:
 class MockAudit(pyaud.plugins.Audit):
     """Nothing to do."""
 
-    def audit(self, *args: str, **kwargs: bool) -> int:
+    def audit(self, *_: str, **__: bool) -> int:
         """Nothing to do."""
         return 1
 
