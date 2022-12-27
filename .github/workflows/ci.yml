@@ -9,7 +9,10 @@ on:
 
 jobs:
   ci:
-    name: ${{ matrix.os }}-python${{ matrix.python-version }}-node@${{ matrix.node-version }}
+    name: >
+      ${{ matrix.os }}
+      -python${{ matrix.python-version }}
+      -node@${{ matrix.node-version }}
     runs-on: ${{ matrix.os }}
     env:
       PYAUD_GH_NAME: jshwi
