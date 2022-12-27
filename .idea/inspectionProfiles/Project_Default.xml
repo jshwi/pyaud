@@ -56,11 +56,6 @@
         <option name="processLiterals" value="true" />
         <option name="processComments" value="true" />
       </scope>
-      <scope name="Pipfile.lock" level="TYPO" enabled="false">
-        <option name="processCode" value="true" />
-        <option name="processLiterals" value="true" />
-        <option name="processComments" value="true" />
-      </scope>
       <option name="processCode" value="true" />
       <option name="processLiterals" value="true" />
       <option name="processComments" value="true" />
