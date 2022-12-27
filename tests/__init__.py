@@ -218,3 +218,6 @@ class MockAudit(pyaud.plugins.Audit):
     def audit(self, *args: str, **kwargs: bool) -> int:
         """Nothing to do."""
         return 1
+
+
+__all__ = ["AppFiles"]
