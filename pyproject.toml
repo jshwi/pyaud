@@ -24,9 +24,6 @@ filter = true
 "pyaud/_cache.py" = [
     "miss: %s",
 ]
-"pyaud/_default.py" = [
-    "clean",
-]
 "pyaud/_cli.py" = [
     "store_true",
 ]
@@ -38,6 +35,9 @@ filter = true
     "level",
     "root",
     "class",
+]
+"pyaud/_default.py" = [
+    "clean",
 ]
 
 [tool.coverage.report]
