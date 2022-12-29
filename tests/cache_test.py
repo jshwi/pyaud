@@ -230,7 +230,7 @@ class TestCacheStrategy:
         #: `Path`'s returned self will match to the key in init and
         #: hexdigest` will return the hash value
         class _Md5:
-            def __init__(self, path: Path) -> None:
+            def __init__(self, _: str, path: Path, **__: bool) -> None:
                 self.path = path
 
             def hexdigest(self) -> str:
@@ -242,7 +242,7 @@ class TestCacheStrategy:
 
         monkeypatch.setattr("pyaud._cache._Path.read_bytes", lambda x: x)
         monkeypatch.setattr("pyaud._cache._Path.is_file", lambda x: True)
-        monkeypatch.setattr("pyaud._cache._hashlib.md5", _Md5)
+        monkeypatch.setattr("pyaud._cache._hashlib.new", _Md5)
         pyaud.files.extend(f.keys())
         app_files.cache_file.touch()
 
