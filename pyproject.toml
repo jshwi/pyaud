@@ -17,6 +17,9 @@ exclude = '''
 line-length = 79
 skip-magic-trailing-comma = true
 
+[tool.codespell]
+ignore-words-list = "strat"
+
 [tool.constcheck]
 filter = true
 
