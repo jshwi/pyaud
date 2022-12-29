@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v4.0.2...HEAD)
 ------------------------------------------------------------------------
+### Security
+- Add `usedforsecurity=False` to `hashlib`'
 
 [4.0.2](https://github.com/jshwi/pyaud/releases/tag/v4.0.2) - 2022-08-05
 ------------------------------------------------------------------------
