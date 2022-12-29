@@ -55,7 +55,9 @@ class HashMapping(_JSONIO):
         :return: Is the file a match (not changed)? True or False.
         """
         relpath = str(path.relative_to(_Path.cwd()))
-        newhash = _hashlib.md5(path.read_bytes()).hexdigest()
+        newhash = _hashlib.new(  # type: ignore
+            "md5", path.read_bytes(), usedforsecurity=False
+        ).hexdigest()
         return newhash == self._session.get(relpath)
 
     def save_hash(self, path: _Path) -> None:
@@ -65,7 +67,9 @@ class HashMapping(_JSONIO):
         """
         relpath = str(path.relative_to(_Path.cwd()))
         if path.is_file():
-            newhash = _hashlib.md5(path.read_bytes()).hexdigest()
+            newhash = _hashlib.new(  # type: ignore
+                "md5", path.read_bytes(), usedforsecurity=False
+            ).hexdigest()
             self._session[relpath] = newhash
         else:
             if relpath in self._session:
