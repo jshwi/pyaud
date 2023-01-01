@@ -1,7 +1,7 @@
 [build-system]
 build-backend = "poetry.core.masonry.api"
 requires = [
-    "poetry-core>=1.0.0",
+  "poetry-core>=1.0.0"
 ]
 
 [tool.black]
@@ -18,26 +18,27 @@ line-length = 79
 skip-magic-trailing-comma = true
 
 [tool.constcheck]
-filter = true
+ignore_strings = [
+  "store",
+  "store_true",
+  "utf-8"
+]
 
 [tool.constcheck.ignore_from]
 "pyaud/_cache.py" = [
-    "miss: %s",
-]
-"pyaud/_default.py" = [
-    "clean",
-]
-"pyaud/_cli.py" = [
-    "store_true",
+  "miss: %s"
 ]
 "pyaud/_config.py" = [
-    "default",
-    "exclude",
-    "formatter",
-    "handlers",
-    "level",
-    "root",
-    "class",
+  "class",
+  "default",
+  "exclude",
+  "formatter",
+  "handlers",
+  "level",
+  "root"
+]
+"pyaud/_default.py" = [
+  "clean"
 ]
 
 [tool.coverage.report]
@@ -45,28 +46,44 @@ fail_under = 100
 
 [tool.coverage.run]
 omit = [
-    "whitelist.py",
-    "pyaud/__main__.py",
+  "pyaud/__main__.py",
+  "whitelist.py"
 ]
 
 [tool.docsig]
 check-class = true
+summary = true
+
+[tool.isort]
+ensure_newline_before_comments = true
+force_grid_wrap = 0
+include_trailing_comma = true
+line_length = 79
+multi_line_output = 3
+profile = "black"
+use_parentheses = true
 
 [tool.poetry]
 authors = [
-    "jshwi <stephen@jshwisolutions.com>",
+  "jshwi <stephen@jshwisolutions.com>"
 ]
 description = "Framework for writing Python package audits"
+documentation = "https://pyaud.readthedocs.io/en/latest"
+homepage = "https://pypi.org/project/pyaud/"
 keywords = [
-    "audit",
-    "fix",
-    "ci",
-    "style",
-    "format",
+  "audit",
+  "ci",
+  "fix",
+  "format",
+  "style"
 ]
 license = "MIT"
+maintainers = [
+  "jshwi <stephen@jshwisolutions.com>"
+]
 name = "pyaud"
 readme = "README.rst"
+repository = "https://github.com/jshwi/pyaud"
 version = "4.0.2"
 
 [tool.poetry.dependencies]
@@ -99,33 +116,31 @@ pyaud = "pyaud.__main__:main"
 
 [tool.pyaud.audit]
 modules = [
-    "toc",
-    "whitelist",
-    "sort-pyproject",
-    "format",
-    "format-docs",
-    "format-str",
-    "imports",
-    "typecheck",
-    "unused",
-    "lint",
-    "const",
-    "params",
-    "test",
-    "docs",
+  "const",
+  "docs",
+  "files",
+  "format",
+  "format-docs",
+  "format-str",
+  "imports",
+  "lint",
+  "params",
+  "test",
+  "typecheck",
+  "unused"
 ]
 
 [tool.pyaud.clean]
 exclude = [
-    "*.egg*",
-    ".mypy_cache",
-    ".env",
+  ".env",
+  ".mypy_cache",
+  "node_modules"
 ]
 
 [tool.pyaud.indexing]
 exclude = [
-    "whitelist.py",
-    "conf.py",
+  "conf.py",
+  "whitelist.py"
 ]
 
 [tool.pyaud.logging]
@@ -144,26 +159,23 @@ when = "d"
 
 [tool.pyaud.logging.root]
 handlers = [
-    "default",
+  "default"
 ]
 level = "DEBUG"
 propagate = false
 
 [tool.pytest.ini_options]
 addopts = [
-    "--durations=5",
-    "-vv",
-    "--color=yes",
-    "--cov-report",
-    "term-missing",
-    "-n",
-    "auto",
+  "--color=yes",
+  "--cov-report=term-missing",
+  "--durations=5",
+  "-vv"
 ]
 filterwarnings = "ignore::DeprecationWarning"
 norecursedirs = [
-    "docs",
-    "*.egg-info",
-    ".git",
-    ".mypy_cache",
-    ".idea",
+  ".git",
+  ".idea",
+  ".mypy_cache",
+  ".pytest_cache",
+  "docs"
 ]
