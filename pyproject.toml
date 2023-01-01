@@ -17,18 +17,19 @@ exclude = '''
 line-length = 79
 skip-magic-trailing-comma = true
 
+[tool.codespell]
+ignore-words-list = "strat"
+
 [tool.constcheck]
-filter = true
+ignore_strings = [
+    "store",
+    "store_true",
+    "utf-8",
+]
 
 [tool.constcheck.ignore_from]
 "pyaud/_cache.py" = [
     "miss: %s",
-]
-"pyaud/_default.py" = [
-    "clean",
-]
-"pyaud/_cli.py" = [
-    "store_true",
 ]
 "pyaud/_config.py" = [
     "default",
@@ -38,6 +39,9 @@ filter = true
     "level",
     "root",
     "class",
+]
+"pyaud/_default.py" = [
+    "clean",
 ]
 
 [tool.coverage.report]
@@ -51,12 +55,24 @@ omit = [
 
 [tool.docsig]
 check-class = true
+summary = true
+
+[tool.isort]
+ensure_newline_before_comments = true
+force_grid_wrap = 0
+include_trailing_comma = true
+line_length = 79
+multi_line_output = 3
+profile = "black"
+use_parentheses = true
 
 [tool.poetry]
 authors = [
     "jshwi <stephen@jshwisolutions.com>",
 ]
 description = "Framework for writing Python package audits"
+documentation = "https://pyaud.readthedocs.io/en/latest"
+homepage = "https://pypi.org/project/pyaud/"
 keywords = [
     "audit",
     "fix",
@@ -65,8 +81,12 @@ keywords = [
     "format",
 ]
 license = "MIT"
+maintainers = [
+    "jshwi <stephen@jshwisolutions.com>",
+]
 name = "pyaud"
 readme = "README.rst"
+repository = "https://github.com/jshwi/pyaud"
 version = "4.0.2"
 
 [tool.poetry.dependencies]
@@ -99,9 +119,7 @@ pyaud = "pyaud.__main__:main"
 
 [tool.pyaud.audit]
 modules = [
-    "toc",
-    "whitelist",
-    "sort-pyproject",
+    "files",
     "format",
     "format-docs",
     "format-str",
@@ -117,9 +135,9 @@ modules = [
 
 [tool.pyaud.clean]
 exclude = [
-    "*.egg*",
     ".mypy_cache",
     ".env",
+    "node_modules",
 ]
 
 [tool.pyaud.indexing]
@@ -156,14 +174,12 @@ addopts = [
     "--color=yes",
     "--cov-report",
     "term-missing",
-    "-n",
-    "auto",
 ]
 filterwarnings = "ignore::DeprecationWarning"
 norecursedirs = [
     "docs",
-    "*.egg-info",
     ".git",
     ".mypy_cache",
     ".idea",
+    ".pytest_cache"
 ]
