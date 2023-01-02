@@ -1,0 +1,7 @@
+- id: pyaud
+  name: pyaud
+  entry: pyaud
+  description: framework for writing python package audits
+  language: python
+  types: [python]
+  pass_filenames: false
