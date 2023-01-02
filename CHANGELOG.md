@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v4.0.2...HEAD)
 ------------------------------------------------------------------------
 ### Added
+- Add support for `pre-commit`
 - Add py.typed
 
 ### Security
