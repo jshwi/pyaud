@@ -84,7 +84,7 @@ maintainers = [
 name = "pyaud"
 readme = "README.rst"
 repository = "https://github.com/jshwi/pyaud"
-version = "4.0.2"
+version = "4.1.0"
 
 [tool.poetry.dependencies]
 appdirs = "^1.4.4"
