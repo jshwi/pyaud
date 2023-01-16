@@ -30,6 +30,9 @@ pyaud
 .. image:: https://img.shields.io/badge/linting-pylint-yellowgreen
     :target: https://github.com/PyCQA/pylint
     :alt: pylint
+.. image:: https://snyk.io/test/github/jshwi/pyaud/badge.svg
+    :target: https://snyk.io/test/github/jshwi/pyaud/badge.svg
+    :alt: Known Vulnerabilities
 
 Framework for writing Python package audits
 -------------------------------------------
