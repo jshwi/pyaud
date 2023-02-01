@@ -19,17 +19,6 @@ class AppDirs(_AppDirs):
 
     def __init__(self) -> None:
         super().__init__(appname=NAME)
-        for path in (
-            self.user_config_dir,
-            self.user_data_dir,
-            self.user_cache_dir,
-        ):
-            path.mkdir(exist_ok=True, parents=True)
-
-    @property
-    def user_home_dir(self) -> _Path:
-        """Path to user's home directory."""
-        return _Path.home()
 
     @property
     def user_project_dir(self) -> _Path:
@@ -37,19 +26,11 @@ class AppDirs(_AppDirs):
         return _Path.cwd()
 
     @property
-    def user_config_dir(self) -> _Path:
-        """Path to the user's config dir."""
-        return _Path(super().user_config_dir)
-
-    @property
-    def user_data_dir(self) -> _Path:
-        """Path to the user's data dir."""
-        return _Path(super().user_data_dir)
-
-    @property
     def user_cache_dir(self) -> _Path:
         """Path to the user's cache dir."""
-        return _Path(super().user_cache_dir)
+        path = _Path(super().user_cache_dir)
+        path.mkdir(exist_ok=True, parents=True)
+        return path
 
 
 class AppFiles(AppDirs):
@@ -59,21 +40,6 @@ class AppFiles(AppDirs):
     def cache_file(self) -> _Path:
         """Path to the app's cache file."""
         return self.user_cache_dir / "files.json"
-
-    @property
-    def global_config_file(self) -> _Path:
-        """Path to the app's global config file."""
-        return self.user_config_dir / f"{NAME}.toml"
-
-    @property
-    def home_config_file(self) -> _Path:
-        """Path to the app's home config file."""
-        return self.user_home_dir / f".{NAME}rc"
-
-    @property
-    def project_config_file(self) -> _Path:
-        """Path to the app's project config file."""
-        return self.user_project_dir / f".{NAME}rc"
 
     @property
     def pyproject_toml(self) -> _Path:

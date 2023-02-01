@@ -124,7 +124,6 @@ def fixture_mock_environment(
     #: MAIN - essential setup tasks
     # noinspection PyProtectedMember
     pyaud.files.populate()
-    pc.configure_global(app_files)
     pc.load_config(app_files)
 
 

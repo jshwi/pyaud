@@ -85,7 +85,6 @@ python = "^3.8"
 setuptools = "^67.1.0"
 spall = "^0"
 tomli = "^2.0.1"
-tomli-w = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 bump2version = "^1.0.1"

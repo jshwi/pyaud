@@ -103,11 +103,29 @@ For writing plugins see `docs <https://jshwi.github.io/pyaud/pyaud.html#pyaud-pl
 Configure
 *********
 
-Configuration of settings can be made with the following toml syntax files (overriding in this order):
+Configuration values are declared in the pyproject.toml file
 
-    | ~/.config/pyaud/pyaud.toml
-    | ~/.pyaudrc
-    | .pyaudrc
-    | pyproject.toml
+.. code-block:: toml
 
-A config can be generated with `pyaud generate-rcfile`
+    [tool.pyaud.audit]
+    modules = [
+      "commit-policy",
+      "const",
+      "docs",
+      "files",
+      "format",
+      "format-docs",
+      "format-str",
+      "imports",
+      "lint",
+      "params",
+      "test",
+      "typecheck",
+      "unused"
+    ]
+
+    [tool.pyaud.indexing]
+    exclude = [
+      "conf.py",
+      "whitelist.py"
+    ]

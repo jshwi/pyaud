@@ -613,7 +613,6 @@ def test_help_with_plugins(
 def test_suppress(
     main: MockMainType,
     monkeypatch: pytest.MonkeyPatch,
-    app_files: AppFiles,
     nocolorcapsys: NoColorCapsys,
     make_tree: MakeTreeType,
 ) -> None:
@@ -621,16 +620,12 @@ def test_suppress(
 
     :param main: Patch package entry point.
     :param monkeypatch: Mock patch environment and attributes.
-    :param app_files: App file locations object.
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
     :param make_tree: Create directory tree from dict mapping.
     """
     pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
-    default_config = pc.DEFAULT_CONFIG
-    test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(default_config)
-    test_default[AUDIT][MODULES] = [PLUGIN_NAME[1]]
-    app_files.global_config_file.write_text(pc.toml.dumps(test_default))
+    pc.toml[AUDIT][MODULES] = [PLUGIN_NAME[1]]
     make_tree(Path.cwd(), {FILE: None, DOCS: {CONFPY: None}})
     pyaud.files.append(Path.cwd() / FILE)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)

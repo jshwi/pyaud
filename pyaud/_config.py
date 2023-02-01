@@ -42,12 +42,10 @@ The following methods can be called with ``toml``:
 """
 from __future__ import annotations
 
-import copy as _copy
 import typing as _t
 from types import TracebackType as _TracebackType
 
 import tomli as _tomli
-import tomli_w as _tomli_w
 
 from ._locations import NAME as _NAME
 from ._locations import AppFiles as _AppFiles
@@ -75,14 +73,6 @@ DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
 
 class _Toml(_MutableMapping):
     """Base class for all ``toml`` object interaction."""
-
-    def dumps(self, __obj: _t.Optional[_t.Dict[str, _t.Any]] = None) -> str:
-        """Native ``dump(from)s(tr)`` method to include encoder.
-
-        :param __obj: Mutable mapping dict-like object.
-        :return: str object in toml encoded form.
-        """
-        return _tomli_w.dumps(dict(self) if __obj is None else dict(__obj))
 
     def loads(self, __s: str, *args: str) -> None:
         """Native ``load (from file)`` method.
@@ -134,40 +124,16 @@ class TempEnvVar:
                 self._obj[key] = self._default[key]
 
 
-def configure_global(app_files: _AppFiles) -> None:
-    """Setup object with default config settings.
-
-    Create config file with default config settings if one does not
-    already exist.
-
-    Load base config file which may, or may not, still have the default
-    settings configured.
-
-    :param app_files: App file locations object.
-    """
-    default_config = _copy.deepcopy(DEFAULT_CONFIG)
-    toml.update(default_config)
-    if app_files.global_config_file.is_file():
-        toml.loads(app_files.global_config_file.read_text())
-
-    app_files.global_config_file.write_text(toml.dumps())
-
-
 def load_config(app_files: _AppFiles) -> None:
     """Load configs in order, each one overriding the previous.
 
     :param app_files: App file locations object.
     """
-    files = [
-        app_files.global_config_file,
-        app_files.home_config_file,
-        app_files.project_config_file,
-        app_files.pyproject_toml,
-    ]
-    for file in files:
-        if file.is_file():
-            toml.loads(file.read_text(), "tool", _NAME)
+    file = app_files.pyproject_toml
+    toml.update(DEFAULT_CONFIG)
+    if file.is_file():
+        toml.loads(file.read_text(), "tool", _NAME)
 
 
 toml = _Toml()
-configure_global(_AppFiles())
+load_config(_AppFiles())
