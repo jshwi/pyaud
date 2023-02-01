@@ -49,12 +49,6 @@ class Parser(_ArgumentParser):
             help="choice of module: [modules] to list all",
         )
         self.add_argument(
-            "-c",
-            "--clean",
-            action="store_true",
-            help="clean unversioned files prior to any process",
-        )
-        self.add_argument(
             "-f",
             "--fix",
             action="store_true",

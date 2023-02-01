@@ -37,8 +37,6 @@ from . import (
     MakeTreeType,
     MockActionPluginFactoryType,
     MockActionPluginList,
-    MockCallStatusType,
-    MockFuncType,
     MockMainType,
     NoColorCapsys,
     git,
@@ -171,26 +169,6 @@ def fixture_main(monkeypatch: pytest.MonkeyPatch) -> MockMainType:
         main()
 
     return _main
-
-
-@pytest.fixture(name="call_status")
-def fixture_call_status() -> MockCallStatusType:
-    """Disable all usage of function apart from selected returncode.
-
-    Useful for processes programmed to return a value for the function
-    depending on the value of ``__name__``.
-
-    :return: Function for using this fixture.
-    """
-
-    def _call_status(module: str, returncode: int = 0) -> MockFuncType:
-        def _func(*_: str, **__: bool) -> int:
-            return returncode
-
-        _func.__name__ = module
-        return _func
-
-    return _call_status
 
 
 @pytest.fixture(name="make_tree")

@@ -37,9 +37,6 @@ ignore_strings = [
   "level",
   "root"
 ]
-"pyaud/_default.py" = [
-  "clean"
-]
 
 [tool.coverage.report]
 fail_under = 100

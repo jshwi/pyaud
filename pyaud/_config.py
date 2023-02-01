@@ -62,7 +62,6 @@ from ._locations import AppFiles as _AppFiles
 from ._objects import MutableMapping as _MutableMapping
 
 DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
-    clean={"exclude": ["*.egg*", ".mypy_cache", ".env", "instance"]},
     logging={
         "version": 1,
         "disable_existing_loggers": True,

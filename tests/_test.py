@@ -21,7 +21,6 @@ import pyaud._config as pc
 
 from . import (
     AUDIT,
-    CLEAN,
     COMMIT,
     CONFPY,
     DOCS,
@@ -33,7 +32,6 @@ from . import (
     GITIGNORE,
     INDEXING,
     INIT,
-    INITIAL_COMMIT,
     KEY,
     LINT,
     MODULE,
@@ -44,8 +42,6 @@ from . import (
     PLUGIN_CLASS,
     PLUGIN_NAME,
     PYAUD_FILES_POPULATE,
-    PYAUD_PLUGINS_PLUGINS,
-    README,
     REPO,
     SP_OPEN_PROC,
     SRC,
@@ -58,7 +54,6 @@ from . import (
     MakeTreeType,
     MockActionPluginFactoryType,
     MockAudit,
-    MockCallStatusType,
     MockMainType,
     NoColorCapsys,
     NotSubclassed,
@@ -71,15 +66,8 @@ from . import (
 @pytest.mark.parametrize(
     "arg,index,expected",
     [
-        ("", 0, ("modules = [\n", '    "audit",\n', '    "clean"\n', "]")),
-        (
-            "all",
-            0,
-            (
-                "audit -- Read from [audit] key in config",
-                "clean -- Remove all unversioned package files recursively",
-            ),
-        ),
+        ("", 0, ("modules = [\n", '    "audit"\n', "]")),
+        ("all", 0, ("audit -- Read from [audit] key in config",)),
         ("not-a-module", 1, ("No such module: not-a-module",)),
     ],
     ids=["no-pos", "all-modules", "invalid-pos"],
@@ -582,90 +570,6 @@ def test_no_exe_provided(monkeypatch: pytest.MonkeyPatch) -> None:
     pyaud.files.append(Path.cwd() / FILES)
     pyaud.plugins.register(name=unique)(MockAudit)
     assert pyaud.plugins.get(unique).exe == []
-
-
-@pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
-@pytest.mark.parametrize(
-    "exclude,expected",
-    [
-        ([], ""),
-        (
-            [".env_diff", "instance_diff", ".cache_diff"],
-            "Removing .cache_diff\n"
-            "Removing .env_diff\n"
-            "Removing instance_diff\n",
-        ),
-    ],
-    ids=["no-exclude", EXCLUDE],
-)
-def test_clean_exclude(
-    main: MockMainType,
-    nocolorcapsys: NoColorCapsys,
-    exclude: t.List[str],
-    expected: str,
-) -> None:
-    """Test clean with and without exclude parameters.
-
-    :param main: Patch package entry point.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
-    :param exclude: Files to exclude from ``git clean``.
-    :param expected: Expected output from ``pyaud clean``.
-    """
-    Path(Path.cwd() / README).touch()
-    git.init(file=os.devnull)  # type: ignore
-    git.add(".")  # type: ignore
-    git.commit("-m", INITIAL_COMMIT, file=os.devnull)  # type: ignore
-    for exclusion in exclude:
-        Path(Path.cwd() / exclusion).touch()
-
-    main(CLEAN)
-    assert nocolorcapsys.stdout() == expected
-
-
-@pytest.mark.parametrize(
-    "args,add,first",
-    [([], [], ""), (["--clean"], [CLEAN], "pyaud clean")],
-    ids=["no-args", CLEAN],
-)
-def test_audit_modules(
-    monkeypatch: pytest.MonkeyPatch,
-    nocolorcapsys: NoColorCapsys,
-    main: MockMainType,
-    call_status: MockCallStatusType,
-    args: t.List[str],
-    add: t.List[str],
-    first: str,
-) -> None:
-    """Test that the correct functions are called with ``make_audit``.
-
-    Mock all functions in ``MODULES`` to do nothing so the test can
-    confirm that all the functions that are meant to be run are run with
-    the output that is displayed to the console in cyan. Confirm what
-    the first and last functions being run are with the parametrized
-    values.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
-    :param main: Patch package entry point.
-    :param call_status: Patch function to not do anything. Optionally
-        returns non-zero exit code (0 by default).
-    :param args: Arguments for ``pyaud audit``.
-    :param add: Function to add to the ``audit_modules`` list
-    :param first: Expected first function executed.
-    """
-    seq = list(pc.DEFAULT_CONFIG[AUDIT][MODULES])
-    seq.extend(add)
-    mapping = {i: call_status(i) for i in seq}
-    monkeypatch.setattr(PYAUD_PLUGINS_PLUGINS, mapping)
-    monkeypatch.setattr("pyaud._main._register_default_plugins", lambda: None)
-    pyaud.plugins._plugins[AUDIT] = pyaud._default._Audit(  # type: ignore
-        AUDIT
-    )
-    main(AUDIT, *args)
-    del mapping[AUDIT]
-    assert first in nocolorcapsys.stdout()
 
 
 def test_environ_repo(app_files: AppFiles) -> None:

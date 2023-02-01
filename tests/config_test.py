@@ -18,7 +18,6 @@ import pyaud
 from pyaud import _config as pc
 
 from . import (
-    CLEAN,
     CRITICAL,
     DEBUG,
     DEFAULT,
@@ -111,7 +110,6 @@ def test_toml(app_files: AppFiles) -> None:
     # =============================
     # preserve the test default config
     home_rcfile = dict(test_default)
-    home_rcfile[CLEAN][EXCLUDE].append("_build")
     home_rcfile[LOGGING][HANDLERS][DEFAULT].update(
         {"class": "logging.handlers.StreamHandler"}
     )
@@ -141,7 +139,7 @@ def test_toml(app_files: AppFiles) -> None:
     # ===================
     # pyproject.toml tools start with [tool.<PACKAGE_REPO>]
     pyproject_dict = {"tool": {pyaud.__name__: test_default}}
-    changes = {CLEAN: {EXCLUDE: []}, LOGGING: {VERSION: 4}}
+    changes = {LOGGING: {VERSION: 4}}
     pyproject_dict["tool"][pyaud.__name__].update(changes)
     app_files.pyproject_toml.write_text(pc.toml.dumps(pyproject_dict))
 
@@ -149,7 +147,6 @@ def test_toml(app_files: AppFiles) -> None:
     # ======================================================
     # override "$HOME/.pyaudrc"
     pc.load_config(app_files)
-    subtotal[CLEAN][EXCLUDE] = []
     subtotal[LOGGING][VERSION] = 4
     assert dict(pc.toml) == subtotal
 

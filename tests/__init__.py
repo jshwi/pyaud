@@ -23,7 +23,6 @@ PLUGIN_NAME = VarSeq("plugin", suffix="-")
 PLUGIN_CLASS = VarSeq("Plugin")
 
 AUDIT = "audit"
-CLEAN = "clean"
 COMMIT = "7c57dc943941566f47b9e7ee3208245d0bcd7656"
 CONFPY = "conf.py"
 LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
@@ -50,7 +49,6 @@ HANDLERS = "handlers"
 INDEXING = "indexing"
 INFO = LEVELS[1]
 INIT = "__init__.py"
-INITIAL_COMMIT = "Initial commit"
 KEY = "key"
 LEVEL = "level"
 LINT = "lint"
@@ -63,7 +61,6 @@ OS_GETCWD = "os.getcwd"
 PROJECT = "project"
 PYAUD_FILES_POPULATE = "pyaud.files.populate"
 PYAUD_PLUGINS_PLUGINS = "pyaud.plugins._plugins"
-README = "README.rst"
 REPO = "repo"
 ROOT = "root"
 SP_OPEN_PROC = "spall.Subprocess._open_process"
@@ -80,7 +77,6 @@ WHITELIST_PY = "whitelist.py"
 git = Git()
 
 MockMainType = t.Callable[..., None]
-MockFuncType = t.Callable[..., int]
 MakeTreeType = t.Callable[[Path, t.Dict[t.Any, t.Any]], None]
 FileHashDict = t.Dict[str, str]
 ClsDict = t.Dict[str, FileHashDict]
@@ -89,13 +85,6 @@ CacheDict = t.Dict[str, CommitDict]
 CacheUnion = t.Union[CacheDict, CommitDict, ClsDict, FileHashDict]
 MockActionPluginList = t.Sequence[t.Type[pyaud.plugins.Action]]
 MockActionPluginFactoryType = t.Callable[..., MockActionPluginList]
-
-
-class MockCallStatusType(t.Protocol):
-    """Type that mocks call status returns from functions."""
-
-    def __call__(self, module: str, returncode: int = ..., /) -> MockFuncType:
-        """Signature of type."""
 
 
 class NoColorCapsys:

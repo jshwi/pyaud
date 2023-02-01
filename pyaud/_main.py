@@ -35,7 +35,6 @@ def main() -> None:
         _Path.cwd(),
     )
     _plugins.get(parser.args.module)(
-        clean=parser.args.clean,
         suppress=parser.args.suppress,
         fix=parser.args.fix,
         no_cache=parser.args.no_cache,
