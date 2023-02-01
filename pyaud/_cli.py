@@ -6,7 +6,8 @@ import inspect as _inspect
 import json as _json
 import sys as _sys
 from argparse import SUPPRESS as _SUPPRESS
-from argparse import ArgumentParser as _ArgumentParser
+
+from arcon import ArgumentParser as _ArgumentParser
 
 from . import plugins as _plugins
 from ._locations import NAME as _NAME
@@ -31,12 +32,11 @@ class Parser(_ArgumentParser):
     """
 
     def __init__(self) -> None:
-        super().__init__(prog=_colors.cyan.get(_NAME))
+        super().__init__(__version__, prog=_colors.cyan.get(_NAME))
         self._mapping = _plugins.mapping()
         self._registered = _plugins.registered()
         self._returncode = 0
         self._add_arguments()
-        self._version_request()
         self.args = self.parse_args()
         if self.args.module == "modules":
             _sys.exit(self._module_help())
@@ -65,9 +65,6 @@ class Parser(_ArgumentParser):
             "--suppress",
             action="store_true",
             help="continue without stopping for errors",
-        )
-        self.add_argument(
-            "--version", action="store_true", help="show version and exit"
         )
 
         # pos argument following [modules] argument
@@ -134,13 +131,3 @@ class Parser(_ArgumentParser):
             self._print_module_summary()
 
         return self._returncode
-
-    @staticmethod
-    def _version_request() -> None:
-        try:
-            # the only exception for not providing positional args
-            if _sys.argv[1] == "--version":
-                print(__version__)
-                _sys.exit(0)
-        except IndexError:
-            pass
