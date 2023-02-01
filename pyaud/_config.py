@@ -51,12 +51,12 @@ import os as _os
 import shutil as _shutil
 import typing as _t
 from pathlib import Path as _Path
+from types import TracebackType as _TracebackType
 
 import appdirs as _appdirs
 import tomli as _tomli
 import tomli_w as _tomli_w
 
-from . import _typing as _pt
 from ._locations import NAME as _NAME
 from ._locations import AppFiles as _AppFiles
 from ._objects import MutableMapping as _MutableMapping
@@ -149,7 +149,10 @@ class TempEnvVar:
         return self
 
     def __exit__(
-        self, exc_type: _pt.Exc, exc_val: _pt.ExcVal, exc_tb: _pt.ExcTB
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: _TracebackType | None,
     ) -> None:
         for key, value in self._default.items():
             if value is None:
