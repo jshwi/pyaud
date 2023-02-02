@@ -62,13 +62,12 @@ def fixture_app_files(
 
 @pytest.fixture(name="mock_environment", autouse=True)
 def fixture_mock_environment(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, app_files: AppFiles
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Mock imports to reflect the temporary testing environment.
 
     :param tmp_path: Create and return temporary directory.
     :param monkeypatch: Mock patch environment and attributes.
-    :param app_files: App file locations object.
     """
     home = tmp_path
     repo_abs = home / REPO
@@ -124,7 +123,7 @@ def fixture_mock_environment(
     #: MAIN - essential setup tasks
     # noinspection PyProtectedMember
     pyaud.files.populate()
-    pc.load_config(app_files)
+    pc.load_config()
 
 
 @pytest.fixture(name="nocolorcapsys")

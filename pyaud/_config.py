@@ -43,12 +43,12 @@ The following methods can be called with ``toml``:
 from __future__ import annotations
 
 import typing as _t
+from pathlib import Path as _Path
 from types import TracebackType as _TracebackType
 
 import tomli as _tomli
 
 from ._locations import NAME as _NAME
-from ._locations import AppFiles as _AppFiles
 from ._objects import MutableMapping as _MutableMapping
 
 DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
@@ -124,16 +124,13 @@ class TempEnvVar:
                 self._obj[key] = self._default[key]
 
 
-def load_config(app_files: _AppFiles) -> None:
-    """Load configs in order, each one overriding the previous.
-
-    :param app_files: App file locations object.
-    """
-    file = app_files.pyproject_toml
+def load_config() -> None:
+    """Load configs in order, each one overriding the previous."""
+    file = _Path.cwd() / "pyproject.toml"
     toml.update(DEFAULT_CONFIG)
     if file.is_file():
         toml.loads(file.read_text(), "tool", _NAME)
 
 
 toml = _Toml()
-load_config(_AppFiles())
+load_config()

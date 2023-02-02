@@ -40,8 +40,3 @@ class AppFiles(AppDirs):
     def cache_file(self) -> _Path:
         """Path to the app's cache file."""
         return self.user_cache_dir / "files.json"
-
-    @property
-    def pyproject_toml(self) -> _Path:
-        """Path to the project's pyproject.toml file."""
-        return self.user_project_dir / "pyproject.toml"
