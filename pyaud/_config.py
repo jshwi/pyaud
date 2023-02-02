@@ -48,7 +48,7 @@ from types import TracebackType as _TracebackType
 
 import tomli as _tomli
 
-from ._locations import NAME as _NAME
+from ._objects import NAME as _NAME
 from ._objects import MutableMapping as _MutableMapping
 
 DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(

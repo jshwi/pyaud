@@ -4,7 +4,7 @@ pyaud._default
 """
 from . import _config
 from . import plugins as _plugins
-from ._locations import NAME as _NAME
+from ._objects import NAME as _NAME
 from ._utils import colors as _colors
 
 

@@ -21,7 +21,7 @@ from spall import Subprocess as _Subprocess
 
 from . import _config
 from . import exceptions as _exceptions
-from ._locations import NAME as _NAME
+from ._objects import NAME as _NAME
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
 from ._utils import colors as _colors

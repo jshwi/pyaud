@@ -10,7 +10,7 @@ from argparse import SUPPRESS as _SUPPRESS
 from arcon import ArgumentParser as _ArgumentParser
 
 from . import plugins as _plugins
-from ._locations import NAME as _NAME
+from ._objects import NAME as _NAME
 from ._utils import colors as _colors
 from ._version import __version__
 

@@ -7,6 +7,8 @@ import typing as _t
 from abc import ABC as _ABC
 from pathlib import Path as _Path
 
+NAME = __name__.split(".", maxsplit=1)[0]
+
 _KT = _t.TypeVar("_KT")
 _VT = _t.TypeVar("_VT")
 _T_co = _t.TypeVar("_T_co", covariant=True)
