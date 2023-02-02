@@ -4,6 +4,8 @@ pyaud._wraps
 
 Decorators for wrapping plugins.
 """
+from __future__ import annotations
+
 import functools as _functools
 import sys as _sys
 import typing as _t
@@ -82,7 +84,7 @@ class ClassDecorator:
     :param cls: The class whose ``__call__`` method will be wrapped.
     """
 
-    def __init__(self, cls: _t.Type[_BasePlugin]) -> None:
+    def __init__(self, cls: type[_BasePlugin]) -> None:
         self._cls = cls
 
     def files(self, func: _t.Callable[..., int]) -> _t.Callable[..., int]:

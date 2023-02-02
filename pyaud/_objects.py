@@ -2,6 +2,8 @@
 pyaud._objects
 ==============
 """
+from __future__ import annotations
+
 import json as _json
 import typing as _t
 from abc import ABC as _ABC
@@ -18,7 +20,7 @@ class MutableMapping(_t.MutableMapping[_KT, _VT]):
     """Inherit to replicate subclassing of ``dict`` objects."""
 
     def __init__(self) -> None:
-        self._dict: _t.Dict[_KT, _VT] = {}
+        self._dict: dict[_KT, _VT] = {}
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self._dict}>"
@@ -39,7 +41,7 @@ class MutableMapping(_t.MutableMapping[_KT, _VT]):
         return self._dict.__iter__()
 
     def _nested_update(
-        self, obj: _t.Dict[_KT, _t.Any], update: _t.Dict[_KT, _t.Any]
+        self, obj: dict[_KT, _t.Any], update: dict[_KT, _t.Any]
     ) -> _t.Dict[_KT, _t.Any]:
         # add to __setitem__ to ensure that no entire dict keys with
         # missing nested keys overwrite all other values

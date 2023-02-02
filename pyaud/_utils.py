@@ -4,7 +4,6 @@ pyaud._utils
 """
 from __future__ import annotations
 
-import typing as _t
 from pathlib import Path as _Path
 
 import setuptools as _setuptools
@@ -21,7 +20,7 @@ files = _LSFiles()
 colors.populate_colors()
 
 
-def get_packages() -> _t.List[str]:
+def get_packages() -> list[str]:
     """Return list of Python package names currently in project.
 
     Prevent dot separated subdirectories (import syntax) as args are
@@ -48,7 +47,7 @@ def get_packages() -> _t.List[str]:
     return sorted(packages)
 
 
-def package() -> _t.Optional[str]:
+def package() -> str | None:
     """Return name of primary Python package.
 
     :raises PythonPackageNotFoundError: Raised if no primary package can
@@ -79,7 +78,7 @@ def package() -> _t.Optional[str]:
     return None
 
 
-def get_commit_hash() -> _t.Optional[str]:
+def get_commit_hash() -> str | None:
     """Get the hash of the current commit.
 
     :return: A ``str`` containing the hash of the commit, or None if no

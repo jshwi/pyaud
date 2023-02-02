@@ -33,7 +33,7 @@ from ._wraps import ClassDecorator as _ClassDecorator
 class _SubprocessFactory(_MutableMapping):
     """Instantiate collection of ``Subprocess`` objects."""
 
-    def __init__(self, args: _t.List[str]) -> None:
+    def __init__(self, args: list[str]) -> None:
         super().__init__()
         for arg in args:
             self[arg] = _Subprocess(arg)
@@ -78,7 +78,7 @@ class Plugin(_BasePlugin):
         return {}
 
     @property
-    def exe(self) -> _t.List[str]:
+    def exe(self) -> list[str]:
         """List of executables to add to ``subprocess`` dict."""
         return []
 
@@ -337,7 +337,7 @@ class Parametrize(Plugin):
     """
 
     @_abstractmethod
-    def plugins(self) -> _t.List[str]:
+    def plugins(self) -> list[str]:
         """List of plugin names to run.
 
         :return: List of plugin names, as defined in ``@register``.
@@ -381,7 +381,7 @@ class FixFile(Plugin):
     """
 
     @_abstractmethod
-    def fail_condition(self) -> _t.Optional[bool]:
+    def fail_condition(self) -> bool | None:
         """Condition to trigger non-subprocess failure.
 
         :return: Return True for passing condition, false for failing
@@ -483,9 +483,7 @@ def _name_plugin(plugin: PluginType) -> str:
     return "-".join(parts).lower()
 
 
-def register(
-    name: _t.Optional[str] = None,
-) -> _t.Callable[[PluginType], PluginType]:
+def register(name: str | None = None) -> _t.Callable[[PluginType], PluginType]:
     """Register subclassed plugin to collection.
 
     If name is not provided a name will be assigned automatically.
@@ -501,7 +499,7 @@ def register(
     return _register
 
 
-def mapping() -> _t.Dict[str, PluginInstance]:
+def mapping() -> dict[str, PluginInstance]:
     """Get dict of named keys and their corresponding plugin values.
 
     :return: Mapping of plugins and their unique names.
@@ -509,7 +507,7 @@ def mapping() -> _t.Dict[str, PluginInstance]:
     return dict(_plugins)
 
 
-def registered() -> _t.List[str]:
+def registered() -> list[str]:
     """Get list of registered plugins.
 
     :return: List of registered plugins.

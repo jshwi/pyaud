@@ -33,9 +33,9 @@ class _IndexedState:
 
     def __exit__(
         self,
-        exc_type: _t.Optional[_t.Type[BaseException]],
-        exc_val: _t.Optional[BaseException],
-        exc_tb: _t.Optional[_TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: _TracebackType | None,
     ) -> None:
         if not self._restored:
             _files.extend(self._index)
@@ -57,16 +57,13 @@ class HashMapping(_JSONIO):
     _FB = "fallback"
 
     def __init__(
-        self,
-        project: str,
-        cls: _t.Type[_BasePlugin],
-        commit: _t.Optional[str] = None,
+        self, project: str, cls: type[_BasePlugin], commit: str | None = None
     ) -> None:
         super().__init__()
         self._project = project
         self._commit = commit or self._FB
         self._cls = str(cls)
-        self._session: _t.Dict[str, str] = {}
+        self._session: dict[str, str] = {}
 
     def tag(self, tag: str) -> None:
         """Tag commit key with a prefix.
@@ -134,7 +131,7 @@ class FileCacher:  # pylint: disable=too-few-public-methods
 
     def __init__(
         self,
-        cls: _t.Type[_BasePlugin],
+        cls: type[_BasePlugin],
         func: _t.Callable[..., int],
         *args: str,
         **kwargs: bool,
