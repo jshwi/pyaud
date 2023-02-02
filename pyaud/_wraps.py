@@ -12,9 +12,9 @@ import warnings as _warnings
 import spall.exceptions as sp_exceptions
 
 from ._cache import FileCacher as _FileCacher
-from ._indexing import files as _files
 from ._objects import BasePlugin as _BasePlugin
 from ._utils import colors as _colors
+from ._utils import files as _files
 
 
 class CheckCommand:

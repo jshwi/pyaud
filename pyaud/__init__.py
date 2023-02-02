@@ -1,8 +1,7 @@
 """Framework for writing Python package audits."""
 from . import exceptions, plugins
-from ._indexing import files
 from ._objects import BasePlugin
-from ._utils import package
+from ._utils import files, package
 from ._version import __version__
 
 __all__ = [

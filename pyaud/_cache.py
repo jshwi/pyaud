@@ -11,10 +11,10 @@ from pathlib import Path as _Path
 
 from . import exceptions as _exceptions
 from ._indexing import IndexedState as _IndexedState
-from ._indexing import files as _files
 from ._objects import JSONIO as _JSONIO
 from ._objects import BasePlugin as _BasePlugin
 from ._utils import colors as _colors
+from ._utils import files as _files
 from ._utils import get_commit_hash as _get_commit_hash
 from ._utils import working_tree_clean as _working_tree_clean
 from ._version import __version__

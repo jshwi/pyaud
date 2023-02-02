@@ -9,12 +9,14 @@ from pathlib import Path as _Path
 
 import setuptools as _setuptools
 from gitspy import Git as _Git
+from lsfiles import LSFiles as _LSFiles
 from object_colors import Color as _Color
 
 from . import _config
 
 colors = _Color()
 git = _Git()
+files = _LSFiles()
 
 colors.populate_colors()
 

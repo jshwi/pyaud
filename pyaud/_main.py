@@ -11,8 +11,8 @@ from . import _config
 from . import plugins as _plugins
 from ._cli import Parser as _Parser
 from ._default import register_default_plugins as _register_default_plugins
-from ._indexing import files as _files
 from ._locations import NAME as _NAME
+from ._utils import files as _files
 from ._version import __version__
 
 
