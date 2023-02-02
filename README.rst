@@ -74,20 +74,19 @@ Commandline
 
 .. code-block:: console
 
-    usage: pyaud [-h] [-c] [-f] [-n] [-s] [-v] [--rcfile RCFILE] [--version] MODULE
+    usage: pyaud [-h] [-c] [-f] [-n] [-s] [-v] [--version] MODULE
 
     positional arguments:
-      MODULE           choice of module: [modules] to list all
+      MODULE          choice of module: [modules] to list all
 
     optional arguments:
-      -h, --help       show this help message and exit
-      -c, --clean      clean unversioned files prior to any process
-      -f, --fix        suppress and fix all fixable issues
-      -n, --no-cache   disable file caching
-      -s, --suppress   continue without stopping for errors
-      -v, --verbose    incrementally increase logging verbosity
-      --rcfile RCFILE  select file to override config hierarchy
-      --version        show version and exit
+      -h, --help      show this help message and exit
+      -c, --clean     clean unversioned files prior to any process
+      -f, --fix       suppress and fix all fixable issues
+      -n, --no-cache  disable file caching
+      -s, --suppress  continue without stopping for errors
+      -v, --verbose   incrementally increase logging verbosity
+      --version       show version and exit
 
 Plugins
 *******

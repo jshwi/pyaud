@@ -71,25 +71,13 @@ from . import (
 @pytest.mark.parametrize(
     "arg,index,expected",
     [
-        (
-            "",
-            0,
-            (
-                "modules = [\n",
-                '    "audit",\n',
-                '    "clean",\n',
-                '    "generate-rcfile"\n',
-                "]",
-            ),
-        ),
+        ("", 0, ("modules = [\n", '    "audit",\n', '    "clean"\n', "]")),
         (
             "all",
             0,
             (
-                "audit           -- Read from [audit] key in config",
-                "clean           -- Remove all unversioned package files "
-                "recursively",
-                "generate-rcfile -- Print rcfile to stdout",
+                "audit -- Read from [audit] key in config",
+                "clean -- Remove all unversioned package files recursively",
             ),
         ),
         ("not-a-module", 1, ("No such module: not-a-module",)),
@@ -633,20 +621,6 @@ def test_clean_exclude(
 
     main(CLEAN)
     assert nocolorcapsys.stdout() == expected
-
-
-def test_make_generate_rcfile(nocolorcapsys: NoColorCapsys) -> None:
-    """Test for correct output when running ``generate-rcfile``.
-
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
-    """
-    pyaud._default.register_default_plugins()  # type: ignore
-    pyaud.plugins.get("generate-rcfile")()
-    assert (
-        nocolorcapsys.stdout().strip()
-        == pc.toml.dumps(pc.DEFAULT_CONFIG).strip()
-    )
 
 
 @pytest.mark.parametrize(

@@ -25,19 +25,6 @@ class _Audit(_plugins.Action):
         return 0
 
 
-class _GenerateRCFile(_plugins.Action):
-    """Print rcfile to stdout.
-
-    Print rcfile to stdout, so it may be piped to chosen filepath.
-    """
-
-    cache = False
-
-    def action(self, *args: str, **kwargs: bool) -> int:
-        print(_config.toml.dumps(_config.DEFAULT_CONFIG), end="")
-        return 0
-
-
 class _Clean(_plugins.Action):
     """Remove all unversioned package files recursively."""
 
@@ -53,5 +40,4 @@ class _Clean(_plugins.Action):
 def register_default_plugins() -> None:
     """Register default plugins."""
     _plugins.register("audit")(_Audit)
-    _plugins.register("generate-rcfile")(_GenerateRCFile)
     _plugins.register("clean")(_Clean)

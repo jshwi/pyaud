@@ -80,11 +80,6 @@ class Parser(_ArgumentParser):
             help="incrementally increase logging verbosity",
         )
         self.add_argument(
-            "--rcfile",
-            action="store",
-            help="select file to override config hierarchy",
-        )
-        self.add_argument(
             "--version", action="store_true", help="show version and exit"
         )
 

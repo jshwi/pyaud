@@ -25,7 +25,7 @@ def main() -> None:
     _register_default_plugins()
     _plugins.load()
     parser = _Parser()
-    _config.load_config(app_files, parser.args.rcfile)
+    _config.load_config(app_files)
     _config.configure_logging(parser.args.verbose)
     _files.add_exclusions(*_config.toml["indexing"]["exclude"])
     _files.populate()

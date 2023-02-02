@@ -18,7 +18,6 @@ import pyaud
 from pyaud import _config as pc
 
 from . import (
-    AUDIT,
     CLEAN,
     CRITICAL,
     DEBUG,
@@ -27,9 +26,6 @@ from . import (
     ERROR,
     EXCLUDE,
     FILENAME,
-    FILES,
-    FORMAT,
-    FORMAT_DOCS,
     HANDLERS,
     INDEXING,
     INFO,
@@ -37,7 +33,6 @@ from . import (
     LEVEL,
     LOGGING,
     MODULE,
-    MODULES,
     PLUGIN_NAME,
     PROJECT,
     PYAUD_PLUGINS_PLUGINS,
@@ -156,20 +151,6 @@ def test_toml(app_files: AppFiles) -> None:
     pc.load_config(app_files)
     subtotal[CLEAN][EXCLUDE] = []
     subtotal[LOGGING][VERSION] = 4
-    assert dict(pc.toml) == subtotal
-
-    # load optional rcfile
-    # ====================
-    # this will override all others when passed to the commandline
-    pos = {AUDIT: {MODULES: [FILES, FORMAT, FORMAT_DOCS]}}
-    opt_rc = Path.cwd() / "opt_rc"
-    opt_rc.write_text(pc.toml.dumps(pos))
-
-    # load "$HOME/.pyaudrc" and then "$Path.cwd()/.pyaudrc"
-    # ======================================================
-    # override "$HOME/.pyaudrc"
-    pc.load_config(app_files, opt_rc)
-    subtotal[AUDIT] = {MODULES: [FILES, FORMAT, FORMAT_DOCS]}
     assert dict(pc.toml) == subtotal
 
 

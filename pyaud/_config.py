@@ -199,13 +199,10 @@ def configure_global(app_files: _AppFiles) -> None:
     app_files.global_config_file.write_text(toml.dumps())
 
 
-def load_config(
-    app_files: _AppFiles, opt: _t.Optional[_t.Union[str, _os.PathLike]] = None
-) -> None:
+def load_config(app_files: _AppFiles) -> None:
     """Load configs in order, each one overriding the previous.
 
     :param app_files: App file locations object.
-    :param opt: Optional extra path which will override all others.
     """
     files = [
         app_files.global_config_file,
@@ -213,9 +210,6 @@ def load_config(
         app_files.project_config_file,
         app_files.pyproject_toml,
     ]
-    if opt is not None:
-        files.append(_Path(opt))
-
     for file in files:
         if file.is_file():
             toml.loads(file.read_text(), "tool", _NAME)
