@@ -66,7 +66,6 @@ def fixture_app_files(
     :return: Instantiated ``AppFiles`` object.
     """
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / ".config"))
     return AppFiles()
 
 
@@ -107,15 +106,6 @@ def fixture_mock_environment(
             "init": {"defaultBranch": "master"},
         }
     )
-
-    #: ENV
-    monkeypatch.setenv("CODECOV_TOKEN", "")
-    monkeypatch.delenv("CODECOV_TOKEN")
-    monkeypatch.setenv("PYAUD_GH_REMOTE", str(home / "origin.git"))
-    monkeypatch.setenv("PYAUD_DATADIR", str(home / ".local" / "share" / name))
-    monkeypatch.setenv("PYAUD_CACHEDIR", str(home / ".cache" / name))
-    monkeypatch.setenv("PYAUD_TIMED", "0")
-    monkeypatch.setenv("PYAUD_FIX", "0")
 
     #: ATTRS
     monkeypatch.setattr(OS_GETCWD, lambda: str(repo_abs))
