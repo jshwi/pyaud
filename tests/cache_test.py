@@ -4,10 +4,11 @@ tests.cache_test
 """
 # pylint: disable=protected-access,too-few-public-methods,too-many-arguments
 # pylint: disable=too-many-statements,invalid-name
+from __future__ import annotations
+
 import copy
 import json
 import os
-import typing as t
 from pathlib import Path
 
 import pytest
@@ -45,8 +46,8 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: MockMainType) -> None:
     class Plugin(pyaud.plugins.Action):
         """Nothing to do."""
 
-        def action(self, *args: t.Any, **kwargs: bool) -> t.Any:
-            """Nothing to do."""
+        def action(self, *args: str, **kwargs: bool) -> int:
+            return 0
 
     pyaud.plugins.register(name=PLUGIN_NAME[1])(Plugin)
     match_parent = Tracker()
@@ -135,9 +136,9 @@ class TestCacheStrategy:
     def _idx(
         self,
         o: CacheDict,
-        p: t.Optional[int] = None,
-        c: t.Optional[int] = None,
-        n: t.Optional[int] = None,
+        p: int | None = None,
+        c: int | None = None,
+        n: int | None = None,
         prefix: bool = False,
     ) -> CacheUnion:
         if p is not None:
@@ -165,7 +166,7 @@ class TestCacheStrategy:
         n: int,
         clean: bool = True,
         cache_all: bool = False,
-        cache_file: t.Optional[Path] = None,
+        cache_file: Path | None = None,
         single_file: bool = False,
     ) -> type:
         monkeypatch.setattr("pyaud._cache._get_commit_hash", lambda: self.C[c])
@@ -185,7 +186,7 @@ class TestCacheStrategy:
         return f"Success: no issues found in {i} source files"
 
     @staticmethod
-    def _fmt(o: t.Dict[Path, str]) -> FileHashDict:
+    def _fmt(o: dict[Path, str]) -> FileHashDict:
         return {str(k.relative_to(Path.cwd())): v for k, v in o.items()}
 
     @pytest.mark.usefixtures(
@@ -388,7 +389,7 @@ class TestCacheStrategy:
     @pytest.mark.usefixtures(
         "unpatch_hash_mapping_save_hash", "unpatch_hash_mapping_match_file"
     )
-    def test_cache_file(self, nocolorcapsys) -> None:
+    def test_cache_file(self, nocolorcapsys: NoColorCapsys) -> None:
         """Test caching a single file.
 
         :param nocolorcapsys: Capture system output while stripping ANSI

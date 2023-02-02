@@ -4,6 +4,8 @@ tests._test
 """
 # pylint: disable=too-many-lines,too-many-arguments,too-few-public-methods
 # pylint: disable=protected-access
+from __future__ import annotations
+
 import copy
 import datetime
 import os
@@ -76,7 +78,7 @@ def test_help(
     nocolorcapsys: NoColorCapsys,
     arg: str,
     index: int,
-    expected: t.Tuple[str, ...],
+    expected: tuple[str, ...],
 ) -> None:
     """Test expected output for help with no default plugins.
 
@@ -225,7 +227,7 @@ def test_files_populate_proc(make_tree: MakeTreeType) -> None:
 
 
 @pytest.mark.usefixtures("unpatch_setuptools_find_packages")
-def test_get_packages(make_tree: t.Any) -> None:
+def test_get_packages(make_tree: MakeTreeType) -> None:
     """Test process when searching for project's package.
 
     :param make_tree: Create directory tree from dict mapping.
@@ -389,9 +391,9 @@ def test_no_request(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
 )
 def test_get_commit_hash(
     monkeypatch: pytest.MonkeyPatch,
-    stdout: t.List[str],
+    stdout: list[str],
     returncode: int,
-    expected: t.Optional[str],
+    expected: str | None,
 ) -> None:
     """Test output from ``pyaud._utils.get_commit_hash``.
 
@@ -476,10 +478,10 @@ def test_warn_no_fix(
         pylint = "pylint"
 
         @property
-        def exe(self) -> t.List[str]:
+        def exe(self) -> list[str]:
             return [self.pylint]
 
-        def audit(self, *args: t.Any, **kwargs: bool) -> t.Any:
+        def audit(self, *args: str, **kwargs: bool) -> int:
             return self.subprocess[self.pylint].call(*args, **kwargs)
 
     pyaud.plugins.register(name=LINT)(_Lint)
@@ -584,7 +586,7 @@ def test_help_with_plugins(
     main: MockMainType,
     nocolorcapsys: NoColorCapsys,
     arg: str,
-    expected: t.Tuple[str, ...],
+    expected: tuple[str, ...],
 ) -> None:
     """Test expected output for help after plugins have been loaded.
 
@@ -645,7 +647,7 @@ def test_parametrize(
     """
 
     class _Params(pyaud.plugins.Parametrize):
-        def plugins(self) -> t.List[str]:
+        def plugins(self) -> list[str]:
             """List of plugin names to run.
 
             :return: List of plugin names, as defined in ``@register``.

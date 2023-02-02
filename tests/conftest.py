@@ -3,8 +3,9 @@ tests.conftest
 ==============
 """
 # pylint: disable=protected-access,no-member,import-outside-toplevel
+from __future__ import annotations
+
 import os
-import typing as t
 from configparser import ConfigParser
 from pathlib import Path
 
@@ -154,7 +155,7 @@ def fixture_make_tree() -> MakeTreeType:
     :return: Function for using this fixture.
     """
 
-    def _make_tree(root: Path, obj: t.Dict[t.Any, t.Any]) -> None:
+    def _make_tree(root: Path, obj: dict[str, object]) -> None:
         for key, value in obj.items():
             fullpath = root / key
             if isinstance(value, dict):
@@ -260,10 +261,10 @@ def fixture_mock_action_plugin_factory() -> MockActionPluginFactoryType:
                 _action = param.get("action")
 
                 @property
-                def exe(self) -> t.List[str]:
+                def exe(self) -> list[str]:
                     return [self.exe_str]
 
-                def action(self, *args: t.Any, **kwargs: bool) -> int:
+                def action(self, *args: str, **kwargs: bool) -> int:
                     """Nothing to do."""
                     if self._action is not None:
                         return self._action(self, *args, **kwargs)

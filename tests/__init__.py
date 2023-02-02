@@ -5,6 +5,8 @@ tests
 Test package for ``pyaud``.
 """
 # pylint: disable=too-few-public-methods
+from __future__ import annotations
+
 import re
 import typing as t
 from pathlib import Path
@@ -100,7 +102,7 @@ class NoColorCapsys:
         ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
         return ansi_escape.sub("", out)
 
-    def readouterr(self) -> t.Tuple[str, ...]:
+    def readouterr(self) -> tuple[str, ...]:
         """Call as capsys ``readouterr`` but remove ANSI color-codes.
 
         :return: A tuple (just like the capsys) containing stdout in the
@@ -138,8 +140,8 @@ class Tracker:
 
     def __init__(self) -> None:
         self._called = False
-        self.args: t.List[t.Tuple[str, ...]] = []
-        self.kwargs: t.List[t.Dict[str, t.Any]] = []
+        self.args: list[tuple[str, ...]] = []
+        self.kwargs: list[dict[str, bool]] = []
 
     def was_called(self) -> bool:
         """Confirm whether object was called or not.
@@ -148,7 +150,7 @@ class Tracker:
         """
         return self._called
 
-    def __call__(self, *args: t.Any, **kwargs: t.Any) -> None:
+    def __call__(self, *args: str, **kwargs: bool) -> None:
         """Call the object, update its fields, and return values passed.
 
         Fields to update:

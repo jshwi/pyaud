@@ -2,7 +2,8 @@
 tests.fix_test
 ==============
 """
-import typing as t
+from __future__ import annotations
+
 from pathlib import Path
 from subprocess import CalledProcessError
 
@@ -10,32 +11,40 @@ import pytest
 
 import pyaud
 
-from . import FIX, FIX_ALL, FIX_FILE, FIXER, NO_ISSUES, NoColorCapsys
+from . import (
+    FIX,
+    FIX_ALL,
+    FIX_FILE,
+    FIXER,
+    NO_ISSUES,
+    MockMainType,
+    NoColorCapsys,
+)
 
 
 def _get_pass_fixer(
-    base: t.Type[pyaud.plugins.BaseFix],
-) -> t.Type[pyaud.plugins.BaseFix]:
+    base: type[pyaud.plugins.BaseFix],
+) -> type[pyaud.plugins.BaseFix]:
     class _PassFixer(base):  # type: ignore
-        def audit(self, *_: t.Any, **__: bool) -> int:
+        def audit(self, *_: str, **__: bool) -> int:
             """Return 0."""
             return 0
 
-        def fix(self, *_: t.Any, **__: bool) -> int:  # type: ignore
+        def fix(self, *_: str, **__: bool) -> int:  # type: ignore
             """Nothing to do."""
 
     return _PassFixer
 
 
 def _get_fail_fixer(
-    base: t.Type[pyaud.plugins.BaseFix],
-) -> t.Type[pyaud.plugins.BaseFix]:
+    base: type[pyaud.plugins.BaseFix],
+) -> type[pyaud.plugins.BaseFix]:
     class _FailFixer(base):  # type: ignore
-        def audit(self, *args: t.Any, **kwargs: bool) -> int:
+        def audit(self, *args: str, **kwargs: bool) -> int:
             """Raise ``CalledProcessError``."""
             raise CalledProcessError(1, "cmd")
 
-        def fix(self, *_: t.Any, **__: bool) -> int:
+        def fix(self, *_: str, **__: bool) -> int:
             """Nothing to do."""
             return 0
 
@@ -43,7 +52,7 @@ def _get_fail_fixer(
 
 
 class _BaseFileFixer(pyaud.plugins.FixFile):
-    def fail_condition(self) -> t.Optional[bool]:
+    def fail_condition(self) -> bool | None:
         """Nothing to do."""
 
     def audit(self, file: Path, **kwargs: bool) -> int:
@@ -60,7 +69,7 @@ class _PassFileFixer(_BaseFileFixer):
 
 
 class _FailFileFixer(_BaseFileFixer):
-    def fail_condition(self) -> t.Optional[bool]:
+    def fail_condition(self) -> bool | None:
         return True
 
 
@@ -87,7 +96,7 @@ class TestFix:
     )
     def test_on_pass(
         self,
-        main: t.Any,
+        main: MockMainType,
         nocolorcapsys: NoColorCapsys,
         plugin: pyaud.plugins.PluginType,
         expected: str,
@@ -115,7 +124,7 @@ class TestFix:
         ids=[FIX, FIX_ALL, FIX_FILE],
     )
     def test_on_fail(
-        self, main: t.Any, plugin: pyaud.plugins.PluginType
+        self, main: MockMainType, plugin: pyaud.plugins.PluginType
     ) -> None:
         """Test plugin on fail when using the fix class.
 
@@ -146,7 +155,7 @@ class TestFix:
     )
     def test_with_fix(
         self,
-        main: t.Any,
+        main: MockMainType,
         nocolorcapsys: NoColorCapsys,
         plugin: pyaud.plugins.PluginType,
         expected: str,
