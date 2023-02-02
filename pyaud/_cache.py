@@ -129,7 +129,6 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         self.hashed.read(app_files.cache_file)
 
     def _on_completion(self, *paths: _Path) -> None:
-        self._cls.logger().debug("writing to %s", self._cache_file_path)
         for path in paths:
             self.hashed.save_hash(path)
 
@@ -140,10 +139,8 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         with _IndexedState() as state:
             for file in list(_files):
                 if self.hashed.match_file(file):
-                    self._cls.logger().debug("hit: %s", file)
                     _files.remove(file)
                 else:
-                    self._cls.logger().debug("miss: %s", file)
                     if self._cls.cache_all:
                         state.restore()
                         break
@@ -176,13 +173,11 @@ class FileCacher:  # pylint: disable=too-few-public-methods
                 and path.is_file()
                 and self.hashed.match_file(path)
             ):
-                self._cls.logger().debug("hit: %s", path)
                 _colors.green.print(
                     "No changes have been made to audited file"
                 )
                 return 0
 
-            self._cls.logger().debug("miss: %s", path)
             self._on_completion(path)
 
         return returncode
@@ -198,14 +193,6 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         :return: Wrapped function.
         """
         no_cache = kwargs.get("no_cache", False)
-        self._cls.logger().info(
-            "NO_CACHE=%s, %s.cache=%s, %s.cache_file=%s",
-            no_cache,
-            self._cls.__name__,
-            self._cls.cache,
-            self._cls.__name__,
-            self._cls.cache_file,
-        )
         if not no_cache:
             if self._cls.cache_file is not None:
                 return self._cache_file()
@@ -213,5 +200,4 @@ class FileCacher:  # pylint: disable=too-few-public-methods
             if self._cls.cache:
                 return self._cache_files()
 
-        self._cls.logger().info("skipping reading and writing to disk")
         return func(*args, **kwargs)

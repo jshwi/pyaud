@@ -343,12 +343,6 @@ def test_plugin_mro(
     assert "plugin-2" in pyaud.plugins.mapping()
 
 
-def test_get_plugin_logger() -> None:
-    """Test logger available through uninstantiated ``BasePlugin``."""
-    logger = pyaud.plugins.Plugin.logger()
-    assert logger.name == pyaud.plugins.Plugin.__name__
-
-
 def test_print_version(
     monkeypatch: pytest.MonkeyPatch,
     main: MockMainType,

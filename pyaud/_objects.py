@@ -3,7 +3,6 @@ pyaud._objects
 ==============
 """
 import json as _json
-import logging as _logging
 import typing as _t
 from abc import ABC as _ABC
 from pathlib import Path as _Path
@@ -73,14 +72,6 @@ class BasePlugin(_ABC):  # pylint: disable=too-few-public-methods
 
     #: set a single cache file for plugin subclass.
     cache_file: _t.Optional[_t.Union[str, _Path]] = None
-
-    @classmethod
-    def logger(cls) -> _logging.Logger:
-        """Assign an audit logger dynamically, post logging config.
-
-        :return: ``Logger`` object.
-        """
-        return _logging.getLogger(cls.__name__)
 
 
 class JSONIO(MutableMapping):

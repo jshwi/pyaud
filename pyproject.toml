@@ -24,20 +24,6 @@ ignore_strings = [
   "utf-8"
 ]
 
-[tool.constcheck.ignore_from]
-"pyaud/_cache.py" = [
-  "miss: %s"
-]
-"pyaud/_config.py" = [
-  "class",
-  "default",
-  "exclude",
-  "formatter",
-  "handlers",
-  "level",
-  "root"
-]
-
 [tool.coverage.report]
 fail_under = 100
 

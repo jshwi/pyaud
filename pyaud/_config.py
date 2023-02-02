@@ -43,15 +43,9 @@ The following methods can be called with ``toml``:
 from __future__ import annotations
 
 import copy as _copy
-import importlib as _importlib
-import inspect as _inspect
-import logging as _logging
-import logging.config as _logging_config
 import typing as _t
-from pathlib import Path as _Path
 from types import TracebackType as _TracebackType
 
-import appdirs as _appdirs
 import tomli as _tomli
 import tomli_w as _tomli_w
 
@@ -60,27 +54,6 @@ from ._locations import AppFiles as _AppFiles
 from ._objects import MutableMapping as _MutableMapping
 
 DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
-    logging={
-        "version": 1,
-        "disable_existing_loggers": True,
-        "formatters": {
-            "standard": {
-                "format": "%(asctime)s %(levelname)s %(name)s %(message)s"
-            }
-        },
-        "handlers": {
-            "default": {
-                "class": "logging.handlers.TimedRotatingFileHandler",
-                "formatter": "standard",
-                "when": "d",
-                "backupCount": 60,
-                "filename": str(
-                    _Path(_appdirs.user_log_dir(_NAME)) / f"{_NAME}.log"
-                ),
-            }
-        },
-        "root": {"level": "INFO", "handlers": ["default"], "propagate": False},
-    },
     indexing={"exclude": ["whitelist.py", "conf.py", "setup.py"]},
     packages={"exclude": ["tests"]},
     audit={
@@ -194,77 +167,6 @@ def load_config(app_files: _AppFiles) -> None:
     for file in files:
         if file.is_file():
             toml.loads(file.read_text(), "tool", _NAME)
-
-
-def _extract_logger(default: _t.Dict[str, _t.Any]) -> _logging.Logger:
-    # return the logging object
-    parts = default["class"].split(".")
-    module = _importlib.import_module(".".join(parts[:-1]))
-    return getattr(module, parts[-1])
-
-
-def _filter_default(
-    default: _t.Dict[str, _t.Any], logger: _logging.Logger
-) -> _t.Dict[str, _t.Any]:
-    # filter out any invalid kwargs for logging config
-
-    # this will be invalid, so re-add after
-    cls = default["class"]
-    formatter = default["formatter"]
-
-    # inspect logger's signature for kwargs that it can take
-    filter_keys = [
-        param.name
-        for param in _inspect.signature(
-            logger  # type: ignore
-        ).parameters.values()
-        if param.kind == param.POSITIONAL_OR_KEYWORD
-    ]
-
-    # delete all the keys from the default section that are not valid
-    for key in dict(default):
-        if key not in filter_keys:
-            del default[key]
-
-    # re-add the str representation of the configured class
-    default.update({"class": cls, "formatter": formatter})
-
-    return default
-
-
-def configure_logging(verbose: int = 0) -> None:
-    """Set loglevel.
-
-    If ``-v`` flag passed to commandline decrease runtime loglevel for
-    every repeat occurrence.
-
-    ``-vvvv`` will always set logging to ``DEBUG``.
-
-    Default loglevel is set in the toml config and overridden by
-    environment variable if there is one.
-
-    :param verbose: Level to raise log verbosity by.
-    """
-    levels = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
-    config = dict(toml["logging"])
-    default = config["handlers"]["default"]
-    filename = default.get("filename")
-
-    # get the logger object to filter out any invalid kwargs
-    logger = _extract_logger(default)
-    _filter_default(default, logger)
-
-    # create logging dir and it's parents if they do not exist already
-    if filename is not None:
-        _Path(filename).expanduser().parent.mkdir(exist_ok=True, parents=True)
-
-    # tweak loglevel if commandline argument is provided
-    config["root"]["level"] = levels[
-        max(0, levels.index(config["root"]["level"]) - verbose)
-    ]
-
-    # load values to ``logging``
-    _logging_config.dictConfig(config)
 
 
 toml = _Toml()

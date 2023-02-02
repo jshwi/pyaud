@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v4.1.0...HEAD)
 ------------------------------------------------------------------------
 ### Removed
+- Remove logging
 - Remove backup config
 - Remove `-c/--clean` argument
 - Remove `--rcfile` argument

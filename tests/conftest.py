@@ -20,18 +20,11 @@ import pyaud._config as pc
 from pyaud import _default
 
 from . import (
-    DEBUG,
-    DEFAULT,
     FILE,
-    FILENAME,
     GH_EMAIL,
     GH_NAME,
-    HANDLERS,
-    LEVEL,
-    LOGGING,
     OS_GETCWD,
     REPO,
-    ROOT,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
     AppFiles,
     MakeTreeType,
@@ -79,13 +72,9 @@ def fixture_mock_environment(
     """
     home = tmp_path
     repo_abs = home / REPO
-    name = pyaud.__name__
 
     #: CONFIG
     default_config = dict(pc.DEFAULT_CONFIG)
-    logfile = Path(home / ".cache" / name / "log" / f"{name}.log")
-    default_config[LOGGING][HANDLERS][DEFAULT][FILENAME] = str(logfile)
-    default_config[LOGGING][ROOT][LEVEL] = DEBUG
 
     #: DOTENV - prevents lookup of .env file
     current_frame = type("current_frame", (), {})
@@ -137,7 +126,6 @@ def fixture_mock_environment(
     pyaud.files.populate()
     pc.configure_global(app_files)
     pc.load_config(app_files)
-    pc.configure_logging()
 
 
 @pytest.fixture(name="nocolorcapsys")

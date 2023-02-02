@@ -4,8 +4,6 @@ pyaud._main
 
 Contains package entry point.
 """
-import logging as _logging
-from pathlib import Path as _Path
 
 from . import _config
 from . import plugins as _plugins
@@ -26,14 +24,8 @@ def main() -> None:
     _plugins.load()
     parser = _Parser()
     _config.load_config(app_files)
-    _config.configure_logging(parser.args.verbose)
     _files.add_exclusions(*_config.toml["indexing"]["exclude"])
     _files.populate()
-    _logging.getLogger(__name__).info(
-        "commencing audit for %s in %s",
-        app_files.user_project_dir.name,
-        _Path.cwd(),
-    )
     _plugins.get(parser.args.module)(
         suppress=parser.args.suppress,
         fix=parser.args.fix,
