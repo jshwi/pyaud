@@ -5,18 +5,19 @@ pyaud._cache
 from __future__ import annotations
 
 import hashlib as _hashlib
+import os as _os
 import typing as _t
 from pathlib import Path as _Path
 
 from . import exceptions as _exceptions
 from ._indexing import IndexedState as _IndexedState
 from ._indexing import files as _files
-from ._locations import AppFiles as _AppFiles
 from ._objects import JSONIO as _JSONIO
 from ._objects import BasePlugin as _BasePlugin
 from ._utils import colors as _colors
 from ._utils import get_commit_hash as _get_commit_hash
 from ._utils import working_tree_clean as _working_tree_clean
+from ._version import __version__
 
 
 class HashMapping(_JSONIO):
@@ -101,7 +102,6 @@ class FileCacher:  # pylint: disable=too-few-public-methods
 
     :param cls: Audit that this class is running in.
     :param func: Call function belonging to cls.
-    :param app_files: App file locations object.
     :param args: Args that can be passed from other plugins.
     :param kwargs: Boolean flags for subprocesses.
     """
@@ -110,7 +110,6 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         self,
         cls: _t.Type[_BasePlugin],
         func: _t.Callable[..., int],
-        app_files: _AppFiles,
         *args: str,
         **kwargs: bool,
     ) -> None:
@@ -119,14 +118,16 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         self.args = args
         self.kwargs = kwargs
         self.no_cache = self.kwargs.get("no_cache", False)
-        self._cache_file_path = app_files.cache_file
+        self._cache_file_path = (
+            _Path(_os.environ["PYAUD_CACHE"]) / __version__ / "files.json"
+        )
         self.hashed = HashMapping(
-            app_files.user_project_dir.name, self._cls, _get_commit_hash()
+            _Path.cwd().name, self._cls, _get_commit_hash()
         )
         if not _working_tree_clean():
             self.hashed.tag("uncommitted")
 
-        self.hashed.read(app_files.cache_file)
+        self.hashed.read(self._cache_file_path)
 
     def _on_completion(self, *paths: _Path) -> None:
         for path in paths:

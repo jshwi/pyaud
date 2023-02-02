@@ -15,9 +15,6 @@ from templatest.utils import VarSeq
 
 import pyaud
 
-# noinspection PyUnresolvedReferences,PyProtectedMember
-from pyaud._locations import AppFiles
-
 PACKAGE = VarSeq("package", suffix="-")
 PLUGIN_NAME = VarSeq("plugin", suffix="-")
 PLUGIN_CLASS = VarSeq("Plugin")
@@ -192,6 +189,3 @@ class MockAudit(pyaud.plugins.Audit):
     def audit(self, *_: str, **__: bool) -> int:
         """Nothing to do."""
         return 1
-
-
-__all__ = ["AppFiles"]

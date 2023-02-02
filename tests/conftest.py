@@ -26,7 +26,6 @@ from . import (
     OS_GETCWD,
     REPO,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
-    AppFiles,
     MakeTreeType,
     MockActionPluginFactoryType,
     MockActionPluginList,
@@ -44,20 +43,6 @@ original_pyaud_main_register_default_plugins = (
     _default.register_default_plugins
 )
 original_setuptools_find_packages = setuptools.find_packages
-
-
-@pytest.fixture(name="app_files")
-def fixture_app_files(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> AppFiles:
-    """App files for testing.
-
-    :param tmp_path: Create and return temporary directory.
-    :param monkeypatch: Mock patch environment and attributes.
-    :return: Instantiated ``AppFiles`` object.
-    """
-    monkeypatch.setenv("HOME", str(tmp_path))
-    return AppFiles()
 
 
 @pytest.fixture(name="mock_environment", autouse=True)
@@ -93,6 +78,9 @@ def fixture_mock_environment(
         }
     )
 
+    #: ENV
+    monkeypatch.setenv("PYAUD_CACHE", str(tmp_path / ".pyaud_cache"))
+
     #: ATTRS
     monkeypatch.setattr(OS_GETCWD, lambda: str(repo_abs))
     monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [REPO])
@@ -123,6 +111,8 @@ def fixture_mock_environment(
     #: MAIN - essential setup tasks
     # noinspection PyProtectedMember
     pyaud.files.populate()
+    # noinspection PyProtectedMember,PyUnresolvedReferences
+    pyaud._main._create_cachedir()
     pc.load_config()
 
 

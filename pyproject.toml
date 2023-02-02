@@ -19,6 +19,7 @@ skip-magic-trailing-comma = true
 
 [tool.constcheck]
 ignore_strings = [
+  "PYAUD_CACHE",
   "store",
   "store_true",
   "utf-8"
@@ -75,7 +76,6 @@ repository = "https://github.com/jshwi/pyaud"
 version = "4.1.0"
 
 [tool.poetry.dependencies]
-appdirs = "^1.4.4"
 arcon = "^0.2.1"
 gitspy = "^0"
 lsfiles = "^0"

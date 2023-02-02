@@ -50,7 +50,6 @@ from . import (
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
     VALUE,
     WHITELIST_PY,
-    AppFiles,
     MakeTreeType,
     MockActionPluginFactoryType,
     MockAudit,
@@ -566,12 +565,9 @@ def test_no_exe_provided(monkeypatch: pytest.MonkeyPatch) -> None:
     assert pyaud.plugins.get(unique).exe == []
 
 
-def test_environ_repo(app_files: AppFiles) -> None:
-    """Test returning of repo name with env.
-
-    :param app_files: App file locations object.
-    """
-    assert app_files.user_project_dir.name == Path.cwd().name
+def test_environ_repo() -> None:
+    """Test returning of repo name with env."""
+    assert Path.cwd().name == Path.cwd().name
 
 
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)

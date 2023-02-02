@@ -13,7 +13,6 @@ import spall.exceptions as sp_exceptions
 
 from ._cache import FileCacher as _FileCacher
 from ._indexing import files as _files
-from ._locations import AppFiles as _AppFiles
 from ._objects import BasePlugin as _BasePlugin
 from ._utils import colors as _colors
 
@@ -81,14 +80,10 @@ class ClassDecorator:
     ``__call__`` method.
 
     :param cls: The class whose ``__call__`` method will be wrapped.
-    :param app_files: App file locations object.
     """
 
-    def __init__(
-        self, cls: _t.Type[_BasePlugin], app_files: _AppFiles
-    ) -> None:
+    def __init__(self, cls: _t.Type[_BasePlugin]) -> None:
         self._cls = cls
-        self._app_files = app_files
 
     def files(self, func: _t.Callable[..., int]) -> _t.Callable[..., int]:
         """Wrap ``__call__`` with a hashing function.
@@ -99,9 +94,7 @@ class ClassDecorator:
 
         @_functools.wraps(func)
         def _wrapper(*args: str, **kwargs: bool) -> int:
-            _file_cacher = _FileCacher(
-                self._cls, func, self._app_files, *args, **kwargs
-            )
+            _file_cacher = _FileCacher(self._cls, func, *args, **kwargs)
             return _file_cacher.files(func, *args, **kwargs)
 
         return _wrapper

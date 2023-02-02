@@ -23,7 +23,6 @@ from . import _config
 from . import exceptions as _exceptions
 from ._indexing import files as _files
 from ._locations import NAME as _NAME
-from ._locations import AppFiles as _AppFiles
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
 from ._utils import colors as _colors
@@ -53,8 +52,7 @@ class Plugin(_BasePlugin):
     """
 
     def __new__(cls, name: str) -> Plugin:  # pylint: disable=unused-argument
-        app_files = _AppFiles()
-        class_decorator = _ClassDecorator(cls, app_files)
+        class_decorator = _ClassDecorator(cls)
         cls.__call__ = class_decorator.not_found(cls.__call__)  # type: ignore
         cls.__call__ = class_decorator.files(cls.__call__)  # type: ignore
         return super().__new__(cls)
