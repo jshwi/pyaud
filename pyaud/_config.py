@@ -47,8 +47,6 @@ import importlib as _importlib
 import inspect as _inspect
 import logging as _logging
 import logging.config as _logging_config
-import os as _os
-import shutil as _shutil
 import typing as _t
 from pathlib import Path as _Path
 from types import TracebackType as _TracebackType
@@ -177,23 +175,7 @@ def configure_global(app_files: _AppFiles) -> None:
     default_config = _copy.deepcopy(DEFAULT_CONFIG)
     toml.update(default_config)
     if app_files.global_config_file.is_file():
-        while True:
-            try:
-                toml.loads(app_files.global_config_file.read_text())
-                _shutil.copyfile(
-                    app_files.global_config_file,
-                    app_files.global_config_file_backup,
-                )
-                break
-
-            except _tomli.TOMLDecodeError:
-                if app_files.global_config_file_backup.is_file():
-                    _os.rename(
-                        app_files.global_config_file_backup,
-                        app_files.global_config_file,
-                    )
-                else:
-                    break
+        toml.loads(app_files.global_config_file.read_text())
 
     app_files.global_config_file.write_text(toml.dumps())
 

@@ -66,11 +66,6 @@ class AppFiles(AppDirs):
         return self.user_config_dir / f"{NAME}.toml"
 
     @property
-    def global_config_file_backup(self) -> _Path:
-        """Path to the app's global config backup file."""
-        return self.user_config_dir / f"{NAME}.toml.bak"
-
-    @property
     def home_config_file(self) -> _Path:
         """Path to the app's home config file."""
         return self.user_home_dir / f".{NAME}rc"
