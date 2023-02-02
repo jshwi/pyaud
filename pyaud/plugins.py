@@ -57,7 +57,6 @@ class Plugin(_BasePlugin):
         class_decorator = _ClassDecorator(cls, app_files)
         cls.__call__ = class_decorator.not_found(cls.__call__)  # type: ignore
         cls.__call__ = class_decorator.files(cls.__call__)  # type: ignore
-        cls.__call__ = class_decorator.time(cls.__call__)  # type: ignore
         return super().__new__(cls)
 
     def __init__(self, name: str) -> None:

@@ -74,7 +74,7 @@ Commandline
 
 .. code-block:: console
 
-    usage: pyaud [-h] [-c] [-f] [-n] [-s] [-t] [-v] [--rcfile RCFILE] [--version] MODULE
+    usage: pyaud [-h] [-c] [-f] [-n] [-s] [-v] [--rcfile RCFILE] [--version] MODULE
 
     positional arguments:
       MODULE           choice of module: [modules] to list all
@@ -85,7 +85,6 @@ Commandline
       -f, --fix        suppress and fix all fixable issues
       -n, --no-cache   disable file caching
       -s, --suppress   continue without stopping for errors
-      -t, --timed      track the length of time for each plugin
       -v, --verbose    incrementally increase logging verbosity
       --rcfile RCFILE  select file to override config hierarchy
       --version        show version and exit

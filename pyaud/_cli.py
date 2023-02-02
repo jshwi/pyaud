@@ -73,12 +73,6 @@ class Parser(_ArgumentParser):
             help="continue without stopping for errors",
         )
         self.add_argument(
-            "-t",
-            "--timed",
-            action="store_true",
-            help="track the length of time for each plugin",
-        )
-        self.add_argument(
             "-v",
             "--verbose",
             action="count",

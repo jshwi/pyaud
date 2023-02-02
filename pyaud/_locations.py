@@ -61,11 +61,6 @@ class AppFiles(AppDirs):
         return self.user_cache_dir / "files.json"
 
     @property
-    def durations_file(self) -> _Path:
-        """Path to the app's durations file."""
-        return self.user_data_dir / "durations.json"
-
-    @property
     def global_config_file(self) -> _Path:
         """Path to the app's global config file."""
         return self.user_config_dir / f"{NAME}.toml"

@@ -100,7 +100,6 @@ DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
             "docs",
         ]
     },
-    addopts=["timed"],
 )
 
 

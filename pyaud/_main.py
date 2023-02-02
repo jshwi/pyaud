@@ -7,7 +7,7 @@ Contains package entry point.
 import logging as _logging
 from pathlib import Path as _Path
 
-from . import _config, _data
+from . import _config
 from . import plugins as _plugins
 from ._cli import Parser as _Parser
 from ._default import register_default_plugins as _register_default_plugins
@@ -25,7 +25,6 @@ def main() -> None:
     _register_default_plugins()
     _plugins.load()
     parser = _Parser()
-    _data.record.read(app_files.durations_file)
     _config.load_config(app_files, parser.args.rcfile)
     _config.configure_logging(parser.args.verbose)
     _files.add_exclusions(*_config.toml["indexing"]["exclude"])
@@ -39,6 +38,5 @@ def main() -> None:
         clean=parser.args.clean,
         suppress=parser.args.suppress,
         fix=parser.args.fix,
-        timed=parser.args.timed,
         no_cache=parser.args.no_cache,
     )

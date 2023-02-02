@@ -6,7 +6,6 @@ tests._test
 # pylint: disable=protected-access
 import copy
 import datetime
-import json
 import os
 import subprocess
 import time
@@ -455,39 +454,6 @@ def test_working_tree_clean(
     assert not pyaud._utils.working_tree_clean()
 
 
-def test_time_output(
-    main: MockMainType,
-    nocolorcapsys: NoColorCapsys,
-    mock_action_plugin_factory: MockActionPluginFactoryType,
-) -> None:
-    """Test tracking of durations in output.
-
-    :param main: Patch package entry point.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
-    :param mock_action_plugin_factory: Factory for creating mock action
-        plugin objects.
-    """
-    plugin = mock_action_plugin_factory({NAME: PLUGIN_CLASS[1]})[0]
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugin)
-    main(PLUGIN_NAME[1], "-t")
-    out = nocolorcapsys.stdout()
-    assert "Plugin_1: Execution time:" in out
-
-
-def test_restore_data_no_json(app_files: AppFiles) -> None:
-    """Test pass on restoring empty file.
-
-    No need to run any assertions; checking that no error is raised.
-
-    :param app_files: App file locations object.
-    """
-    app_files.durations_file.touch()
-    # noinspection PyUnresolvedReferences
-    time_cache = pyaud._data.Record()
-    time_cache.read(app_files.durations_file)
-
-
 def test_plugin_deepcopy_with_new() -> None:
     """Test that ``TypeError`` is not raised.
 
@@ -501,52 +467,6 @@ def test_plugin_deepcopy_with_new() -> None:
         ).__deepcopy__(REPO),
         pyaud.plugins.Plugin,
     )
-
-
-def test_nested_times(
-    monkeypatch: pytest.MonkeyPatch,
-    main: MockMainType,
-    app_files: AppFiles,
-    mock_action_plugin_factory: MockActionPluginFactoryType,
-) -> None:
-    """Test reading and writing of times within nested processes.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    :param main: Patch package entry point.
-    :param app_files: App file locations object.
-    :param mock_action_plugin_factory: Factory for creating mock action
-        plugin objects.
-    """
-    monkeypatch.setattr("pyaud._data._TimeKeeper._starter", lambda x: 0)
-    monkeypatch.setattr("pyaud._data._TimeKeeper._stopper", lambda x: 1)
-    expected = {
-        REPO: {
-            "<class 'pyaud._default.Audit'>": [1],
-            "<class 'tests._test.test_nested_times.<locals>.P1'>": [1],
-            "<class 'tests._test.test_nested_times.<locals>.P2'>": [1],
-        }
-    }
-    default_config = pc.DEFAULT_CONFIG
-    test_default: t.Dict[t.Any, t.Any] = copy.deepcopy(default_config)
-    test_default[AUDIT][MODULES] = [PLUGIN_NAME[1], PLUGIN_NAME[2]]
-    app_files.global_config_file.write_text(pc.toml.dumps(test_default))
-    pyaud.plugins.register(AUDIT)(pyaud._default._Audit)  # type: ignore
-    plugin_one, plugin_two = mock_action_plugin_factory(
-        {NAME: PLUGIN_CLASS[2]}, {NAME: PLUGIN_CLASS[2]}
-    )
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugin_one)
-    pyaud.plugins.register(name=PLUGIN_NAME[2])(plugin_two)
-
-    # noinspection PyUnresolvedReferences
-    pyaud._data.record.clear()
-    assert sorted(pyaud.plugins.registered()) == [
-        AUDIT,
-        PLUGIN_NAME[1],
-        PLUGIN_NAME[2],
-    ]
-    main(AUDIT)
-    actual = json.loads(app_files.durations_file.read_text(encoding="utf-8"))
-    assert all(i in actual for i in expected)
 
 
 def test_command_not_found_error(

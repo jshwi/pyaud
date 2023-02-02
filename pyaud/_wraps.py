@@ -8,11 +8,9 @@ import functools as _functools
 import sys as _sys
 import typing as _t
 import warnings as _warnings
-from pathlib import Path as _Path
 
 import spall.exceptions as sp_exceptions
 
-from . import _data
 from ._cache import FileCacher as _FileCacher
 from ._indexing import files as _files
 from ._locations import AppFiles as _AppFiles
@@ -91,35 +89,6 @@ class ClassDecorator:
     ) -> None:
         self._cls = cls
         self._app_files = app_files
-
-    def time(self, func: _t.Callable[..., int]) -> _t.Callable[..., int]:
-        """Wrap ``__call__`` with a timer.
-
-        :param func: Function to wrap.
-        :return: Wrapped function.
-        """
-
-        @_functools.wraps(func)
-        def _wrapper(*args: str, **kwargs: bool) -> int:
-            repo = _Path.cwd().name
-            with _data.record.track(
-                repo, self._cls, self._app_files.durations_file
-            ) as time_keeper:
-                returncode = func(*args, **kwargs)
-
-            _data.record.write(self._app_files.durations_file)
-            logged_time = "{}: Execution time: {}s; Average time: {}s".format(
-                self._cls.__name__,
-                time_keeper.elapsed(),
-                _data.record.average(repo, self._cls),
-            )
-            self._cls.logger().info(logged_time)
-            if kwargs.get("timed", False):
-                _colors.magenta.print(logged_time)
-
-            return returncode
-
-        return _wrapper
 
     def files(self, func: _t.Callable[..., int]) -> _t.Callable[..., int]:
         """Wrap ``__call__`` with a hashing function.

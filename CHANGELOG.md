@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v4.1.0...HEAD)
 ------------------------------------------------------------------------
+### Removed
+- Remove `-t/--timed` argument
 
 [4.1.0](https://github.com/jshwi/pyaud/releases/tag/v4.1.0) - 2023-01-05
 ------------------------------------------------------------------------
