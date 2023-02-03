@@ -2,11 +2,6 @@
 pyaud._cli
 ==========
 """
-import inspect as _inspect
-import json as _json
-import sys as _sys
-from argparse import SUPPRESS as _SUPPRESS
-
 from arcon import ArgumentParser as _ArgumentParser
 
 from . import plugins as _plugins
@@ -33,13 +28,9 @@ class Parser(_ArgumentParser):
 
     def __init__(self) -> None:
         super().__init__(__version__, prog=_colors.cyan.get(_NAME))
-        self._mapping = _plugins.mapping()
         self._registered = _plugins.registered()
-        self._returncode = 0
         self._add_arguments()
         self.args = self.parse_args()
-        if self.args.module == "modules":
-            _sys.exit(self._module_help())
 
     def _add_arguments(self) -> None:
         self.add_argument(
@@ -66,68 +57,3 @@ class Parser(_ArgumentParser):
             action="store_true",
             help="continue without stopping for errors",
         )
-
-        # pos argument following [modules] argument
-        self.add_argument("pos", nargs="?", default=None, help=_SUPPRESS)
-
-    def _print_module_docs(self) -> None:
-        # iterate over ``modules`` object to print documentation on
-        # particular module or all modules, depending on argument passed
-        # to commandline
-        print()
-        for key in sorted(self._mapping):
-            # keep a tab width of at least 1 space between key and
-            # documentation
-            # if all modules are printed adjust by the longest key
-            tab = len(max(self._mapping, key=len)) + 1
-            doc = _inspect.getdoc(self._mapping[key])
-            if doc is not None:
-                print(
-                    "{}-- {}".format(
-                        key.ljust(tab),
-                        doc.splitlines()[0][:-1].replace("``", "`"),
-                    )
-                )
-
-    def _print_module_summary(self) -> None:
-        # print summary of module use if no module is selected or an
-        # invalid module name os provided
-        _colors.yellow.print(
-            f"{_NAME} modules [<module> | all] for more on each module\n"
-        )
-        print(
-            "modules = {}".format(
-                _json.dumps(self._registered, indent=4, sort_keys=True)
-            )
-        )
-
-    def _print_err(self) -> None:
-        # announce selected module does not exist
-        self._returncode = 0
-        _colors.red.print(f"No such module: {self.args.pos}", file=_sys.stderr)
-
-    def _module_help(self) -> int:
-        self.print_usage()
-
-        # module is selected or all has been entered
-        if self.args.pos in (*self._mapping, "all"):
-            # specific module has been entered for help output
-            # filter the remaining modules from ``modules`` object
-            if self.args.pos in self._mapping:
-                positional = {self.args.pos: self._mapping[self.args.pos]}
-                self._mapping.clear()
-                self._mapping.update(positional)
-
-            self._print_module_docs()
-
-        # print module help summary if no argument to module has been
-        # provided or argument has been provided but is not a valid
-        # choice
-        else:
-            # argument has been provided which is not a valid option
-            if self.args.pos is not None:
-                self._print_err()
-
-            self._print_module_summary()
-
-        return self._returncode

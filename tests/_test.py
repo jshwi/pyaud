@@ -36,7 +36,6 @@ from . import (
     INIT,
     KEY,
     LINT,
-    MODULE,
     MODULES,
     NAME,
     OS_GETCWD,
@@ -61,47 +60,6 @@ from . import (
     Tracker,
     git,
 )
-
-
-@pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
-@pytest.mark.parametrize(
-    "arg,index,expected",
-    [
-        ("", 0, ("modules = [\n", '    "audit"\n', "]")),
-        ("all", 0, ("audit -- Read from [audit] key in config",)),
-        ("not-a-module", 1, ("No such module: not-a-module",)),
-    ],
-    ids=["no-pos", "all-modules", "invalid-pos"],
-)
-def test_help(
-    main: MockMainType,
-    nocolorcapsys: NoColorCapsys,
-    arg: str,
-    index: int,
-    expected: tuple[str, ...],
-) -> None:
-    """Test expected output for help with no default plugins.
-
-    Test no positional argument for json array of plugins.
-    Test ``audit`` positional argument and docstring display for
-    assortment of plugins.
-    Test all and display of all module docstrings for assortment of
-    test plugins.
-
-    :param main: Patch package entry point.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
-    :param arg: Positional argument for ```pyaud modules``.
-    :param index: Index 0 returns stdout from ``readouterr`` and 1
-        returns stderr.
-    :param expected: Expected result when calling command.
-    """
-    with pytest.raises(SystemExit):
-        main(MODULES, arg)
-
-    # index 0 returns stdout from ``readouterr`` and 1 returns stderr
-    out = nocolorcapsys.readouterr()[index]
-    assert all(i in out for i in expected)
 
 
 def test_mapping_class() -> None:
@@ -573,21 +531,7 @@ def test_environ_repo() -> None:
 
 
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
-@pytest.mark.parametrize(
-    "arg,expected",
-    [
-        ("", pyaud.plugins.registered()),
-        (AUDIT, ["audit -- Read from [audit] key in config"]),
-        ("all", pyaud.plugins.registered()),
-    ],
-    ids=["no-pos", MODULE, "all-modules"],
-)
-def test_help_with_plugins(
-    main: MockMainType,
-    nocolorcapsys: NoColorCapsys,
-    arg: str,
-    expected: tuple[str, ...],
-) -> None:
+def test_modules(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     """Test expected output for help after plugins have been loaded.
 
     Test no positional argument for json array of keys.
@@ -597,14 +541,13 @@ def test_help_with_plugins(
     :param main: Patch package entry point.
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
-    :param arg: Positional argument for ```pyaud modules``.
-    :param expected: Expected result when calling command.
     """
-    with pytest.raises(SystemExit):
-        main(MODULES, arg)
-
+    main(MODULES)
     out = nocolorcapsys.stdout()
-    assert all(i in out for i in expected)
+    assert out == (
+        "\naudit   -- Read from [audit] key in config\n"
+        "modules -- Display all available plugins and their documentation\n"
+    )
 
 
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
