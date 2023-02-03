@@ -132,8 +132,7 @@ def fixture_main(monkeypatch: pytest.MonkeyPatch) -> MockMainType:
 
     def _main(*args: str) -> None:
         """Run main with custom args."""
-        # noinspection PyProtectedMember
-        from pyaud._main import main
+        from pyaud import main
 
         monkeypatch.setattr("sys.argv", [pyaud.__name__, *args])
         main()
