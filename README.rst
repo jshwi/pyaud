@@ -74,18 +74,18 @@ Commandline
 
 .. code-block:: console
 
-    usage: pyaud [-h] [-f] [-n] [-s] [-v] [--version] MODULE
+    usage: pyaud [-h] [-v] [-f] [-n] [-s] [--exclude EXCLUDE] MODULE
 
     positional arguments:
-      MODULE          choice of module: [modules] to list all
+      MODULE             choice of module: [modules] to list all
 
     optional arguments:
-      -h, --help      show this help message and exit
-      -f, --fix       suppress and fix all fixable issues
-      -n, --no-cache  disable file caching
-      -s, --suppress  continue without stopping for errors
-      -v, --verbose   incrementally increase logging verbosity
-      --version       show version and exit
+      -h, --help         show this help message and exit
+      -v, --version      show program's version number and exit
+      -f, --fix          suppress and fix all fixable issues
+      -n, --no-cache     disable file caching
+      -s, --suppress     continue without stopping for errors
+      --exclude EXCLUDE  regex of paths to ignore
 
 Plugins
 *******

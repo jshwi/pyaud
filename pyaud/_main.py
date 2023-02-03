@@ -37,7 +37,7 @@ def main() -> None:
     _register_builtin_plugins()
     _plugins.load()
     parser = _config.Parser()
-    _files.populate_regex(_config.toml["exclude"])
+    _files.populate_regex(parser.args.exclude)
     _create_cachedir()
     _plugins.get(parser.args.module)(
         suppress=parser.args.suppress,

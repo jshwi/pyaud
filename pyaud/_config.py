@@ -58,7 +58,7 @@ _colors = _Color()
 
 _colors.populate_colors()
 
-DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(exclude=[], audit=[])
+DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(audit=[])
 
 
 class _Toml(_MutableMapping):
@@ -171,3 +171,4 @@ class Parser(_ArgumentParser):
             action="store_true",
             help="continue without stopping for errors",
         )
+        self.add_argument("--exclude", help="regex of paths to ignore")
