@@ -18,7 +18,7 @@ import pyaud
 import pyaud._config as pc
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
-from pyaud import _default
+from pyaud import _builtins
 
 from . import (
     FILE,
@@ -40,8 +40,8 @@ original_hash_mapping_match_file = pyaud._cache.HashMapping.match_file
 # noinspection PyUnresolvedReferences,PyProtectedMember
 original_hash_mapping_unpatched_save_hash = pyaud._cache.HashMapping.save_hash
 original_pyaud_plugin_load = pyaud.plugins.load
-original_pyaud_main_register_default_plugins = (
-    _default.register_default_plugins
+original_pyaud_main_register_builtin_plugins = (
+    _builtins.register_builtin_plugins
 )
 original_setuptools_find_packages = setuptools.find_packages
 
@@ -97,7 +97,7 @@ def fixture_mock_environment(
     )
     monkeypatch.setattr("pyaud.plugins._plugins", pyaud.plugins.Plugins())
     monkeypatch.setattr("pyaud.plugins.load", lambda: None)
-    monkeypatch.setattr("pyaud._main._register_default_plugins", lambda: None)
+    monkeypatch.setattr("pyaud._main._register_builtin_plugins", lambda: None)
 
     #: RESET
     pyaud.files.clear()
@@ -207,16 +207,16 @@ def fixture_unpatch_plugins_load(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture(name=UNPATCH_REGISTER_DEFAULT_PLUGINS)
-def fixture_unpatch_register_default_plugins(
+def fixture_unpatch_register_builtin_plugins(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Unpatch ``pyaud._main._register_default_plugins``.
+    """Unpatch ``pyaud._main._register_builtin_plugins``.
 
     :param monkeypatch: Mock patch environment and attributes.
     """
     monkeypatch.setattr(
-        "pyaud._main._register_default_plugins",
-        original_pyaud_main_register_default_plugins,
+        "pyaud._main._register_builtin_plugins",
+        original_pyaud_main_register_builtin_plugins,
     )
 
 

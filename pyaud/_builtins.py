@@ -49,7 +49,7 @@ class _Modules(_plugins.Action):
         return 0
 
 
-def register_default_plugins() -> None:
-    """Register default plugins."""
+def register_builtin_plugins() -> None:
+    """Register builtin plugins."""
     _plugins.register("audit")(_Audit)
     _plugins.register("modules")(_Modules)

@@ -4,7 +4,6 @@ pyaud._cli
 """
 from arcon import ArgumentParser as _ArgumentParser
 
-from . import plugins as _plugins
 from ._objects import NAME as _NAME
 from ._utils import colors as _colors
 from ._version import __version__
@@ -28,7 +27,6 @@ class Parser(_ArgumentParser):
 
     def __init__(self) -> None:
         super().__init__(__version__, prog=_colors.cyan.get(_NAME))
-        self._registered = _plugins.registered()
         self._add_arguments()
         self.args = self.parse_args()
 
@@ -36,7 +34,6 @@ class Parser(_ArgumentParser):
         self.add_argument(
             "module",
             metavar="MODULE",
-            choices=[*self._registered, "modules"],
             help="choice of module: [modules] to list all",
         )
         self.add_argument(

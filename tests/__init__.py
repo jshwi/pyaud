@@ -52,7 +52,7 @@ SP_OPEN_PROC = "spall.Subprocess._open_process"
 SRC = "src"
 TESTS = "tests"
 TYPE_ERROR = "can only register one of the following:"
-UNPATCH_REGISTER_DEFAULT_PLUGINS = "unpatch_register_default_plugins"
+UNPATCH_REGISTER_DEFAULT_PLUGINS = "unpatch_register_builtin_plugins"
 VALUE = "value"
 WHITELIST_PY = "whitelist.py"
 
