@@ -28,11 +28,13 @@ def _create_cachedir() -> None:
     (path / ".gitignore").write_text(f"# Created by {_NAME} automatically.\n*")
 
 
-def main() -> None:
+def main() -> int:
     """Module entry point.
 
     Parse commandline arguments and run the selected choice from the
     dictionary of functions which matches the key.
+
+    :return: Exit status.
     """
     _os.environ["PYAUD_CACHE"] = _os.environ.get("PYAUD_CACHE", ".pyaud_cache")
     _register_builtin_plugins()
@@ -41,7 +43,7 @@ def main() -> None:
     _files.populate_regex(parser.args.exclude)
     _toml["audit"] = parser.args.audit
     _create_cachedir()
-    _plugins.get(parser.args.module)(
+    return _plugins.get(parser.args.module)(
         suppress=parser.args.suppress,
         fix=parser.args.fix,
         no_cache=parser.args.no_cache,
