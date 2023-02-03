@@ -88,12 +88,12 @@ version = "4.1.0"
 
 [tool.poetry.dependencies]
 appdirs = "^1.4.4"
-environs = "^9.4.0"
 gitspy = "^0"
 lsfiles = "^0"
 object-colors = "^2.0.1"
 pyaud-plugins = ">=0.8"
 python = "^3.8"
+setuptools = "^67.1.0"
 spall = "^0"
 tomli = "^2.0.1"
 tomli-w = "^1.0.0"
