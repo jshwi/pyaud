@@ -10,7 +10,6 @@ from pathlib import Path as _Path
 from . import _config
 from . import plugins as _plugins
 from ._builtins import register_builtin_plugins as _register_builtin_plugins
-from ._cli import Parser as _Parser
 from ._objects import NAME as _NAME
 from ._utils import files as _files
 from ._version import __version__
@@ -37,7 +36,7 @@ def main() -> None:
     _os.environ["PYAUD_CACHE"] = _os.environ.get("PYAUD_CACHE", ".pyaud_cache")
     _register_builtin_plugins()
     _plugins.load()
-    parser = _Parser()
+    parser = _config.Parser()
     _files.add_exclusions(*_config.toml["indexing"]["exclude"])
     _files.populate()
     _create_cachedir()

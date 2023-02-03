@@ -47,9 +47,16 @@ from pathlib import Path as _Path
 from types import TracebackType as _TracebackType
 
 import tomli as _tomli
+from arcon import ArgumentParser as _ArgumentParser
+from object_colors import Color as _Color
 
 from ._objects import NAME as _NAME
 from ._objects import MutableMapping as _MutableMapping
+from ._version import __version__
+
+_colors = _Color()
+
+_colors.populate_colors()
 
 DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
     indexing={"exclude": ["whitelist.py", "conf.py", "setup.py"]},
@@ -134,3 +141,50 @@ def load_config() -> None:
 
 toml = _Toml()
 load_config()
+
+
+class Parser(_ArgumentParser):
+    """Inherited ``ArgumentParser`` object for package args.
+
+    Assign positional argument to ``module`` or if there is a positional
+    argument accompanying the ``modules`` argument assign it to
+    ``positional``.
+
+    If ``modules`` has been called run the ``_module_help`` method for
+    extended documentation on each individual module that can be called.
+    Documentation will be parsed from the plugin's docstring.
+
+    If a valid positional argument has been called and ``SystemExit``
+    has not been raised by the ``ArgumentParser`` help method then
+    assign the chosen function to ``function`` to be called in ``main``.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(__version__, prog=_colors.cyan.get(_NAME))
+        self._add_arguments()
+        self.args = self.parse_args()
+
+    def _add_arguments(self) -> None:
+        self.add_argument(
+            "module",
+            metavar="MODULE",
+            help="choice of module: [modules] to list all",
+        )
+        self.add_argument(
+            "-f",
+            "--fix",
+            action="store_true",
+            help="suppress and fix all fixable issues",
+        )
+        self.add_argument(
+            "-n",
+            "--no-cache",
+            action="store_true",
+            help="disable file caching",
+        )
+        self.add_argument(
+            "-s",
+            "--suppress",
+            action="store_true",
+            help="continue without stopping for errors",
+        )

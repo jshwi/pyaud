@@ -314,7 +314,7 @@ def test_print_version(
     :param nocolorcapsys: Capture system output while stripping ANSI
         color codes.
     """
-    monkeypatch.setattr("pyaud._cli.__version__", "1.0.0")
+    monkeypatch.setattr("pyaud._config.__version__", "1.0.0")
     with pytest.raises(SystemExit):
         main("--version")
 
