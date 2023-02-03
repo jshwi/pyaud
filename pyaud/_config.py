@@ -1,44 +1,6 @@
 """
-pyaud.config
-============
-
-Includes constants, functions, and singleton for Toml config parsing.
-
-``toml`` can be used with the external API for retrieving parsed config.
-
-    Configs are parsed in the following order:
-        | ~/.config/pyaud/pyaud.toml
-        | ~/.pyaudrc
-        | .pyaudrc
-        | pyproject.toml
-
-The following methods can be called with ``toml``:
-
-    .. code-block:: python
-
-        toml.dump(
-            self, fout: TextIO, obj: Optional[MutableMapping] = None
-        ) -> str:
-
-    Dump dict object to open file.
-
-    If Optional[MutableMapping] is not provided, toml will use its
-    own key-values.
-
-    .. code-block:: python
-
-        toml.dumps(self, obj: Optional[MutableMapping] = None) -> str
-
-    Return dict object from open file as toml str.
-
-    If Optional[MutableMapping] is not provided, toml will use its
-    own key-values.
-
-    .. code-block:: python
-
-        toml.load(self, fin: TextIO, *args: Any) -> None
-
-    Load dict object from open file.
+pyaud._config
+=============
 """
 from __future__ import annotations
 
