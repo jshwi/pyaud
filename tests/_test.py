@@ -198,7 +198,7 @@ def test_no_request(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     """Test continuation of regular ``argparse`` process.
 
     If ``IndexError`` is not captured with
-    ``pyaud._main._version_request`` then an error message is displayed,
+    ``pyaud._core._version_request`` then an error message is displayed,
     and not ``argparse``'s help menu on non-zero exit status.
 
     :param main: Patch package entry point.

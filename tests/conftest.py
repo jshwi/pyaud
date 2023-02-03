@@ -90,7 +90,7 @@ def fixture_mock_environment(
     )
     monkeypatch.setattr("pyaud.plugins._plugins", pyaud.plugins.Plugins())
     monkeypatch.setattr("pyaud.plugins.load", lambda: None)
-    monkeypatch.setattr("pyaud._main._register_builtin_plugins", lambda: None)
+    monkeypatch.setattr("pyaud._core._register_builtin_plugins", lambda: None)
 
     #: RESET
     pyaud.files.clear()
@@ -106,7 +106,7 @@ def fixture_mock_environment(
     # noinspection PyProtectedMember
     pyaud.files.populate_regex()
     # noinspection PyProtectedMember,PyUnresolvedReferences
-    pyaud._main._create_cachedir()
+    pyaud._core._create_cachedir()
     pc.toml["audit"] = {}
 
 
@@ -200,12 +200,12 @@ def fixture_unpatch_plugins_load(monkeypatch: pytest.MonkeyPatch) -> None:
 def fixture_unpatch_register_builtin_plugins(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Unpatch ``pyaud._main._register_builtin_plugins``.
+    """Unpatch ``pyaud._core._register_builtin_plugins``.
 
     :param monkeypatch: Mock patch environment and attributes.
     """
     monkeypatch.setattr(
-        "pyaud._main._register_builtin_plugins",
+        "pyaud._core._register_builtin_plugins",
         original_pyaud_main_register_builtin_plugins,
     )
 

@@ -19,6 +19,7 @@ skip-magic-trailing-comma = true
 
 [tool.constcheck]
 ignore_strings = [
+  "KEY=VALUE",
   "PYAUD_CACHE",
   "store",
   "store_true",
