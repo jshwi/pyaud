@@ -4,8 +4,8 @@ pyaud._default
 """
 import inspect as _inspect
 
-from . import _config
 from . import plugins as _plugins
+from ._config import toml as _toml
 from ._objects import NAME as _NAME
 from ._utils import colors as _colors
 
@@ -14,7 +14,7 @@ class _Audit(_plugins.Action):
     """Read from [audit] key in config."""
 
     def action(self, *args: str, **kwargs: bool) -> int:
-        funcs = _config.toml["audit"]
+        funcs = _toml["audit"]
         for func in funcs:
             if func in _plugins.registered():
                 _colors.cyan.bold.print(f"\n{_NAME} {func}")

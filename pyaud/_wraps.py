@@ -11,7 +11,7 @@ import sys as _sys
 import typing as _t
 import warnings as _warnings
 
-import spall.exceptions as sp_exceptions
+from spall.exceptions import CommandNotFoundError as _CommandNotFoundError
 
 from ._cache import FileCacher as _FileCacher
 from ._objects import BasePlugin as _BasePlugin
@@ -113,7 +113,7 @@ class ClassDecorator:
         def _wrapper(*args: str, **kwargs: bool) -> int:
             try:
                 return func(*args, **kwargs)
-            except sp_exceptions.CommandNotFoundError as err:
+            except _CommandNotFoundError as err:
                 _warnings.warn(
                     f"{str(err).split(':', maxsplit=1)[0]}: Command not found",
                     RuntimeWarning,

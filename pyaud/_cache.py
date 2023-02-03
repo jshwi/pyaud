@@ -10,7 +10,6 @@ import typing as _t
 from pathlib import Path as _Path
 from types import TracebackType as _TracebackType
 
-from . import exceptions as _exceptions
 from ._objects import JSONIO as _JSONIO
 from ._objects import BasePlugin as _BasePlugin
 from ._utils import colors as _colors
@@ -18,6 +17,7 @@ from ._utils import files as _files
 from ._utils import get_commit_hash as _get_commit_hash
 from ._utils import working_tree_clean as _working_tree_clean
 from ._version import __version__
+from .exceptions import AuditError as _AuditError
 
 
 class _IndexedState:
@@ -188,9 +188,9 @@ class FileCacher:  # pylint: disable=too-few-public-methods
             path = _Path.cwd() / file
             try:
                 returncode = self.func(*self.args, **self.kwargs)
-            except _exceptions.AuditError as err:
+            except _AuditError as err:
                 self._on_completion(path)
-                raise _exceptions.AuditError(str(err)) from err
+                raise _AuditError(str(err)) from err
 
             if (
                 not returncode

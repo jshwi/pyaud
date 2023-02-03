@@ -10,7 +10,7 @@ import importlib as _importlib
 import inspect as _inspect
 import os as _os
 import pkgutil as _pkgutil
-import re
+import re as _re
 import sys as _sys
 import typing as _t
 from abc import abstractmethod as _abstractmethod
@@ -19,8 +19,7 @@ from subprocess import CalledProcessError as _CalledProcessError
 
 from spall import Subprocess as _Subprocess
 
-from . import _config
-from . import exceptions as _exceptions
+from ._config import TempEnvVar as _TempEnvVar
 from ._objects import NAME as _NAME
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
@@ -28,6 +27,8 @@ from ._utils import colors as _colors
 from ._utils import files as _files
 from ._wraps import CheckCommand as _CheckCommand
 from ._wraps import ClassDecorator as _ClassDecorator
+from .exceptions import AuditError as _AuditError
+from .exceptions import NameConflictError as _NameConflictError
 
 
 class _SubprocessFactory(_MutableMapping):
@@ -65,12 +66,12 @@ class Plugin(_BasePlugin):
         return self
 
     @staticmethod
-    def audit_error() -> _exceptions.AuditError:
+    def audit_error() -> _AuditError:
         """Raise if checks have failed.
 
         :return: AuditError instantiated with error message.
         """
-        return _exceptions.AuditError(" ".join(_sys.argv))
+        return _AuditError(" ".join(_sys.argv))
 
     @property
     def env(self) -> _t.Dict[str, str]:
@@ -119,7 +120,7 @@ class Audit(Plugin):
 
     @_CheckCommand.files
     def __call__(self, *args: str, **kwargs: bool) -> int:
-        with _config.TempEnvVar(_os.environ, **self.env):
+        with _TempEnvVar(_os.environ, **self.env):
             try:
                 return self.audit(*args, **kwargs)
 
@@ -181,7 +182,7 @@ class BaseFix(Audit):
         """
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
-        with _config.TempEnvVar(_os.environ, **self.env):
+        with _TempEnvVar(_os.environ, **self.env):
             try:
                 returncode = self.audit(*args, **kwargs)
 
@@ -315,7 +316,7 @@ class Action(Plugin):
         """
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
-        with _config.TempEnvVar(_os.environ, **self.env):
+        with _TempEnvVar(_os.environ, **self.env):
             try:
                 return self.action(*args, **kwargs)
 
@@ -460,7 +461,7 @@ class Plugins(_MutableMapping):
         # only unique names to be set in `plugins` object
         # if name is not unique raise `NameConflictError`
         if name in self:
-            raise _exceptions.NameConflictError(plugin.__name__, name)
+            raise _NameConflictError(plugin.__name__, name)
 
         mro = tuple(p.__name__ for p in _inspect.getmro(plugin))
         if not hasattr(plugin, "__bases__") or not any(
@@ -479,7 +480,7 @@ _plugins = Plugins()
 
 
 def _name_plugin(plugin: PluginType) -> str:
-    parts = re.findall("[A-Z][^A-Z]*", plugin.__name__)
+    parts = _re.findall("[A-Z][^A-Z]*", plugin.__name__)
     return "-".join(parts).lower()
 
 
@@ -527,5 +528,5 @@ def get(name: str) -> PluginInstance:
 def load() -> None:
     """Import all package prefixed with ``pyaud[-_]``."""
     for _, name, _ in _pkgutil.iter_modules():
-        if re.match("^pyaud[-_].*$", name):
+        if _re.match("^pyaud[-_].*$", name):
             _importlib.import_module(name)

@@ -7,9 +7,10 @@ Contains package entry point.
 import os as _os
 from pathlib import Path as _Path
 
-from . import _config
 from . import plugins as _plugins
 from ._builtins import register_builtin_plugins as _register_builtin_plugins
+from ._config import Parser as _Parser
+from ._config import toml as _toml
 from ._objects import NAME as _NAME
 from ._utils import files as _files
 from ._version import __version__
@@ -36,9 +37,9 @@ def main() -> None:
     _os.environ["PYAUD_CACHE"] = _os.environ.get("PYAUD_CACHE", ".pyaud_cache")
     _register_builtin_plugins()
     _plugins.load()
-    parser = _config.Parser()
+    parser = _Parser()
     _files.populate_regex(parser.args.exclude)
-    _config.toml["audit"] = parser.args.audit
+    _toml["audit"] = parser.args.audit
     _create_cachedir()
     _plugins.get(parser.args.module)(
         suppress=parser.args.suppress,
