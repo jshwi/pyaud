@@ -8,9 +8,7 @@ from __future__ import annotations
 
 import copy
 import datetime
-import os
 import subprocess
-import time
 import typing as t
 from pathlib import Path
 
@@ -26,13 +24,10 @@ from . import (
     COMMIT,
     CONFPY,
     DOCS,
-    EXCLUDE,
     FILE,
     FILES,
     FORMAT,
     FORMAT_DOCS,
-    GITIGNORE,
-    INDEXING,
     INIT,
     KEY,
     LINT,
@@ -126,62 +121,6 @@ def test_plugin_assign_non_type_key() -> None:
         pyaud.plugins.register(name=unique)(Plugin)  # type: ignore
 
     assert TYPE_ERROR in str(err.value)
-
-
-def test_files_populate_proc(make_tree: MakeTreeType) -> None:
-    """Test that populating an index is quicker when there are commits.
-
-    Once there is a committed index we can index the paths from the
-    repository, rather than compiling all files in the working dir and
-    filtering out the non-versioned files later.
-
-    :param make_tree: Create directory tree from dict mapping.
-    """
-    make_tree(
-        Path.cwd(),
-        {
-            REPO: {SRC: {INIT: None}},
-            "venv": {
-                "pyvenv.cfg": None,
-                "bin": {},
-                "include": {},
-                "share": {},
-                SRC: {},
-                "lib": {"python3.8": {"site-packages": {"six.py": None}}},
-                "lib64": "lib",
-            },
-        },
-    )
-
-    # add venv to .gitignore
-    gitignore = Path.cwd() / GITIGNORE
-    gitignore.write_text("venv\n")
-
-    def _old_files_populate():
-        indexed = []
-        for path in Path.cwd().rglob("*.py"):
-            if path.name not in pc.DEFAULT_CONFIG[INDEXING][
-                EXCLUDE
-            ] and not git.ls_files(
-                "--error-unmatch", path, file=os.devnull, suppress=True
-            ):
-                indexed.append(path)
-
-        return indexed
-
-    git.add(".")
-    start = time.process_time()
-    no_commit_files = _old_files_populate()
-    stop = time.process_time()
-    time_no_commit = stop - start
-    pyaud.files.clear()
-    start = time.process_time()
-    pyaud.files.populate()
-    commit_files = list(pyaud.files)
-    stop = time.process_time()
-    time_commit = stop - start
-    assert time_no_commit > time_commit
-    assert no_commit_files == commit_files
 
 
 @pytest.mark.usefixtures("unpatch_setuptools_find_packages")

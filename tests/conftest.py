@@ -162,8 +162,6 @@ def fixture_make_tree() -> MakeTreeType:
                 fullpath.mkdir(exist_ok=True)
                 _make_tree(fullpath, value)
 
-            elif isinstance(value, str):
-                os.symlink(value, fullpath)
             else:
                 fullpath.touch()
 
