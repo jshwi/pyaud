@@ -58,21 +58,7 @@ _colors = _Color()
 
 _colors.populate_colors()
 
-DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
-    exclude=[],
-    audit=[
-        "format",
-        "format-docs",
-        "format-str",
-        "imports",
-        "typecheck",
-        "unused",
-        "lint",
-        "coverage",
-        "readme",
-        "docs",
-    ],
-)
+DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(exclude=[], audit=[])
 
 
 class _Toml(_MutableMapping):
