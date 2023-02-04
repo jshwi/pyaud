@@ -24,9 +24,14 @@ class _IndexedState:
     """Store index and ensure it's in its original state on exit."""
 
     def __init__(self) -> None:
-        self.length = len(_files)
+        self._length = len(_files)
         self._index = list(_files)
         self._restored = False
+
+    @property
+    def length(self) -> int:
+        """Number of files for run."""
+        return self._length
 
     def __enter__(self) -> _IndexedState:
         return self
