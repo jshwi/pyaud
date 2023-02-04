@@ -107,6 +107,12 @@ Configuration values are declared in the pyproject.toml file
 
 .. code-block:: toml
 
+    [tool.pyaud]
+    exclude = [
+      "conf.py",
+      "whitelist.py"
+    ]
+
     [tool.pyaud.audit]
     modules = [
       "commit-policy",
@@ -122,10 +128,4 @@ Configuration values are declared in the pyproject.toml file
       "test",
       "typecheck",
       "unused"
-    ]
-
-    [tool.pyaud.exclude]
-    exclude = [
-      "conf.py",
-      "whitelist.py"
     ]

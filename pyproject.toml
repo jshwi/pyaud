@@ -104,6 +104,12 @@ templatest = "^0.5.0"
 [tool.poetry.scripts]
 pyaud = "pyaud.__main__:main"
 
+[tool.pyaud]
+exclude = [
+  "conf.py",
+  "whitelist.py"
+]
+
 [tool.pyaud.audit]
 modules = [
   "commit-policy",
@@ -119,12 +125,6 @@ modules = [
   "test",
   "typecheck",
   "unused"
-]
-
-[tool.pyaud.exclude]
-exclude = [
-  "conf.py",
-  "whitelist.py"
 ]
 
 [tool.pytest.ini_options]
