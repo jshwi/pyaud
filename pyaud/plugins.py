@@ -516,13 +516,18 @@ def registered() -> list[str]:
     return sorted(list(_plugins))
 
 
-def get(name: str) -> PluginInstance:
+def get(name: str, default: str | None = None) -> PluginInstance:
     """Get plugins by name.
 
     :param name: Unique name of plugin.
+    :param default: Default plugin if name not valid.
     :return: Callable plugin instance.
     """
-    return _plugins[name]
+    try:
+        return _plugins[name]
+    except KeyError:
+        _colors.red.print(f"no plugin named `{name}` found", file=_sys.stderr)
+        return _plugins[default]
 
 
 def load() -> None:

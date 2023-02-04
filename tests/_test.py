@@ -545,3 +545,14 @@ def test_autoname(classname: str, expected: str) -> None:
     Plugin.__name__ = classname
     pyaud.plugins.register()(Plugin)
     assert expected in pyaud.plugins.registered()
+
+
+@pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
+def test_default_plugin(capsys: pytest.CaptureFixture) -> None:
+    """Test invalid module name provided.
+
+    :param capsys: Capture sys out and err.
+    """
+    pyaud.pyaud("not-a-module")
+    std = capsys.readouterr()
+    assert "no plugin named `not-a-module` found" in std.err
