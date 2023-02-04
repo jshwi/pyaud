@@ -6,9 +6,9 @@ pyaud
 .. image:: https://img.shields.io/pypi/v/pyaud
     :target: https://pypi.org/project/pyaud/
     :alt: PyPI
-.. image:: https://github.com/jshwi/pyaud/actions/workflows/ci.yml/badge.svg
-    :target: https://github.com/jshwi/pyaud/actions/workflows/ci.yml
-    :alt: CI
+.. image:: https://github.com/jshwi/pyaud/actions/workflows/build.yaml/badge.svg
+    :target: https://github.com/jshwi/pyaud/actions/workflows/build.yaml
+    :alt: Build
 .. image:: https://github.com/jshwi/pyaud/actions/workflows/codeql-analysis.yml/badge.svg
     :target: https://github.com/jshwi/pyaud/actions/workflows/codeql-analysis.yml
     :alt: CodeQL
