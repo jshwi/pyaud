@@ -14,7 +14,7 @@ class _Audit(_plugins.Action):
     """Read from [audit] key in config."""
 
     def action(self, *args: str, **kwargs: bool) -> int:
-        funcs = _config.toml["audit"]["modules"]
+        funcs = _config.toml["audit"]
         for func in funcs:
             if func in _plugins.registered():
                 _colors.cyan.bold.print(f"\n{_NAME} {func}")

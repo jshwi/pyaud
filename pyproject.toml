@@ -104,15 +104,7 @@ templatest = "^0.5.0"
 pyaud = "pyaud.__main__:main"
 
 [tool.pyaud]
-exclude = '''
-  (?x)^(
-    | docs\/conf\.py
-    | whitelist\.py
-  )$
-'''
-
-[tool.pyaud.audit]
-modules = [
+audit = [
   "commit-policy",
   "const",
   "docs",
@@ -127,6 +119,12 @@ modules = [
   "typecheck",
   "unused"
 ]
+exclude = '''
+  (?x)^(
+    | docs\/conf\.py
+    | whitelist\.py
+  )$
+'''
 
 [tool.pytest.ini_options]
 addopts = [
