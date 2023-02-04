@@ -27,21 +27,14 @@ class _Modules(_plugins.Action):
     """Display all available plugins and their documentation."""
 
     def action(self, *args: str, **kwargs: bool) -> int:
-        # iterate over ``modules`` object to print documentation on
-        # particular module or all modules, depending on argument passed
-        # to commandline
         print()
         mapping = _plugins.mapping()
         for key in sorted(mapping):
-            # keep a tab width of at least 1 space between key and
-            # documentation
-            # if all modules are printed adjust by the longest key
-            tab = len(max(mapping, key=len)) + 1
             doc = _inspect.getdoc(mapping[key])
             if doc is not None:
                 print(
                     "{}-- {}".format(
-                        key.ljust(tab),
+                        key.ljust(len(max(mapping, key=len)) + 1),
                         doc.splitlines()[0][:-1].replace("``", "`"),
                     )
                 )
