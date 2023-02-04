@@ -124,7 +124,7 @@ Configuration values are declared in the pyproject.toml file
       "unused"
     ]
 
-    [tool.pyaud.indexing]
+    [tool.pyaud.exclude]
     exclude = [
       "conf.py",
       "whitelist.py"

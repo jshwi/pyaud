@@ -121,7 +121,7 @@ modules = [
   "unused"
 ]
 
-[tool.pyaud.indexing]
+[tool.pyaud.exclude]
 exclude = [
   "conf.py",
   "whitelist.py"
