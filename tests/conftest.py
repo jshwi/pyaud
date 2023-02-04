@@ -111,7 +111,7 @@ def fixture_mock_environment(
 
     #: MAIN - essential setup tasks
     # noinspection PyProtectedMember
-    pyaud.files.populate()
+    pyaud.files.populate_regex()
     # noinspection PyProtectedMember,PyUnresolvedReferences
     pyaud._main._create_cachedir()
     pc.load_config()

@@ -78,7 +78,7 @@ version = "4.1.0"
 [tool.poetry.dependencies]
 arcon = "^0.2.1"
 gitspy = "^0"
-lsfiles = "^0"
+lsfiles = ">=0.3"
 object-colors = "^2.0.1"
 pyaud-plugins = ">=0.8"
 python = "^3.8"
@@ -105,10 +105,12 @@ templatest = "^0.5.0"
 pyaud = "pyaud.__main__:main"
 
 [tool.pyaud]
-exclude = [
-  "conf.py",
-  "whitelist.py"
-]
+exclude = '''
+  (?x)^(
+    | docs\/conf\.py
+    | whitelist\.py
+  )$
+'''
 
 [tool.pyaud.audit]
 modules = [

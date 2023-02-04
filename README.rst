@@ -108,10 +108,12 @@ Configuration values are declared in the pyproject.toml file
 .. code-block:: toml
 
     [tool.pyaud]
-    exclude = [
-      "conf.py",
-      "whitelist.py"
-    ]
+    exclude = '''
+      (?x)^(
+        | docs\/conf\.py
+        | whitelist\.py
+      )$
+    '''
 
     [tool.pyaud.audit]
     modules = [

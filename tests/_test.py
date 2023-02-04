@@ -384,7 +384,7 @@ def test_warn_no_fix(
     pyaud.plugins.register(name=LINT)(_Lint)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     pyaud.files.append(Path.cwd() / FILE)
-    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
+    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
     with pytest.raises(pyaud.exceptions.AuditError):
         main(LINT)
 
@@ -421,7 +421,7 @@ def test_check_command_fail_on_suppress(
     make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
     pyaud.files.append(Path.cwd() / FILES)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
-    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
+    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
     main(PLUGIN_NAME[1], "--suppress")
     assert "Failed: returned non-zero exit status" in nocolorcapsys.stderr()
 
@@ -447,7 +447,7 @@ def test_audit_error_did_no_pass_all_checks(
     )
     pyaud.plugins.register(name=PLUGIN_NAME[1])(plugins[0])
     pyaud.files.append(Path.cwd() / FILES)
-    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
+    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
     with pytest.raises(pyaud.exceptions.AuditError):
         main(PLUGIN_NAME[1])
 
@@ -509,7 +509,7 @@ def test_suppress(
     make_tree(Path.cwd(), {FILE: None, DOCS: {CONFPY: None}})
     pyaud.files.append(Path.cwd() / FILE)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
-    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda: None)
+    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
     main(AUDIT, "--suppress")
     assert "Failed: returned non-zero exit status" in nocolorcapsys.stderr()
 
