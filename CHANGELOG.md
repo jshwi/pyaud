@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Only parse pyproject.toml for config
 
 ### Removed
+- Remove default `exclude` values
 - Remove `pyaud.package`
 - Remove logging
 - Remove backup config
