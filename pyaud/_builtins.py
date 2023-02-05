@@ -14,6 +14,10 @@ class _Audit(_plugins.Action):
     """Read from [audit] key in config."""
 
     def action(self, *args: str, **kwargs: bool) -> int:
+        bullet = _colors.cyan.get("-")
+        _colors.cyan.bold.print(f"\n{_NAME} {self.name}")
+        _colors.green.underline.print("running the following plugins")
+        print(f"{bullet} " + f"\n{bullet} ".join(_toml[self.name]))
         funcs = _toml[self.name]
         for func in funcs:
             if func in _plugins.registered():
