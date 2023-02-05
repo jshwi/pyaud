@@ -9,12 +9,12 @@ pyaud
 .. image:: https://github.com/jshwi/pyaud/actions/workflows/ci.yml/badge.svg
     :target: https://github.com/jshwi/pyaud/actions/workflows/ci.yml
     :alt: CI
-.. image:: https://results.pre-commit.ci/badge/github/jshwi/pyaud/master.svg
-   :target: https://results.pre-commit.ci/latest/github/jshwi/pyaud/master
-   :alt: pre-commit.ci status
 .. image:: https://github.com/jshwi/pyaud/actions/workflows/codeql-analysis.yml/badge.svg
     :target: https://github.com/jshwi/pyaud/actions/workflows/codeql-analysis.yml
     :alt: CodeQL
+.. image:: https://results.pre-commit.ci/badge/github/jshwi/pyaud/master.svg
+   :target: https://results.pre-commit.ci/latest/github/jshwi/pyaud/master
+   :alt: pre-commit.ci status
 .. image:: https://codecov.io/gh/jshwi/pyaud/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/jshwi/pyaud
     :alt: codecov.io
@@ -27,9 +27,24 @@ pyaud
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
     :alt: Black
+.. image:: https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336
+    :target: https://pycqa.github.io/isort/
+    :alt: isort
+.. image:: https://img.shields.io/badge/%20formatter-docformatter-fedcba.svg
+    :target: https://github.com/PyCQA/docformatter
+    :alt: docformatter
 .. image:: https://img.shields.io/badge/linting-pylint-yellowgreen
     :target: https://github.com/PyCQA/pylint
     :alt: pylint
+.. image:: https://img.shields.io/badge/security-bandit-yellow.svg
+    :target: https://github.com/PyCQA/bandit
+    :alt: Security Status
+.. image:: https://snyk.io/test/github/jshwi/pyaud/badge.svg
+    :target: https://snyk.io/test/github/jshwi/pyaud/badge.svg
+    :alt: Known Vulnerabilities
+.. image:: https://snyk.io/advisor/python/pyaud/badge.svg
+    :target: https://snyk.io/advisor/python/pyaud
+    :alt: pyaud
 
 Framework for writing Python package audits
 -------------------------------------------
@@ -47,18 +62,15 @@ Supports single script plugins
 Installation
 ------------
 
-PyPi
-****
+.. code-block:: console
 
-``pip install pyaud``
-
-Development
-***********
-
-``poetry install``
+    $ pip install pyaud
 
 Usage
 -----
+
+Commandline
+***********
 
 .. code-block:: console
 
@@ -79,7 +91,7 @@ Usage
       --version        show version and exit
 
 Plugins
--------
+*******
 
 ``pyaud`` will search for a plugins package in the project root
 
@@ -92,7 +104,7 @@ To view available plugins see ``pyaud-plugins`` `README <https://github.com/jshw
 For writing plugins see `docs <https://jshwi.github.io/pyaud/pyaud.html#pyaud-plugins>`_
 
 Configure
----------
+*********
 
 Configuration of settings can be made with the following toml syntax files (overriding in this order):
 
@@ -102,5 +114,3 @@ Configuration of settings can be made with the following toml syntax files (over
     | pyproject.toml
 
 A config can be generated with `pyaud generate-rcfile`
-
-Prefix each key with ``tool.pyaud`` when using pyproject.toml
