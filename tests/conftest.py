@@ -10,7 +10,6 @@ from configparser import ConfigParser
 from pathlib import Path
 
 import pytest
-import setuptools
 
 import pyaud
 
@@ -43,7 +42,6 @@ original_pyaud_plugin_load = pyaud.plugins.load
 original_pyaud_main_register_builtin_plugins = (
     _builtins.register_builtin_plugins
 )
-original_setuptools_find_packages = setuptools.find_packages
 
 
 @pytest.fixture(name="mock_environment", autouse=True)
@@ -84,7 +82,6 @@ def fixture_mock_environment(
 
     #: ATTRS
     monkeypatch.setattr(OS_GETCWD, lambda: str(repo_abs))
-    monkeypatch.setattr("setuptools.find_packages", lambda *_, **__: [REPO])
     monkeypatch.setattr("inspect.currentframe", lambda: current_frame)
     monkeypatch.setattr("pyaud._config.DEFAULT_CONFIG", default_config)
     monkeypatch.setattr("pyaud._utils.git.status", lambda *_, **__: True)
@@ -215,19 +212,6 @@ def fixture_unpatch_register_builtin_plugins(
     monkeypatch.setattr(
         "pyaud._main._register_builtin_plugins",
         original_pyaud_main_register_builtin_plugins,
-    )
-
-
-@pytest.fixture(name="unpatch_setuptools_find_packages")
-def fixture_unpatch_setuptools_find_packages(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Unpatch ``setuptools_find_packages``.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    """
-    monkeypatch.setattr(
-        "setuptools.find_packages", original_setuptools_find_packages
     )
 
 

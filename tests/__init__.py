@@ -17,7 +17,6 @@ from templatest.utils import VarSeq
 
 import pyaud
 
-PACKAGE = VarSeq("package", suffix="-")
 PLUGIN_NAME = VarSeq("plugin", suffix="-")
 PLUGIN_CLASS = VarSeq("Plugin")
 
@@ -46,7 +45,6 @@ OS_GETCWD = "os.getcwd"
 PYAUD_FILES_POPULATE = "pyaud.files.populate_regex"
 REPO = "repo"
 SP_OPEN_PROC = "spall.Subprocess._open_process"
-SRC = "src"
 TESTS = "tests"
 TYPE_ERROR = "can only register one of the following:"
 UNPATCH_REGISTER_DEFAULT_PLUGINS = "unpatch_register_builtin_plugins"

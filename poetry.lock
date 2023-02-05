@@ -2100,7 +2100,7 @@ files = [
 name = "setuptools"
 version = "67.2.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2841,4 +2841,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "7f6d888eae63e3fd1a3d72a526597f6304e16c19e1847b700c175c882299ddb6"
+content-hash = "fc95a63034bbfcbf591967a0fa0eff3978e289c30c0b6b40f7d57b7ef966ac42"

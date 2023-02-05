@@ -60,7 +60,6 @@ _colors.populate_colors()
 
 DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(
     exclude=["whitelist.py", "conf.py", "setup.py"],
-    packages={"exclude": ["tests"]},
     audit={
         "modules": [
             "format",

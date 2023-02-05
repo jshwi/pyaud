@@ -34,13 +34,11 @@ from . import (
     MODULES,
     NAME,
     OS_GETCWD,
-    PACKAGE,
     PLUGIN_CLASS,
     PLUGIN_NAME,
     PYAUD_FILES_POPULATE,
     REPO,
     SP_OPEN_PROC,
-    SRC,
     TESTS,
     TYPE_ERROR,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
@@ -121,71 +119,6 @@ def test_plugin_assign_non_type_key() -> None:
         pyaud.plugins.register(name=unique)(Plugin)  # type: ignore
 
     assert TYPE_ERROR in str(err.value)
-
-
-@pytest.mark.usefixtures("unpatch_setuptools_find_packages")
-def test_get_packages(make_tree: MakeTreeType) -> None:
-    """Test process when searching for project's package.
-
-    :param make_tree: Create directory tree from dict mapping.
-    """
-    # search for only package
-    # =======================
-    make_tree(Path.cwd(), {PACKAGE[1]: {INIT: None}})
-    assert pyaud._utils.get_packages() == [PACKAGE[1]]
-    assert pyaud.package() == PACKAGE[1]
-
-    # search for ambiguous package
-    # ============================
-    make_tree(Path.cwd(), {PACKAGE[2]: {INIT: None}, PACKAGE[3]: {INIT: None}})
-    assert pyaud._utils.get_packages() == [PACKAGE[1], PACKAGE[2], PACKAGE[3]]
-    assert pyaud.package() is None
-
-    # search for package with the same name as repo
-    # =============================================
-    make_tree(Path.cwd(), {REPO: {INIT: None}})
-    assert pyaud._utils.get_packages() == [
-        PACKAGE[1],
-        PACKAGE[2],
-        PACKAGE[3],
-        REPO,
-    ]
-    assert pyaud.package() == REPO
-
-    # search for configured package
-    # =============================
-    pc.toml["packages"]["name"] = PACKAGE[2]
-    assert pyaud.package() == PACKAGE[2]
-
-
-def test_get_subpackages(make_tree: MakeTreeType) -> None:
-    """Test process when searching for project's package.
-
-    Assert that subdirectories are not returned with import syntax, i.e.
-    dot separated, and that only the parent package names are returned.
-
-    :param make_tree: Create directory tree from dict mapping.
-    """
-    # create a tree of sub-packages with their own __init__.py files.
-    make_tree(
-        Path.cwd(),
-        {
-            REPO: {
-                INIT: None,
-                SRC: {
-                    INIT: None,
-                    "client": {INIT: None},
-                    "server": {INIT: None},
-                    "shell": {INIT: None},
-                    "stdout": {INIT: None},
-                },
-            }
-        },
-    )
-
-    # assert no dot separated packages are returned and that only the
-    # parent packages name is returned
-    assert pyaud._utils.get_packages() == [REPO]
 
 
 def test_exclude(make_tree: MakeTreeType) -> None:

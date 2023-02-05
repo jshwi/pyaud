@@ -82,7 +82,6 @@ lsfiles = ">=0.3"
 object-colors = "^2.0.1"
 pyaud-plugins = ">=0.8"
 python = "^3.8"
-setuptools = "^67.1.0"
 spall = "^0"
 tomli = "^2.0.1"
 
