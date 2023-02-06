@@ -156,7 +156,6 @@ class TempEnvVar:
                 try:
                     del self._obj[key]
                 except KeyError:
-
                     # in the case that key gets deleted within context
                     pass
             else:

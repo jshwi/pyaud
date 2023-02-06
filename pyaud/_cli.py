@@ -103,7 +103,6 @@ class Parser(_ArgumentParser):
         # to commandline
         print()
         for key in sorted(self._mapping):
-
             # keep a tab width of at least 1 space between key and
             # documentation
             # if all modules are printed adjust by the longest key
@@ -139,7 +138,6 @@ class Parser(_ArgumentParser):
 
         # module is selected or all has been entered
         if self.args.pos in (*self._mapping, "all"):
-
             # specific module has been entered for help output
             # filter the remaining modules from ``modules`` object
             if self.args.pos in self._mapping:
@@ -153,7 +151,6 @@ class Parser(_ArgumentParser):
         # provided or argument has been provided but is not a valid
         # choice
         else:
-
             # argument has been provided which is not a valid option
             if self.args.pos is not None:
                 self._print_err()
