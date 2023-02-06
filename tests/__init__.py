@@ -12,7 +12,6 @@ import typing as t
 from pathlib import Path
 
 import pytest
-from gitspy import Git
 from templatest.utils import VarSeq
 
 import pyaud
@@ -33,8 +32,6 @@ FIX_ALL = "fix-all"
 FIX_FILE = "fix-file"
 FORMAT = "format"
 FORMAT_DOCS = "format-docs"
-GH_EMAIL = "test_email.com"
-GH_NAME = "test_user"
 INIT = "__init__.py"
 KEY = "key"
 LINT = "lint"
@@ -51,8 +48,6 @@ UNPATCH_REGISTER_DEFAULT_PLUGINS = "unpatch_register_builtin_plugins"
 VALUE = "value"
 WHITELIST_PY = "whitelist.py"
 
-
-git = Git()
 
 MockMainType = t.Callable[..., None]
 MakeTreeType = t.Callable[[Path, t.Dict[t.Any, t.Any]], None]

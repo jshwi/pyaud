@@ -5,8 +5,6 @@ tests.conftest
 # pylint: disable=protected-access,no-member,import-outside-toplevel
 from __future__ import annotations
 
-import os
-from configparser import ConfigParser
 from pathlib import Path
 
 import pytest
@@ -21,8 +19,6 @@ from pyaud import _builtins
 
 from . import (
     FILE,
-    GH_EMAIL,
-    GH_NAME,
     OS_GETCWD,
     REPO,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
@@ -31,7 +27,6 @@ from . import (
     MockActionPluginList,
     MockMainType,
     NoColorCapsys,
-    git,
 )
 
 # noinspection PyProtectedMember,PyUnresolvedReferences
@@ -64,16 +59,6 @@ def fixture_mock_environment(
         tmp_path / "_main.py"
     )
 
-    #: GIT CONFIG - prevents git warnings
-    config = ConfigParser(default_section="")
-    config.read_dict(
-        {
-            "user": {"name": GH_NAME, "email": GH_EMAIL},
-            "advice": {"detachedHead": "false"},
-            "init": {"defaultBranch": "master"},
-        }
-    )
-
     #: ENV
     monkeypatch.setenv("PYAUD_CACHE", str(tmp_path / ".pyaud_cache"))
 
@@ -99,10 +84,6 @@ def fixture_mock_environment(
 
     #: CREATE
     repo_abs.mkdir()
-    git.init(file=os.devnull)
-    with open(home / ".gitconfig", "w", encoding="utf-8") as fout:
-        config.write(fout)
-
     #: MAIN - essential setup tasks
     # noinspection PyProtectedMember,PyUnresolvedReferences
     pyaud._core._create_cachedir()
