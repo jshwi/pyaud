@@ -91,6 +91,7 @@ def fixture_mock_environment(
     monkeypatch.setattr("pyaud.plugins._plugins", pyaud.plugins.Plugins())
     monkeypatch.setattr("pyaud.plugins.load", lambda: None)
     monkeypatch.setattr("pyaud._core._register_builtin_plugins", lambda: None)
+    monkeypatch.setattr("pyaud._core._files.populate_regex", lambda _: None)
 
     #: RESET
     pyaud.files.clear()
