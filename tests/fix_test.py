@@ -12,6 +12,7 @@ import pytest
 import pyaud
 
 from . import (
+    FILE,
     FIX,
     FIX_ALL,
     FIX_FILE,
@@ -109,6 +110,7 @@ class TestFix:
         :param plugin: Plugin to test.
         :param expected: Expected result.
         """
+        pyaud.files.append(Path.cwd() / FILE)
         pyaud.files[0].touch()
         self._register_fixer(plugin)
         main(self.plugin_name)
@@ -131,6 +133,7 @@ class TestFix:
         :param main: Patch package entry point.
         :param plugin: Plugin type object.
         """
+        pyaud.files.append(Path.cwd() / FILE)
         pyaud.files[0].touch()
         self._register_fixer(plugin)
         with pytest.raises(pyaud.exceptions.AuditError) as err:
@@ -168,6 +171,7 @@ class TestFix:
         :param plugin: Plugin type object.
         :param expected: Expected result.
         """
+        pyaud.files.append(Path.cwd() / FILE)
         pyaud.files[0].touch()
         self._register_fixer(plugin)
         main(self.plugin_name, "--fix")

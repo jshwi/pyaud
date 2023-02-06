@@ -103,8 +103,6 @@ def fixture_mock_environment(
         config.write(fout)
 
     #: MAIN - essential setup tasks
-    # noinspection PyProtectedMember
-    pyaud.files.populate_regex()
     # noinspection PyProtectedMember,PyUnresolvedReferences
     pyaud._core._create_cachedir()
     pc.toml["audit"] = {}
