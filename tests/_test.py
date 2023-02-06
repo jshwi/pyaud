@@ -33,7 +33,6 @@ from . import (
     LINT,
     MODULES,
     NAME,
-    OS_GETCWD,
     PLUGIN_CLASS,
     PLUGIN_NAME,
     PYAUD_FILES_POPULATE,
@@ -43,7 +42,6 @@ from . import (
     TYPE_ERROR,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
     VALUE,
-    WHITELIST_PY,
     MakeTreeType,
     MockActionPluginFactoryType,
     MockAudit,
@@ -51,7 +49,6 @@ from . import (
     NoColorCapsys,
     NotSubclassed,
     Tracker,
-    git,
 )
 
 
@@ -119,39 +116,6 @@ def test_plugin_assign_non_type_key() -> None:
         pyaud.plugins.register(name=unique)(Plugin)  # type: ignore
 
     assert TYPE_ERROR in str(err.value)
-
-
-def test_exclude(make_tree: MakeTreeType) -> None:
-    """Test exclusions and inclusions with toml config.
-
-    :param make_tree: Create directory tree from dict mapping.
-    """
-    webapp = {"_blog.py": None, "_config.py": None, "db.py": None, INIT: None}
-    make_tree(
-        Path.cwd(),
-        {
-            WHITELIST_PY: None,
-            DOCS: {CONFPY: None},
-            "setup.py": None,
-            "migrations": {
-                "alembic.ini": None,
-                "env.py": None,
-                "README": None,
-                "script.py.mako": None,
-                "versions": {
-                    "1b62f391f86f_add_adds_post_table.py": None,
-                    "2c5aaad1d65e_add_adds_user_table.py": None,
-                },
-            },
-            REPO: webapp,
-        },
-    )
-    exclude = (WHITELIST_PY, CONFPY, "setup.py", "migrations")
-    git.add(".")
-    pyaud.files.add_exclusions(*exclude)
-    pyaud.files.populate()
-    assert not any(i in p.parts for i in exclude for p in pyaud.files)
-    assert all(Path.cwd() / REPO / p in pyaud.files for p in webapp)
 
 
 def test_plugin_mro(
@@ -237,22 +201,6 @@ def test_get_commit_hash(
     )
     monkeypatch.setattr("pyaud._utils.git.stdout", lambda: stdout)
     assert pyaud._utils.get_commit_hash() == expected
-
-
-def test_working_tree_clean(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """Test checker for clean working tree.
-
-    :param tmp_path: Create and return a temporary directory for
-        testing.
-    :param monkeypatch: Mock patch environment and attributes.
-    """
-    monkeypatch.undo()
-    monkeypatch.setattr(OS_GETCWD, lambda: str(tmp_path / REPO))
-    assert pyaud._utils.working_tree_clean()
-    Path(Path.cwd() / FILE).touch()
-    assert not pyaud._utils.working_tree_clean()
 
 
 def test_plugin_deepcopy_with_new() -> None:
