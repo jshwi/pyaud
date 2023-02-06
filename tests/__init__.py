@@ -12,6 +12,7 @@ import typing as t
 from pathlib import Path
 
 import pytest
+from mypy_extensions import KwArg
 from templatest.utils import VarSeq
 
 import pyaud
@@ -48,7 +49,6 @@ UNPATCH_REGISTER_DEFAULT_PLUGINS = "unpatch_register_builtin_plugins"
 VALUE = "value"
 WHITELIST_PY = "whitelist.py"
 
-
 MockMainType = t.Callable[..., None]
 MakeTreeType = t.Callable[[Path, t.Dict[t.Any, t.Any]], None]
 FileHashDict = t.Dict[str, str]
@@ -58,6 +58,7 @@ CacheDict = t.Dict[str, CommitDict]
 CacheUnion = t.Union[CacheDict, CommitDict, ClsDict, FileHashDict]
 MockActionPluginList = t.Sequence[t.Type[pyaud.plugins.Action]]
 MockActionPluginFactoryType = t.Callable[..., MockActionPluginList]
+FixtureMockRepo = t.Callable[[KwArg(t.Callable[..., t.Any])], None]
 
 
 class NoColorCapsys:

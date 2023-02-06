@@ -4,10 +4,11 @@ pyaud._utils
 """
 from __future__ import annotations
 
-from gitspy import Git as _Git
+from pathlib import Path as _Path
+
+import git as _git
 from lsfiles import LSFiles as _LSFiles
 
-git = _Git()
 files = _LSFiles()
 
 
@@ -17,10 +18,9 @@ def get_commit_hash() -> str | None:
     :return: A ``str`` containing the hash of the commit, or None if no
         hash can be provided.
     """
-    git.rev_parse("HEAD", capture=True, suppress=True)
     try:
-        return git.stdout()[0]
-    except IndexError:
+        return _git.Repo(_Path.cwd()).git.rev_parse("HEAD")
+    except _git.GitCommandError:
         return None
 
 
@@ -29,6 +29,4 @@ def working_tree_clean() -> bool:
 
     :return: Working tree clean? True or False.
     """
-    git.stdout()  # [...] -> void; clear stdout, if it exists
-    git.status("--short", capture=True)
-    return not git.stdout()
+    return not _git.Repo(_Path.cwd()).git.status("--short")

@@ -5,6 +5,7 @@ tests.conftest
 # pylint: disable=protected-access,no-member,import-outside-toplevel
 from __future__ import annotations
 
+import typing as t
 from pathlib import Path
 
 import pytest
@@ -22,6 +23,7 @@ from . import (
     OS_GETCWD,
     REPO,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
+    FixtureMockRepo,
     MakeTreeType,
     MockActionPluginFactoryType,
     MockActionPluginList,
@@ -41,12 +43,13 @@ original_pyaud_main_register_builtin_plugins = (
 
 @pytest.fixture(name="mock_environment", autouse=True)
 def fixture_mock_environment(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mock_repo
 ) -> None:
     """Mock imports to reflect the temporary testing environment.
 
     :param tmp_path: Create and return temporary directory.
     :param monkeypatch: Mock patch environment and attributes.
+    :param mock_repo: Mock ``git.Repo`` class.
     """
     home = tmp_path
     repo_abs = home / REPO
@@ -65,8 +68,7 @@ def fixture_mock_environment(
     #: ATTRS
     monkeypatch.setattr(OS_GETCWD, lambda: str(repo_abs))
     monkeypatch.setattr("inspect.currentframe", lambda: current_frame)
-    monkeypatch.setattr("pyaud._utils.git.status", lambda *_, **__: True)
-    monkeypatch.setattr("pyaud._utils.git.rev_parse", lambda *_, **__: None)
+    mock_repo(rev_parse=lambda _: None, status=lambda _: None)
     monkeypatch.setattr(
         "pyaud._cache.HashMapping.match_file", lambda *_: False
     )
@@ -234,3 +236,22 @@ def fixture_mock_action_plugin_factory() -> MockActionPluginFactoryType:
         return mock_action_plugins
 
     return _mock_action_plugin_factory
+
+
+@pytest.fixture(name="mock_repo")
+def fixture_mock_repo(monkeypatch: pytest.MonkeyPatch) -> FixtureMockRepo:
+    """Mock ``git.Repo`` class.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :return: Function for using this fixture.
+    """
+
+    def _mock_repo(**kwargs: t.Callable[..., str]) -> None:
+        repo = type("Repo", (), {})
+        repo.git = type("git", (), {})  # type: ignore
+        for key, value in kwargs.items():
+            setattr(repo.git, key, value)  # type: ignore
+
+        monkeypatch.setattr("pyaud._utils._git.Repo", lambda _: repo)
+
+    return _mock_repo

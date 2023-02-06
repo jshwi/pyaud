@@ -3,7 +3,7 @@ tests._test
 ===========
 """
 # pylint: disable=too-many-lines,too-many-arguments,too-few-public-methods
-# pylint: disable=protected-access
+# pylint: disable=protected-access,no-member
 from __future__ import annotations
 
 import copy
@@ -12,6 +12,7 @@ import subprocess
 import typing as t
 from pathlib import Path
 
+import git
 import pytest
 
 import pyaud
@@ -42,6 +43,7 @@ from . import (
     TYPE_ERROR,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
     VALUE,
+    FixtureMockRepo,
     MakeTreeType,
     MockActionPluginFactoryType,
     MockAudit,
@@ -178,29 +180,26 @@ def test_no_request(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     )
 
 
-@pytest.mark.parametrize(
-    "stdout,returncode,expected",
-    [([COMMIT], 0, COMMIT), ([], 1, None)],
-    ids=["zero", "non-zero"],
-)
-def test_get_commit_hash(
-    monkeypatch: pytest.MonkeyPatch,
-    stdout: list[str],
-    returncode: int,
-    expected: str | None,
-) -> None:
-    """Test output from ``pyaud._utils.get_commit_hash``.
+def test_get_commit_hash_pass(mock_repo: FixtureMockRepo) -> None:
+    """Test output from passing ``pyaud._utils.get_commit_hash``.
 
-    :param monkeypatch: Mock patch environment and attributes.
-    :param stdout: Mock stdout to be returned from ``git rev-parse``.
-    :param returncode: Mock return code from subprocess.
-    :param expected: Expected result.
+    :param mock_repo: Mock ``git.Repo`` class.
     """
-    monkeypatch.setattr(
-        "pyaud._utils.git.rev_parse", lambda *_, **__: returncode
-    )
-    monkeypatch.setattr("pyaud._utils.git.stdout", lambda: stdout)
-    assert pyaud._utils.get_commit_hash() == expected
+    mock_repo(rev_parse=lambda _: COMMIT)
+    assert pyaud._utils.get_commit_hash() == COMMIT
+
+
+def test_get_commit_hash_fail(mock_repo: FixtureMockRepo) -> None:
+    """Test output from failing ``pyaud._utils.get_commit_hash``.
+
+    :param mock_repo: Mock ``git.Repo`` class.
+    """
+
+    def _raise(_: str) -> None:
+        raise git.GitCommandError("rev_parse")
+
+    mock_repo(rev_parse=_raise)
+    assert pyaud._utils.get_commit_hash() is None
 
 
 def test_plugin_deepcopy_with_new() -> None:
