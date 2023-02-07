@@ -19,7 +19,6 @@ import pyaud._objects as pc
 from pyaud import _builtins
 
 from . import (
-    FILE,
     OS_GETCWD,
     REPO,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
@@ -168,12 +167,6 @@ def fixture_unpatch_register_builtin_plugins(
         "pyaud._core._register_builtin_plugins",
         original_pyaud_main_register_builtin_plugins,
     )
-
-
-@pytest.fixture(name="bump_index")
-def fixture_bump_index() -> None:
-    """Add a dummy file to the ``pyaud.files`` index."""
-    pyaud.files.append(Path.cwd() / FILE)
 
 
 @pytest.fixture(name="mock_action_plugin_factory")

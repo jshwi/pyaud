@@ -65,7 +65,6 @@ class _FailFileFixer(_BaseFileFixer):
         return True
 
 
-@pytest.mark.usefixtures("bump_index")
 class TestFix:
     """Test various implementations of ``pyaud.plugins.FixAll``."""
 
