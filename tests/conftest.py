@@ -53,20 +53,11 @@ def fixture_mock_environment(
     home = tmp_path
     repo_abs = home / REPO
 
-    #: DOTENV - prevents lookup of .env file
-    current_frame = type("current_frame", (), {})
-    current_frame.f_back = type("f_back", (), {})  # type: ignore
-    current_frame.f_back.f_code = type("f_code", (), {})  # type: ignore
-    current_frame.f_back.f_code.co_filename = str(  # type: ignore
-        tmp_path / "_main.py"
-    )
-
     #: ENV
     monkeypatch.setenv("PYAUD_CACHE", str(tmp_path / ".pyaud_cache"))
 
     #: ATTRS
     monkeypatch.setattr(OS_GETCWD, lambda: str(repo_abs))
-    monkeypatch.setattr("inspect.currentframe", lambda: current_frame)
     mock_repo(rev_parse=lambda _: None, status=lambda _: None)
     monkeypatch.setattr(
         "pyaud._cache.HashMapping.match_file", lambda *_: False
