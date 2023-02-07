@@ -10,14 +10,25 @@ import typing as _t
 from pathlib import Path as _Path
 from types import TracebackType as _TracebackType
 
+import git as _git
+
 from ._objects import JSONIO as _JSONIO
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import colors as _colors
 from ._utils import files as _files
-from ._utils import get_commit_hash as _get_commit_hash
-from ._utils import working_tree_clean as _working_tree_clean
 from ._version import __version__
 from .exceptions import AuditError as _AuditError
+
+
+def _get_commit_hash() -> str | None:
+    try:
+        return _git.Repo(_Path.cwd()).git.rev_parse("HEAD")
+    except _git.GitCommandError:
+        return None
+
+
+def _working_tree_clean() -> bool:
+    return not _git.Repo(_Path.cwd()).git.status("--short")
 
 
 class _IndexedState:

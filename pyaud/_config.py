@@ -8,14 +8,10 @@ import typing as _t
 from types import TracebackType as _TracebackType
 
 from arcon import ArgumentParser as _ArgumentParser
-from object_colors import Color as _Color
 
 from ._objects import NAME as _NAME
+from ._objects import colors as _colors
 from ._version import __version__
-
-_colors = _Color()
-
-_colors.populate_colors()
 
 
 class TempEnvVar:

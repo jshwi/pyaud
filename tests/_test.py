@@ -186,7 +186,8 @@ def test_get_commit_hash_pass(mock_repo: FixtureMockRepo) -> None:
     :param mock_repo: Mock ``git.Repo`` class.
     """
     mock_repo(rev_parse=lambda _: COMMIT)
-    assert pyaud._utils.get_commit_hash() == COMMIT
+    # noinspection PyUnresolvedReferences
+    assert pyaud._cache._get_commit_hash() == COMMIT
 
 
 def test_get_commit_hash_fail(mock_repo: FixtureMockRepo) -> None:
@@ -199,7 +200,8 @@ def test_get_commit_hash_fail(mock_repo: FixtureMockRepo) -> None:
         raise git.GitCommandError("rev_parse")
 
     mock_repo(rev_parse=_raise)
-    assert pyaud._utils.get_commit_hash() is None
+    # noinspection PyUnresolvedReferences
+    assert pyaud._cache._get_commit_hash() is None
 
 
 def test_plugin_deepcopy_with_new() -> None:
