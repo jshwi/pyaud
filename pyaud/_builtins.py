@@ -6,8 +6,8 @@ import inspect as _inspect
 
 from . import plugins as _plugins
 from ._objects import NAME as _NAME
+from ._objects import colors as _colors
 from ._objects import toml as _toml
-from ._utils import colors as _colors
 
 
 class _Audit(_plugins.Action):

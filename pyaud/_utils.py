@@ -6,13 +6,9 @@ from __future__ import annotations
 
 from gitspy import Git as _Git
 from lsfiles import LSFiles as _LSFiles
-from object_colors import Color as _Color
 
-colors = _Color()
 git = _Git()
 files = _LSFiles()
-
-colors.populate_colors()
 
 
 def get_commit_hash() -> str | None:

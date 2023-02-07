@@ -12,7 +12,7 @@ from types import TracebackType as _TracebackType
 
 from ._objects import JSONIO as _JSONIO
 from ._objects import BasePlugin as _BasePlugin
-from ._utils import colors as _colors
+from ._objects import colors as _colors
 from ._utils import files as _files
 from ._utils import get_commit_hash as _get_commit_hash
 from ._utils import working_tree_clean as _working_tree_clean
