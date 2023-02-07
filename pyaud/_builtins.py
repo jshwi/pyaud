@@ -14,6 +14,7 @@ class _Audit(_plugins.Action):
     """Read from [audit] key in config."""
 
     def action(self, *args: str, **kwargs: bool) -> int:
+        returncode = 0
         bullet = _colors.cyan.get("-")
         _colors.cyan.bold.print(f"\n{_NAME} {self.name}")
         _colors.green.underline.print("running the following plugins")
@@ -22,9 +23,11 @@ class _Audit(_plugins.Action):
         for func in funcs:
             if func in _plugins.registered():
                 _colors.cyan.bold.print(f"\n{_NAME} {func}")
-                _plugins.get(func)(**kwargs)
+                returncode = _plugins.get(func)(**kwargs)
+                if returncode:
+                    return returncode
 
-        return 0
+        return returncode
 
 
 class _Modules(_plugins.Action):

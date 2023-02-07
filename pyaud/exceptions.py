@@ -12,17 +12,6 @@ new plugins as well.
 from __future__ import annotations
 
 
-class AuditError(Exception):
-    """Raise for audit failures that aren't failed subprocesses.
-
-    :param cmd: Command that failed. If no argument provided the value
-        will be None.
-    """
-
-    def __init__(self, cmd: str | None) -> None:
-        super().__init__(f"{cmd} did not pass all checks")
-
-
 class NameConflictError(Exception):
     """Raise if adding plugin whose name is not unique.
 

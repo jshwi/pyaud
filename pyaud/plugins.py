@@ -27,7 +27,6 @@ from ._objects import colors as _colors
 from ._objects import files as _files
 from ._wraps import CheckCommand as _CheckCommand
 from ._wraps import ClassDecorator as _ClassDecorator
-from .exceptions import AuditError as _AuditError
 from .exceptions import NameConflictError as _NameConflictError
 
 
@@ -64,14 +63,6 @@ class Plugin(_BasePlugin):
 
     def __deepcopy__(self, name: str) -> Plugin:
         return self
-
-    @staticmethod
-    def audit_error() -> _AuditError:
-        """Raise if checks have failed.
-
-        :return: AuditError instantiated with error message.
-        """
-        return _AuditError(" ".join(_sys.argv))
 
     @property
     def env(self) -> _t.Dict[str, str]:
@@ -124,8 +115,8 @@ class Audit(Plugin):
             try:
                 return self.audit(*args, **kwargs)
 
-            except _CalledProcessError as err:
-                raise self.audit_error() from err
+            except _CalledProcessError:
+                return 1
 
 
 #: Blueprint for writing audit and fix plugins.
@@ -193,7 +184,7 @@ class BaseFix(Audit):
             if kwargs.get("fix", False):
                 return self.fix(**kwargs)
 
-            raise self.audit_error()
+            return 1
 
         return returncode
 
@@ -320,8 +311,8 @@ class Action(Plugin):
             try:
                 return self.action(*args, **kwargs)
 
-            except _CalledProcessError as err:
-                raise self.audit_error() from err
+            except _CalledProcessError:
+                return 1
 
 
 class Parametrize(Plugin):
@@ -418,7 +409,7 @@ class FixFile(Plugin):
                 if kwargs.get("fix", False):
                     return self.fix(file, **kwargs)
 
-                raise self.audit_error()
+                return 1
 
         # if no error raised return 0 to decorator
         return returncode

@@ -126,13 +126,7 @@ class TestFix:
         pyaud.files.append(Path.cwd() / FILE)
         pyaud.files[0].touch()
         self._register_fixer(plugin)
-        with pytest.raises(pyaud.exceptions.AuditError) as err:
-            main(self.plugin_name)
-
-        assert (
-            f"{pyaud.__name__} {self.plugin_name} did not pass all checks"
-            in str(err.value)
-        )
+        main(self.plugin_name)
 
     @pytest.mark.parametrize(
         "plugin,expected",

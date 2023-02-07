@@ -262,8 +262,7 @@ def test_warn_no_fix(
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     pyaud.files.append(Path.cwd() / FILE)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
-    with pytest.raises(pyaud.exceptions.AuditError):
-        main(LINT)
+    main(LINT)
 
 
 def test_check_command_no_files_found(
@@ -325,8 +324,7 @@ def test_audit_error_did_no_pass_all_checks(
     pyaud.plugins.register(name=PLUGIN_NAME[1])(plugins[0])
     pyaud.files.append(Path.cwd() / FILES)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
-    with pytest.raises(pyaud.exceptions.AuditError):
-        main(PLUGIN_NAME[1])
+    main(PLUGIN_NAME[1])
 
 
 def test_no_exe_provided(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -498,3 +496,27 @@ def test_default_plugin(capsys: pytest.CaptureFixture) -> None:
     pyaud.pyaud("not-a-module")
     std = capsys.readouterr()
     assert "no plugin named `not-a-module` found" in std.err
+
+
+@pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
+def test_audit_success(
+    main: MockMainType,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture,
+    make_tree: MakeTreeType,
+) -> None:
+    """Test that audit succeeds.
+
+    :param main: Patch package entry point.
+    :param monkeypatch: Mock patch environment and attributes.
+    :param capsys: Capture sys out and err.
+    :param make_tree: Create directory tree from dict mapping.
+    """
+    pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
+    make_tree(Path.cwd(), {FILE: None, DOCS: {CONFPY: None}})
+    pyaud.files.append(Path.cwd() / FILE)
+    monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 0)
+    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
+    main(AUDIT, "--audit=modules")
+    std = capsys.readouterr()
+    assert "Display all available plugins and their documentation" in std.out

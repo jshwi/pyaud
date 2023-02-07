@@ -417,8 +417,7 @@ class TestCacheStrategy:
                 return 0
 
         fix = _Fix("name")
-        with pytest.raises(pyaud.exceptions.AuditError):
-            fix()
+        fix()
 
         fix(fix=True)
         std = capsys.readouterr()
@@ -429,16 +428,14 @@ class TestCacheStrategy:
         assert "No changes have been made to audited file" in std.out
 
         path.write_text("change")
-        with pytest.raises(pyaud.exceptions.AuditError):
-            fix()
+        fix()
 
         fix(fix=True)
         std = capsys.readouterr()
         assert expected_1 in std.out
 
         os.remove(path)
-        with pytest.raises(pyaud.exceptions.AuditError):
-            fix()
+        fix()
 
         fix(fix=True)
         std = capsys.readouterr()

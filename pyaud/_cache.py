@@ -17,7 +17,6 @@ from ._objects import BasePlugin as _BasePlugin
 from ._objects import colors as _colors
 from ._objects import files as _files
 from ._version import __version__
-from .exceptions import AuditError as _AuditError
 
 
 def _get_commit_hash() -> str | None:
@@ -202,11 +201,10 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         file = self._cls.cache_file
         if file is not None:
             path = _Path.cwd() / file
-            try:
-                returncode = self.func(*self.args, **self.kwargs)
-            except _AuditError as err:
+            returncode = self.func(*self.args, **self.kwargs)
+            if returncode:
                 self._on_completion(path)
-                raise _AuditError(str(err)) from err
+                return returncode
 
             if (
                 not returncode
