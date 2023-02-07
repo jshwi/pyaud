@@ -62,6 +62,10 @@ class MutableMapping(_t.MutableMapping[_KT, _VT]):
         return obj
 
 
+class _Toml(MutableMapping):
+    """Base class for all ``toml`` object interaction."""
+
+
 class BasePlugin(_ABC):  # pylint: disable=too-few-public-methods
     """Base type for all plugins."""
 
@@ -98,3 +102,6 @@ class JSONIO(MutableMapping):
         :param path: Path to json file.
         """
         path.write_text(_json.dumps(dict(self), separators=(",", ":")))
+
+
+toml = _Toml()

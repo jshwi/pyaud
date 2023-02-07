@@ -9,8 +9,8 @@ from pathlib import Path as _Path
 
 from . import plugins as _plugins
 from ._builtins import register_builtin_plugins as _register_builtin_plugins
-from ._config import toml as _toml
 from ._objects import NAME as _NAME
+from ._objects import toml as _toml
 from ._utils import files as _files
 from ._version import __version__
 

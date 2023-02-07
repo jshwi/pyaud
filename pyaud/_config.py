@@ -11,16 +11,11 @@ from arcon import ArgumentParser as _ArgumentParser
 from object_colors import Color as _Color
 
 from ._objects import NAME as _NAME
-from ._objects import MutableMapping as _MutableMapping
 from ._version import __version__
 
 _colors = _Color()
 
 _colors.populate_colors()
-
-
-class _Toml(_MutableMapping):
-    """Base class for all ``toml`` object interaction."""
 
 
 class TempEnvVar:
@@ -58,9 +53,6 @@ class TempEnvVar:
                     pass
             else:
                 self._obj[key] = self._default[key]
-
-
-toml = _Toml()
 
 
 class Parser(_ArgumentParser):

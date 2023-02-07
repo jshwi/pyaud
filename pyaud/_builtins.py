@@ -5,8 +5,8 @@ pyaud._default
 import inspect as _inspect
 
 from . import plugins as _plugins
-from ._config import toml as _toml
 from ._objects import NAME as _NAME
+from ._objects import toml as _toml
 from ._utils import colors as _colors
 
 

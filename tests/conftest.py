@@ -14,7 +14,7 @@ import pytest
 import pyaud
 
 # noinspection PyProtectedMember
-import pyaud._config as pc
+import pyaud._objects as pc
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 from pyaud import _builtins
