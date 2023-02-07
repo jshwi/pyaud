@@ -56,9 +56,6 @@ def fixture_mock_environment(
     home = tmp_path
     repo_abs = home / REPO
 
-    #: CONFIG
-    default_config = dict(pc.DEFAULT_CONFIG)
-
     #: DOTENV - prevents lookup of .env file
     current_frame = type("current_frame", (), {})
     current_frame.f_back = type("f_back", (), {})  # type: ignore
@@ -83,7 +80,6 @@ def fixture_mock_environment(
     #: ATTRS
     monkeypatch.setattr(OS_GETCWD, lambda: str(repo_abs))
     monkeypatch.setattr("inspect.currentframe", lambda: current_frame)
-    monkeypatch.setattr("pyaud._config.DEFAULT_CONFIG", default_config)
     monkeypatch.setattr("pyaud._utils.git.status", lambda *_, **__: True)
     monkeypatch.setattr("pyaud._utils.git.rev_parse", lambda *_, **__: None)
     monkeypatch.setattr(
@@ -111,7 +107,7 @@ def fixture_mock_environment(
     pyaud.files.populate_regex()
     # noinspection PyProtectedMember,PyUnresolvedReferences
     pyaud._main._create_cachedir()
-    pc.load_config()
+    pc.toml["audit"] = {}
 
 
 @pytest.fixture(name="nocolorcapsys")

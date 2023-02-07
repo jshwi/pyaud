@@ -438,12 +438,11 @@ def test_suppress(
     :param make_tree: Create directory tree from dict mapping.
     """
     pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
-    pc.toml[AUDIT] = [PLUGIN_NAME[1]]
     make_tree(Path.cwd(), {FILE: None, DOCS: {CONFPY: None}})
     pyaud.files.append(Path.cwd() / FILE)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
-    main(AUDIT, "--suppress")
+    main(AUDIT, f"--audit={PLUGIN_NAME[1]}", "--suppress")
     assert "Failed: returned non-zero exit status" in nocolorcapsys.stderr()
 
 

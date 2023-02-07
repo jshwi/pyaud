@@ -38,6 +38,7 @@ def main() -> None:
     _plugins.load()
     parser = _config.Parser()
     _files.populate_regex(parser.args.exclude)
+    _config.toml["audit"] = parser.args.audit
     _create_cachedir()
     _plugins.get(parser.args.module)(
         suppress=parser.args.suppress,

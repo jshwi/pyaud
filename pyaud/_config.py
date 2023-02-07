@@ -43,10 +43,8 @@ The following methods can be called with ``toml``:
 from __future__ import annotations
 
 import typing as _t
-from pathlib import Path as _Path
 from types import TracebackType as _TracebackType
 
-import tomli as _tomli
 from arcon import ArgumentParser as _ArgumentParser
 from object_colors import Color as _Color
 
@@ -58,23 +56,9 @@ _colors = _Color()
 
 _colors.populate_colors()
 
-DEFAULT_CONFIG: _t.Dict[str, _t.Any] = dict(audit=[])
-
 
 class _Toml(_MutableMapping):
     """Base class for all ``toml`` object interaction."""
-
-    def loads(self, __s: str, *args: str) -> None:
-        """Native ``load (from file)`` method.
-
-        :param __s: Toml as str.
-        :param args: Keys to search for.
-        """
-        obj = _tomli.loads(__s)
-        for arg in args:
-            obj = obj.get(arg, obj)
-
-        self.update(obj)
 
 
 class TempEnvVar:
@@ -114,16 +98,7 @@ class TempEnvVar:
                 self._obj[key] = self._default[key]
 
 
-def load_config() -> None:
-    """Load configs in order, each one overriding the previous."""
-    file = _Path.cwd() / "pyproject.toml"
-    toml.update(DEFAULT_CONFIG)
-    if file.is_file():
-        toml.loads(file.read_text(), "tool", _NAME)
-
-
 toml = _Toml()
-load_config()
 
 
 class Parser(_ArgumentParser):
@@ -170,5 +145,10 @@ class Parser(_ArgumentParser):
             "--suppress",
             action="store_true",
             help="continue without stopping for errors",
+        )
+        self.add_list_argument(
+            "--audit",
+            metavar="LIST",
+            help="comma separated list of plugins for audit",
         )
         self.add_argument("--exclude", help="regex of paths to ignore")

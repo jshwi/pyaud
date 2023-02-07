@@ -74,7 +74,7 @@ Commandline
 
 .. code-block:: console
 
-    usage: pyaud [-h] [-v] [-f] [-n] [-s] [--exclude EXCLUDE] MODULE
+    usage: pyaud [-h] [-v] [-f] [-n] [-s] [--audit LIST] [--exclude EXCLUDE] MODULE
 
     positional arguments:
       MODULE             choice of module: [modules] to list all
@@ -85,6 +85,7 @@ Commandline
       -f, --fix          suppress and fix all fixable issues
       -n, --no-cache     disable file caching
       -s, --suppress     continue without stopping for errors
+      --audit LIST       comma separated list of plugins for audit
       --exclude EXCLUDE  regex of paths to ignore
 
 Plugins
