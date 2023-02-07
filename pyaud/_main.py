@@ -18,7 +18,6 @@ def main() -> int:
         parser.args.module,
         audit=parser.args.audit,
         exclude=parser.args.exclude,
-        suppress=parser.args.suppress,
         fix=parser.args.fix,
         no_cache=parser.args.no_cache,
     )

@@ -90,12 +90,6 @@ class Parser(_ArgumentParser):
             action="store_true",
             help="disable file caching",
         )
-        self.add_argument(
-            "-s",
-            "--suppress",
-            action="store_true",
-            help="continue without stopping for errors",
-        )
         self.add_list_argument(
             "--audit",
             metavar="LIST",

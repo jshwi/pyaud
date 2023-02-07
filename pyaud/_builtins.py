@@ -23,9 +23,8 @@ class _Audit(_plugins.Action):
         for func in funcs:
             if func in _plugins.registered():
                 _colors.cyan.bold.print(f"\n{_NAME} {func}")
-                returncode = _plugins.get(func)(**kwargs)
-                if returncode:
-                    return returncode
+                if _plugins.get(func)(**kwargs):
+                    returncode = 1
 
         return returncode
 

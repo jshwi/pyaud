@@ -31,7 +31,6 @@ def pyaud(  # pylint: disable=too-many-arguments
     module: str,
     audit: list[str] | None = None,
     exclude: str | None = None,
-    suppress: bool = False,
     fix: bool = False,
     no_cache: bool = False,
 ) -> int:
@@ -43,7 +42,6 @@ def pyaud(  # pylint: disable=too-many-arguments
     :param module: Choice of module: [modules] to list all.
     :param audit: List of plugins for audit.
     :param exclude: Regex of paths to ignore.
-    :param suppress: Continue without stopping for errors.
     :param fix: Suppress and fix all fixable issues.
     :param no_cache: Disable file caching.
     :return: Exit status.
@@ -54,6 +52,4 @@ def pyaud(  # pylint: disable=too-many-arguments
     _create_cachedir()
     _register_builtin_plugins()
     _plugins.load()
-    return _plugins.get(module, "modules")(
-        suppress=suppress, fix=fix, no_cache=no_cache
-    )
+    return _plugins.get(module, "modules")(fix=fix, no_cache=no_cache)

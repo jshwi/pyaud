@@ -279,29 +279,6 @@ def test_check_command_no_files_found(
     assert "No files found" in std.out
 
 
-def test_check_command_fail_on_suppress(
-    main: MockMainType,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture,
-    make_tree: MakeTreeType,
-) -> None:
-    """Test plugin output when process fails while crash suppressed.
-
-    :param main: Patch package entry point.
-    :param monkeypatch: Mock patch environment and attributes.
-    :param capsys: Capture sys out and err.
-    :param make_tree: Create directory tree from dict mapping.
-    """
-    pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
-    make_tree(Path.cwd(), {FILES: None, "docs": {CONFPY: None}})
-    pyaud.files.append(Path.cwd() / FILES)
-    monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
-    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
-    main(PLUGIN_NAME[1], "--suppress")
-    std = capsys.readouterr()
-    assert "Failed: returned non-zero exit status" in std.err
-
-
 def test_audit_error_did_no_pass_all_checks(
     main: MockMainType,
     monkeypatch: pytest.MonkeyPatch,
@@ -364,13 +341,13 @@ def test_modules(main: MockMainType, capsys: pytest.CaptureFixture) -> None:
 
 
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
-def test_suppress(
+def test_audit_fail(
     main: MockMainType,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture,
     make_tree: MakeTreeType,
 ) -> None:
-    """Test that audit proceeds through errors with ``--suppress``.
+    """Test when audit fails.
 
     :param main: Patch package entry point.
     :param monkeypatch: Mock patch environment and attributes.
@@ -382,7 +359,7 @@ def test_suppress(
     pyaud.files.append(Path.cwd() / FILE)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
-    main(AUDIT, f"--audit={PLUGIN_NAME[1]}", "--suppress")
+    main(AUDIT, f"--audit={PLUGIN_NAME[1]}")
     std = capsys.readouterr()
     assert "Failed: returned non-zero exit status" in std.err
 
