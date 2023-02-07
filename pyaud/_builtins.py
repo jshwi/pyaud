@@ -15,17 +15,28 @@ class _Audit(_plugins.Action):
 
     def action(self, *args: str, **kwargs: bool) -> int:
         returncode = 0
+        message = _colors.green.bold.get("Success: All checks have passed")
         bullet = _colors.cyan.get("-")
         _colors.cyan.bold.print(f"\n{_NAME} {self.name}")
         _colors.green.underline.print("running the following plugins")
+        results = []
         print(f"{bullet} " + f"\n{bullet} ".join(_toml[self.name]))
         funcs = _toml[self.name]
         for func in funcs:
+            symbol = _colors.green.get("\u2713")
             if func in _plugins.registered():
                 _colors.cyan.bold.print(f"\n{_NAME} {func}")
                 if _plugins.get(func)(**kwargs):
+                    symbol = _colors.red.get("\u2716")
                     returncode = 1
+                    message = _colors.red.bold.get(
+                        "Failed: One or more checks have failed"
+                    )
 
+            results.append(f"{func} {symbol}")
+
+        print(message)
+        print(f"{bullet} " + f"\n{bullet} ".join(results))
         return returncode
 
 

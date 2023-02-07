@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v4.1.0...HEAD)
 ------------------------------------------------------------------------
 ### Added
+- Add results to end of audit
 - Add additional info for audit
 - Add default plugin if incorrect plugin provided
 - add `pyaud.pyaud`
