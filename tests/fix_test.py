@@ -11,16 +11,7 @@ import pytest
 
 import pyaud
 
-from . import (
-    FILE,
-    FIX,
-    FIX_ALL,
-    FIX_FILE,
-    FIXER,
-    NO_ISSUES,
-    MockMainType,
-    NoColorCapsys,
-)
+from . import FILE, FIX, FIX_ALL, FIX_FILE, FIXER, NO_ISSUES, MockMainType
 
 
 def _get_pass_fixer(
@@ -98,15 +89,14 @@ class TestFix:
     def test_on_pass(
         self,
         main: MockMainType,
-        nocolorcapsys: NoColorCapsys,
+        capsys: pytest.CaptureFixture,
         plugin: pyaud.plugins.PluginType,
         expected: str,
     ) -> None:
         """Test plugin on pass when using the fix class.
 
         :param main: Patch package entry point.
-        :param nocolorcapsys: Capture system output while stripping ANSI
-            color codes.
+        :param capsys: Capture sys out and err.
         :param plugin: Plugin to test.
         :param expected: Expected result.
         """
@@ -114,7 +104,8 @@ class TestFix:
         pyaud.files[0].touch()
         self._register_fixer(plugin)
         main(self.plugin_name)
-        assert expected in nocolorcapsys.stdout()
+        std = capsys.readouterr()
+        assert expected in std.out
 
     @pytest.mark.parametrize(
         "plugin",
@@ -159,15 +150,14 @@ class TestFix:
     def test_with_fix(
         self,
         main: MockMainType,
-        nocolorcapsys: NoColorCapsys,
+        capsys: pytest.CaptureFixture,
         plugin: pyaud.plugins.PluginType,
         expected: str,
     ) -> None:
         """Test plugin when using the fix class with ``-f/--fix``.
 
         :param main: Patch package entry point.
-        :param nocolorcapsys: Capture system output while stripping ANSI
-            color codes.
+        :param capsys: Capture sys out and err.
         :param plugin: Plugin type object.
         :param expected: Expected result.
         """
@@ -175,4 +165,5 @@ class TestFix:
         pyaud.files[0].touch()
         self._register_fixer(plugin)
         main(self.plugin_name, "--fix")
-        assert expected in nocolorcapsys.stdout()
+        std = capsys.readouterr()
+        assert expected in std.out

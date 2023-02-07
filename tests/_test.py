@@ -48,7 +48,6 @@ from . import (
     MockActionPluginFactoryType,
     MockAudit,
     MockMainType,
-    NoColorCapsys,
     NotSubclassed,
     Tracker,
 )
@@ -143,24 +142,23 @@ def test_plugin_mro(
 def test_print_version(
     monkeypatch: pytest.MonkeyPatch,
     main: MockMainType,
-    nocolorcapsys: NoColorCapsys,
+    capsys: pytest.CaptureFixture,
 ) -> None:
     """Test printing of version on commandline.
 
     :param monkeypatch: Mock patch environment and attributes.
     :param main: Patch package entry point.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
+    :param capsys: Capture sys out and err.
     """
     monkeypatch.setattr("pyaud._config.__version__", "1.0.0")
     with pytest.raises(SystemExit):
         main("--version")
 
-    out = nocolorcapsys.stdout().strip()
-    assert out == "1.0.0"
+    std = capsys.readouterr()
+    assert std.out.strip() == "1.0.0"
 
 
-def test_no_request(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
+def test_no_request(main: MockMainType, capsys: pytest.CaptureFixture) -> None:
     """Test continuation of regular ``argparse`` process.
 
     If ``IndexError`` is not captured with
@@ -168,16 +166,13 @@ def test_no_request(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     and not ``argparse``'s help menu on non-zero exit status.
 
     :param main: Patch package entry point.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
+    :param capsys: Capture sys out and err.
     """
     with pytest.raises(SystemExit):
         main()
 
-    assert (
-        "pyaud: error: the following arguments are required: MODULE"
-        in nocolorcapsys.stderr()
-    )
+    std = capsys.readouterr()
+    assert "error: the following arguments are required: MODULE" in std.err
 
 
 def test_get_commit_hash_pass(mock_repo: FixtureMockRepo) -> None:
@@ -272,31 +267,30 @@ def test_warn_no_fix(
 
 
 def test_check_command_no_files_found(
-    main: MockMainType, nocolorcapsys: NoColorCapsys
+    main: MockMainType, capsys: pytest.CaptureFixture
 ) -> None:
     """Test plugin output when no files are found.
 
     :param main: Patch package entry point.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
+    :param capsys: Capture sys out and err.
     """
     pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
     main(PLUGIN_NAME[1])
-    assert nocolorcapsys.stdout().strip() == "No files found"
+    std = capsys.readouterr()
+    assert "No files found" in std.out
 
 
 def test_check_command_fail_on_suppress(
     main: MockMainType,
     monkeypatch: pytest.MonkeyPatch,
-    nocolorcapsys: NoColorCapsys,
+    capsys: pytest.CaptureFixture,
     make_tree: MakeTreeType,
 ) -> None:
     """Test plugin output when process fails while crash suppressed.
 
     :param main: Patch package entry point.
     :param monkeypatch: Mock patch environment and attributes.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
+    :param capsys: Capture sys out and err.
     :param make_tree: Create directory tree from dict mapping.
     """
     pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
@@ -305,7 +299,8 @@ def test_check_command_fail_on_suppress(
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
     main(PLUGIN_NAME[1], "--suppress")
-    assert "Failed: returned non-zero exit status" in nocolorcapsys.stderr()
+    std = capsys.readouterr()
+    assert "Failed: returned non-zero exit status" in std.err
 
 
 def test_audit_error_did_no_pass_all_checks(
@@ -352,7 +347,7 @@ def test_environ_repo() -> None:
 
 
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
-def test_modules(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
+def test_modules(main: MockMainType, capsys: pytest.CaptureFixture) -> None:
     """Test expected output for help after plugins have been loaded.
 
     Test no positional argument for json array of keys.
@@ -360,30 +355,28 @@ def test_modules(main: MockMainType, nocolorcapsys: NoColorCapsys) -> None:
     Test all and display of all module docstrings.
 
     :param main: Patch package entry point.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
+    :param capsys: Capture sys out and err.
     """
     main(MODULES)
-    out = nocolorcapsys.stdout()
-    assert out == (
+    std = capsys.readouterr()
+    assert (
         "\naudit   -- Read from [audit] key in config\n"
         "modules -- Display all available plugins and their documentation\n"
-    )
+    ) in std.out
 
 
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
 def test_suppress(
     main: MockMainType,
     monkeypatch: pytest.MonkeyPatch,
-    nocolorcapsys: NoColorCapsys,
+    capsys: pytest.CaptureFixture,
     make_tree: MakeTreeType,
 ) -> None:
     """Test that audit proceeds through errors with ``--suppress``.
 
     :param main: Patch package entry point.
     :param monkeypatch: Mock patch environment and attributes.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
+    :param capsys: Capture sys out and err.
     :param make_tree: Create directory tree from dict mapping.
     """
     pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
@@ -392,19 +385,19 @@ def test_suppress(
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
     main(AUDIT, f"--audit={PLUGIN_NAME[1]}", "--suppress")
-    assert "Failed: returned non-zero exit status" in nocolorcapsys.stderr()
+    std = capsys.readouterr()
+    assert "Failed: returned non-zero exit status" in std.err
 
 
 def test_parametrize(
     main: MockMainType,
-    nocolorcapsys: NoColorCapsys,
+    capsys: pytest.CaptureFixture,
     mock_action_plugin_factory: MockActionPluginFactoryType,
 ) -> None:
     """Test class for running multiple plugins.
 
     :param main: Patch package entry point.
-    :param nocolorcapsys: Capture system output while stripping ANSI
-        color codes.
+    :param capsys: Capture sys out and err.
     :param mock_action_plugin_factory: Factory for creating mock action
         plugin objects.
     """
@@ -424,9 +417,9 @@ def test_parametrize(
     pyaud.plugins.register(name=PLUGIN_NAME[2])(plugin_two)
     pyaud.plugins.register(name="params")(_Params)
     main("params")
-    out = nocolorcapsys.stdout()
-    assert f"pyaud {PLUGIN_NAME[1]}" in out
-    assert f"pyaud {PLUGIN_NAME[2]}" in out
+    std = capsys.readouterr()
+    assert f"pyaud {PLUGIN_NAME[1]}" in std.out
+    assert f"pyaud {PLUGIN_NAME[2]}" in std.out
 
 
 @pytest.mark.usefixtures("unpatch_plugins_load")

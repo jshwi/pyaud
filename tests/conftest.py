@@ -28,7 +28,6 @@ from . import (
     MockActionPluginFactoryType,
     MockActionPluginList,
     MockMainType,
-    NoColorCapsys,
 )
 
 # noinspection PyProtectedMember,PyUnresolvedReferences
@@ -90,18 +89,6 @@ def fixture_mock_environment(
     # noinspection PyProtectedMember,PyUnresolvedReferences
     pyaud._core._create_cachedir()
     pc.toml["audit"] = {}
-
-
-@pytest.fixture(name="nocolorcapsys")
-def fixture_nocolorcapsys(capsys: pytest.CaptureFixture) -> NoColorCapsys:
-    """Instantiate capsys with the regex method.
-
-    :param capsys: Capture ``sys`` stdout and stderr..
-    :return: Instantiated ``NoColorCapsys`` object for capturing output
-        stream and sanitizing the string if it contains ANSI escape
-        codes.
-    """
-    return NoColorCapsys(capsys)
 
 
 @pytest.fixture(name="main")

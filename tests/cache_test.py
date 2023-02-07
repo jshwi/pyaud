@@ -30,7 +30,6 @@ from . import (
     FileHashDict,
     MockCachedPluginType,
     MockMainType,
-    NoColorCapsys,
     StrategyMockPlugin,
     Tracker,
 )
@@ -193,13 +192,12 @@ class TestCacheStrategy:
         "unpatch_hash_mapping_save_hash", "unpatch_hash_mapping_match_file"
     )
     def test_cache(
-        self, monkeypatch: pytest.MonkeyPatch, nocolorcapsys: NoColorCapsys
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
     ) -> None:
         """Test cache strategy.
 
         :param monkeypatch: Mock patch environment and attributes.
-        :param nocolorcapsys: Capture system output while stripping ANSI
-            color codes.
+        :param capsys: Capture sys out and err.
         """
         #: PATHS
         p = (
@@ -254,7 +252,8 @@ class TestCacheStrategy:
         i1 = self._get_instance(monkeypatch, 1, 0)
         i1()
         o = json.loads(cache_file.read_text())
-        assert self._success_msg(len(f)) in nocolorcapsys.stdout()
+        std = capsys.readouterr()
+        assert self._success_msg(len(f)) in std.out
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._d_eq(self._idx(o, 0, 1, 0), self._fmt(f))
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
@@ -265,7 +264,8 @@ class TestCacheStrategy:
         #: have been made, so no process needed to be run.
         i1()
         o = json.loads(cache_file.read_text())
-        assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()
+        std = capsys.readouterr()
+        assert self.NO_CHANGE_MSG in std.out
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
 
@@ -276,7 +276,8 @@ class TestCacheStrategy:
         f[p[0]] = f[p[0]][::-1]
         i1()
         o = json.loads(cache_file.read_text())
-        assert self._success_msg(1) in nocolorcapsys.stdout()
+        std = capsys.readouterr()
+        assert self._success_msg(1) in std.out
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
 
@@ -291,7 +292,8 @@ class TestCacheStrategy:
         i2 = self._get_instance(monkeypatch, 2, 0)
         i2()
         o = json.loads(cache_file.read_text())
-        assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()
+        std = capsys.readouterr()
+        assert self.NO_CHANGE_MSG in std.out
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
         assert self._cls_in_commit(o, 0, 2, 0)
@@ -312,7 +314,8 @@ class TestCacheStrategy:
         i3 = self._get_instance(monkeypatch, 1, 1)
         i3()
         o = json.loads(cache_file.read_text())
-        assert self._success_msg(len(f)) in nocolorcapsys.stdout()
+        std = capsys.readouterr()
+        assert self._success_msg(len(f)) in std.out
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._cls_in_commit(o, 0, 1, 1)
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
@@ -337,7 +340,8 @@ class TestCacheStrategy:
         i4 = self._get_instance(monkeypatch, 3, 1)
         i4()
         o = json.loads(cache_file.read_text())
-        assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()
+        std = capsys.readouterr()
+        assert self.NO_CHANGE_MSG in std.out
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._cls_in_commit(o, 0, 1, 1)
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
@@ -356,7 +360,8 @@ class TestCacheStrategy:
         i5 = self._get_instance(monkeypatch, 3, 1, clean=False)
         i5()
         o = json.loads(cache_file.read_text())
-        assert self.NO_CHANGE_MSG in nocolorcapsys.stdout()
+        std = capsys.readouterr()
+        assert self.NO_CHANGE_MSG in std.out
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._cls_in_commit(o, 0, 1, 1)
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
@@ -382,18 +387,18 @@ class TestCacheStrategy:
         f[p[1]] = f[p[1]][::-1]
         i6()
         o = json.loads(cache_file.read_text())
-        assert self._success_msg(len(f)) in nocolorcapsys.stdout()
+        std = capsys.readouterr()
+        assert self._success_msg(len(f)) in std.out
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
 
     @pytest.mark.usefixtures(
         "unpatch_hash_mapping_save_hash", "unpatch_hash_mapping_match_file"
     )
-    def test_cache_file(self, nocolorcapsys: NoColorCapsys) -> None:
+    def test_cache_file(self, capsys: pytest.CaptureFixture) -> None:
         """Test caching a single file.
 
-        :param nocolorcapsys: Capture system output while stripping ANSI
-            color codes.
+        :param capsys: Capture sys out and err.
         """
         expected_1 = "Success: no issues found in file"
         path = Path.cwd() / WHITELIST_PY
@@ -416,27 +421,25 @@ class TestCacheStrategy:
             fix()
 
         fix(fix=True)
-        assert expected_1 in nocolorcapsys.stdout()
+        std = capsys.readouterr()
+        assert expected_1 in std.out
 
         fix()
-        assert (
-            "No changes have been made to audited file"
-            in nocolorcapsys.stdout()
-        )
+        std = capsys.readouterr()
+        assert "No changes have been made to audited file" in std.out
 
         path.write_text("change")
         with pytest.raises(pyaud.exceptions.AuditError):
             fix()
 
         fix(fix=True)
-        assert expected_1 in nocolorcapsys.stdout()
+        std = capsys.readouterr()
+        assert expected_1 in std.out
 
         os.remove(path)
         with pytest.raises(pyaud.exceptions.AuditError):
             fix()
 
         fix(fix=True)
-        assert (
-            "No changes have been made to audited file"
-            not in nocolorcapsys.stdout()
-        )
+        std = capsys.readouterr()
+        assert "No changes have been made to audited file" not in std.out
