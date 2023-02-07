@@ -16,7 +16,7 @@ from spall.exceptions import CommandNotFoundError as _CommandNotFoundError
 from ._cache import FileCacher as _FileCacher
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import colors as _colors
-from ._utils import files as _files
+from ._objects import files as _files
 
 
 class CheckCommand:

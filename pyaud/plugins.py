@@ -24,7 +24,7 @@ from ._objects import NAME as _NAME
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
 from ._objects import colors as _colors
-from ._utils import files as _files
+from ._objects import files as _files
 from ._wraps import CheckCommand as _CheckCommand
 from ._wraps import ClassDecorator as _ClassDecorator
 from .exceptions import AuditError as _AuditError

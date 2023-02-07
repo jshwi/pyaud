@@ -9,6 +9,7 @@ import typing as _t
 from abc import ABC as _ABC
 from pathlib import Path as _Path
 
+from lsfiles import LSFiles as _LSFiles
 from object_colors import Color as _Color
 
 NAME = __name__.split(".", maxsplit=1)[0]
@@ -108,5 +109,6 @@ class JSONIO(MutableMapping):
 
 toml = _Toml()
 colors = _Color()
+files = _LSFiles()
 
 colors.populate_colors()

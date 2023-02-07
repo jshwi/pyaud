@@ -15,7 +15,7 @@ import git as _git
 from ._objects import JSONIO as _JSONIO
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import colors as _colors
-from ._utils import files as _files
+from ._objects import files as _files
 from ._version import __version__
 from .exceptions import AuditError as _AuditError
 
