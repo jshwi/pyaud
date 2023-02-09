@@ -499,3 +499,33 @@ def test_audit_success(
     main(AUDIT, "--audit=modules")
     std = capsys.readouterr()
     assert "Display all available plugins and their documentation" in std.out
+
+
+def test_parametrize_fail(
+    main: MockMainType, mock_action_plugin_factory: MockActionPluginFactoryType
+) -> None:
+    """Test class for running multiple plugins.
+
+    :param main: Patch package entry point.
+    :param mock_action_plugin_factory: Factory for creating mock action
+        plugin objects.
+    """
+
+    class _Params(pyaud.plugins.Parametrize):
+        def plugins(self) -> list[str]:
+            """List of plugin names to run.
+
+            :return: List of plugin names, as defined in ``@register``.
+            """
+            return [PLUGIN_NAME[1]]
+
+    plugins = mock_action_plugin_factory(
+        {
+            NAME: PLUGIN_CLASS[1],
+            "exe": "not_a_command",
+            ACTION: lambda x, *y, **z: 1,
+        }
+    )
+    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugins[0])
+    pyaud.plugins.register(name=PARAMS)(_Params)
+    assert main(PARAMS) == 1

@@ -336,12 +336,13 @@ class Parametrize(Plugin):
         """
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
+        returncode = 0
         for name in self.plugins():
             _colors.cyan.bold.print(f"\n{_NAME} {name}")
-            _plugins[name](*args, **kwargs)
+            if _plugins[name](*args, **kwargs):
+                returncode = 1
 
-        # all parametrized plugins will have succeeded to make it here
-        return 0
+        return returncode
 
 
 class FixFile(Plugin):
