@@ -46,6 +46,8 @@ TYPE_ERROR = "can only register one of the following:"
 UNPATCH_REGISTER_DEFAULT_PLUGINS = "unpatch_register_builtin_plugins"
 VALUE = "value"
 WHITELIST_PY = "whitelist.py"
+ACTION = "action"
+PARAMS = "params"
 
 MockMainType = t.Callable[..., int]
 MakeTreeType = t.Callable[[Path, t.Dict[t.Any, t.Any]], None]

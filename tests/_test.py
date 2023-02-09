@@ -21,6 +21,7 @@ import pyaud
 import pyaud._objects as pc
 
 from . import (
+    ACTION,
     AUDIT,
     COMMIT,
     CONFPY,
@@ -34,6 +35,7 @@ from . import (
     LINT,
     MODULES,
     NAME,
+    PARAMS,
     PLUGIN_CLASS,
     PLUGIN_NAME,
     PYAUD_FILES_POPULATE,
@@ -226,7 +228,7 @@ def test_command_not_found_error(
         {
             NAME: PLUGIN_CLASS[1],
             "exe": "not_a_command",
-            "action": lambda x, *y, **z: x.subprocess[x.exe_str].call(*y, **z),
+            ACTION: lambda x, *y, **z: x.subprocess[x.exe_str].call(*y, **z),
         }
     )
     pyaud.plugins.register("test-command-not-found-error")(plugins[0])
@@ -296,7 +298,7 @@ def test_audit_error_did_no_pass_all_checks(
         raise subprocess.CalledProcessError(1, "returned non-zero exit status")
 
     plugins = mock_action_plugin_factory(
-        {NAME: PLUGIN_CLASS[1], "action": action}
+        {NAME: PLUGIN_CLASS[1], ACTION: action}
     )
     pyaud.plugins.register(name=PLUGIN_NAME[1])(plugins[0])
     pyaud.files.append(Path.cwd() / FILES)
@@ -390,8 +392,8 @@ def test_parametrize(
     )
     pyaud.plugins.register(name=PLUGIN_NAME[1])(plugin_one)
     pyaud.plugins.register(name=PLUGIN_NAME[2])(plugin_two)
-    pyaud.plugins.register(name="params")(_Params)
-    main("params")
+    pyaud.plugins.register(name=PARAMS)(_Params)
+    main(PARAMS)
     std = capsys.readouterr()
     assert f"pyaud {PLUGIN_NAME[1]}" in std.out
     assert f"pyaud {PLUGIN_NAME[2]}" in std.out
