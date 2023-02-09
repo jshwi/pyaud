@@ -47,7 +47,7 @@ UNPATCH_REGISTER_DEFAULT_PLUGINS = "unpatch_register_builtin_plugins"
 VALUE = "value"
 WHITELIST_PY = "whitelist.py"
 
-MockMainType = t.Callable[..., None]
+MockMainType = t.Callable[..., int]
 MakeTreeType = t.Callable[[Path, t.Dict[t.Any, t.Any]], None]
 FileHashDict = t.Dict[str, str]
 ClsDict = t.Dict[str, FileHashDict]

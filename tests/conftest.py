@@ -89,12 +89,12 @@ def fixture_main(monkeypatch: pytest.MonkeyPatch) -> MockMainType:
     :return: Function for using this fixture.
     """
 
-    def _main(*args: str) -> None:
+    def _main(*args: str) -> int:
         """Run main with custom args."""
         from pyaud import main
 
         monkeypatch.setattr("sys.argv", [pyaud.__name__, *args])
-        main()
+        return main()
 
     return _main
 
