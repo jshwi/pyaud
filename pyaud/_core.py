@@ -49,7 +49,7 @@ def pyaud(  # pylint: disable=too-many-arguments
     _os.environ["PYAUD_CACHE"] = _os.environ.get("PYAUD_CACHE", ".pyaud_cache")
     _files.populate(exclude)
     _toml["audit"] = audit
-    _create_cachedir()
     _register_builtin_plugins()
     _plugins.load()
+    _create_cachedir()
     return _plugins.get(module, "modules")(fix=fix, no_cache=no_cache)
