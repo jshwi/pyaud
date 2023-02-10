@@ -94,8 +94,15 @@ class ClassDecorator:
 
         @_functools.wraps(func)
         def _wrapper(*args: str, **kwargs: bool) -> int:
-            _file_cacher = _FileCacher(self._cls, func, *args, **kwargs)
-            return _file_cacher.files(func, *args, **kwargs)
+            if not kwargs.get("no_cache", False):
+                _file_cacher = _FileCacher(self._cls, func, *args, **kwargs)
+                if self._cls.cache_file is not None:
+                    return _file_cacher.file()
+
+                if self._cls.cache:
+                    return _file_cacher.files()
+
+            return func(*args, **kwargs)
 
         return _wrapper
 

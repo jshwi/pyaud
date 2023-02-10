@@ -174,7 +174,11 @@ class FileCacher:  # pylint: disable=too-few-public-methods
 
         self.hashed.write(self._cache_file_path)
 
-    def _cache_files(self) -> int:
+    def files(self) -> int:
+        """Handle caching of a single file.
+
+        :return: Exit status.
+        """
         returncode = 0
         with _IndexedState() as state:
             for file in list(_files):
@@ -195,7 +199,11 @@ class FileCacher:  # pylint: disable=too-few-public-methods
 
         return returncode
 
-    def _cache_file(self) -> int:
+    def file(self) -> int:
+        """Handle caching of a repo's python files.
+
+        :return: Exit status.
+        """
         returncode = 0
         file = self._cls.cache_file
         if file is not None:
@@ -216,23 +224,3 @@ class FileCacher:  # pylint: disable=too-few-public-methods
             self._on_completion(path)
 
         return returncode
-
-    def files(
-        self, func: _t.Callable[..., int], *args: str, **kwargs: bool
-    ) -> int:
-        """Wrap ``__call__`` with a hashing function.
-
-        :param func: Function to wrap.
-        :param args: Args that can be passed from other plugins.
-        :param kwargs: Boolean flags for subprocesses.
-        :return: Wrapped function.
-        """
-        no_cache = kwargs.get("no_cache", False)
-        if not no_cache:
-            if self._cls.cache_file is not None:
-                return self._cache_file()
-
-            if self._cls.cache:
-                return self._cache_files()
-
-        return func(*args, **kwargs)
