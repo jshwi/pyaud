@@ -17,15 +17,20 @@ import pytest
 
 import pyaud
 
+# noinspection PyProtectedMember
+import pyaud._config as pc
+
 from . import (
     AUDIT,
     CONFPY,
+    DEFAULT_KEY,
     DOCS,
     FILE,
     FILES,
     FORMAT,
     FORMAT_DOCS,
     INIT,
+    KEY,
     LINT,
     MODULES,
     PARAMS,
@@ -35,6 +40,7 @@ from . import (
     TESTS,
     TYPE_ERROR,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
+    VALUE,
     FixtureMockRepo,
     FixtureMockSpallSubprocessOpenProcess,
     MakeTreeType,
@@ -45,6 +51,8 @@ from . import (
     PluginTuple,
     Tracker,
 )
+
+# noinspection PyProtectedMember
 
 
 def test_register_plugin_name_conflict_error(
@@ -477,3 +485,20 @@ def test_subprocess(
         str(exe.subprocess)
         == "<_SubprocessFactory {'command': <Subprocess (command)>}>"
     )
+
+
+def test_del_key_in_context() -> None:
+    """Confirm there is no error raised when deleting temp key-value."""
+    obj: t.Dict[str, str] = {}
+    with pc.TempEnvVar(obj, key=VALUE):
+        assert obj[KEY] == VALUE
+        del obj[KEY]
+
+
+def test_default_key() -> None:
+    """Test setting and restoring of existing dict keys."""
+    obj = {DEFAULT_KEY: "default_value"}
+    with pc.TempEnvVar(obj, default_key="temp_value"):
+        assert obj[DEFAULT_KEY] == "temp_value"
+
+    assert obj[DEFAULT_KEY] == "default_value"
