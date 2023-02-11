@@ -41,6 +41,7 @@ UNPATCH_REGISTER_DEFAULT_PLUGINS = "unpatch_register_builtin_plugins"
 VALUE = "value"
 WHITELIST_PY = "whitelist.py"
 PARAMS = "params"
+STRFTIME = "%d%m%YT%H%M%S"
 
 FixtureMain = t.Callable[..., int]
 FixtureMakeTree = t.Callable[[Path, t.Dict[t.Any, t.Any]], None]

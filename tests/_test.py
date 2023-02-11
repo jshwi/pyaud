@@ -37,6 +37,7 @@ from . import (
     PLUGIN_CLASS,
     PLUGIN_NAME,
     REPO,
+    STRFTIME,
     TESTS,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
     VALUE,
@@ -89,7 +90,7 @@ def test_register_invalid_type(klass: type) -> None:
     """
     with pytest.raises(TypeError) as err:
         pyaud.plugins.register(
-            name=datetime.datetime.now().strftime("%d%m%YT%H%M%S")
+            name=datetime.datetime.now().strftime(STRFTIME)
         )(
             klass  # type: ignore
         )
@@ -245,7 +246,7 @@ def test_no_exe_provided(
     :param mock_spall_subprocess_open_process: Patch
         ``spall.Subprocess._open_process`` returncode.
     """
-    unique = datetime.datetime.now().strftime("%d%m%YT%H%M%S")
+    unique = datetime.datetime.now().strftime(STRFTIME)
     mock_spall_subprocess_open_process(1)
     pyaud.files.append(Path.cwd() / FILES)
     pyaud.plugins.register(name=unique)(MockAudit)
