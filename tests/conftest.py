@@ -47,28 +47,18 @@ def fixture_mock_environment(
     :param monkeypatch: Mock patch environment and attributes.
     :param mock_repo: Mock ``git.Repo`` class.
     """
-    home = tmp_path
-    repo_abs = home / repo[1]
-
-    #: ENV
-    monkeypatch.setenv("PYAUD_CACHE", str(tmp_path / ".pyaud_cache"))
-
-    #: ATTRS
-    monkeypatch.setattr("os.getcwd", lambda: str(repo_abs))
+    repo_abs = tmp_path / repo[1]
     mock_repo(rev_parse=lambda _: None, status=lambda _: None)
+    monkeypatch.setenv("PYAUD_CACHE", str(tmp_path / ".pyaud_cache"))
+    monkeypatch.setattr("os.getcwd", lambda: str(repo_abs))
     monkeypatch.setattr("pyaud.plugins._plugins", pyaud.plugins.Plugins())
     monkeypatch.setattr("pyaud.plugins.load", lambda: None)
     monkeypatch.setattr("pyaud._core._register_builtin_plugins", lambda: None)
     monkeypatch.setattr("pyaud._core._files.populate_regex", lambda _: None)
-
-    #: RESET
     pyaud.files.clear()
     pc.toml.clear()
-
-    #: CREATE
     repo_abs.mkdir()
-    #: MAIN - essential setup tasks
-    # noinspection PyProtectedMember,PyUnresolvedReferences
+    # noinspection PyProtectedMember
     pyaud._core._create_cachedir()
     pc.toml["audit"] = {}
 
