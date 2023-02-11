@@ -22,18 +22,9 @@ import pyaud
 import pyaud._config as pc
 
 from . import (
-    DEFAULT_KEY,
-    DOCS,
-    FILE,
-    FILES,
-    FORMAT,
-    FORMAT_DOCS,
     INIT,
     KEY,
-    LINT,
-    MODULES,
     PARAMS,
-    REPO,
     STRFTIME,
     TESTS,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
@@ -48,6 +39,8 @@ from . import (
     Tracker,
     plugin_class,
     plugin_name,
+    python_file,
+    repo,
 )
 
 # noinspection PyProtectedMember
@@ -140,8 +133,8 @@ def test_plugin_deepcopy_with_new() -> None:
     copy.deepcopy(pyaud.plugins._plugins)
     assert isinstance(
         pyaud.plugins.Plugin(  # pylint: disable=unnecessary-dunder-call
-            REPO
-        ).__deepcopy__(REPO),
+            repo[1]
+        ).__deepcopy__(repo[1]),
         pyaud.plugins.Plugin,
     )
 
@@ -202,7 +195,7 @@ def test_audit_error_did_no_pass_all_checks(
         PluginTuple(plugin_name[1], action=action)
     )
     pyaud.plugins.register(name=plugin_name[1])(plugins[0])
-    pyaud.files.append(Path.cwd() / FILES)
+    pyaud.files.append(Path.cwd() / python_file[1])
     returncode = main(plugin_name[1])
     assert returncode == 1
 
@@ -217,7 +210,6 @@ def test_no_exe_provided(
     """
     unique = datetime.datetime.now().strftime(STRFTIME)
     mock_spall_subprocess_open_process(1)
-    pyaud.files.append(Path.cwd() / FILES)
     pyaud.plugins.register(name=unique)(MockAudit)
     assert pyaud.plugins.get(unique).exe == []
 
@@ -233,7 +225,7 @@ def test_modules(main: FixtureMain, capsys: pytest.CaptureFixture) -> None:
     :param main: Patch package entry point.
     :param capsys: Capture sys out and err.
     """
-    returncode = main(MODULES)
+    returncode = main("modules")
     std = capsys.readouterr()
     assert (
         "\naudit   -- Read from [audit] key in config\n"
@@ -265,7 +257,7 @@ def test_audit(
             return expected_returncode
 
     pyaud.plugins.register(plugin_name[1])(_MockAudit)
-    pyaud.files.append(Path.cwd() / FILE)
+    pyaud.files.append(Path.cwd() / python_file[1])
     returncode = main("audit", f"--audit={plugin_name[1]}")
     assert returncode == expected_returncode
     assert expected_output in capsys.readouterr()[expected_returncode]
@@ -283,7 +275,7 @@ def test_audit_raise(main: FixtureMain) -> None:
             raise CalledProcessError(1, "command")
 
     pyaud.plugins.register(plugin_name[1])(_MockAudit)
-    pyaud.files.append(Path.cwd() / FILE)
+    pyaud.files.append(Path.cwd() / python_file[1])
     returncode = main("audit", f"--audit={plugin_name[1]}")
     assert returncode == 1
 
@@ -340,7 +332,7 @@ def test_imports(
     monkeypatch.setattr(
         "pyaud.plugins._pkgutil.iter_modules", lambda: iter_modules
     )
-    make_tree(Path.cwd(), {"plugins": {INIT: None, FILE: None}})
+    make_tree(Path.cwd(), {"plugins": {INIT: None, python_file[1]: None}})
     pyaud.plugins.load()
     assert tracker.was_called()
     assert tracker.args == [("pyaud_underscore",), ("pyaud-dash",)]
@@ -355,13 +347,13 @@ def test_imports(
         ("Deploy", "deploy"),
         ("DeployCov", "deploy-cov"),
         ("DeployDocs", "deploy-docs"),
-        ("Docs", DOCS),
-        ("Files", FILES),
-        ("Format", FORMAT),
-        ("FormatDocs", FORMAT_DOCS),
+        ("Docs", "docs"),
+        ("Files", "files"),
+        ("Format", "format"),
+        ("FormatDocs", "format-docs"),
         ("FormatFString", "format-f-string"),
         ("Imports", "imports"),
-        ("Lint", LINT),
+        ("Lint", "lint"),
         ("Readme", "readme"),
         ("Requirements", "requirements"),
         ("Tests", TESTS),
@@ -461,8 +453,8 @@ def test_del_key_in_context() -> None:
 
 def test_default_key() -> None:
     """Test setting and restoring of existing dict keys."""
-    obj = {DEFAULT_KEY: "default_value"}
-    with pc.TempEnvVar(obj, default_key="temp_value"):
-        assert obj[DEFAULT_KEY] == "temp_value"
+    obj = {KEY: "default_value"}
+    with pc.TempEnvVar(obj, **{KEY: "temp_value"}):
+        assert obj[KEY] == "temp_value"
 
-    assert obj[DEFAULT_KEY] == "default_value"
+    assert obj[KEY] == "default_value"

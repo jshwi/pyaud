@@ -11,7 +11,7 @@ import pytest
 
 import pyaud
 
-from . import FILE, FIX, FIX_ALL, FIX_FILE, FIXER, FixtureMain
+from . import FIX, FIX_ALL, FIX_FILE, FixtureMain, python_file
 
 
 def _get_pass_fixer(
@@ -68,7 +68,7 @@ class _FailFileFixer(_BaseFileFixer):
 class TestFix:
     """Test various implementations of ``pyaud.plugins.FixAll``."""
 
-    plugin_name = FIXER
+    plugin_name = "fixer"
 
     def _register_fixer(self, fixer: pyaud.plugins.PluginType) -> None:
         pyaud.plugins.register(self.plugin_name)(fixer)
@@ -102,7 +102,7 @@ class TestFix:
         :param plugin: Plugin to test.
         :param expected: Expected result.
         """
-        pyaud.files.append(Path.cwd() / FILE)
+        pyaud.files.append(Path.cwd() / python_file[1])
         pyaud.files[0].touch()
         self._register_fixer(plugin)
         main(self.plugin_name)
@@ -126,7 +126,7 @@ class TestFix:
         :param main: Patch package entry point.
         :param plugin: Plugin type object.
         """
-        pyaud.files.append(Path.cwd() / FILE)
+        pyaud.files.append(Path.cwd() / python_file[1])
         pyaud.files[0].touch()
         self._register_fixer(plugin)
         main(self.plugin_name)
@@ -160,7 +160,7 @@ class TestFix:
         :param plugin: Plugin type object.
         :param expected: Expected result.
         """
-        pyaud.files.append(Path.cwd() / FILE)
+        pyaud.files.append(Path.cwd() / python_file[1])
         pyaud.files[0].touch()
         self._register_fixer(plugin)
         main(self.plugin_name, "--fix")

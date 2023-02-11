@@ -16,12 +16,8 @@ import pytest
 import pyaud
 
 from . import (
-    FILE,
-    FILES,
     INIT,
-    REPO,
     TESTS,
-    WHITELIST_PY,
     CacheDict,
     CacheUnion,
     ClsDict,
@@ -32,6 +28,8 @@ from . import (
     StrategyMockPlugin,
     Tracker,
     plugin_name,
+    python_file,
+    repo,
 )
 
 
@@ -75,7 +73,7 @@ def test_remove_matched_files(monkeypatch: pytest.MonkeyPatch) -> None:
     :param monkeypatch: Mock patch environment and attributes.
     """
     remove = Tracker()
-    pyaud.plugins._files.append(Path.cwd() / REPO)
+    pyaud.plugins._files.append(Path.cwd() / repo[1])
     monkeypatch.setattr("pyaud.plugins._files.remove", remove)
     monkeypatch.setattr("pyaud._cache._Path.read_bytes", lambda *_: b"")
     monkeypatch.setattr("pyaud._cache.HashMapping.match_file", lambda *_: True)
@@ -93,7 +91,7 @@ class TestCacheStrategy:
     """Test strategy."""
 
     #: PACKAGES
-    P = (REPO,)
+    P = (repo[1],)
 
     #: COMMITS
     # noinspection PyUnresolvedReferences
@@ -170,7 +168,7 @@ class TestCacheStrategy:
     ) -> type:
         monkeypatch.setattr("pyaud._cache._get_commit_hash", lambda: self.C[c])
         monkeypatch.setattr("pyaud._cache._working_tree_clean", lambda: clean)
-        attr = "file" if single_file else FILES
+        attr = "file" if single_file else "files"
         # noinspection PyUnresolvedReferences
         check = getattr(pyaud._wraps.CheckCommand, attr)
         strat = copy.deepcopy(StrategyMockPlugin)
@@ -198,12 +196,12 @@ class TestCacheStrategy:
         """
         #: PATHS
         p = (
-            Path.cwd() / REPO / "__main__.py",
-            Path.cwd() / REPO / "_version.py",
-            Path.cwd() / REPO / INIT,
-            Path.cwd() / REPO / FILE,
+            Path.cwd() / repo[1] / "__main__.py",
+            Path.cwd() / repo[1] / "_version.py",
+            Path.cwd() / repo[1] / INIT,
+            Path.cwd() / repo[1] / python_file[1],
             Path.cwd() / "plugins" / INIT,
-            Path.cwd() / "plugins" / FILE,
+            Path.cwd() / "plugins" / python_file[1],
             Path.cwd() / TESTS / INIT,
             Path.cwd() / TESTS / "_test.py",
             Path.cwd() / TESTS / "conftest.py",
@@ -395,7 +393,7 @@ class TestCacheStrategy:
         :param capsys: Capture sys out and err.
         """
         expected_1 = pyaud.messages.SUCCESS_FILE
-        path = Path.cwd() / WHITELIST_PY
+        path = Path.cwd() / "whitelist.py"
 
         class _Fix(pyaud.plugins.Fix):
             cache_file = path

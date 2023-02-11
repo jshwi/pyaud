@@ -20,8 +20,6 @@ import pyaud._objects as pc
 from pyaud import _builtins
 
 from . import (
-    OS_GETCWD,
-    REPO,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
     FixtureMain,
     FixtureMakeTree,
@@ -30,6 +28,7 @@ from . import (
     FixtureMockSpallSubprocessOpenProcess,
     MockActionPluginList,
     PluginTuple,
+    repo,
 )
 
 original_pyaud_plugin_load = pyaud.plugins.load
@@ -49,13 +48,13 @@ def fixture_mock_environment(
     :param mock_repo: Mock ``git.Repo`` class.
     """
     home = tmp_path
-    repo_abs = home / REPO
+    repo_abs = home / repo[1]
 
     #: ENV
     monkeypatch.setenv("PYAUD_CACHE", str(tmp_path / ".pyaud_cache"))
 
     #: ATTRS
-    monkeypatch.setattr(OS_GETCWD, lambda: str(repo_abs))
+    monkeypatch.setattr("os.getcwd", lambda: str(repo_abs))
     mock_repo(rev_parse=lambda _: None, status=lambda _: None)
     monkeypatch.setattr("pyaud.plugins._plugins", pyaud.plugins.Plugins())
     monkeypatch.setattr("pyaud.plugins.load", lambda: None)
@@ -184,12 +183,12 @@ def fixture_mock_repo(monkeypatch: pytest.MonkeyPatch) -> FixtureMockRepo:
     """
 
     def _mock_repo(**kwargs: t.Callable[..., str]) -> None:
-        repo = type("Repo", (), {})
-        repo.git = type("git", (), {})  # type: ignore
+        git_repo = type("Repo", (), {})
+        git_repo.git = type("git", (), {})  # type: ignore
         for key, value in kwargs.items():
-            setattr(repo.git, key, value)  # type: ignore
+            setattr(git_repo.git, key, value)  # type: ignore
 
-        monkeypatch.setattr("pyaud._cache._git.Repo", lambda _: repo)
+        monkeypatch.setattr("pyaud._cache._git.Repo", lambda _: git_repo)
 
     return _mock_repo
 

@@ -11,30 +11,18 @@ import typing as t
 from pathlib import Path
 
 from mypy_extensions import KwArg
-from templatest.utils import VarSeq
+from templatest.utils import VarSeq, VarSeqSuffix
 
 import pyaud
 
-DEFAULT_KEY = "default_key"
-DOCS = "docs"
-FILE: str = "file.py"
-FILES = "files"
 FIX = "fix"
-FIXER = "fixer"
 FIX_ALL = "fix-all"
 FIX_FILE = "fix-file"
-FORMAT = "format"
-FORMAT_DOCS = "format-docs"
 INIT = "__init__.py"
 KEY = "key"
-LINT = "lint"
-MODULES = "modules"
-OS_GETCWD = "os.getcwd"
-REPO = "repo"
 TESTS = "tests"
 UNPATCH_REGISTER_DEFAULT_PLUGINS = "unpatch_register_builtin_plugins"
 VALUE = "value"
-WHITELIST_PY = "whitelist.py"
 PARAMS = "params"
 STRFTIME = "%d%m%YT%H%M%S"
 
@@ -52,6 +40,8 @@ FixtureMockSpallSubprocessOpenProcess = t.Callable[[int], None]
 
 plugin_name = VarSeq("plugin", suffix="-")
 plugin_class = VarSeq("Plugin")
+repo = VarSeq("repo")
+python_file = VarSeqSuffix("file", suffix=".py")
 
 
 class MockPluginType(pyaud.plugins.Plugin):
