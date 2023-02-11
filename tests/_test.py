@@ -38,7 +38,6 @@ from . import (
     PLUGIN_NAME,
     REPO,
     TESTS,
-    TYPE_ERROR,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
     VALUE,
     FixtureMain,
@@ -47,7 +46,6 @@ from . import (
     FixtureMockRepo,
     FixtureMockSpallSubprocessOpenProcess,
     MockAudit,
-    NotSubclassed,
     PluginTuple,
     Tracker,
 )
@@ -76,29 +74,27 @@ def test_register_plugin_name_conflict_error(
     )
 
 
-def test_register_invalid_type() -> None:
-    """Test correct error is displayed when registering unknown type."""
-    unique = "test-register-invalid-type"
+@pytest.mark.parametrize(
+    "klass",
+    [
+        type("NotSubclassed", (), {}),
+        type("Subclassed", (type("NotSubclassed", (), {}),), {}),
+    ],
+    ids=["base", "child"],
+)
+def test_register_invalid_type(klass: type) -> None:
+    """Test correct error is displayed when registering unknown type.
+
+    :param klass: Invalid type.
+    """
     with pytest.raises(TypeError) as err:
-        pyaud.plugins.register(name=unique)(NotSubclassed)  # type: ignore
+        pyaud.plugins.register(
+            name=datetime.datetime.now().strftime("%d%m%YT%H%M%S")
+        )(
+            klass  # type: ignore
+        )
 
-    assert TYPE_ERROR in str(err.value)
-
-
-def test_register_invalid_subclass_type() -> None:
-    """Test assigning of incompatible type to `_Plugin` instance."""
-    unique = "test-plugin-assign-non-type-key"
-    with pytest.raises(TypeError) as err:
-
-        class Plugin(NotSubclassed):
-            """Nothing to do."""
-
-            def __call__(self, *args: t.Any, **kwargs: bool) -> t.Any:
-                """Nothing to do."""
-
-        pyaud.plugins.register(name=unique)(Plugin)  # type: ignore
-
-    assert TYPE_ERROR in str(err.value)
+    assert "can only register one of the following:" in str(err.value)
 
 
 def test_plugin_mro(

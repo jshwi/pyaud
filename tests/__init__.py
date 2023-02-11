@@ -37,7 +37,6 @@ MODULES = "modules"
 OS_GETCWD = "os.getcwd"
 REPO = "repo"
 TESTS = "tests"
-TYPE_ERROR = "can only register one of the following:"
 UNPATCH_REGISTER_DEFAULT_PLUGINS = "unpatch_register_builtin_plugins"
 VALUE = "value"
 WHITELIST_PY = "whitelist.py"
@@ -110,10 +109,6 @@ class StrategyMockPlugin(MockCachedPluginType):
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
         return 0
-
-
-class NotSubclassed:
-    """Nothing to do."""
 
 
 class MockAudit(pyaud.plugins.Audit):
