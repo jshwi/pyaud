@@ -3,6 +3,7 @@ tests.conftest
 ==============
 """
 # pylint: disable=protected-access,no-member,import-outside-toplevel
+# pylint: disable=cell-var-from-loop
 from __future__ import annotations
 
 import typing as t
@@ -28,6 +29,7 @@ from . import (
     MockActionPluginFactoryType,
     MockActionPluginList,
     MockMainType,
+    PluginTuple,
 )
 
 # noinspection PyProtectedMember,PyUnresolvedReferences
@@ -180,29 +182,29 @@ def fixture_mock_action_plugin_factory() -> MockActionPluginFactoryType:
     :return: List of mock ``Action`` plugin types.
     """
 
-    def _mock_action_plugin_factory(*params) -> MockActionPluginList:
+    def _mock_action_plugin_factory(
+        *params: PluginTuple,
+    ) -> MockActionPluginList:
         mock_action_plugins = []
         for param in params:
-            _name = param.get("name")
 
             class MockActionPlugin(pyaud.plugins.Action):
                 """Nothing to do."""
 
-                exe_str = param.get("exe") or "exe"
-                _action = param.get("action")
+                exe_str = param.exe or "exe"
 
                 @property
                 def exe(self) -> list[str]:
-                    return [self.exe_str]
+                    return [param.exe or "exe"]  # noqa
 
                 def action(self, *args: str, **kwargs: bool) -> int:
                     """Nothing to do."""
-                    if self._action is not None:
-                        return self._action(self, *args, **kwargs)
+                    if param.action is not None:  # noqa
+                        return param.action(self, *args, **kwargs)  # noqa
 
                     return 0
 
-            MockActionPlugin.__name__ = _name
+            MockActionPlugin.__name__ = param.name
             mock_action_plugins.append(MockActionPlugin)
 
         return mock_action_plugins

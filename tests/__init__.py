@@ -35,7 +35,6 @@ INIT = "__init__.py"
 KEY = "key"
 LINT = "lint"
 MODULES = "modules"
-NAME = "name"
 OS_GETCWD = "os.getcwd"
 REPO = "repo"
 TESTS = "tests"
@@ -43,7 +42,6 @@ TYPE_ERROR = "can only register one of the following:"
 UNPATCH_REGISTER_DEFAULT_PLUGINS = "unpatch_register_builtin_plugins"
 VALUE = "value"
 WHITELIST_PY = "whitelist.py"
-ACTION = "action"
 PARAMS = "params"
 
 MockMainType = t.Callable[..., int]
@@ -125,3 +123,11 @@ class MockAudit(pyaud.plugins.Audit):
     def audit(self, *_: str, **__: bool) -> int:
         """Nothing to do."""
         return 1
+
+
+class PluginTuple(t.NamedTuple):
+    """Tuple of values to construct an ``Action`` plugin."""
+
+    name: str
+    exe: t.Optional[str] = None
+    action: t.Optional[t.Callable[..., int]] = None
