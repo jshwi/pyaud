@@ -33,8 +33,6 @@ from . import (
     LINT,
     MODULES,
     PARAMS,
-    PLUGIN_CLASS,
-    PLUGIN_NAME,
     REPO,
     STRFTIME,
     TESTS,
@@ -48,6 +46,8 @@ from . import (
     MockAudit,
     PluginTuple,
     Tracker,
+    plugin_class,
+    plugin_name,
 )
 
 # noinspection PyProtectedMember
@@ -63,14 +63,14 @@ def test_register_plugin_name_conflict_error(
     """
     unique = "test-register-plugin-name-conflict-error"
     plugin_one, plugin_two = mock_action_plugin_factory(
-        PluginTuple(PLUGIN_CLASS[1]), PluginTuple(PLUGIN_CLASS[2])
+        PluginTuple(plugin_class[1]), PluginTuple(plugin_class[2])
     )
     pyaud.plugins.register(name=unique)(plugin_one)
     with pytest.raises(pyaud.exceptions.NameConflictError) as err:
         pyaud.plugins.register(name=unique)(plugin_two)
 
     assert str(err.value) == pyaud.messages.NAME_CONFLICT_ERROR.format(
-        plugin=PLUGIN_CLASS[2], name=unique
+        plugin=plugin_class[2], name=unique
     )
 
 
@@ -109,10 +109,10 @@ def test_plugin_mro(
         plugin objects.
     """
     plugin_one, plugin_two = mock_action_plugin_factory(
-        PluginTuple(PLUGIN_NAME[1]), PluginTuple(PLUGIN_NAME[2])
+        PluginTuple(plugin_name[1]), PluginTuple(plugin_name[2])
     )
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugin_one)
-    pyaud.plugins.register(name=PLUGIN_NAME[2])(plugin_two)
+    pyaud.plugins.register(name=plugin_name[1])(plugin_one)
+    pyaud.plugins.register(name=plugin_name[2])(plugin_two)
     assert "plugin-1" in pyaud.plugins.mapping()
     assert "plugin-2" in pyaud.plugins.mapping()
 
@@ -156,7 +156,7 @@ def test_command_not_found_error(
     """
     plugins = mock_action_plugin_factory(
         PluginTuple(
-            PLUGIN_CLASS[1],
+            plugin_class[1],
             "not_a_command",
             lambda x, *y, **z: x.subprocess[x.exe_str].call(*y, **z),
         )
@@ -177,8 +177,8 @@ def test_check_command_no_files_found(
     :param main: Patch package entry point.
     :param capsys: Capture sys out and err.
     """
-    pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
-    returncode = main(PLUGIN_NAME[1])
+    pyaud.plugins.register(plugin_name[1])(MockAudit)
+    returncode = main(plugin_name[1])
     std = capsys.readouterr()
     assert returncode == 0
     assert "No files found" in std.out
@@ -199,11 +199,11 @@ def test_audit_error_did_no_pass_all_checks(
         raise subprocess.CalledProcessError(1, "returned non-zero exit status")
 
     plugins = mock_action_plugin_factory(
-        PluginTuple(PLUGIN_NAME[1], action=action)
+        PluginTuple(plugin_name[1], action=action)
     )
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugins[0])
+    pyaud.plugins.register(name=plugin_name[1])(plugins[0])
     pyaud.files.append(Path.cwd() / FILES)
-    returncode = main(PLUGIN_NAME[1])
+    returncode = main(plugin_name[1])
     assert returncode == 1
 
 
@@ -264,9 +264,9 @@ def test_audit(
         def audit(self, *_: str, **__: bool) -> int:
             return expected_returncode
 
-    pyaud.plugins.register(PLUGIN_NAME[1])(_MockAudit)
+    pyaud.plugins.register(plugin_name[1])(_MockAudit)
     pyaud.files.append(Path.cwd() / FILE)
-    returncode = main("audit", f"--audit={PLUGIN_NAME[1]}")
+    returncode = main("audit", f"--audit={plugin_name[1]}")
     assert returncode == expected_returncode
     assert expected_output in capsys.readouterr()[expected_returncode]
 
@@ -282,9 +282,9 @@ def test_audit_raise(main: FixtureMain) -> None:
         def audit(self, *_: str, **__: bool) -> int:
             raise CalledProcessError(1, "command")
 
-    pyaud.plugins.register(PLUGIN_NAME[1])(_MockAudit)
+    pyaud.plugins.register(plugin_name[1])(_MockAudit)
     pyaud.files.append(Path.cwd() / FILE)
-    returncode = main("audit", f"--audit={PLUGIN_NAME[1]}")
+    returncode = main("audit", f"--audit={plugin_name[1]}")
     assert returncode == 1
 
 
@@ -307,19 +307,19 @@ def test_parametrize(
 
             :return: List of plugin names, as defined in ``@register``.
             """
-            return [PLUGIN_NAME[1], PLUGIN_NAME[2]]
+            return [plugin_name[1], plugin_name[2]]
 
     plugin_one, plugin_two = mock_action_plugin_factory(
-        PluginTuple(PLUGIN_NAME[1]), PluginTuple(PLUGIN_NAME[2])
+        PluginTuple(plugin_name[1]), PluginTuple(plugin_name[2])
     )
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugin_one)
-    pyaud.plugins.register(name=PLUGIN_NAME[2])(plugin_two)
+    pyaud.plugins.register(name=plugin_name[1])(plugin_one)
+    pyaud.plugins.register(name=plugin_name[2])(plugin_two)
     pyaud.plugins.register(name=PARAMS)(_Params)
     returncode = main(PARAMS)
     std = capsys.readouterr()
     assert returncode == 0
-    assert f"pyaud {PLUGIN_NAME[1]}" in std.out
-    assert f"pyaud {PLUGIN_NAME[2]}" in std.out
+    assert f"pyaud {plugin_name[1]}" in std.out
+    assert f"pyaud {plugin_name[2]}" in std.out
 
 
 @pytest.mark.usefixtures("unpatch_plugins_load")
@@ -417,12 +417,12 @@ def test_parametrize_fail(
 
             :return: List of plugin names, as defined in ``@register``.
             """
-            return [PLUGIN_NAME[1]]
+            return [plugin_name[1]]
 
     plugins = mock_action_plugin_factory(
-        PluginTuple(PLUGIN_NAME[1], "not_a_command", lambda x, *y, **z: 1)
+        PluginTuple(plugin_name[1], "not_a_command", lambda x, *y, **z: 1)
     )
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(plugins[0])
+    pyaud.plugins.register(name=plugin_name[1])(plugins[0])
     pyaud.plugins.register(name=PARAMS)(_Params)
     returncode = main(PARAMS)
     assert returncode == 1
@@ -438,13 +438,13 @@ def test_subprocess(
     """
     plugins = mock_action_plugin_factory(
         PluginTuple(
-            PLUGIN_CLASS[1],
+            plugin_class[1],
             "command",
             lambda x, *y, **z: x.subprocess[x.exe_str].call(*y, **z),
         )
     )
-    pyaud.plugins.register(PLUGIN_NAME[1])(plugins[0])
-    exe = pyaud.plugins.get(PLUGIN_NAME[1])
+    pyaud.plugins.register(plugin_name[1])(plugins[0])
+    exe = pyaud.plugins.get(plugin_name[1])
     assert (
         str(exe.subprocess)
         == "<_SubprocessFactory {'command': <Subprocess (command)>}>"

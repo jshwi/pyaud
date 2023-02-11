@@ -15,9 +15,6 @@ from templatest.utils import VarSeq
 
 import pyaud
 
-PLUGIN_NAME = VarSeq("plugin", suffix="-")
-PLUGIN_CLASS = VarSeq("Plugin")
-
 DEFAULT_KEY = "default_key"
 DOCS = "docs"
 FILE: str = "file.py"
@@ -52,6 +49,9 @@ MockActionPluginList = t.Sequence[t.Type[pyaud.plugins.Action]]
 FixtureMockActionPluginFactory = t.Callable[..., MockActionPluginList]
 FixtureMockRepo = t.Callable[[KwArg(t.Callable[..., t.Any])], None]
 FixtureMockSpallSubprocessOpenProcess = t.Callable[[int], None]
+
+plugin_name = VarSeq("plugin", suffix="-")
+plugin_class = VarSeq("Plugin")
 
 
 class MockPluginType(pyaud.plugins.Plugin):

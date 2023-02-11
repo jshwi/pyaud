@@ -19,7 +19,6 @@ from . import (
     FILE,
     FILES,
     INIT,
-    PLUGIN_NAME,
     REPO,
     TESTS,
     WHITELIST_PY,
@@ -32,6 +31,7 @@ from . import (
     MockCachedPluginType,
     StrategyMockPlugin,
     Tracker,
+    plugin_name,
 )
 
 
@@ -48,7 +48,7 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: FixtureMain) -> None:
         def action(self, *args: str, **kwargs: bool) -> int:
             return 0
 
-    pyaud.plugins.register(name=PLUGIN_NAME[1])(Plugin)
+    pyaud.plugins.register(name=plugin_name[1])(Plugin)
     match_parent = Tracker()
     match_file = Tracker()
     remove = Tracker()
@@ -60,7 +60,7 @@ def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: FixtureMain) -> None:
     monkeypatch.setattr(
         "pyaud._cache.HashMapping.write", lambda *_: save_cache
     )
-    main(PLUGIN_NAME[1], "--no-cache")
+    main(plugin_name[1], "--no-cache")
     assert match_parent.was_called() is False
     assert match_file.was_called() is False
     assert remove.was_called() is False
