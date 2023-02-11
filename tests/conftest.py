@@ -39,7 +39,7 @@ original_pyaud_main_register_builtin_plugins = (
 
 @pytest.fixture(name="mock_environment", autouse=True)
 def fixture_mock_environment(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mock_repo
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mock_repo: FixtureMockRepo
 ) -> None:
     """Mock imports to reflect the temporary testing environment.
 
