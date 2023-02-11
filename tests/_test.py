@@ -11,6 +11,7 @@ import datetime
 import subprocess
 import typing as t
 from pathlib import Path
+from subprocess import CalledProcessError
 
 import git
 import pytest
@@ -21,8 +22,6 @@ import pyaud
 import pyaud._config as pc
 
 from . import (
-    AUDIT,
-    CONFPY,
     DEFAULT_KEY,
     DOCS,
     FILE,
@@ -170,36 +169,6 @@ def test_command_not_found_error(
         exe()
 
 
-def test_audit_failure(
-    main: FixtureMain,
-    mock_spall_subprocess_open_process: FixtureMockSpallSubprocessOpenProcess,
-) -> None:
-    """Test error when audit fails and cannot be fixed.
-
-    :param main: Patch package entry point.
-    :param mock_spall_subprocess_open_process: Patch
-        ``spall.Subprocess._open_process`` returncode.
-    """
-
-    class _Lint(pyaud.plugins.Audit):
-        """Lint code with ``pylint``."""
-
-        pylint = "pylint"
-
-        @property
-        def exe(self) -> list[str]:
-            return [self.pylint]
-
-        def audit(self, *args: str, **kwargs: bool) -> int:
-            return self.subprocess[self.pylint].call(*args, **kwargs)
-
-    pyaud.plugins.register(name=LINT)(_Lint)
-    mock_spall_subprocess_open_process(1)
-    pyaud.files.append(Path.cwd() / FILE)
-    returncode = main(LINT)
-    assert returncode == 1
-
-
 def test_check_command_no_files_found(
     main: FixtureMain, capsys: pytest.CaptureFixture
 ) -> None:
@@ -273,29 +242,50 @@ def test_modules(main: FixtureMain, capsys: pytest.CaptureFixture) -> None:
     assert returncode == 0
 
 
+@pytest.mark.parametrize(
+    "expected_returncode,expected_output", [(0, "Success"), (1, "Failed")]
+)
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
-def test_audit_fail(
+def test_audit(
     main: FixtureMain,
     capsys: pytest.CaptureFixture,
-    make_tree: FixtureMakeTree,
-    mock_spall_subprocess_open_process: FixtureMockSpallSubprocessOpenProcess,
+    expected_returncode: int,
+    expected_output: str,
 ) -> None:
-    """Test when audit fails.
+    """Test when audit passes and fails.
 
     :param main: Patch package entry point.
     :param capsys: Capture sys out and err.
-    :param make_tree: Create directory tree from dict mapping.
-    :param mock_spall_subprocess_open_process: Patch
-        ``spall.Subprocess._open_process`` returncode.
+    :param expected_returncode: Returncode to mock.
+    :param expected_output: Expected output.
     """
-    pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
-    make_tree(Path.cwd(), {FILE: None, DOCS: {CONFPY: None}})
+
+    class _MockAudit(pyaud.plugins.Audit):
+        def audit(self, *_: str, **__: bool) -> int:
+            return expected_returncode
+
+    pyaud.plugins.register(PLUGIN_NAME[1])(_MockAudit)
     pyaud.files.append(Path.cwd() / FILE)
-    mock_spall_subprocess_open_process(1)
-    returncode = main(AUDIT, f"--audit={PLUGIN_NAME[1]}")
-    std = capsys.readouterr()
+    returncode = main("audit", f"--audit={PLUGIN_NAME[1]}")
+    assert returncode == expected_returncode
+    assert expected_output in capsys.readouterr()[expected_returncode]
+
+
+@pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
+def test_audit_raise(main: FixtureMain) -> None:
+    """Test when audit fails with raised error.
+
+    :param main: Patch package entry point.
+    """
+
+    class _MockAudit(pyaud.plugins.Audit):
+        def audit(self, *_: str, **__: bool) -> int:
+            raise CalledProcessError(1, "command")
+
+    pyaud.plugins.register(PLUGIN_NAME[1])(_MockAudit)
+    pyaud.files.append(Path.cwd() / FILE)
+    returncode = main("audit", f"--audit={PLUGIN_NAME[1]}")
     assert returncode == 1
-    assert "Failed: returned non-zero exit status" in std.err
 
 
 def test_parametrize(
@@ -408,31 +398,6 @@ def test_default_plugin(capsys: pytest.CaptureFixture) -> None:
     pyaud.pyaud("not-a-module")
     std = capsys.readouterr()
     assert pyaud.messages.NOT_FOUND.format(name="not-a-module") in std.err
-
-
-@pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
-def test_audit_success(
-    main: FixtureMain,
-    capsys: pytest.CaptureFixture,
-    make_tree: FixtureMakeTree,
-    mock_spall_subprocess_open_process: FixtureMockSpallSubprocessOpenProcess,
-) -> None:
-    """Test that audit succeeds.
-
-    :param main: Patch package entry point.
-    :param capsys: Capture sys out and err.
-    :param make_tree: Create directory tree from dict mapping.
-    :param mock_spall_subprocess_open_process: Patch
-        ``spall.Subprocess._open_process`` returncode.
-    """
-    pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
-    make_tree(Path.cwd(), {FILE: None, DOCS: {CONFPY: None}})
-    pyaud.files.append(Path.cwd() / FILE)
-    mock_spall_subprocess_open_process(1)
-    returncode = main(AUDIT, "--audit=modules")
-    std = capsys.readouterr()
-    assert returncode == 0
-    assert "Display all available plugins and their documentation" in std.out
 
 
 def test_parametrize_fail(

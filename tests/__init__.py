@@ -18,8 +18,6 @@ import pyaud
 PLUGIN_NAME = VarSeq("plugin", suffix="-")
 PLUGIN_CLASS = VarSeq("Plugin")
 
-AUDIT = "audit"
-CONFPY = "conf.py"
 DEFAULT_KEY = "default_key"
 DOCS = "docs"
 FILE: str = "file.py"
@@ -115,9 +113,8 @@ class StrategyMockPlugin(MockCachedPluginType):
 class MockAudit(pyaud.plugins.Audit):
     """Nothing to do."""
 
-    def audit(self, *_: str, **__: bool) -> int:
+    def audit(self, *_: str, **__: bool) -> int:  # type: ignore
         """Nothing to do."""
-        return 1
 
 
 class PluginTuple(t.NamedTuple):
