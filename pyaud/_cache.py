@@ -20,13 +20,6 @@ from ._objects import files as _files
 from ._version import __version__
 
 
-def _get_commit_hash() -> str | None:
-    try:
-        return _git.Repo(_Path.cwd()).git.rev_parse("HEAD")
-    except _git.GitCommandError:
-        return None
-
-
 class _IndexedState:
     """Store index and ensure it's in its original state on exit."""
 
@@ -156,9 +149,12 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         self._cache_file_path = (
             _Path(_os.environ["PYAUD_CACHE"]) / __version__ / "files.json"
         )
-        self.hashed = HashMapping(
-            _Path.cwd().name, self._cls, _get_commit_hash()
-        )
+        try:
+            commit = _git.Repo(_Path.cwd()).git.rev_parse("HEAD")
+        except _git.GitCommandError:
+            commit = None
+
+        self.hashed = HashMapping(_Path.cwd().name, self._cls, commit)
 
         if _git.Repo(_Path.cwd()).git.status("--short"):
             self.hashed.tag("uncommitted")
