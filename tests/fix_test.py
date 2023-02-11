@@ -11,7 +11,7 @@ import pytest
 
 import pyaud
 
-from . import FILE, FIX, FIX_ALL, FIX_FILE, FIXER, MockMainType
+from . import FILE, FIX, FIX_ALL, FIX_FILE, FIXER, FixtureMain
 
 
 def _get_pass_fixer(
@@ -90,7 +90,7 @@ class TestFix:
     )
     def test_on_pass(
         self,
-        main: MockMainType,
+        main: FixtureMain,
         capsys: pytest.CaptureFixture,
         plugin: pyaud.plugins.PluginType,
         expected: str,
@@ -119,7 +119,7 @@ class TestFix:
         ids=[FIX, FIX_ALL, FIX_FILE],
     )
     def test_on_fail(
-        self, main: MockMainType, plugin: pyaud.plugins.PluginType
+        self, main: FixtureMain, plugin: pyaud.plugins.PluginType
     ) -> None:
         """Test plugin on fail when using the fix class.
 
@@ -148,7 +148,7 @@ class TestFix:
     )
     def test_with_fix(
         self,
-        main: MockMainType,
+        main: FixtureMain,
         capsys: pytest.CaptureFixture,
         plugin: pyaud.plugins.PluginType,
         expected: str,

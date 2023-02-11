@@ -41,12 +41,12 @@ from . import (
     TYPE_ERROR,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
     VALUE,
+    FixtureMain,
+    FixtureMakeTree,
+    FixtureMockActionPluginFactory,
     FixtureMockRepo,
     FixtureMockSpallSubprocessOpenProcess,
-    MakeTreeType,
-    MockActionPluginFactoryType,
     MockAudit,
-    MockMainType,
     NotSubclassed,
     PluginTuple,
     Tracker,
@@ -56,7 +56,7 @@ from . import (
 
 
 def test_register_plugin_name_conflict_error(
-    mock_action_plugin_factory: MockActionPluginFactoryType,
+    mock_action_plugin_factory: FixtureMockActionPluginFactory,
 ) -> None:
     """Test ``NameConflictError`` is raised when same name provided.
 
@@ -102,7 +102,7 @@ def test_register_invalid_subclass_type() -> None:
 
 
 def test_plugin_mro(
-    mock_action_plugin_factory: MockActionPluginFactoryType,
+    mock_action_plugin_factory: FixtureMockActionPluginFactory,
 ) -> None:
     """Assert that plugins can inherit other plugins.
 
@@ -151,7 +151,7 @@ def test_plugin_deepcopy_with_new() -> None:
 
 
 def test_command_not_found_error(
-    mock_action_plugin_factory: MockActionPluginFactoryType,
+    mock_action_plugin_factory: FixtureMockActionPluginFactory,
 ) -> None:
     """Test ``CommandNotFoundError`` warning with ``Subprocess``.
 
@@ -174,7 +174,7 @@ def test_command_not_found_error(
 
 
 def test_audit_failure(
-    main: MockMainType,
+    main: FixtureMain,
     mock_spall_subprocess_open_process: FixtureMockSpallSubprocessOpenProcess,
 ) -> None:
     """Test error when audit fails and cannot be fixed.
@@ -204,7 +204,7 @@ def test_audit_failure(
 
 
 def test_check_command_no_files_found(
-    main: MockMainType, capsys: pytest.CaptureFixture
+    main: FixtureMain, capsys: pytest.CaptureFixture
 ) -> None:
     """Test plugin output when no files are found.
 
@@ -219,7 +219,8 @@ def test_check_command_no_files_found(
 
 
 def test_audit_error_did_no_pass_all_checks(
-    main: MockMainType, mock_action_plugin_factory: MockActionPluginFactoryType
+    main: FixtureMain,
+    mock_action_plugin_factory: FixtureMockActionPluginFactory,
 ) -> None:
     """Test raising of ``AuditError``.
 
@@ -256,7 +257,7 @@ def test_no_exe_provided(
 
 
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
-def test_modules(main: MockMainType, capsys: pytest.CaptureFixture) -> None:
+def test_modules(main: FixtureMain, capsys: pytest.CaptureFixture) -> None:
     """Test expected output for help after plugins have been loaded.
 
     Test no positional argument for json array of keys.
@@ -277,9 +278,9 @@ def test_modules(main: MockMainType, capsys: pytest.CaptureFixture) -> None:
 
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
 def test_audit_fail(
-    main: MockMainType,
+    main: FixtureMain,
     capsys: pytest.CaptureFixture,
-    make_tree: MakeTreeType,
+    make_tree: FixtureMakeTree,
     mock_spall_subprocess_open_process: FixtureMockSpallSubprocessOpenProcess,
 ) -> None:
     """Test when audit fails.
@@ -301,9 +302,9 @@ def test_audit_fail(
 
 
 def test_parametrize(
-    main: MockMainType,
+    main: FixtureMain,
     capsys: pytest.CaptureFixture,
-    mock_action_plugin_factory: MockActionPluginFactoryType,
+    mock_action_plugin_factory: FixtureMockActionPluginFactory,
 ) -> None:
     """Test class for running multiple plugins.
 
@@ -336,7 +337,7 @@ def test_parametrize(
 
 @pytest.mark.usefixtures("unpatch_plugins_load")
 def test_imports(
-    monkeypatch: pytest.MonkeyPatch, make_tree: MakeTreeType
+    monkeypatch: pytest.MonkeyPatch, make_tree: FixtureMakeTree
 ) -> None:
     """Test imports from relative plugin dir.
 
@@ -414,9 +415,9 @@ def test_default_plugin(capsys: pytest.CaptureFixture) -> None:
 
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
 def test_audit_success(
-    main: MockMainType,
+    main: FixtureMain,
     capsys: pytest.CaptureFixture,
-    make_tree: MakeTreeType,
+    make_tree: FixtureMakeTree,
     mock_spall_subprocess_open_process: FixtureMockSpallSubprocessOpenProcess,
 ) -> None:
     """Test that audit succeeds.
@@ -438,7 +439,8 @@ def test_audit_success(
 
 
 def test_parametrize_fail(
-    main: MockMainType, mock_action_plugin_factory: MockActionPluginFactoryType
+    main: FixtureMain,
+    mock_action_plugin_factory: FixtureMockActionPluginFactory,
 ) -> None:
     """Test class for running multiple plugins.
 
@@ -465,7 +467,7 @@ def test_parametrize_fail(
 
 
 def test_subprocess(
-    mock_action_plugin_factory: MockActionPluginFactoryType,
+    mock_action_plugin_factory: FixtureMockActionPluginFactory,
 ) -> None:
     """Test registering a subprocess.
 

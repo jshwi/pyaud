@@ -23,12 +23,12 @@ from . import (
     OS_GETCWD,
     REPO,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
+    FixtureMain,
+    FixtureMakeTree,
+    FixtureMockActionPluginFactory,
     FixtureMockRepo,
     FixtureMockSpallSubprocessOpenProcess,
-    MakeTreeType,
-    MockActionPluginFactoryType,
     MockActionPluginList,
-    MockMainType,
     PluginTuple,
 )
 
@@ -85,7 +85,7 @@ def fixture_mock_environment(
 
 
 @pytest.fixture(name="main")
-def fixture_main(monkeypatch: pytest.MonkeyPatch) -> MockMainType:
+def fixture_main(monkeypatch: pytest.MonkeyPatch) -> FixtureMain:
     """Pass patched commandline arguments to package's main function.
 
     :param monkeypatch: Mock patch environment and attributes.
@@ -103,7 +103,7 @@ def fixture_main(monkeypatch: pytest.MonkeyPatch) -> MockMainType:
 
 
 @pytest.fixture(name="make_tree")
-def fixture_make_tree() -> MakeTreeType:
+def fixture_make_tree() -> FixtureMakeTree:
     """Recursively create directory tree from dict mapping.
 
     :return: Function for using this fixture.
@@ -173,7 +173,7 @@ def fixture_unpatch_register_builtin_plugins(
 
 
 @pytest.fixture(name="mock_action_plugin_factory")
-def fixture_mock_action_plugin_factory() -> MockActionPluginFactoryType:
+def fixture_mock_action_plugin_factory() -> FixtureMockActionPluginFactory:
     """Returns a list of ``Action`` objects.
 
     Returns variable number, depending on the quantity of names

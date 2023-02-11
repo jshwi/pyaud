@@ -28,14 +28,14 @@ from . import (
     ClsDict,
     CommitDict,
     FileHashDict,
+    FixtureMain,
     MockCachedPluginType,
-    MockMainType,
     StrategyMockPlugin,
     Tracker,
 )
 
 
-def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: MockMainType) -> None:
+def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: FixtureMain) -> None:
     """Test all runs as should when ``-n/--no-cache`` arg is passed.
 
     :param monkeypatch: Mock patch environment and attributes.

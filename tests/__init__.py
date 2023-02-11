@@ -43,15 +43,15 @@ VALUE = "value"
 WHITELIST_PY = "whitelist.py"
 PARAMS = "params"
 
-MockMainType = t.Callable[..., int]
-MakeTreeType = t.Callable[[Path, t.Dict[t.Any, t.Any]], None]
+FixtureMain = t.Callable[..., int]
+FixtureMakeTree = t.Callable[[Path, t.Dict[t.Any, t.Any]], None]
 FileHashDict = t.Dict[str, str]
 ClsDict = t.Dict[str, FileHashDict]
 CommitDict = t.Dict[str, ClsDict]
 CacheDict = t.Dict[str, CommitDict]
 CacheUnion = t.Union[CacheDict, CommitDict, ClsDict, FileHashDict]
 MockActionPluginList = t.Sequence[t.Type[pyaud.plugins.Action]]
-MockActionPluginFactoryType = t.Callable[..., MockActionPluginList]
+FixtureMockActionPluginFactory = t.Callable[..., MockActionPluginList]
 FixtureMockRepo = t.Callable[[KwArg(t.Callable[..., t.Any])], None]
 FixtureMockSpallSubprocessOpenProcess = t.Callable[[int], None]
 
