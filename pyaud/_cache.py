@@ -27,10 +27,6 @@ def _get_commit_hash() -> str | None:
         return None
 
 
-def _working_tree_clean() -> bool:
-    return not _git.Repo(_Path.cwd()).git.status("--short")
-
-
 class _IndexedState:
     """Store index and ensure it's in its original state on exit."""
 
@@ -163,7 +159,8 @@ class FileCacher:  # pylint: disable=too-few-public-methods
         self.hashed = HashMapping(
             _Path.cwd().name, self._cls, _get_commit_hash()
         )
-        if not _working_tree_clean():
+
+        if _git.Repo(_Path.cwd()).git.status("--short"):
             self.hashed.tag("uncommitted")
 
         self.hashed.read(self._cache_file_path)
