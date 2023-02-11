@@ -32,10 +32,6 @@ from . import (
     PluginTuple,
 )
 
-# noinspection PyProtectedMember,PyUnresolvedReferences
-original_hash_mapping_match_file = pyaud._cache.HashMapping.match_file
-# noinspection PyUnresolvedReferences,PyProtectedMember
-original_hash_mapping_unpatched_save_hash = pyaud._cache.HashMapping.save_hash
 original_pyaud_plugin_load = pyaud.plugins.load
 original_pyaud_main_register_builtin_plugins = (
     _builtins.register_builtin_plugins
@@ -61,12 +57,6 @@ def fixture_mock_environment(
     #: ATTRS
     monkeypatch.setattr(OS_GETCWD, lambda: str(repo_abs))
     mock_repo(rev_parse=lambda _: None, status=lambda _: None)
-    monkeypatch.setattr(
-        "pyaud._cache.HashMapping.match_file", lambda *_: False
-    )
-    monkeypatch.setattr(
-        "pyaud._cache.HashMapping.save_hash", lambda _, __: None
-    )
     monkeypatch.setattr("pyaud.plugins._plugins", pyaud.plugins.Plugins())
     monkeypatch.setattr("pyaud.plugins.load", lambda: None)
     monkeypatch.setattr("pyaud._core._register_builtin_plugins", lambda: None)
@@ -120,33 +110,6 @@ def fixture_make_tree() -> FixtureMakeTree:
                 fullpath.touch()
 
     return _make_tree
-
-
-@pytest.fixture(name="unpatch_hash_mapping_match_file")
-def fixture_unpatch_hash_mapping_match_file(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Unpatch ``pyaud._cache.HashMapping.match_file``.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    """
-    monkeypatch.setattr(
-        "pyaud._cache.HashMapping.match_file", original_hash_mapping_match_file
-    )
-
-
-@pytest.fixture(name="unpatch_hash_mapping_save_hash")
-def fixture_unpatch_hash_mapping_save_hash(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Unpatch ``pyaud._cache.HashMapping.save_hash``.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    """
-    monkeypatch.setattr(
-        "pyaud._cache.HashMapping.save_hash",
-        original_hash_mapping_unpatched_save_hash,
-    )
 
 
 @pytest.fixture(name="unpatch_plugins_load")

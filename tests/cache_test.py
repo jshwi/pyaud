@@ -188,9 +188,6 @@ class TestCacheStrategy:
     def _fmt(o: dict[Path, str]) -> FileHashDict:
         return {str(k.relative_to(Path.cwd())): v for k, v in o.items()}
 
-    @pytest.mark.usefixtures(
-        "unpatch_hash_mapping_save_hash", "unpatch_hash_mapping_match_file"
-    )
     def test_cache(
         self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
     ) -> None:
@@ -392,9 +389,6 @@ class TestCacheStrategy:
         assert self._cls_in_commit(o, 0, 1, 0)
         assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
 
-    @pytest.mark.usefixtures(
-        "unpatch_hash_mapping_save_hash", "unpatch_hash_mapping_match_file"
-    )
     def test_cache_file(self, capsys: pytest.CaptureFixture) -> None:
         """Test caching a single file.
 
