@@ -6,7 +6,6 @@ tests._test
 # pylint: disable=protected-access,no-member
 from __future__ import annotations
 
-import copy
 import datetime
 import subprocess
 import typing as t
@@ -38,7 +37,6 @@ from . import (
     plugin_class,
     plugin_name,
     python_file,
-    repo,
 )
 
 # noinspection PyProtectedMember
@@ -106,21 +104,6 @@ def test_plugin_mro(
     pyaud.plugins.register(name=plugin_name[2])(plugin_two)
     assert "plugin-1" in pyaud.plugins.mapping()
     assert "plugin-2" in pyaud.plugins.mapping()
-
-
-def test_plugin_deepcopy_with_new() -> None:
-    """Test that ``TypeError`` is not raised.
-
-    No assertions run; test passes if the following is not raised:
-    TypeError: __new__() missing 1 required positional argument: 'name'
-    """
-    copy.deepcopy(pyaud.plugins._plugins)
-    assert isinstance(
-        pyaud.plugins.Plugin(  # pylint: disable=unnecessary-dunder-call
-            repo[1]
-        ).__deepcopy__(repo[1]),
-        pyaud.plugins.Plugin,
-    )
 
 
 def test_command_not_found_error(

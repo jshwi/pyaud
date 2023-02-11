@@ -60,9 +60,6 @@ class Plugin(_BasePlugin):
         self.name = name
         self.subprocess = _SubprocessFactory(self.exe)
 
-    def __deepcopy__(self, name: str) -> Plugin:
-        return self
-
     @property
     def env(self) -> _t.Dict[str, str]:
         """Return environment which will remain active for run."""
