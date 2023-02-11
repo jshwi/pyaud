@@ -19,7 +19,6 @@ PLUGIN_NAME = VarSeq("plugin", suffix="-")
 PLUGIN_CLASS = VarSeq("Plugin")
 
 AUDIT = "audit"
-COMMIT = "7c57dc943941566f47b9e7ee3208245d0bcd7656"
 CONFPY = "conf.py"
 DEFAULT_KEY = "default_key"
 DOCS = "docs"

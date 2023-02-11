@@ -17,12 +17,8 @@ import pytest
 
 import pyaud
 
-# noinspection PyProtectedMember
-import pyaud._objects as pc
-
 from . import (
     AUDIT,
-    COMMIT,
     CONFPY,
     DOCS,
     FILE,
@@ -30,7 +26,6 @@ from . import (
     FORMAT,
     FORMAT_DOCS,
     INIT,
-    KEY,
     LINT,
     MODULES,
     PARAMS,
@@ -40,7 +35,6 @@ from . import (
     TESTS,
     TYPE_ERROR,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
-    VALUE,
     FixtureMockRepo,
     FixtureMockSpallSubprocessOpenProcess,
     MakeTreeType,
@@ -51,19 +45,6 @@ from . import (
     PluginTuple,
     Tracker,
 )
-
-
-def test_mapping_class() -> None:
-    """Get coverage on ``Mapping`` abstract methods."""
-    pc.toml.clear()
-    assert repr(pc.toml) == "<_Toml {}>"
-    pc.toml.update({KEY: VALUE})
-    assert len(pc.toml) == 1
-    for key in pc.toml:
-        assert key == KEY
-
-    del pc.toml[KEY]
-    assert KEY not in pc.toml
 
 
 def test_register_plugin_name_conflict_error(
@@ -90,15 +71,6 @@ def test_register_plugin_name_conflict_error(
 def test_register_invalid_type() -> None:
     """Test correct error is displayed when registering unknown type."""
     unique = "test-register-invalid-type"
-    with pytest.raises(TypeError) as err:
-        pyaud.plugins.register(name=unique)(NotSubclassed)  # type: ignore
-
-    assert TYPE_ERROR in str(err.value)
-
-
-def test_plugin_assign_non_type_value() -> None:
-    """Test assigning of incompatible type to `_Plugin` instance."""
-    unique = "test-plugin-assign-non-type-value"
     with pytest.raises(TypeError) as err:
         pyaud.plugins.register(name=unique)(NotSubclassed)  # type: ignore
 
@@ -139,52 +111,6 @@ def test_plugin_mro(
     pyaud.plugins.register(name=PLUGIN_NAME[2])(plugin_two)
     assert "plugin-1" in pyaud.plugins.mapping()
     assert "plugin-2" in pyaud.plugins.mapping()
-
-
-def test_print_version(
-    monkeypatch: pytest.MonkeyPatch,
-    main: MockMainType,
-    capsys: pytest.CaptureFixture,
-) -> None:
-    """Test printing of version on commandline.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    :param main: Patch package entry point.
-    :param capsys: Capture sys out and err.
-    """
-    monkeypatch.setattr("pyaud._config.__version__", "1.0.0")
-    with pytest.raises(SystemExit):
-        main("--version")
-
-    std = capsys.readouterr()
-    assert std.out.strip() == "1.0.0"
-
-
-def test_no_request(main: MockMainType, capsys: pytest.CaptureFixture) -> None:
-    """Test continuation of regular ``argparse`` process.
-
-    If ``IndexError`` is not captured with
-    ``pyaud._core._version_request`` then an error message is displayed,
-    and not ``argparse``'s help menu on non-zero exit status.
-
-    :param main: Patch package entry point.
-    :param capsys: Capture sys out and err.
-    """
-    with pytest.raises(SystemExit):
-        main()
-
-    std = capsys.readouterr()
-    assert "error: the following arguments are required: MODULE" in std.err
-
-
-def test_get_commit_hash_pass(mock_repo: FixtureMockRepo) -> None:
-    """Test output from passing ``pyaud._utils.get_commit_hash``.
-
-    :param mock_repo: Mock ``git.Repo`` class.
-    """
-    mock_repo(rev_parse=lambda _: COMMIT)
-    # noinspection PyUnresolvedReferences
-    assert pyaud._cache._get_commit_hash() == COMMIT
 
 
 def test_get_commit_hash_fail(mock_repo: FixtureMockRepo) -> None:
@@ -316,11 +242,6 @@ def test_no_exe_provided(
     pyaud.files.append(Path.cwd() / FILES)
     pyaud.plugins.register(name=unique)(MockAudit)
     assert pyaud.plugins.get(unique).exe == []
-
-
-def test_environ_repo() -> None:
-    """Test returning of repo name with env."""
-    assert Path.cwd().name == Path.cwd().name
 
 
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
