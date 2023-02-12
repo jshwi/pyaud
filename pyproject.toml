@@ -85,7 +85,7 @@ pyaud-plugins = ">=0.8"
 python = "^3.8"
 spall = "^0"
 
-[tool.poetry.group.dev.dependencies]
+[tool.poetry.dev-dependencies]
 bump2version = "^1.0.1"
 deptry = "^0.8.0"
 ipython = "^8.4.0"
