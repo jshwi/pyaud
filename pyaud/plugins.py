@@ -29,8 +29,11 @@ from ._wraps import ClassDecorator as _ClassDecorator
 from .exceptions import NameConflictError as _NameConflictError
 
 
-class _Subprocesses(_MutableMapping):
-    """Instantiate collection of ``Subprocess`` objects."""
+class Subprocesses(_MutableMapping):
+    """Instantiate collection of ``Subprocess`` objects.
+
+    :param args: Commands to create subprocesses from.
+    """
 
     def __init__(self, args: list[str]) -> None:
         super().__init__()
@@ -58,7 +61,7 @@ class Plugin(_BasePlugin):
 
     def __init__(self, name: str) -> None:
         self._name = name
-        self.subprocess = _Subprocesses(self.exe)
+        self.subprocess = Subprocesses(self.exe)
 
     @property
     def env(self) -> dict[str, str]:
