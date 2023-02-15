@@ -9,9 +9,6 @@ from __future__ import annotations
 import functools as _functools
 import sys as _sys
 import typing as _t
-import warnings as _warnings
-
-from spall.exceptions import CommandNotFoundError as _CommandNotFoundError
 
 from . import messages as _messages
 from ._cache import FileCacher as _FileCacher
@@ -73,7 +70,7 @@ class CheckCommand:
         return _wrapper
 
 
-class ClassDecorator:
+class ClassDecorator:  # pylint: disable=too-few-public-methods
     """Handle reading and writing file data for called processes.
 
     Decorate on call to ``__new__`` to wrap uninstantiated class and its
@@ -103,29 +100,5 @@ class ClassDecorator:
                     return _file_cacher.files()
 
             return func(*args, **kwargs)
-
-        return _wrapper
-
-    @staticmethod
-    def not_found(func: _t.Callable[..., int]) -> _t.Callable[..., int]:
-        """Wrap ``__call__`` to resolve ``CommandNotFound`` errors.
-
-        :param func: Function to wrap.
-        :return: Wrapped function.
-        """
-
-        @_functools.wraps(func)
-        def _wrapper(*args: str, **kwargs: bool) -> int:
-            try:
-                return func(*args, **kwargs)
-            except _CommandNotFoundError as err:
-                _warnings.warn(
-                    _messages.COMMAND_NOT_FOUND.format(
-                        command=str(err).split(":", maxsplit=1)[0]
-                    ),
-                    RuntimeWarning,
-                )
-
-            return 1
 
         return _wrapper

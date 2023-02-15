@@ -106,29 +106,6 @@ def test_plugin_mro(
     assert "plugin-2" in pyaud.plugins.mapping()
 
 
-def test_command_not_found_error(
-    mock_action_plugin_factory: FixtureMockActionPluginFactory,
-) -> None:
-    """Test ``CommandNotFoundError`` warning with ``Subprocess``.
-
-    :param mock_action_plugin_factory: Factory for creating mock action
-        plugin objects.
-    """
-    plugins = mock_action_plugin_factory(
-        PluginTuple(
-            plugin_class[1],
-            "not_a_command",
-            lambda x, *y, **z: x.subprocess[x.exe_str].call(*y, **z),
-        )
-    )
-    pyaud.plugins.register("test-command-not-found-error")(plugins[0])
-    exe = pyaud.plugins.get("test-command-not-found-error")
-    with pytest.warns(
-        RuntimeWarning, match="not_a_command: Command not found"
-    ):
-        exe()
-
-
 def test_check_command_no_files_found(
     main: FixtureMain, capsys: pytest.CaptureFixture
 ) -> None:

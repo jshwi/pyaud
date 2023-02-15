@@ -55,7 +55,6 @@ class Plugin(_BasePlugin):
 
     def __new__(cls, name: str) -> Plugin:  # pylint: disable=unused-argument
         class_decorator = _ClassDecorator(cls)
-        cls.__call__ = class_decorator.not_found(cls.__call__)  # type: ignore
         cls.__call__ = class_decorator.files(cls.__call__)  # type: ignore
         return super().__new__(cls)
 

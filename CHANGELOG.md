@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Create cache dir after loading plugins
 
 ### Removed
+- Remove command not found warning
 - Remove `FixFile` plugin
 
 [5.0.1](https://github.com/jshwi/pyaud/releases/tag/v5.0.1) - 2023-02-09
