@@ -61,7 +61,7 @@ class Plugin(_BasePlugin):
         self.subprocess = _SubprocessFactory(self.exe)
 
     @property
-    def env(self) -> _t.Dict[str, str]:
+    def env(self) -> dict[str, str]:
         """Return environment which will remain active for run."""
         return {}
 
