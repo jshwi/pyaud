@@ -42,7 +42,6 @@ class Subprocesses(_MutableMapping):
             self[arg] = _Subprocess(arg)
 
 
-# decorate callable with status of completion
 class _CheckCommand:
     @staticmethod
     def _announce_completion(success_message: str, returncode: int) -> None:
@@ -94,31 +93,23 @@ class _CheckCommand:
         return _wrapper
 
 
-# handle reading and writing file data for called processes
-class _ClassDecorator:  # pylint: disable=too-few-public-methods
-    def __init__(self, cls: type[_BasePlugin]) -> None:
-        self._cls = cls
+# wrap plugin with a hashing function
+def _cache_wrapper(
+    cls: type[Plugin], func: _t.Callable[..., int]
+) -> _t.Callable[..., int]:
+    @_functools.wraps(func)
+    def _wrapper(*args: str, **kwargs: bool) -> int:
+        if not kwargs.get("no_cache", False):
+            _file_cacher = _FileCacher(cls, func, *args, **kwargs)
+            if cls.cache_file is not None:
+                return _file_cacher.file()
 
-    def files(self, func: _t.Callable[..., int]) -> _t.Callable[..., int]:
-        """Wrap ``__call__`` with a hashing function.
+            if cls.cache and _files:
+                return _file_cacher.files()
 
-        :param func: Function to wrap.
-        :return: Wrapped function.
-        """
+        return func(*args, **kwargs)
 
-        @_functools.wraps(func)
-        def _wrapper(*args: str, **kwargs: bool) -> int:
-            if not kwargs.get("no_cache", False):
-                _file_cacher = _FileCacher(self._cls, func, *args, **kwargs)
-                if self._cls.cache_file is not None:
-                    return _file_cacher.file()
-
-                if self._cls.cache:
-                    return _file_cacher.files()
-
-            return func(*args, **kwargs)
-
-        return _wrapper
+    return _wrapper
 
 
 class Plugin(_BasePlugin):
@@ -134,8 +125,7 @@ class Plugin(_BasePlugin):
     """
 
     def __new__(cls, name: str) -> Plugin:  # pylint: disable=unused-argument
-        class_decorator = _ClassDecorator(cls)
-        cls.__call__ = class_decorator.files(cls.__call__)  # type: ignore
+        cls.__call__ = _cache_wrapper(cls, cls.__call__)  # type: ignore
         return super().__new__(cls)
 
     def __init__(self, name: str) -> None:
