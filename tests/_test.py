@@ -406,7 +406,7 @@ def test_subprocess(
     exe = pyaud.plugins.get(plugin_name[1])
     assert (
         str(exe.subprocess)
-        == "<_SubprocessFactory {'command': <Subprocess (command)>}>"
+        == "<_Subprocesses {'command': <Subprocess (command)>}>"
     )
 
 
