@@ -525,3 +525,26 @@ def test_parametrize_fail(
     pyaud.plugins.register(name=PLUGIN_NAME[1])(plugins[0])
     pyaud.plugins.register(name=PARAMS)(_Params)
     assert main(PARAMS) == 1
+
+
+def test_subprocess(
+    mock_action_plugin_factory: MockActionPluginFactoryType,
+) -> None:
+    """Test registering a subprocess.
+
+    :param mock_action_plugin_factory: Factory for creating mock action
+        plugin objects.
+    """
+    plugins = mock_action_plugin_factory(
+        PluginTuple(
+            PLUGIN_CLASS[1],
+            "command",
+            lambda x, *y, **z: x.subprocess[x.exe_str].call(*y, **z),
+        )
+    )
+    pyaud.plugins.register(PLUGIN_NAME[1])(plugins[0])
+    exe = pyaud.plugins.get(PLUGIN_NAME[1])
+    assert (
+        str(exe.subprocess)
+        == "<_SubprocessFactory {'command': <Subprocess (command)>}>"
+    )
