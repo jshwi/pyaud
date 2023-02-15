@@ -57,7 +57,7 @@ class Plugin(_BasePlugin):
         return super().__new__(cls)
 
     def __init__(self, name: str) -> None:
-        self.name = name
+        self._name = name
         self.subprocess = _SubprocessFactory(self.exe)
 
     @property
@@ -69,6 +69,11 @@ class Plugin(_BasePlugin):
     def exe(self) -> list[str]:
         """List of executables to add to ``subprocess`` dict."""
         return []
+
+    @property
+    def name(self) -> str:
+        """Name of the plugin."""
+        return self._name
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
         """Enables calling of all plugin instances."""
