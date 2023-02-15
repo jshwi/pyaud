@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add `pyaud.messages`
 
 ### Changed
+- Make `Plugin.subprocess` a property
 - Make `Plugin.name` a property
 - Create cache dir after loading plugins
 

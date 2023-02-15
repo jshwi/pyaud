@@ -61,7 +61,7 @@ class Plugin(_BasePlugin):
 
     def __init__(self, name: str) -> None:
         self._name = name
-        self.subprocess = Subprocesses(self.exe)
+        self._subprocess = Subprocesses(self.exe)
 
     @property
     def env(self) -> dict[str, str]:
@@ -77,6 +77,11 @@ class Plugin(_BasePlugin):
     def name(self) -> str:
         """Name of the plugin."""
         return self._name
+
+    @property
+    def subprocess(self) -> Subprocesses:
+        """Collection of ``Subprocess`` objects."""
+        return self._subprocess
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
         """Enables calling of all plugin instances."""
