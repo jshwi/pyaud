@@ -252,6 +252,23 @@ def _files_wrapper(cls: PluginType) -> PluginType:
     return cls
 
 
+def _fix_wrapper(cls: PluginType) -> PluginType:
+    cls_call = cls.__call__
+
+    def __call__(self, *args: str, **kwargs: bool) -> int:
+        returncode = cls_call(self, *args, **kwargs)
+        if returncode:
+            if kwargs.get("fix", False):
+                return self.fix(**kwargs)
+
+            return 1
+
+        return returncode
+
+    setattr(cls, cls.__call__.__name__, __call__)
+    return cls
+
+
 class Plugin(_BasePlugin):
     """Base class of all plugins.
 
@@ -339,6 +356,7 @@ class Audit(Plugin):
 
 
 #: Blueprint for writing audit and fix plugins.
+@_fix_wrapper
 class BaseFix(Audit):
     """Blueprint for writing audit and fix plugins.
 
@@ -394,18 +412,10 @@ class BaseFix(Audit):
     def __call__(self, *args: str, **kwargs: bool) -> int:
         with _TempEnvVar(_os.environ, **self.env):
             try:
-                returncode = self.audit(*args, **kwargs)
+                return self.audit(*args, **kwargs)
 
             except _CalledProcessError:
-                returncode = 1
-
-        if returncode:
-            if kwargs.get("fix", False):
-                return self.fix(**kwargs)
-
-            return 1
-
-        return returncode
+                return 1
 
 
 @_file_wrapper
