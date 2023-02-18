@@ -81,14 +81,16 @@ class _IndexedState:
 class _HashMapping(_JSONIO):
     _FB = "fallback"
 
-    def __init__(
-        self, project: str, cls: type[_BasePlugin], commit: str | None = None
-    ) -> None:
+    def __init__(self, project: str, cls: type[_BasePlugin]) -> None:
         super().__init__(
             _Path(_os.environ["PYAUD_CACHE"]) / __version__ / "files.json"
         )
         self._project = project
-        self._commit = commit or self._FB
+        try:
+            self._commit = _git.Repo(_Path.cwd()).git.rev_parse("HEAD")
+        except _git.GitCommandError:
+            self._commit = self._FB
+
         self._cls = str(cls)
         self._session: dict[str, str] = {}
         if _git.Repo(_Path.cwd()).git.status("--short"):
@@ -149,12 +151,7 @@ class _FileCacher:  # pylint: disable=too-few-public-methods
         self.func = func
         self.args = args
         self.kwargs = kwargs
-        try:
-            commit = _git.Repo(_Path.cwd()).git.rev_parse("HEAD")
-        except _git.GitCommandError:
-            commit = None
-
-        self.hashed = _HashMapping(_Path.cwd().name, self._cls, commit)
+        self.hashed = _HashMapping(_Path.cwd().name, self._cls)
         self.hashed.read()
 
     def _on_completion(self, *paths: _Path) -> None:
