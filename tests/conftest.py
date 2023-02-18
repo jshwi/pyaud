@@ -187,7 +187,7 @@ def fixture_mock_repo(monkeypatch: pytest.MonkeyPatch) -> FixtureMockRepo:
         for key, value in default_kwargs.items():
             setattr(git_repo.git, key, value)  # type: ignore
 
-        monkeypatch.setattr("pyaud._cache._git.Repo", lambda _: git_repo)
+        monkeypatch.setattr("pyaud.plugins._git.Repo", lambda _: git_repo)
 
     return _mock_repo
 
