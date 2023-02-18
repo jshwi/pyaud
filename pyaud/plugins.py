@@ -154,12 +154,6 @@ class _FileCacher:  # pylint: disable=too-few-public-methods
         self.hashed = _HashMapping(_Path.cwd().name, self._cls)
         self.hashed.read()
 
-    def _on_completion(self, *paths: _Path) -> None:
-        for path in paths:
-            self.hashed.save_hash(path)
-
-        self.hashed.write()
-
     def files(self) -> int:
         """Handle caching of a single file.
 
@@ -181,7 +175,10 @@ class _FileCacher:  # pylint: disable=too-few-public-methods
                 returncode = self.func(*self.args, **self.kwargs)
 
             if not returncode:
-                self._on_completion(*_files)
+                for path in _files:
+                    self.hashed.save_hash(path)
+
+                self.hashed.write()
 
         return returncode
 
@@ -196,7 +193,8 @@ class _FileCacher:  # pylint: disable=too-few-public-methods
             path = _Path.cwd() / file
             returncode = self.func(*self.args, **self.kwargs)
             if returncode:
-                self._on_completion(path)
+                self.hashed.save_hash(path)
+                self.hashed.write()
                 return returncode
 
             if (
@@ -207,7 +205,8 @@ class _FileCacher:  # pylint: disable=too-few-public-methods
                 _colors.green.print(_messages.NO_FILE_CHANGED)
                 return 0
 
-            self._on_completion(path)
+            self.hashed.save_hash(path)
+            self.hashed.write()
 
         return returncode
 
