@@ -45,10 +45,11 @@ class Subprocesses(_MutableMapping):
 
 
 # run the routine common with single file fixes
-def _file_wrapper(func: _t.Callable[..., int]) -> _t.Callable[..., int]:
-    @_functools.wraps(func)
-    def _wrapper(*args: str, **kwargs: bool) -> int:
-        returncode = func(*args, **kwargs)
+def _file_wrapper(cls: PluginType) -> PluginType:
+    cls_call = cls.__call__
+
+    def __call__(self, *args: str, **kwargs: bool) -> int:
+        returncode = cls_call(self, *args, **kwargs)
         if returncode:
             _colors.red.bold.print(
                 _messages.FAILED.format(returncode=returncode),
@@ -59,7 +60,8 @@ def _file_wrapper(func: _t.Callable[..., int]) -> _t.Callable[..., int]:
 
         return returncode
 
-    return _wrapper
+    setattr(cls, cls.__call__.__name__, __call__)
+    return cls
 
 
 # run the routine common with multiple source file fixes
@@ -258,6 +260,7 @@ class BaseFix(Audit):
         return returncode
 
 
+@_file_wrapper
 class Fix(BaseFix):
     """Blueprint for writing audit and fix plugins for single files.
 
@@ -299,10 +302,6 @@ class Fix(BaseFix):
             object must be returned, from subprocess or written, to
             notify __call__ whether process has succeeded or failed.
         """
-
-    @_file_wrapper
-    def __call__(self, *args: str, **kwargs: bool) -> int:
-        return super().__call__(*args, **kwargs)
 
 
 class FixAll(BaseFix):
