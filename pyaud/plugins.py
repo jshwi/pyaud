@@ -269,6 +269,21 @@ def _fix_wrapper(cls: PluginType) -> PluginType:
     return cls
 
 
+def _env_wrapper(cls: PluginType) -> PluginType:
+    cls_call = cls.__call__
+
+    def __call__(self, *args: str, **kwargs: bool) -> int:
+        with _TempEnvVar(_os.environ, **self.env):
+            try:
+                return cls_call(self, *args, **kwargs)
+
+            except _CalledProcessError:
+                return 1
+
+    setattr(cls, cls.__call__.__name__, __call__)
+    return cls
+
+
 class Plugin(_BasePlugin):
     """Base class of all plugins.
 
@@ -315,6 +330,7 @@ class Plugin(_BasePlugin):
         return 0
 
 
+@_env_wrapper
 @_files_wrapper
 class Audit(Plugin):
     """Blueprint for writing audit-only plugins.
@@ -347,16 +363,12 @@ class Audit(Plugin):
         """
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
-        with _TempEnvVar(_os.environ, **self.env):
-            try:
-                return self.audit(*args, **kwargs)
-
-            except _CalledProcessError:
-                return 1
+        return self.audit(*args, **kwargs)
 
 
 #: Blueprint for writing audit and fix plugins.
 @_fix_wrapper
+@_env_wrapper
 class BaseFix(Audit):
     """Blueprint for writing audit and fix plugins.
 
@@ -410,12 +422,7 @@ class BaseFix(Audit):
         """
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
-        with _TempEnvVar(_os.environ, **self.env):
-            try:
-                return self.audit(*args, **kwargs)
-
-            except _CalledProcessError:
-                return 1
+        return self.audit(*args, **kwargs)
 
 
 @_file_wrapper
@@ -506,6 +513,7 @@ class FixAll(BaseFix):
         """
 
 
+@_env_wrapper
 class Action(Plugin):
     """Blueprint for writing generic plugins.
 
@@ -530,12 +538,7 @@ class Action(Plugin):
         """
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
-        with _TempEnvVar(_os.environ, **self.env):
-            try:
-                return self.action(*args, **kwargs)
-
-            except _CalledProcessError:
-                return 1
+        return self.action(*args, **kwargs)
 
 
 class Parametrize(Plugin):
