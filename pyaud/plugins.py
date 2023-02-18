@@ -6,6 +6,7 @@ Main module used for public API.
 """
 from __future__ import annotations
 
+import functools as _functools
 import importlib as _importlib
 import inspect as _inspect
 import os as _os
@@ -19,13 +20,13 @@ from subprocess import CalledProcessError as _CalledProcessError
 from spall import Subprocess as _Subprocess
 
 from . import messages as _messages
+from ._cache import FileCacher as _FileCacher
 from ._config import TempEnvVar as _TempEnvVar
 from ._objects import NAME as _NAME
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
 from ._objects import colors as _colors
-from ._wraps import CheckCommand as _CheckCommand
-from ._wraps import ClassDecorator as _ClassDecorator
+from ._objects import files as _files
 from .exceptions import NameConflictError as _NameConflictError
 
 
@@ -39,6 +40,85 @@ class Subprocesses(_MutableMapping):
         super().__init__()
         for arg in args:
             self[arg] = _Subprocess(arg)
+
+
+# decorate callable with status of completion
+class _CheckCommand:
+    @staticmethod
+    def _announce_completion(success_message: str, returncode: int) -> None:
+        if returncode:
+            _colors.red.bold.print(
+                _messages.FAILED.format(returncode=returncode),
+                file=_sys.stderr,
+            )
+        else:
+            _colors.green.bold.print(success_message)
+
+    @classmethod
+    def file(cls, func: _t.Callable[..., int]) -> _t.Callable[..., int]:
+        """Run the routine common with single file fixes.
+
+        :param func: Function to decorate.
+        :return: Wrapped function.
+        """
+
+        @_functools.wraps(func)
+        def _wrapper(*args: str, **kwargs: bool) -> int:
+            returncode = func(*args, **kwargs)
+            cls._announce_completion(_messages.SUCCESS_FILE, returncode)
+            return returncode
+
+        return _wrapper
+
+    @classmethod
+    def files(cls, func: _t.Callable[..., int]) -> _t.Callable[..., int]:
+        """Run the routine common with multiple source file fixes.
+
+        :param func: Function to decorate.
+        :return: Wrapped function.
+        """
+
+        @_functools.wraps(func)
+        def _wrapper(*args: str, **kwargs: bool) -> int:
+            returncode = 0
+            if not _files.reduce():
+                print(_messages.NO_FILES_FOUND)
+            else:
+                returncode = func(*args, **kwargs)
+                cls._announce_completion(
+                    _messages.SUCCESS_FILES.format(len=len(_files)), returncode
+                )
+
+            return returncode
+
+        return _wrapper
+
+
+# handle reading and writing file data for called processes
+class _ClassDecorator:  # pylint: disable=too-few-public-methods
+    def __init__(self, cls: type[_BasePlugin]) -> None:
+        self._cls = cls
+
+    def files(self, func: _t.Callable[..., int]) -> _t.Callable[..., int]:
+        """Wrap ``__call__`` with a hashing function.
+
+        :param func: Function to wrap.
+        :return: Wrapped function.
+        """
+
+        @_functools.wraps(func)
+        def _wrapper(*args: str, **kwargs: bool) -> int:
+            if not kwargs.get("no_cache", False):
+                _file_cacher = _FileCacher(self._cls, func, *args, **kwargs)
+                if self._cls.cache_file is not None:
+                    return _file_cacher.file()
+
+                if self._cls.cache:
+                    return _file_cacher.files()
+
+            return func(*args, **kwargs)
+
+        return _wrapper
 
 
 class Plugin(_BasePlugin):
