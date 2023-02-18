@@ -38,7 +38,6 @@ MODULES = "modules"
 NAME = "name"
 OS_GETCWD = "os.getcwd"
 REPO = "repo"
-SP_OPEN_PROC = "spall.Subprocess._open_process"
 TESTS = "tests"
 TYPE_ERROR = "can only register one of the following:"
 UNPATCH_REGISTER_DEFAULT_PLUGINS = "unpatch_register_builtin_plugins"
@@ -57,6 +56,7 @@ CacheUnion = t.Union[CacheDict, CommitDict, ClsDict, FileHashDict]
 MockActionPluginList = t.Sequence[t.Type[pyaud.plugins.Action]]
 MockActionPluginFactoryType = t.Callable[..., MockActionPluginList]
 FixtureMockRepo = t.Callable[[KwArg(t.Callable[..., t.Any])], None]
+FixtureMockSpallSubprocessOpenProcess = t.Callable[[int], None]
 
 
 class MockPluginType(pyaud.plugins.Plugin):

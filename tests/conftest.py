@@ -23,6 +23,7 @@ from . import (
     REPO,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
     FixtureMockRepo,
+    FixtureMockSpallSubprocessOpenProcess,
     MakeTreeType,
     MockActionPluginFactoryType,
     MockActionPluginList,
@@ -226,3 +227,21 @@ def fixture_mock_repo(monkeypatch: pytest.MonkeyPatch) -> FixtureMockRepo:
         monkeypatch.setattr("pyaud._cache._git.Repo", lambda _: repo)
 
     return _mock_repo
+
+
+@pytest.fixture(name="mock_spall_subprocess_open_process")
+def fixture_mock_spall_subprocess_open_process(
+    monkeypatch: pytest.MonkeyPatch,
+) -> FixtureMockSpallSubprocessOpenProcess:
+    """Patch ``spall.Subprocess._open_process`` returncode.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :return: Function for using this fixture.
+    """
+
+    def _mock_spall_open_process(returncode: int) -> None:
+        monkeypatch.setattr(
+            "spall.Subprocess._open_process", lambda *_, **__: returncode
+        )
+
+    return _mock_spall_open_process
