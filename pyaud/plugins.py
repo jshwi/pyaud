@@ -89,13 +89,8 @@ class _HashMapping(_JSONIO):
         self._commit = commit or self._FB
         self._cls = str(cls)
         self._session: dict[str, str] = {}
-
-    def tag(self, tag: str) -> None:
-        """Tag commit key with a prefix.
-
-        :param tag: Prefix to tag commit key with.
-        """
-        self._commit = f"{tag}-{self._commit}"
+        if _git.Repo(_Path.cwd()).git.status("--short"):
+            self._commit = f"uncommitted-{self._commit}"
 
     def match_file(self, path: _Path) -> bool:
         """Match selected class against a file relevant to it.
@@ -168,10 +163,6 @@ class _FileCacher:  # pylint: disable=too-few-public-methods
             commit = None
 
         self.hashed = _HashMapping(_Path.cwd().name, self._cls, commit)
-
-        if _git.Repo(_Path.cwd()).git.status("--short"):
-            self.hashed.tag("uncommitted")
-
         self.hashed.read(self._cache_file_path)
 
     def _on_completion(self, *paths: _Path) -> None:
