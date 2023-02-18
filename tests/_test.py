@@ -38,7 +38,6 @@ from . import (
     PARAMS,
     PLUGIN_CLASS,
     PLUGIN_NAME,
-    PYAUD_FILES_POPULATE,
     REPO,
     SP_OPEN_PROC,
     TESTS,
@@ -265,7 +264,6 @@ def test_warn_no_fix(
     pyaud.plugins.register(name=LINT)(_Lint)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
     pyaud.files.append(Path.cwd() / FILE)
-    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
     main(LINT)
 
 
@@ -284,14 +282,11 @@ def test_check_command_no_files_found(
 
 
 def test_audit_error_did_no_pass_all_checks(
-    main: MockMainType,
-    monkeypatch: pytest.MonkeyPatch,
-    mock_action_plugin_factory: MockActionPluginFactoryType,
+    main: MockMainType, mock_action_plugin_factory: MockActionPluginFactoryType
 ) -> None:
     """Test raising of ``AuditError``.
 
     :param main: Patch package entry point.
-    :param monkeypatch: Mock patch environment and attributes.
     :param mock_action_plugin_factory: Factory for creating mock action
         plugin objects.
     """
@@ -304,7 +299,6 @@ def test_audit_error_did_no_pass_all_checks(
     )
     pyaud.plugins.register(name=PLUGIN_NAME[1])(plugins[0])
     pyaud.files.append(Path.cwd() / FILES)
-    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
     main(PLUGIN_NAME[1])
 
 
@@ -362,7 +356,6 @@ def test_audit_fail(
     make_tree(Path.cwd(), {FILE: None, DOCS: {CONFPY: None}})
     pyaud.files.append(Path.cwd() / FILE)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 1)
-    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
     main(AUDIT, f"--audit={PLUGIN_NAME[1]}")
     std = capsys.readouterr()
     assert "Failed: returned non-zero exit status" in std.err
@@ -497,7 +490,6 @@ def test_audit_success(
     make_tree(Path.cwd(), {FILE: None, DOCS: {CONFPY: None}})
     pyaud.files.append(Path.cwd() / FILE)
     monkeypatch.setattr(SP_OPEN_PROC, lambda *_, **__: 0)
-    monkeypatch.setattr(PYAUD_FILES_POPULATE, lambda *_: None)
     main(AUDIT, "--audit=modules")
     std = capsys.readouterr()
     assert "Display all available plugins and their documentation" in std.out
