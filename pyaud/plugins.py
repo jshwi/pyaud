@@ -19,6 +19,8 @@ from subprocess import CalledProcessError as _CalledProcessError
 
 from spall import Subprocess as _Subprocess
 
+import pyaud.messages
+
 from . import messages as _messages
 from ._cache import FileCacher as _FileCacher
 from ._config import TempEnvVar as _TempEnvVar
@@ -42,53 +44,44 @@ class Subprocesses(_MutableMapping):
             self[arg] = _Subprocess(arg)
 
 
-class _CheckCommand:
-    @staticmethod
-    def _announce_completion(success_message: str, returncode: int) -> None:
+# run the routine common with single file fixes
+def _file_wrapper(func: _t.Callable[..., int]) -> _t.Callable[..., int]:
+    @_functools.wraps(func)
+    def _wrapper(*args: str, **kwargs: bool) -> int:
+        returncode = func(*args, **kwargs)
         if returncode:
             _colors.red.bold.print(
                 _messages.FAILED.format(returncode=returncode),
                 file=_sys.stderr,
             )
         else:
-            _colors.green.bold.print(success_message)
+            _colors.green.bold.print(_messages.SUCCESS_FILE)
 
-    @classmethod
-    def file(cls, func: _t.Callable[..., int]) -> _t.Callable[..., int]:
-        """Run the routine common with single file fixes.
+        return returncode
 
-        :param func: Function to decorate.
-        :return: Wrapped function.
-        """
+    return _wrapper
 
-        @_functools.wraps(func)
-        def _wrapper(*args: str, **kwargs: bool) -> int:
+
+# run the routine common with multiple source file fixes
+def _files_wrapper(func: _t.Callable[..., int]) -> _t.Callable[..., int]:
+    @_functools.wraps(func)
+    def _wrapper(*args: str, **kwargs: bool) -> int:
+        returncode = 0
+        if _files.reduce():
             returncode = func(*args, **kwargs)
-            cls._announce_completion(_messages.SUCCESS_FILE, returncode)
-            return returncode
-
-        return _wrapper
-
-    @classmethod
-    def files(cls, func: _t.Callable[..., int]) -> _t.Callable[..., int]:
-        """Run the routine common with multiple source file fixes.
-
-        :param func: Function to decorate.
-        :return: Wrapped function.
-        """
-
-        @_functools.wraps(func)
-        def _wrapper(*args: str, **kwargs: bool) -> int:
-            returncode = 0
-            if _files.reduce():
-                returncode = func(*args, **kwargs)
-                cls._announce_completion(
-                    _messages.SUCCESS_FILES.format(len=len(_files)), returncode
+            if returncode:
+                _colors.red.bold.print(
+                    _messages.FAILED.format(returncode=returncode),
+                    file=_sys.stderr,
+                )
+            else:
+                _colors.green.bold.print(
+                    pyaud.messages.SUCCESS_FILES.format(len=len(_files))
                 )
 
-            return returncode
+        return returncode
 
-        return _wrapper
+    return _wrapper
 
 
 # wrap plugin with a hashing function
@@ -185,7 +178,7 @@ class Audit(Plugin):
             notify call whether process has succeeded or failed.
         """
 
-    @_CheckCommand.files
+    @_files_wrapper
     def __call__(self, *args: str, **kwargs: bool) -> int:
         with _TempEnvVar(_os.environ, **self.env):
             try:
@@ -307,7 +300,7 @@ class Fix(BaseFix):
             notify __call__ whether process has succeeded or failed.
         """
 
-    @_CheckCommand.file
+    @_file_wrapper
     def __call__(self, *args: str, **kwargs: bool) -> int:
         return super().__call__(*args, **kwargs)
 
@@ -354,7 +347,7 @@ class FixAll(BaseFix):
             notify __call__ whether process has succeeded or failed.
         """
 
-    @_CheckCommand.files
+    @_files_wrapper
     def __call__(self, *args: str, **kwargs: bool) -> int:
         return super().__call__(*args, **kwargs)
 
