@@ -65,12 +65,13 @@ def _file_wrapper(cls: PluginType) -> PluginType:
 
 
 # run the routine common with multiple source file fixes
-def _files_wrapper(func: _t.Callable[..., int]) -> _t.Callable[..., int]:
-    @_functools.wraps(func)
-    def _wrapper(*args: str, **kwargs: bool) -> int:
+def _files_wrapper(cls: PluginType) -> PluginType:
+    cls_call = cls.__call__
+
+    def __call__(self, *args: str, **kwargs: bool) -> int:
         returncode = 0
         if _files.reduce():
-            returncode = func(*args, **kwargs)
+            returncode = cls_call(self, *args, **kwargs)
             if returncode:
                 _colors.red.bold.print(
                     _messages.FAILED.format(returncode=returncode),
@@ -83,7 +84,8 @@ def _files_wrapper(func: _t.Callable[..., int]) -> _t.Callable[..., int]:
 
         return returncode
 
-    return _wrapper
+    setattr(cls, cls.__call__.__name__, __call__)
+    return cls
 
 
 # wrap plugin with a hashing function
@@ -150,6 +152,7 @@ class Plugin(_BasePlugin):
         return 0
 
 
+@_files_wrapper
 class Audit(Plugin):
     """Blueprint for writing audit-only plugins.
 
@@ -180,7 +183,6 @@ class Audit(Plugin):
             notify call whether process has succeeded or failed.
         """
 
-    @_files_wrapper
     def __call__(self, *args: str, **kwargs: bool) -> int:
         with _TempEnvVar(_os.environ, **self.env):
             try:
@@ -304,6 +306,7 @@ class Fix(BaseFix):
         """
 
 
+@_files_wrapper
 class FixAll(BaseFix):
     """Blueprint for writing audit and fix plugins for Python files.
 
@@ -345,10 +348,6 @@ class FixAll(BaseFix):
             object must be returned, from subprocess or written, to
             notify __call__ whether process has succeeded or failed.
         """
-
-    @_files_wrapper
-    def __call__(self, *args: str, **kwargs: bool) -> int:
-        return super().__call__(*args, **kwargs)
 
 
 class Action(Plugin):
