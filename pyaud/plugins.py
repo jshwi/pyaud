@@ -84,7 +84,9 @@ class _HashMapping(_JSONIO):
     def __init__(
         self, project: str, cls: type[_BasePlugin], commit: str | None = None
     ) -> None:
-        super().__init__()
+        super().__init__(
+            _Path(_os.environ["PYAUD_CACHE"]) / __version__ / "files.json"
+        )
         self._project = project
         self._commit = commit or self._FB
         self._cls = str(cls)
@@ -119,25 +121,19 @@ class _HashMapping(_JSONIO):
             if relpath in self._session:
                 del self._session[relpath]
 
-    def read(self, path: _Path) -> None:
-        """Read from file to object.
-
-        :param path: Path to cache file.
-        """
-        super().read(path)
+    def read(self) -> None:
+        """Read from file to object."""
+        super().read()
         project = self.get(self._project, {})
         fallback = project.get(self._FB, {})
         project[self._commit] = project.get(self._commit, fallback)
         self._session = project[self._commit].get(self._cls, {})
 
-    def write(self, path: _Path) -> None:
-        """Write data to file.
-
-        :param path: Path to cache file.
-        """
+    def write(self) -> None:
+        """Write data to file."""
         cls = {self._cls: dict(self._session)}
         self[self._project] = {self._FB: cls, self._commit: cls}
-        super().write(path)
+        super().write()
 
 
 # handle caching of file(s)
@@ -153,22 +149,19 @@ class _FileCacher:  # pylint: disable=too-few-public-methods
         self.func = func
         self.args = args
         self.kwargs = kwargs
-        self._cache_file_path = (
-            _Path(_os.environ["PYAUD_CACHE"]) / __version__ / "files.json"
-        )
         try:
             commit = _git.Repo(_Path.cwd()).git.rev_parse("HEAD")
         except _git.GitCommandError:
             commit = None
 
         self.hashed = _HashMapping(_Path.cwd().name, self._cls, commit)
-        self.hashed.read(self._cache_file_path)
+        self.hashed.read()
 
     def _on_completion(self, *paths: _Path) -> None:
         for path in paths:
             self.hashed.save_hash(path)
 
-        self.hashed.write(self._cache_file_path)
+        self.hashed.write()
 
     def files(self) -> int:
         """Handle caching of a single file.
