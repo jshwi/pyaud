@@ -138,62 +138,74 @@ class _HashMapping(_JSONIO):
 
 # handle caching of a single file
 def _cache_files_wrapper(
-    cls: type[_BasePlugin],
-    func: _t.Callable[..., int],
-    *args: str,
-    **kwargs: bool,
-) -> int:
-    returncode = 0
-    hashed = _HashMapping(_Path.cwd().name, cls)
-    with _IndexedState() as state:
-        for file in list(_files):
-            if hashed.match_file(file):
-                _files.remove(file)
-            else:
-                if cls.cache_all:
-                    state.restore()
-                    break
+    cls: type[_BasePlugin], func: _t.Callable[..., int]
+) -> _t.Callable[..., int]:
+    @_functools.wraps(func)
+    def _wrapper(*args: str, **kwargs: bool) -> int:
+        if cls.cache and _files:
+            returncode = 0
+            hashed = _HashMapping(_Path.cwd().name, cls)
+            with _IndexedState() as state:
+                for file in list(_files):
+                    if hashed.match_file(file):
+                        _files.remove(file)
+                    else:
+                        if cls.cache_all:
+                            state.restore()
+                            break
 
-        if not _files and state.length:
-            _colors.green.bold.print(_messages.NO_FILES_CHANGED)
-        else:
-            returncode = func(*args, **kwargs)
+                if not _files and state.length:
+                    _colors.green.bold.print(_messages.NO_FILES_CHANGED)
+                else:
+                    returncode = func(*args, **kwargs)
 
-        if not returncode:
-            for path in _files:
-                hashed.save_hash(path)
+                if not returncode:
+                    for path in _files:
+                        hashed.save_hash(path)
 
-            hashed.write()
+                    hashed.write()
 
-    return returncode
+            return returncode
+
+        return func(*args, **kwargs)
+
+    return _wrapper
 
 
 # handle caching of a repo's python files
 def _cache_file_wrapper(
-    cls: type[_BasePlugin],
-    func: _t.Callable[..., int],
-    *args: str,
-    **kwargs: bool,
-) -> int:
-    hashed = _HashMapping(_Path.cwd().name, cls)
-    returncode = 0
-    file = cls.cache_file
-    if file is not None:
-        path = _Path.cwd() / file
-        returncode = func(*args, **kwargs)
-        if returncode:
-            hashed.save_hash(path)
-            hashed.write()
+    cls: type[_BasePlugin], func: _t.Callable[..., int]
+) -> _t.Callable[..., int]:
+    @_functools.wraps(func)
+    def _wrapper(*args: str, **kwargs: bool) -> int:
+        if cls.cache_file is not None:
+            hashed = _HashMapping(_Path.cwd().name, cls)
+            returncode = 0
+            file = cls.cache_file
+            if file is not None:
+                path = _Path.cwd() / file
+                returncode = func(*args, **kwargs)
+                if returncode:
+                    hashed.save_hash(path)
+                    hashed.write()
+                    return returncode
+
+                if (
+                    not returncode
+                    and path.is_file()
+                    and hashed.match_file(path)
+                ):
+                    _colors.green.print(_messages.NO_FILE_CHANGED)
+                    return 0
+
+                hashed.save_hash(path)
+                hashed.write()
+
             return returncode
 
-        if not returncode and path.is_file() and hashed.match_file(path):
-            _colors.green.print(_messages.NO_FILE_CHANGED)
-            return 0
+        return func(*args, **kwargs)
 
-        hashed.save_hash(path)
-        hashed.write()
-
-    return returncode
+    return _wrapper
 
 
 # run the routine common with single file fixes
@@ -240,24 +252,6 @@ def _files_wrapper(cls: PluginType) -> PluginType:
     return cls
 
 
-# wrap plugin with a hashing function
-def _cache_wrapper(
-    cls: type[Plugin], func: _t.Callable[..., int]
-) -> _t.Callable[..., int]:
-    @_functools.wraps(func)
-    def _wrapper(*args: str, **kwargs: bool) -> int:
-        if not kwargs.get("no_cache", False):
-            if cls.cache_file is not None:
-                return _cache_file_wrapper(cls, func, *args, **kwargs)
-
-            if cls.cache and _files:
-                return _cache_files_wrapper(cls, func, *args, **kwargs)
-
-        return func(*args, **kwargs)
-
-    return _wrapper
-
-
 class Plugin(_BasePlugin):
     """Base class of all plugins.
 
@@ -271,7 +265,8 @@ class Plugin(_BasePlugin):
     """
 
     def __new__(cls, name: str) -> Plugin:  # pylint: disable=unused-argument
-        cls.__call__ = _cache_wrapper(cls, cls.__call__)  # type: ignore
+        cls.__call__ = _cache_file_wrapper(cls, cls.__call__)  # type: ignore
+        cls.__call__ = _cache_files_wrapper(cls, cls.__call__)  # type: ignore
         return super().__new__(cls)
 
     def __init__(self, name: str) -> None:
