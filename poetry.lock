@@ -1099,18 +1099,18 @@ files = [
 
 [[package]]
 name = "lsfiles"
-version = "0.3.0"
+version = "0.4.0"
 description = "Path object VC index"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "lsfiles-0.3.0-py3-none-any.whl", hash = "sha256:2eaf64daa1016f50956e1253f3e62ceebe601a69b0b3308d0b4dbc4bdc56d65d"},
-    {file = "lsfiles-0.3.0.tar.gz", hash = "sha256:2bbb8d0023b244224db61f4a0b0782066a45d1713e83150da293955fac686dda"},
+    {file = "lsfiles-0.4.0-py3-none-any.whl", hash = "sha256:4de1e535c19cd7b55d22444865ffb9e1c0326bf6b4a712805ead65cbb3e7df21"},
+    {file = "lsfiles-0.4.0.tar.gz", hash = "sha256:98c30508fbc7da1176421027e3574089903d0a221535791604f1d288cc8ffbee"},
 ]
 
 [package.dependencies]
-gitspy = ">=0,<1"
+gitpython = ">=3.1.31,<4.0.0"
 
 [[package]]
 name = "markupsafe"
