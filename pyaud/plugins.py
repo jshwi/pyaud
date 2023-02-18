@@ -80,9 +80,7 @@ class _CheckCommand:
         @_functools.wraps(func)
         def _wrapper(*args: str, **kwargs: bool) -> int:
             returncode = 0
-            if not _files.reduce():
-                print(_messages.NO_FILES_FOUND)
-            else:
+            if _files.reduce():
                 returncode = func(*args, **kwargs)
                 cls._announce_completion(
                     _messages.SUCCESS_FILES.format(len=len(_files)), returncode

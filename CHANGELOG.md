@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Create cache dir after loading plugins
 
 ### Removed
+- Remove warning for no files found
 - Remove command not found warning
 - Remove `FixFile` plugin
 

@@ -106,21 +106,6 @@ def test_plugin_mro(
     assert "plugin-2" in pyaud.plugins.mapping()
 
 
-def test_check_command_no_files_found(
-    main: FixtureMain, capsys: pytest.CaptureFixture
-) -> None:
-    """Test plugin output when no files are found.
-
-    :param main: Patch package entry point.
-    :param capsys: Capture sys out and err.
-    """
-    pyaud.plugins.register(plugin_name[1])(MockAudit)
-    returncode = main(plugin_name[1])
-    std = capsys.readouterr()
-    assert returncode == 0
-    assert "No files found" in std.out
-
-
 def test_audit_error_did_no_pass_all_checks(
     main: FixtureMain,
     mock_action_plugin_factory: FixtureMockActionPluginFactory,
