@@ -153,7 +153,6 @@ class _FileCacher:  # pylint: disable=too-few-public-methods
         self.func = func
         self.args = args
         self.kwargs = kwargs
-        self.no_cache = self.kwargs.get("no_cache", False)
         self._cache_file_path = (
             _Path(_os.environ["PYAUD_CACHE"]) / __version__ / "files.json"
         )
