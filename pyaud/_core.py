@@ -47,7 +47,7 @@ def pyaud(  # pylint: disable=too-many-arguments
     :return: Exit status.
     """
     _os.environ["PYAUD_CACHE"] = _os.environ.get("PYAUD_CACHE", ".pyaud_cache")
-    _files.populate_regex(exclude)
+    _files.populate(exclude)
     _toml["audit"] = audit
     _create_cachedir()
     _register_builtin_plugins()
