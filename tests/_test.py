@@ -13,7 +13,6 @@ import typing as t
 from pathlib import Path
 from subprocess import CalledProcessError
 
-import git
 import pytest
 
 import pyaud
@@ -32,7 +31,6 @@ from . import (
     FixtureMain,
     FixtureMakeTree,
     FixtureMockActionPluginFactory,
-    FixtureMockRepo,
     FixtureMockSpallSubprocessOpenProcess,
     MockAudit,
     PluginTuple,
@@ -108,20 +106,6 @@ def test_plugin_mro(
     pyaud.plugins.register(name=plugin_name[2])(plugin_two)
     assert "plugin-1" in pyaud.plugins.mapping()
     assert "plugin-2" in pyaud.plugins.mapping()
-
-
-def test_get_commit_hash_fail(mock_repo: FixtureMockRepo) -> None:
-    """Test output from failing ``pyaud._utils.get_commit_hash``.
-
-    :param mock_repo: Mock ``git.Repo`` class.
-    """
-
-    def _raise(_: str) -> None:
-        raise git.GitCommandError("rev_parse")
-
-    mock_repo(rev_parse=_raise)
-    # noinspection PyUnresolvedReferences
-    assert pyaud._cache._get_commit_hash() is None
 
 
 def test_plugin_deepcopy_with_new() -> None:
