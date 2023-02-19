@@ -11,7 +11,7 @@ import typing as t
 from pathlib import Path
 
 from mypy_extensions import KwArg
-from templatest.utils import VarSeq, VarSeqSuffix
+from templatest.utils import VarPrefix, VarSeq, VarSeqSuffix
 
 import pyaud
 
@@ -28,11 +28,6 @@ STRFTIME = "%d%m%YT%H%M%S"
 
 FixtureMain = t.Callable[..., int]
 FixtureMakeTree = t.Callable[[Path, t.Dict[t.Any, t.Any]], None]
-FileHashDict = t.Dict[str, str]
-ClsDict = t.Dict[str, FileHashDict]
-CommitDict = t.Dict[str, ClsDict]
-CacheDict = t.Dict[str, CommitDict]
-CacheUnion = t.Union[CacheDict, CommitDict, ClsDict, FileHashDict]
 MockActionPluginList = t.Sequence[t.Type[pyaud.plugins.Action]]
 FixtureMockActionPluginFactory = t.Callable[..., MockActionPluginList]
 FixtureMockRepo = t.Callable[[KwArg(t.Callable[..., t.Any])], None]
@@ -42,16 +37,7 @@ plugin_name = VarSeq("plugin", suffix="-")
 plugin_class = VarSeq("Plugin")
 repo = VarSeq("repo")
 python_file = VarSeqSuffix("file", suffix=".py")
-
-
-class MockPluginType(pyaud.plugins.Plugin):
-    """PluginType object."""
-
-
-class MockCachedPluginType(MockPluginType):
-    """PluginType object with ``cache`` set to True."""
-
-    cache = True
+flag = VarPrefix("--", slug="-")
 
 
 class Tracker:
@@ -89,17 +75,6 @@ class Tracker:
         self.kwargs.append(kwargs)
 
 
-class StrategyMockPlugin(MockCachedPluginType):
-    """Create a base class that contains a `__call__` method that only
-    returns an exit-code for a successful audit or a failed one."""
-
-    cache = True
-    cache_all = False
-
-    def __call__(self, *args: str, **kwargs: bool) -> int:
-        return 0
-
-
 class MockAudit(pyaud.plugins.Audit):
     """Nothing to do."""
 
@@ -113,3 +88,10 @@ class PluginTuple(t.NamedTuple):
     name: str
     exe: t.Optional[str] = None
     action: t.Optional[t.Callable[..., int]] = None
+
+
+class ContentHash(t.NamedTuple):
+    """Tuple for string and its corresponding hash."""
+
+    content_str: str
+    content_hash: str

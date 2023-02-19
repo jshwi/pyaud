@@ -6,6 +6,7 @@ tests.conftest
 # pylint: disable=cell-var-from-loop
 from __future__ import annotations
 
+import os
 import typing as t
 from pathlib import Path
 
@@ -199,3 +200,16 @@ def fixture_mock_spall_subprocess_open_process(
         )
 
     return _mock_spall_open_process
+
+
+@pytest.fixture(name="cache_file")
+def fixture_cache_file() -> Path:
+    """Create test cache dir and return a test cache file.
+
+    :return: Path to test cache file.
+    """
+    cache_file = (
+        Path(os.environ["PYAUD_CACHE"]) / pyaud.__version__ / "files.json"
+    )
+    cache_file.parent.mkdir(exist_ok=True, parents=True)
+    return cache_file

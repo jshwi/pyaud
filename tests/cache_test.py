@@ -1,434 +1,625 @@
 """
-tests.cache_test
-================
+tests._cache_test
+=================
 """
-# pylint: disable=protected-access,too-few-public-methods,too-many-arguments
-# pylint: disable=too-many-statements,invalid-name
+# pylint: disable=too-many-locals,too-many-statements,too-many-arguments
 from __future__ import annotations
 
-import copy
 import json
-import os
+import typing as t
 from pathlib import Path
 
+import git.exc
 import pytest
 
 import pyaud
 
 from . import (
-    INIT,
-    TESTS,
-    CacheDict,
-    CacheUnion,
-    ClsDict,
-    CommitDict,
-    FileHashDict,
+    ContentHash,
     FixtureMain,
-    MockCachedPluginType,
-    StrategyMockPlugin,
-    Tracker,
-    plugin_name,
+    FixtureMockRepo,
+    flag,
     python_file,
     repo,
 )
 
+FALLBACK = "fallback"
+UNCOMMITTED = "uncommitted"
+COMMITS = (
+    "0c57dc943941566f47b9e7ee3208245d0bcd7656",
+    "1c57dc943941566f47b9e7ee3208245d0bcd7656",
+)
+CONTENT_HASHES = (
+    ContentHash("test content", "9473fdd0d880a43c21b7778d34872157"),
+    ContentHash("wrong content", "5cabbd5b4a8d005184f0e7bd0bc432f1"),
+)
 
-def test_no_cache(monkeypatch: pytest.MonkeyPatch, main: FixtureMain) -> None:
-    """Test all runs as should when ``-n/--no-cache`` arg is passed.
 
-    :param monkeypatch: Mock patch environment and attributes.
+@pytest.mark.parametrize(
+    [
+        "commit",
+        "dirty",
+        "existing_cache",
+        "cache_file_action",
+        "python_file_action",
+        "file_content",
+        "wanted_content",
+        "commandline_args",
+        "expected_returncode",
+        "expected_message",
+        "expected_cache",
+    ],
+    [
+        (
+            COMMITS[0],
+            False,
+            lambda x: {},
+            lambda _, __, ___: None,
+            lambda x, y: x.write_text(y),
+            CONTENT_HASHES[0].content_str,
+            CONTENT_HASHES[0].content_str,
+            (flag.fix,),
+            0,
+            pyaud.messages.SUCCESS_FILE,
+            lambda x: {
+                repo[1]: {
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                }
+            },
+        ),
+        (
+            COMMITS[0],
+            False,
+            lambda x: {repo[1]: {COMMITS[0]: {x: {}}, FALLBACK: {x: {}}}},
+            lambda x, y, z: x.write_text(json.dumps(y(z))),
+            lambda x, y: x.write_text(y),
+            CONTENT_HASHES[0].content_str,
+            CONTENT_HASHES[0].content_str,
+            (flag.fix,),
+            0,
+            pyaud.messages.SUCCESS_FILE,
+            lambda x: {
+                repo[1]: {
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                }
+            },
+        ),
+        (
+            COMMITS[0],
+            False,
+            lambda x: {
+                repo[1]: {
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                }
+            },
+            lambda x, y, z: x.write_text(json.dumps(y(z))),
+            lambda x, y: x.write_text(y),
+            CONTENT_HASHES[0].content_str,
+            CONTENT_HASHES[0].content_str,
+            (),
+            0,
+            pyaud.messages.NO_FILE_CHANGED,
+            lambda x: {
+                repo[1]: {
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                }
+            },
+        ),
+        (
+            COMMITS[0],
+            False,
+            lambda x: {
+                repo[1]: {
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                }
+            },
+            lambda x, y, z: x.write_text(json.dumps(y(z))),
+            lambda x, y: x.write_text(y),
+            CONTENT_HASHES[1].content_str,
+            CONTENT_HASHES[0].content_str,
+            (),
+            1,
+            pyaud.messages.FAILED.format(returncode=1),
+            lambda x: {
+                repo[1]: {
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                    },
+                }
+            },
+        ),
+        (
+            COMMITS[0],
+            False,
+            lambda x: {
+                repo[1]: {
+                    COMMITS[1]: {
+                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                    },
+                }
+            },
+            lambda x, y, z: x.write_text(json.dumps(y(z))),
+            lambda x, y: x.write_text(y),
+            CONTENT_HASHES[1].content_str,
+            CONTENT_HASHES[0].content_str,
+            (flag.fix,),
+            0,
+            pyaud.messages.SUCCESS_FILE,
+            lambda x: {
+                repo[1]: {
+                    COMMITS[1]: {
+                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                }
+            },
+        ),
+        (
+            COMMITS[0],
+            False,
+            lambda x: {
+                repo[1]: {
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                    },
+                }
+            },
+            lambda x, y, z: x.write_text(json.dumps(y(z))),
+            lambda x, y: x.write_text(y),
+            CONTENT_HASHES[1].content_str,
+            CONTENT_HASHES[0].content_str,
+            (flag.fix,),
+            0,
+            pyaud.messages.SUCCESS_FILE,
+            lambda x: {
+                repo[1]: {
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                }
+            },
+        ),
+        (
+            COMMITS[0],
+            True,
+            lambda x: {
+                repo[1]: {
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                    },
+                }
+            },
+            lambda x, y, z: x.write_text(json.dumps(y(z))),
+            lambda x, y: x.write_text(y),
+            CONTENT_HASHES[1].content_str,
+            CONTENT_HASHES[0].content_str,
+            (flag.fix,),
+            0,
+            pyaud.messages.SUCCESS_FILE,
+            lambda x: {
+                repo[1]: {
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                    f"{UNCOMMITTED}-{COMMITS[0]}": {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                }
+            },
+        ),
+        (
+            COMMITS[0],
+            False,
+            lambda x: {
+                repo[1]: {
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                }
+            },
+            lambda x, y, z: x.write_text(json.dumps(y(z))),
+            lambda _, __: None,
+            None,
+            CONTENT_HASHES[0].content_str,
+            (),
+            1,
+            pyaud.messages.FAILED.format(returncode=1),
+            lambda x: {
+                repo[1]: {
+                    COMMITS[0]: {x: {}},
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                }
+            },
+        ),
+        (
+            COMMITS[0],
+            False,
+            lambda: "no json",
+            lambda x, y, z: x.write_text(z),
+            lambda x, y: x.write_text(y),
+            CONTENT_HASHES[0].content_str,
+            CONTENT_HASHES[0].content_str,
+            (flag.fix,),
+            0,
+            pyaud.messages.SUCCESS_FILE,
+            lambda x: {
+                repo[1]: {
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                }
+            },
+        ),
+    ],
+    ids=[
+        "initial-bad",
+        "initial-fix",
+        "good-no-change",
+        "bad",
+        "bad-to-good",
+        "commit-change",
+        "dirty-working-tree",
+        "unlink",
+        "invalid-json",
+    ],
+)
+def test_fix_file(
+    capsys: pytest.CaptureFixture,
+    main: FixtureMain,
+    mock_repo: FixtureMockRepo,
+    cache_file: Path,
+    commit: str,
+    dirty: bool,
+    existing_cache: t.Callable[[str], dict[str, dict[str, dict[str, str]]]],
+    cache_file_action: t.Callable[
+        [Path, t.Callable[[str], dict[str, dict[str, dict[str, str]]]], str],
+        None,
+    ],
+    python_file_action: t.Callable[[Path, str], None],
+    file_content: str,
+    wanted_content: str,
+    commandline_args: tuple[str, ...],
+    expected_returncode: int,
+    expected_message: str,
+    expected_cache: t.Callable[[str], dict[str, dict[str, dict[str, str]]]],
+) -> None:
+    """Test file cache with single file fix.
+
+    :param capsys: Capture sys out and err.
     :param main: Patch package entry point.
+    :param mock_repo: Mock ``git.Repo`` class.
+    :param cache_file: Create test cache dir and return a test cache
+        file.
+    :param commit: Commit hash of the environment that's being tested.
+    :param dirty: Boolean value for whether working tree dirty.
+    :param existing_cache: State of the cache file before testing.
+    :param cache_file_action: Action to write to existing cache file.
+    :param python_file_action: Action to write to existing python file.
+    :param file_content: Contents of file for testing.
+    :param wanted_content: Content that should be in the file for the
+        audit to pass.
+    :param commandline_args: Args that will be passed to main for
+        testing.
+    :param expected_returncode: Expected returncode resulting from test.
+    :param expected_message: Expected message output resulting from
+        test.
+    :param expected_cache: Expected state of the cache file after test.
     """
+    path = Path.cwd() / python_file[1]
 
-    class Plugin(pyaud.plugins.Action):
-        """Nothing to do."""
+    class _Whitelist(pyaud.plugins.Fix):
+        cache_file = path
+        content = wanted_content
+
+        def audit(self, *args: str, **kwargs: bool) -> int:
+            if self.cache_file.is_file():
+                return int(
+                    self.cache_file.read_text(encoding="utf-8") != self.content
+                )
+
+            return 1
+
+        def fix(self, *args: str, **kwargs: bool) -> int:
+            self.cache_file.write_text(self.content, encoding="utf-8")
+            return int(
+                self.cache_file.read_text(encoding="utf-8") != self.content
+            )
+
+    name = "whitelist"
+    mock_repo(rev_parse=lambda _: commit, status=lambda _: dirty)
+    pyaud.files.append(path)
+    cache_file_action(cache_file, existing_cache, str(_Whitelist))
+    pyaud.plugins.register()(_Whitelist)
+    python_file_action(path, file_content)
+    returncode = main(name, *commandline_args)
+    out = capsys.readouterr()[expected_returncode]
+    cache = json.loads(cache_file.read_text())
+    assert returncode == expected_returncode
+    assert expected_message in out
+    assert cache == expected_cache(str(_Whitelist))
+
+
+@pytest.mark.parametrize(
+    "use_cache_all,expected_returncode,expected_output,conditions",
+    [
+        (
+            False,
+            0,
+            [
+                pyaud.messages.SUCCESS_FILES.format(len=3),
+                pyaud.messages.NO_FILES_CHANGED,
+                pyaud.messages.SUCCESS_FILES.format(len=1),
+            ],
+            [
+                (
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                ),
+                (
+                    lambda x, y: x not in y,
+                    lambda x, y: x not in y,
+                    lambda x, y: x not in y,
+                ),
+                (
+                    lambda x, y: x in y,
+                    lambda x, y: x not in y,
+                    lambda x, y: x not in y,
+                ),
+            ],
+        ),
+        (
+            False,
+            1,
+            [
+                pyaud.messages.FAILED.format(returncode=1),
+                pyaud.messages.FAILED.format(returncode=1),
+                pyaud.messages.FAILED.format(returncode=1),
+            ],
+            [
+                (
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                ),
+                (
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                ),
+                (
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                ),
+            ],
+        ),
+        (
+            True,
+            0,
+            [
+                pyaud.messages.SUCCESS_FILES.format(len=3),
+                pyaud.messages.NO_FILES_CHANGED,
+                pyaud.messages.SUCCESS_FILES.format(len=3),
+            ],
+            [
+                (
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                ),
+                (
+                    lambda x, y: x not in y,
+                    lambda x, y: x not in y,
+                    lambda x, y: x not in y,
+                ),
+                (
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                ),
+            ],
+        ),
+        (
+            True,
+            1,
+            [
+                pyaud.messages.FAILED.format(returncode=1),
+                pyaud.messages.FAILED.format(returncode=1),
+                pyaud.messages.FAILED.format(returncode=1),
+            ],
+            [
+                (
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                ),
+                (
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                ),
+                (
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                ),
+            ],
+        ),
+    ],
+    ids=[
+        "no-cache-all-passed",
+        "no-cache-all-failed",
+        "cache-all-passed",
+        "cache-all-failed",
+    ],
+)
+def test_no_cache_all(
+    capsys: pytest.CaptureFixture,
+    main: FixtureMain,
+    use_cache_all: bool,
+    expected_returncode: int,
+    expected_output: list[str],
+    conditions: list[
+        tuple[
+            t.Callable[[Path, list[Path]], bool],
+            t.Callable[[Path, list[Path]], bool],
+            t.Callable[[Path, list[Path]], bool],
+        ]
+    ],
+) -> None:
+    """Test caching of all files.
+
+    All files have to be processed for this check to be skipped.
+
+    :param capsys: Capture sys out and err.
+    :param main: Patch package entry point.
+    :param use_cache_all: Cache all files to skip an audit or cache
+        single files to skip a file in an audit.
+    :param expected_returncode: Expected returncode.
+    :param expected_output: Expected stdout or stderr.
+    :param conditions: Condition for path in files object.
+    """
+    #: Setup files
+    #: ===========
+    files: list[Path] = []
+    paths = [Path.cwd() / python_file[i] for i in range(3)]
+    paths[0].write_text("one")
+    paths[1].write_text("two")
+    paths[2].write_text("three")
+    pyaud.files.extend([paths[0], paths[1], paths[2]])
+
+    #: Setup class
+    #: ===========
+    class _Lint(pyaud.plugins.Audit):
+        cache = True
+        cache_all = use_cache_all
+
+        def audit(self, *args: str, **kwargs: bool) -> int:
+            files.extend(pyaud.files)
+            return expected_returncode
+
+    name = _Lint.__name__[1:].lower()
+    pyaud.plugins.register()(_Lint)
+
+    #: First Run
+    #: =========
+    #: No files have been cached.
+    #: Populating first cache.
+    returncode = main(name)
+    out = capsys.readouterr()[expected_returncode]
+    assert expected_output[0] in out
+    assert returncode == expected_returncode
+    assert conditions[0][0](paths[0], files)
+    assert conditions[0][1](paths[1], files)
+    assert conditions[0][2](paths[2], files)
+    files.clear()
+
+    #: Second Run
+    #: ==========
+    #: Files cached.
+    #: Running off cache generated through previous run.
+    returncode = main(name)
+    out = capsys.readouterr()[expected_returncode]
+    assert expected_output[1] in out
+    assert returncode == expected_returncode
+    assert conditions[1][0](paths[0], files)
+    assert conditions[1][1](paths[1], files)
+    assert conditions[1][2](paths[2], files)
+    files.clear()
+
+    #: Third Run
+    #: =========
+    #: Cache generated and used.
+    #: Updating new cache from this run.
+    paths[0].write_text("one changed file")
+    returncode = main(name)
+    out = capsys.readouterr()[expected_returncode]
+    assert expected_output[2] in out
+    assert returncode == expected_returncode
+    assert conditions[2][0](paths[0], files)
+    assert conditions[2][1](paths[1], files)
+    assert conditions[2][2](paths[2], files)
+    files.clear()
+
+
+def test_no_rev(main: FixtureMain, mock_repo: FixtureMockRepo) -> None:
+    """Test caching of single file with multi stage audit.
+
+    :param main: Patch package entry point.
+    :param mock_repo: Mock ``git.Repo`` class.
+    """
+    path = Path.cwd() / python_file[0]
+
+    class _Whitelist(pyaud.plugins.Action):
+        cache_file = path.name
 
         def action(self, *args: str, **kwargs: bool) -> int:
             return 0
 
-    pyaud.plugins.register(name=plugin_name[1])(Plugin)
-    match_parent = Tracker()
-    match_file = Tracker()
-    remove = Tracker()
-    clear = Tracker()
-    save_hash = Tracker()
-    save_cache = Tracker()
-    monkeypatch.setattr("pyaud.plugins._files.remove", remove)
-    monkeypatch.setattr("pyaud.plugins._files.clear", clear)
-    monkeypatch.setattr(
-        "pyaud._cache.HashMapping.write", lambda *_: save_cache
-    )
-    main(plugin_name[1], "--no-cache")
-    assert match_parent.was_called() is False
-    assert match_file.was_called() is False
-    assert remove.was_called() is False
-    assert clear.was_called() is False
-    assert save_hash.was_called() is False
-    assert save_cache.was_called() is False
+    def _rev_parse(_):
+        raise git.GitCommandError("command")
 
-
-def test_remove_matched_files(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Test that correct files are removed for matching md5 hashes.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    """
-    remove = Tracker()
-    pyaud.plugins._files.append(Path.cwd() / repo[1])
-    monkeypatch.setattr("pyaud.plugins._files.remove", remove)
-    monkeypatch.setattr("pyaud._cache._Path.read_bytes", lambda *_: b"")
-    monkeypatch.setattr("pyaud._cache.HashMapping.match_file", lambda *_: True)
-    # noinspection PyUnresolvedReferences
-    class_decorator = pyaud._wraps.ClassDecorator(MockCachedPluginType)
-    MockCachedPluginType.__call__ = class_decorator.files(  # type: ignore
-        MockCachedPluginType.__call__
-    )
-    obj = MockCachedPluginType("object")
-    obj()
-    assert remove.was_called() is True
-
-
-class TestCacheStrategy:
-    """Test strategy."""
-
-    #: PACKAGES
-    P = (repo[1],)
-
-    #: COMMITS
-    # noinspection PyUnresolvedReferences
-    C = (
-        pyaud._cache.HashMapping._FB,
-        "7c57dc943941566f47b9e7ee3208245d0bcd7656",
-        "7c57dc943941566f47b9e7ee3208245d0bcd7657",
-        "7c57dc943941566f47b9e7ee3208245d0bcd7658",
-    )
-
-    #: CLASS NAMES
-    N = ("MockPlugin1", "MockPlugin2")
-
-    #: FILE HASHES
-    H = (
-        "2e8246890aa2d92b0a793279527aa64e",
-        "28e644b6bf7ba8083bf6749c5c50df9c",
-        "07fbf822c1b1fb1a8cd0646ca2c248a7",
-        "a2cd06cc24b8bf0327d6b5c1dd6a7f9f",
-        "b26d6c0d8dcf45ea0c27546a0f4f18d1",
-        "5bc4970a3b076a058d17904ed17586be",
-        "0845ae1927a40f6de1e7e3e7e5b9dacf",
-        "986672f10a7cf52375c9e44b292e245f",
-        "6e0888c79c8471f3ac2bd76939e2dc4c",
-    )
-
-    NO_CHANGE_MSG = "No changes have been made to audited files"
-
-    def _get_commit(self, commit: int, prefixed: bool = False) -> str:
-        key = self.C[commit]
-        if prefixed:
-            return f"uncommitted-{key}"
-
-        return key
-
-    def _cls_key(self, name: int) -> str:
-        return f"<class 'abc.{self.N[name]}'>"
-
-    def _idx(
-        self,
-        o: CacheDict,
-        p: int | None = None,
-        c: int | None = None,
-        n: int | None = None,
-        prefix: bool = False,
-    ) -> CacheUnion:
-        if p is not None:
-            o: CommitDict = o[self.P[p]]  # type: ignore
-            if c is not None:
-                o: ClsDict = o[self._get_commit(c, prefix)]  # type: ignore
-                if n is not None:
-                    o: FileHashDict = o[self._cls_key(n)]  # type: ignore
-
-        return o
-
-    @staticmethod
-    def _d_eq(o1: CacheUnion, o2: CacheUnion) -> bool:
-        return json.dumps(o1, sort_keys=True) == json.dumps(o2, sort_keys=True)
-
-    def _cls_in_commit(
-        self, o: CacheDict, p: int, c: int, n: int, prefix: bool = False
-    ) -> bool:
-        return self._cls_key(n) in o[self.P[p]][self._get_commit(c, prefix)]
-
-    def _get_instance(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        c: int,
-        n: int,
-        clean: bool = True,
-        cache_all: bool = False,
-        cache_file: Path | None = None,
-        single_file: bool = False,
-    ) -> type:
-        monkeypatch.setattr("pyaud._cache._get_commit_hash", lambda: self.C[c])
-        monkeypatch.setattr("pyaud._cache._working_tree_clean", lambda: clean)
-        attr = "file" if single_file else "files"
-        # noinspection PyUnresolvedReferences
-        check = getattr(pyaud._wraps.CheckCommand, attr)
-        strat = copy.deepcopy(StrategyMockPlugin)
-        strat.cache_all = cache_all
-        strat.cache_file = cache_file
-        plugin = type(self.N[n], (StrategyMockPlugin,), {})
-        plugin.__call__ = check(plugin.__call__)  # type: ignore
-        return plugin(self.N[n])
-
-    @staticmethod
-    def _success_msg(i: int) -> str:
-        return pyaud.messages.SUCCESS_FILES.format(len=i)
-
-    @staticmethod
-    def _fmt(o: dict[Path, str]) -> FileHashDict:
-        return {str(k.relative_to(Path.cwd())): v for k, v in o.items()}
-
-    def test_cache(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
-    ) -> None:
-        """Test cache strategy.
-
-        :param monkeypatch: Mock patch environment and attributes.
-        :param capsys: Capture sys out and err.
-        """
-        #: PATHS
-        p = (
-            Path.cwd() / repo[1] / "__main__.py",
-            Path.cwd() / repo[1] / "_version.py",
-            Path.cwd() / repo[1] / INIT,
-            Path.cwd() / repo[1] / python_file[1],
-            Path.cwd() / "plugins" / INIT,
-            Path.cwd() / "plugins" / python_file[1],
-            Path.cwd() / TESTS / INIT,
-            Path.cwd() / TESTS / "_test.py",
-            Path.cwd() / TESTS / "conftest.py",
-        )
-
-        #: FILES & HASHES
-        f = {i: self.H[c] for c, i in enumerate(p)}
-
-        #: When hashlib.md5(path.read_bytes()).hexdigest() is called
-        #: `Path`'s returned self will match to the key in init and
-        #: hexdigest` will return the hash value
-        class _Md5:
-            def __init__(self, _: str, path: Path, **__: bool) -> None:
-                self.path = path
-
-            def hexdigest(self) -> str:
-                """Mock to return predefined hash.
-
-                :return: Mapped hash to `Path` key.
-                """
-                return f[self.path]
-
-        monkeypatch.setattr("pyaud._cache._Path.read_bytes", lambda x: x)
-        monkeypatch.setattr("pyaud._cache._Path.is_file", lambda x: True)
-        monkeypatch.setattr("pyaud._cache._hashlib.new", _Md5)
-        pyaud.files.extend(f.keys())
-        cache_file = (
-            Path(os.environ["PYAUD_CACHE"]) / pyaud.__version__ / "files.json"
-        )
-        cache_file.parent.mkdir(exist_ok=True, parents=True)
-        cache_file.touch()
-
-        #: Test when there is no cache file already.
-        #: Test that a new instance is created wrapped with a cache
-        #: object pegged to a commit.
-        #: Test calling of the plugin instance.
-        #: Test success message is displayed with the correct number of
-        #: files noted as completed.
-        #: Test that the cache object holds a dict, with the commit as
-        #: the primary key, and the plugin which called the process.
-        #: Test that the object is identical to the fallback, as the
-        #: last process called.
-        i1 = self._get_instance(monkeypatch, 1, 0)
-        i1()
-        o = json.loads(cache_file.read_text())
-        std = capsys.readouterr()
-        assert self._success_msg(len(f)) in std.out
-        assert self._cls_in_commit(o, 0, 1, 0)
-        assert self._d_eq(self._idx(o, 0, 1, 0), self._fmt(f))
-        assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
-
-        #: Test when a process is run again with no changes to anything.
-        #: Call the instance again.
-        #: Test that a success message notifies user that no changes
-        #: have been made, so no process needed to be run.
-        i1()
-        o = json.loads(cache_file.read_text())
-        std = capsys.readouterr()
-        assert self.NO_CHANGE_MSG in std.out
-        assert self._cls_in_commit(o, 0, 1, 0)
-        assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
-
-        #: Test when a process is run again with changes to a file.
-        #: Call the instance again.
-        #: Test that a success message notifies user that only 1 change
-        #: have been made, so only a partial process needed to be run.
-        f[p[0]] = f[p[0]][::-1]
-        i1()
-        o = json.loads(cache_file.read_text())
-        std = capsys.readouterr()
-        assert self._success_msg(1) in std.out
-        assert self._cls_in_commit(o, 0, 1, 0)
-        assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
-
-        #: Test new process running under a different commit.
-        #: Test that instance displays a success message notifying user
-        #: that no changes have been made, so no process needs to be
-        #: run.
-        #: The commit should have been able to copy the fallback as a
-        #: start to minimally find any changed files.
-        #: Test that the object is identical to the fallback, as it is
-        #: the last process that ran.
-        i2 = self._get_instance(monkeypatch, 2, 0)
-        i2()
-        o = json.loads(cache_file.read_text())
-        std = capsys.readouterr()
-        assert self.NO_CHANGE_MSG in std.out
-        assert self._cls_in_commit(o, 0, 1, 0)
-        assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
-        assert self._cls_in_commit(o, 0, 2, 0)
-        assert self._d_eq(self._idx(o, 0, 2), self._idx(o, 0, 0))
-
-        #: Call the instance's ``__call__`` again.
-        #: instance displays a success message again with the correct
-        #: number of files noted as completed.
-        #: The process needs to ignore all prior cache as this is an
-        #: entirely new process that hasn't been checked for validity.
-        #: Test that the first cache object still holds a dict with the
-        #: commit as the name and the plugin which called the
-        #: process.
-        #: Also test that the object holds a dict with the second commit
-        #: as the name and the same plugin which called the process.
-        #: Test that the object is still identical to the fallback, as
-        #: it is still the last process that ran.
-        i3 = self._get_instance(monkeypatch, 1, 1)
-        i3()
-        o = json.loads(cache_file.read_text())
-        std = capsys.readouterr()
-        assert self._success_msg(len(f)) in std.out
-        assert self._cls_in_commit(o, 0, 1, 0)
-        assert self._cls_in_commit(o, 0, 1, 1)
-        assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
-        assert self._cls_in_commit(o, 0, 2, 0)
-        assert not self._d_eq(self._idx(o, 0, 2), self._idx(o, 0, 0))
-
-        #: Test that a new class is being used.
-        #: instance displays a success message with the correct number
-        #: of files noted as completed.
-        #: Test that the first object still exists and is still
-        #: identical to the fallback as it does not hold any fewer
-        #: objects than any of the other objects, therefore any of the
-        #: latter objects will have borrowed its values from the
-        #: fallback.
-        #: Test that the second object still exists, but that it is not
-        #: identical to the fallback as it is not the last process which
-        #: was run.
-        #: Test that the cache object holds a dict with the commit as
-        #: the name, the plugin which called the process, and that the
-        #: object is identical to the fallback, as it is the last
-        #: process that ran.
-        i4 = self._get_instance(monkeypatch, 3, 1)
-        i4()
-        o = json.loads(cache_file.read_text())
-        std = capsys.readouterr()
-        assert self.NO_CHANGE_MSG in std.out
-        assert self._cls_in_commit(o, 0, 1, 0)
-        assert self._cls_in_commit(o, 0, 1, 1)
-        assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
-        assert self._cls_in_commit(o, 0, 2, 0)
-        assert not self._d_eq(self._idx(o, 0, 2), self._idx(o, 0, 0))
-        assert self._cls_in_commit(o, 0, 3, 1)
-        assert self._d_eq(self._idx(o, 0, 3), self._idx(o, 0, 0))
-
-        #: Test a new instance running under a new commit.
-        #: Test that a new object is created when working on a commit
-        #: with uncommitted changes.
-        #: Only one tagged object like this should exist for each
-        #: commit.
-        #: Test this is used as the fallback as it is the last process
-        #: called.
-        i5 = self._get_instance(monkeypatch, 3, 1, clean=False)
-        i5()
-        o = json.loads(cache_file.read_text())
-        std = capsys.readouterr()
-        assert self.NO_CHANGE_MSG in std.out
-        assert self._cls_in_commit(o, 0, 1, 0)
-        assert self._cls_in_commit(o, 0, 1, 1)
-        assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
-        assert self._cls_in_commit(o, 0, 2, 0)
-        assert not self._d_eq(self._idx(o, 0, 2), self._idx(o, 0, 0))
-        assert self._cls_in_commit(o, 0, 3, 1)
-        assert self._d_eq(self._idx(o, 0, 3), self._idx(o, 0, 0))
-        assert self._cls_in_commit(o, 0, 3, 1)
-        assert self._d_eq(self._idx(o, 0, 3, prefix=True), self._idx(o, 0, 0))
-
-        #: Test files hashes
-        assert self._d_eq(self._idx(o, 0, 1, 0), self._fmt(f))
-        assert self._d_eq(self._idx(o, 0, 1, 1), self._fmt(f))
-        assert self._d_eq(self._idx(o, 0, 2, 0), self._fmt(f))
-        assert self._d_eq(self._idx(o, 0, 3, 1), self._fmt(f))
-        assert self._d_eq(self._idx(o, 0, 3, 1, prefix=True), self._fmt(f))
-
-        #: Test all files get repopulated if a ``cache_all`` flag is set
-        #: to True.
-        #: ``cache_all`` means that all files must be saved, or
-        # otherwise the cache is void.
-        i6 = self._get_instance(monkeypatch, 1, 0, cache_all=True)
-        f[p[1]] = f[p[1]][::-1]
-        i6()
-        o = json.loads(cache_file.read_text())
-        std = capsys.readouterr()
-        assert self._success_msg(len(f)) in std.out
-        assert self._cls_in_commit(o, 0, 1, 0)
-        assert self._d_eq(self._idx(o, 0, 1), self._idx(o, 0, 0))
-
-    def test_cache_file(self, capsys: pytest.CaptureFixture) -> None:
-        """Test caching a single file.
-
-        :param capsys: Capture sys out and err.
-        """
-        expected_1 = pyaud.messages.SUCCESS_FILE
-        path = Path.cwd() / "whitelist.py"
-
-        class _Fix(pyaud.plugins.Fix):
-            cache_file = path
-
-            def audit(self, *args: str, **kwargs: bool) -> int:
-                if self.cache_file.is_file():
-                    return int(self.cache_file.read_text() != "unused")
-
-                return 1
-
-            def fix(self, *args: str, **kwargs: bool) -> int:
-                path.write_text("unused")
-                return 0
-
-        fix = _Fix("name")
-        fix()
-
-        fix(fix=True)
-        std = capsys.readouterr()
-        assert expected_1 in std.out
-
-        fix()
-        std = capsys.readouterr()
-        assert pyaud.messages.NO_FILE_CHANGED in std.out
-
-        path.write_text("change")
-        fix()
-
-        fix(fix=True)
-        std = capsys.readouterr()
-        assert expected_1 in std.out
-
-        os.remove(path)
-        fix()
-
-        fix(fix=True)
-        std = capsys.readouterr()
-        assert "No changes have been made to audited file" not in std.out
+    path.write_text(CONTENT_HASHES[0].content_str)
+    pyaud.files.append(path)
+    mock_repo(rev_parse=_rev_parse, status=lambda _: False)
+    name = _Whitelist.__name__[1:].lower()
+    pyaud.plugins.register()(_Whitelist)
+    returncode = main(name)
+    assert returncode == 0
