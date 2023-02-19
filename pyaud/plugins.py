@@ -86,14 +86,14 @@ class _HashMapping(_JSONIO):
             _Path(_os.environ["PYAUD_CACHE"]) / __version__ / "files.json"
         )
         self._project = _Path.cwd().name
+        self._cls = str(cls)
+        self._repo = _git.Repo(_Path.cwd())
         try:
-            self._commit = _git.Repo(_Path.cwd()).git.rev_parse("HEAD")
+            self._commit = self._repo.git.rev_parse("HEAD")
         except _git.GitCommandError:
             self._commit = self._FB
 
-        self._cls = str(cls)
-        self._session: dict[str, str] = {}
-        if _git.Repo(_Path.cwd()).git.status("--short"):
+        if self._repo.git.status("--short"):
             self._commit = f"uncommitted-{self._commit}"
 
         super().read()
