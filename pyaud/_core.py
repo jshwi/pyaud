@@ -5,14 +5,28 @@ pyaud._core
 from __future__ import annotations
 
 import os as _os
+import sys as _sys
 from pathlib import Path as _Path
 
+import git as _git
+
+from . import messages as _messages
 from . import plugins as _plugins
 from ._builtins import register_builtin_plugins as _register_builtin_plugins
 from ._objects import NAME as _NAME
+from ._objects import colors as _colors
 from ._objects import files as _files
 from ._objects import toml as _toml
 from ._version import __version__
+
+
+def _populate_files(exclude: str | None = None) -> None:
+    try:
+        _files.populate(exclude)
+    except _git.InvalidGitRepositoryError as err:
+        _sys.exit(
+            _colors.red.bold.get(_messages.INVALID_REPOSITORY.format(path=err))
+        )
 
 
 def _create_cachedir() -> None:
@@ -47,7 +61,7 @@ def pyaud(  # pylint: disable=too-many-arguments
     :return: Exit status.
     """
     _os.environ["PYAUD_CACHE"] = _os.environ.get("PYAUD_CACHE", ".pyaud_cache")
-    _files.populate(exclude)
+    _populate_files(exclude)
     _toml["audit"] = audit
     _register_builtin_plugins()
     _plugins.load()

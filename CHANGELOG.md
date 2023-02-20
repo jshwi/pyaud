@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased](https://github.com/jshwi/pyaud/compare/v5.0.1...HEAD)
 ------------------------------------------------------------------------
 ### Added
+- Add commandline exit for running outside of a git repository
 - Add `pyaud.plugins.Subprocesses`
 - Add `pyaud.messages`
 

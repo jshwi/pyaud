@@ -12,6 +12,7 @@ import typing as t
 from pathlib import Path
 from subprocess import CalledProcessError
 
+import git
 import pytest
 
 import pyaud
@@ -392,3 +393,24 @@ def test_default_key() -> None:
 def test_plugins_call() -> None:
     """Get coverage on ``Plugin.__call__.``"""
     assert pyaud.plugins.Plugin("name")() == 0
+
+
+def test_not_a_valid_git_repository(
+    monkeypatch: pytest.MonkeyPatch, main: FixtureMain
+) -> None:
+    """Test exit when not in a git repository.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param main: Patch package entry point.
+    """
+
+    def _populate(_: str | None = None):
+        raise git.InvalidGitRepositoryError
+
+    monkeypatch.setattr("pyaud.files.populate", _populate)
+    with pytest.raises(SystemExit) as err:
+        assert main("") == 1
+
+    assert pyaud.messages.INVALID_REPOSITORY.split(":", maxsplit=1)[0] in str(
+        err.value
+    )
