@@ -9,8 +9,8 @@ __all__ = [
     "__version__",
     "exceptions",
     "files",
-    "plugins",
     "main",
-    "pyaud",
     "messages",
+    "plugins",
+    "pyaud",
 ]
