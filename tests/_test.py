@@ -84,7 +84,9 @@ def test_register_plugin_name_conflict_error(
     with pytest.raises(pyaud.exceptions.NameConflictError) as err:
         pyaud.plugins.register(name=unique)(plugin_two)
 
-    assert str(err.value) == f"plugin name conflict at Plugin_2: '{unique}'"
+    assert str(err.value) == pyaud.messages.NAME_CONFLICT_ERROR.format(
+        plugin=PLUGIN_CLASS[2], name=unique
+    )
 
 
 def test_register_invalid_type() -> None:
@@ -474,7 +476,7 @@ def test_default_plugin(capsys: pytest.CaptureFixture) -> None:
     """
     pyaud.pyaud("not-a-module")
     std = capsys.readouterr()
-    assert "no plugin named `not-a-module` found" in std.err
+    assert pyaud.messages.NOT_FOUND.format(name="not-a-module") in std.err
 
 
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)

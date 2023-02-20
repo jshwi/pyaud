@@ -11,7 +11,7 @@ import pytest
 
 import pyaud
 
-from . import FILE, FIX, FIX_ALL, FIX_FILE, FIXER, NO_ISSUES, MockMainType
+from . import FILE, FIX, FIX_ALL, FIX_FILE, FIXER, MockMainType
 
 
 def _get_pass_fixer(
@@ -78,10 +78,13 @@ class TestFix:
         [
             (
                 _get_pass_fixer(pyaud.plugins.Fix),  # type: ignore
-                "Success: no issues found in file",
+                pyaud.messages.SUCCESS_FILE,
             ),
-            (_get_pass_fixer(pyaud.plugins.FixAll), NO_ISSUES),  # type: ignore
-            (_PassFileFixer, NO_ISSUES),
+            (
+                _get_pass_fixer(pyaud.plugins.FixAll),  # type: ignore
+                pyaud.messages.SUCCESS_FILES.format(len=1),
+            ),
+            (_PassFileFixer, pyaud.messages.SUCCESS_FILES.format(len=1)),
         ],
         ids=[FIX, FIX_ALL, FIX_FILE],
     )
@@ -133,10 +136,13 @@ class TestFix:
         [
             (
                 _get_fail_fixer(pyaud.plugins.Fix),  # type: ignore
-                "Success: no issues found in file",
+                pyaud.messages.SUCCESS_FILE,
             ),
-            (_get_fail_fixer(pyaud.plugins.FixAll), NO_ISSUES),  # type: ignore
-            (_FailFileFixer, NO_ISSUES),
+            (
+                _get_fail_fixer(pyaud.plugins.FixAll),  # type: ignore
+                pyaud.messages.SUCCESS_FILES.format(len=1),
+            ),
+            (_FailFileFixer, pyaud.messages.SUCCESS_FILES.format(len=1)),
         ],
         ids=[FIX, FIX_ALL, FIX_FILE],
     )

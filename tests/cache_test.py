@@ -182,7 +182,7 @@ class TestCacheStrategy:
 
     @staticmethod
     def _success_msg(i: int) -> str:
-        return f"Success: no issues found in {i} source files"
+        return pyaud.messages.SUCCESS_FILES.format(len=i)
 
     @staticmethod
     def _fmt(o: dict[Path, str]) -> FileHashDict:
@@ -400,7 +400,7 @@ class TestCacheStrategy:
 
         :param capsys: Capture sys out and err.
         """
-        expected_1 = "Success: no issues found in file"
+        expected_1 = pyaud.messages.SUCCESS_FILE
         path = Path.cwd() / WHITELIST_PY
 
         class _Fix(pyaud.plugins.Fix):
@@ -425,7 +425,7 @@ class TestCacheStrategy:
 
         fix()
         std = capsys.readouterr()
-        assert "No changes have been made to audited file" in std.out
+        assert pyaud.messages.NO_FILE_CHANGED in std.out
 
         path.write_text("change")
         fix()
