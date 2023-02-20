@@ -33,6 +33,12 @@ from ._objects import files as _files
 from ._version import __version__
 from .exceptions import NameConflictError as _NameConflictError
 
+IMPORT_RE = _re.compile("^pyaud[-_].*$")
+
+CACHE_FILE = "files.json"
+FALLBACK = "fallback"
+UNCOMMITTED = "uncommitted"
+
 
 class Subprocesses(_MutableMapping):
     """Instantiate collection of ``Subprocess`` objects.
@@ -78,11 +84,9 @@ class _IndexedState:
 
 # persistent data object
 class _HashMapping(_JSONIO):
-    _FB = "fallback"
-
     def __init__(self, cls: type[BasePlugin]) -> None:
         super().__init__(
-            _Path(_os.environ["PYAUD_CACHE"]) / __version__ / "files.json"
+            _Path(_os.environ["PYAUD_CACHE"]) / __version__ / CACHE_FILE
         )
         self._project = _Path.cwd().name
         self._cls = str(cls)
@@ -90,14 +94,14 @@ class _HashMapping(_JSONIO):
         try:
             self._commit = self._repo.git.rev_parse("HEAD")
         except _git.GitCommandError:
-            self._commit = self._FB
+            self._commit = FALLBACK
 
         if self._repo.git.status("--short"):
-            self._commit = f"uncommitted-{self._commit}"
+            self._commit = f"{UNCOMMITTED}-{self._commit}"
 
         super().read()
         project_obj = self.get(self._project, {})
-        fallback = project_obj.get(self._FB, {})
+        fallback = project_obj.get(FALLBACK, {})
         project_obj[self._commit] = project_obj.get(self._commit, fallback)
         self._session = project_obj[self._commit].get(self._cls, {})
 
@@ -131,7 +135,7 @@ class _HashMapping(_JSONIO):
     def write(self) -> None:
         """Write data to file."""
         cls = {self._cls: dict(self._session)}
-        self[self._project] = {self._FB: cls, self._commit: cls}
+        self[self._project] = {FALLBACK: cls, self._commit: cls}
         super().write()
 
 
@@ -721,5 +725,5 @@ def get(name: str, default: str | None = None) -> PluginInstance:
 def load() -> None:
     """Import all package prefixed with ``pyaud[-_]``."""
     for _, name, _ in _pkgutil.iter_modules():
-        if _re.match("^pyaud[-_].*$", name):
+        if IMPORT_RE.match(name):
             _importlib.import_module(name)
