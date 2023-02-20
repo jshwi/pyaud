@@ -6,7 +6,6 @@ Main module used for public API.
 """
 from __future__ import annotations
 
-import functools as _functools
 import hashlib as _hashlib
 import importlib as _importlib
 import inspect as _inspect
@@ -203,18 +202,17 @@ def _cache_files_wrapper(cls: type[Plugin]) -> type[Plugin]:
 
 
 # handle caching of a repo's python files
-def _cache_file_wrapper(
-    cls: type[BasePlugin], func: _t.Callable[..., int]
-) -> _t.Callable[..., int]:
-    @_functools.wraps(func)
-    def _wrapper(*args: str, **kwargs: bool) -> int:
-        if cls.cache_file is not None:
-            hashed = _HashMapping(cls)
+def _cache_file_wrapper(cls: type[Plugin]) -> type[Plugin]:
+    cls_call = cls.__call__
+
+    def __call__(self, *args: str, **kwargs: bool) -> int:
+        if self.cache_file is not None:
+            hashed = _HashMapping(self.__class__)
             returncode = 0
-            file = cls.cache_file
+            file = self.cache_file
             if file is not None:
                 path = _Path.cwd() / file
-                returncode = func(*args, **kwargs)
+                returncode = cls_call(self, *args, **kwargs)
                 if returncode:
                     hashed.save_hash(path)
                     hashed.write()
@@ -233,9 +231,10 @@ def _cache_file_wrapper(
 
             return returncode
 
-        return func(*args, **kwargs)
+        return cls_call(self, *args, **kwargs)
 
-    return _wrapper
+    setattr(cls, cls.__call__.__name__, __call__)
+    return cls
 
 
 # run the routine common with single file fixes
@@ -343,8 +342,7 @@ class Plugin(BasePlugin):
     """
 
     def __new__(cls, name: str) -> Plugin:  # pylint: disable=unused-argument
-        cls.__call__ = _cache_file_wrapper(cls, cls.__call__)  # type: ignore
-        return super().__new__(_cache_files_wrapper(cls))
+        return super().__new__(_cache_files_wrapper(_cache_file_wrapper(cls)))
 
     def __init__(self, name: str) -> None:
         self._name = name
