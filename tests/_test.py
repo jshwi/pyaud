@@ -17,9 +17,6 @@ import pytest
 
 import pyaud
 
-# noinspection PyProtectedMember
-import pyaud._config as pc
-
 from . import (
     INIT,
     KEY,
@@ -376,7 +373,7 @@ def test_subprocess(
 def test_del_key_in_context() -> None:
     """Confirm there is no error raised when deleting temp key-value."""
     obj: t.Dict[str, str] = {}
-    with pc.TempEnvVar(obj, key=VALUE):
+    with pyaud.plugins._TempEnvVar(obj, key=VALUE):
         assert obj[KEY] == VALUE
         del obj[KEY]
 
@@ -384,7 +381,7 @@ def test_del_key_in_context() -> None:
 def test_default_key() -> None:
     """Test setting and restoring of existing dict keys."""
     obj = {KEY: "default_value"}
-    with pc.TempEnvVar(obj, **{KEY: "temp_value"}):
+    with pyaud.plugins._TempEnvVar(obj, **{KEY: "temp_value"}):
         assert obj[KEY] == "temp_value"
 
     assert obj[KEY] == "default_value"

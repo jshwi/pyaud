@@ -25,7 +25,6 @@ import git as _git
 from spall import Subprocess as _Subprocess
 
 from . import messages as _messages
-from ._config import TempEnvVar as _TempEnvVar
 from ._objects import JSONIO as _JSONIO
 from ._objects import NAME as _NAME
 from ._objects import MutableMapping as _MutableMapping
@@ -134,6 +133,33 @@ class _HashMapping(_JSONIO):
         cls = {self._cls: dict(self._session)}
         self[self._project] = {self._FB: cls, self._commit: cls}
         super().write()
+
+
+# temporarily set a mutable mapping key-value pair
+class _TempEnvVar:
+    def __init__(self, obj: _t.MutableMapping, **kwargs: str) -> None:
+        self._obj = obj
+        self._default = {k: obj.get(k) for k in kwargs}
+        self._obj.update(kwargs)
+
+    def __enter__(self) -> _TempEnvVar:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: _TracebackType | None,
+    ) -> None:
+        for key, value in self._default.items():
+            if value is None:
+                try:
+                    del self._obj[key]
+                except KeyError:
+                    # in the case that key gets deleted within context
+                    pass
+            else:
+                self._obj[key] = self._default[key]
 
 
 # handle caching of a single file

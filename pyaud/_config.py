@@ -4,51 +4,11 @@ pyaud._config
 """
 from __future__ import annotations
 
-import typing as _t
-from types import TracebackType as _TracebackType
-
 from arcon import ArgumentParser as _ArgumentParser
 
 from ._objects import NAME as _NAME
 from ._objects import colors as _colors
 from ._version import __version__
-
-
-class TempEnvVar:
-    """Temporarily set a mutable mapping key-value pair.
-
-    Set key-value whilst working within the context manager. If key
-    already exists then change the key back to its original value. If
-    key does not already exist then delete it so the environment is
-    returned to its original state.
-
-    :param obj: Mutable mapping to temporarily change.
-    :param kwargs: Key-values to temporarily change in supplied object.
-    """
-
-    def __init__(self, obj: _t.MutableMapping, **kwargs: str) -> None:
-        self._obj = obj
-        self._default = {k: obj.get(k) for k in kwargs}
-        self._obj.update(kwargs)
-
-    def __enter__(self) -> TempEnvVar:
-        return self
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: _TracebackType | None,
-    ) -> None:
-        for key, value in self._default.items():
-            if value is None:
-                try:
-                    del self._obj[key]
-                except KeyError:
-                    # in the case that key gets deleted within context
-                    pass
-            else:
-                self._obj[key] = self._default[key]
 
 
 class Parser(_ArgumentParser):
