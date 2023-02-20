@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add `pyaud.messages`
 
 ### Changed
+- Move `BasePlugin` to `pyaud.plugins`
 - Remove project parent key from cache
 - Update audit messages for consistency
 - Make `Plugin.subprocess` a property

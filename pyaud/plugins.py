@@ -15,6 +15,7 @@ import pkgutil as _pkgutil
 import re as _re
 import sys as _sys
 import typing as _t
+from abc import ABC as _ABC
 from abc import abstractmethod as _abstractmethod
 from pathlib import Path as _Path
 from subprocess import CalledProcessError as _CalledProcessError
@@ -27,7 +28,6 @@ from . import messages as _messages
 from ._config import TempEnvVar as _TempEnvVar
 from ._objects import JSONIO as _JSONIO
 from ._objects import NAME as _NAME
-from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
 from ._objects import colors as _colors
 from ._objects import files as _files
@@ -81,7 +81,7 @@ class _IndexedState:
 class _HashMapping(_JSONIO):
     _FB = "fallback"
 
-    def __init__(self, cls: type[_BasePlugin]) -> None:
+    def __init__(self, cls: type[BasePlugin]) -> None:
         super().__init__(
             _Path(_os.environ["PYAUD_CACHE"]) / __version__ / "files.json"
         )
@@ -138,7 +138,7 @@ class _HashMapping(_JSONIO):
 
 # handle caching of a single file
 def _cache_files_wrapper(
-    cls: type[_BasePlugin], func: _t.Callable[..., int]
+    cls: type[BasePlugin], func: _t.Callable[..., int]
 ) -> _t.Callable[..., int]:
     @_functools.wraps(func)
     def _wrapper(*args: str, **kwargs: bool) -> int:
@@ -174,7 +174,7 @@ def _cache_files_wrapper(
 
 # handle caching of a repo's python files
 def _cache_file_wrapper(
-    cls: type[_BasePlugin], func: _t.Callable[..., int]
+    cls: type[BasePlugin], func: _t.Callable[..., int]
 ) -> _t.Callable[..., int]:
     @_functools.wraps(func)
     def _wrapper(*args: str, **kwargs: bool) -> int:
@@ -284,7 +284,23 @@ def _env_wrapper(cls: PluginType) -> PluginType:
     return cls
 
 
-class Plugin(_BasePlugin):
+class BasePlugin(_ABC):  # pylint: disable=too-few-public-methods
+    """Base type for all plugins."""
+
+    #: If set to True then indexed files will be monitored for change.
+    cache = False
+
+    #: Only matters if ``cache`` is set to True.
+    #: If False (default) then audit will cache on a file-by-file basis.
+    #: If True, then no changes can be made to any file for a cache-hit
+    #: to be valid.
+    cache_all = False
+
+    #: set a single cache file for plugin subclass.
+    cache_file: _t.Optional[_t.Union[str, _Path]] = None
+
+
+class Plugin(BasePlugin):
     """Base class of all plugins.
 
     Raises ``TypeError`` if registered directly.

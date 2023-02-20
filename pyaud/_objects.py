@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import json as _json
 import typing as _t
-from abc import ABC as _ABC
 from pathlib import Path as _Path
 
 from lsfiles import LSFiles as _LSFiles
@@ -67,22 +66,6 @@ class MutableMapping(_t.MutableMapping[_KT, _VT]):
 
 class _Toml(MutableMapping):
     """Base class for all ``toml`` object interaction."""
-
-
-class BasePlugin(_ABC):  # pylint: disable=too-few-public-methods
-    """Base type for all plugins."""
-
-    #: If set to True then indexed files will be monitored for change.
-    cache = False
-
-    #: Only matters if ``cache`` is set to True.
-    #: If False (default) then audit will cache on a file-by-file basis.
-    #: If True, then no changes can be made to any file for a cache-hit
-    #: to be valid.
-    cache_all = False
-
-    #: set a single cache file for plugin subclass.
-    cache_file: _t.Optional[_t.Union[str, _Path]] = None
 
 
 class JSONIO(MutableMapping):
