@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Add `pyaud.messages`
 
+### Removed
+- Remove `FixFile` plugin
+
 [5.0.1](https://github.com/jshwi/pyaud/releases/tag/v5.0.1) - 2023-02-09
 ------------------------------------------------------------------------
 ### Fixed

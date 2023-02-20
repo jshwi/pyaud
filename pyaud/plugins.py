@@ -14,7 +14,6 @@ import re as _re
 import sys as _sys
 import typing as _t
 from abc import abstractmethod as _abstractmethod
-from pathlib import Path as _Path
 from subprocess import CalledProcessError as _CalledProcessError
 
 from spall import Subprocess as _Subprocess
@@ -25,7 +24,6 @@ from ._objects import NAME as _NAME
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import MutableMapping as _MutableMapping
 from ._objects import colors as _colors
-from ._objects import files as _files
 from ._wraps import CheckCommand as _CheckCommand
 from ._wraps import ClassDecorator as _ClassDecorator
 from .exceptions import NameConflictError as _NameConflictError
@@ -346,79 +344,8 @@ class Parametrize(Plugin):
         return returncode
 
 
-class FixFile(Plugin):
-    """Blueprint for writing audit and fix plugins for individual files.
-
-    All logic can act on each file that would be passed from __call__.
-
-    Called within context of defined environment variables.
-    If no environment variables are defined nothing will change.
-
-    Condition for failure needs to be defined, as the file argument
-    passed from outer loop will not return an exit status.
-
-    If audit fails and the ``-f/--fix`` flag is passed to the
-    commandline the ``fix`` method will be called within the
-    ``CalledProcessError`` try-except block.
-
-    If ``-f/--fix`` and the audit fails the user is running the
-    audit only and will raise an ``AuditError``.
-
-    :raises CalledProcessError: Will always be raised if something fails
-        that is not to do with the audit condition. Will be excepted and
-        reraised as ``AuditError`` if the audit fails and ``-f/--fix``
-        is not passed to the commandline.
-    :raises AuditError: Raised from ``CalledProcessError`` if audit
-        fails and ``-f/--fix`` flag if not passed to the commandline.
-    :return: Only 0 exit-status can be returned. If process fails error
-        will be raised.
-    """
-
-    @_abstractmethod
-    def fail_condition(self) -> bool | None:
-        """Condition to trigger non-subprocess failure.
-
-        :return: Return True for passing condition, false for failing
-            condition, or None for no fail condition.
-        """
-
-    @_abstractmethod
-    def audit(self, file: _Path, **kwargs: bool) -> int:
-        """All logic written within this method for each file's audit.
-
-        :param file: Individual file.
-        :param kwargs: Boolean flags for subprocesses.
-        :return: Returncode.
-        """
-
-    @_abstractmethod
-    def fix(self, file: _Path, **kwargs: bool) -> int:
-        """All logic written within this method for each file's fix.
-
-        :param file: Individual file.
-        :param kwargs: Boolean flags for subprocesses.
-        :return: Returncode.
-        """
-
-    @_CheckCommand.files
-    def __call__(self, *args: str, **kwargs: bool) -> int:
-        returncode = 0
-        files = [p for p in _files if p.is_file()]
-        for file in files:
-            returncode = self.audit(file, **kwargs)
-            fail = self.fail_condition()
-            if fail is not None and fail:
-                if kwargs.get("fix", False):
-                    return self.fix(file, **kwargs)
-
-                return 1
-
-        # if no error raised return 0 to decorator
-        return returncode
-
-
 # array of plugins
-PLUGINS = [Audit, BaseFix, Fix, FixAll, Action, Parametrize, FixFile]
+PLUGINS = [Audit, BaseFix, Fix, FixAll, Action, Parametrize]
 
 # array of plugin names
 PLUGIN_NAMES = [t.__name__ for t in PLUGINS]
@@ -431,13 +358,10 @@ PluginType = _t.Union[
     _t.Type[FixAll],
     _t.Type[Action],
     _t.Type[Parametrize],
-    _t.Type[FixFile],
 ]
 
 # array of plugin types after instantiation
-PluginInstance = _t.Union[
-    Audit, BaseFix, Fix, FixAll, Action, Parametrize, FixFile
-]
+PluginInstance = _t.Union[Audit, BaseFix, Fix, FixAll, Action, Parametrize]
 
 
 class Plugins(_MutableMapping):

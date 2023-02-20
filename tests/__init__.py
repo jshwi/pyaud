@@ -17,7 +17,6 @@ import pyaud
 
 FIX = "fix"
 FIX_ALL = "fix-all"
-FIX_FILE = "fix-file"
 INIT = "__init__.py"
 KEY = "key"
 TESTS = "tests"

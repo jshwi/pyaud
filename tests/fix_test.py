@@ -11,7 +11,7 @@ import pytest
 
 import pyaud
 
-from . import FIX, FIX_ALL, FIX_FILE, FixtureMain, python_file
+from . import FIX, FIX_ALL, FixtureMain, python_file
 
 
 def _get_pass_fixer(
@@ -43,28 +43,6 @@ def _get_fail_fixer(
     return _FailFixer
 
 
-class _BaseFileFixer(pyaud.plugins.FixFile):
-    def fail_condition(self) -> bool | None:
-        """Nothing to do."""
-
-    def audit(self, file: Path, **kwargs: bool) -> int:
-        """Nothing to do."""
-        return 0
-
-    def fix(self, file: Path, **kwargs: bool) -> int:
-        """Nothing to do."""
-        return 0
-
-
-class _PassFileFixer(_BaseFileFixer):
-    """Nothing to do."""
-
-
-class _FailFileFixer(_BaseFileFixer):
-    def fail_condition(self) -> bool | None:
-        return True
-
-
 class TestFix:
     """Test various implementations of ``pyaud.plugins.FixAll``."""
 
@@ -84,9 +62,8 @@ class TestFix:
                 _get_pass_fixer(pyaud.plugins.FixAll),  # type: ignore
                 pyaud.messages.SUCCESS_FILES.format(len=1),
             ),
-            (_PassFileFixer, pyaud.messages.SUCCESS_FILES.format(len=1)),
         ],
-        ids=[FIX, FIX_ALL, FIX_FILE],
+        ids=[FIX, FIX_ALL],
     )
     def test_on_pass(
         self,
@@ -114,9 +91,8 @@ class TestFix:
         [
             _get_fail_fixer(pyaud.plugins.Fix),  # type: ignore
             _get_fail_fixer(pyaud.plugins.FixAll),  # type: ignore
-            _FailFileFixer,
         ],
-        ids=[FIX, FIX_ALL, FIX_FILE],
+        ids=[FIX, FIX_ALL],
     )
     def test_on_fail(
         self, main: FixtureMain, plugin: pyaud.plugins.PluginType
@@ -142,9 +118,8 @@ class TestFix:
                 _get_fail_fixer(pyaud.plugins.FixAll),  # type: ignore
                 pyaud.messages.SUCCESS_FILES.format(len=1),
             ),
-            (_FailFileFixer, pyaud.messages.SUCCESS_FILES.format(len=1)),
         ],
-        ids=[FIX, FIX_ALL, FIX_FILE],
+        ids=[FIX, FIX_ALL],
     )
     def test_with_fix(
         self,
