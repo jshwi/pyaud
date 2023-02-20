@@ -19,6 +19,7 @@ from subprocess import CalledProcessError as _CalledProcessError
 
 from spall import Subprocess as _Subprocess
 
+from . import messages as _messages
 from ._config import TempEnvVar as _TempEnvVar
 from ._objects import NAME as _NAME
 from ._objects import BasePlugin as _BasePlugin
@@ -460,8 +461,8 @@ class Plugins(_MutableMapping):
             i in PLUGIN_NAMES for i in mro
         ):
             raise TypeError(
-                "can only register one of the following: {}; not {}".format(
-                    ", ".join(PLUGIN_NAMES), mro
+                _messages.TYPE_ERROR.format(
+                    valid=", ".join(PLUGIN_NAMES), invalid=mro
                 )
             )
 
@@ -518,7 +519,9 @@ def get(name: str, default: str | None = None) -> PluginInstance:
     try:
         return _plugins[name]
     except KeyError:
-        _colors.red.print(f"no plugin named `{name}` found", file=_sys.stderr)
+        _colors.red.print(
+            _messages.NOT_FOUND.format(name=name), file=_sys.stderr
+        )
         return _plugins[default]
 
 

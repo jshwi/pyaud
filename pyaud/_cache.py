@@ -12,6 +12,7 @@ from types import TracebackType as _TracebackType
 
 import git as _git
 
+from . import messages as _messages
 from ._objects import JSONIO as _JSONIO
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import colors as _colors
@@ -185,9 +186,7 @@ class FileCacher:  # pylint: disable=too-few-public-methods
                         break
 
             if not _files and state.length:
-                _colors.green.bold.print(
-                    "No changes have been made to audited files"
-                )
+                _colors.green.bold.print(_messages.NO_FILES_CHANGED)
             else:
                 returncode = self.func(*self.args, **self.kwargs)
 
@@ -211,9 +210,7 @@ class FileCacher:  # pylint: disable=too-few-public-methods
                 and path.is_file()
                 and self.hashed.match_file(path)
             ):
-                _colors.green.print(
-                    "No changes have been made to audited file"
-                )
+                _colors.green.print(_messages.NO_FILE_CHANGED)
                 return 0
 
             self._on_completion(path)

@@ -13,6 +13,7 @@ import warnings as _warnings
 
 from spall.exceptions import CommandNotFoundError as _CommandNotFoundError
 
+from . import messages as _messages
 from ._cache import FileCacher as _FileCacher
 from ._objects import BasePlugin as _BasePlugin
 from ._objects import colors as _colors
@@ -26,7 +27,7 @@ class CheckCommand:
     def _announce_completion(success_message: str, returncode: int) -> None:
         if returncode:
             _colors.red.bold.print(
-                f"Failed: returned non-zero exit status {returncode}",
+                _messages.FAILED.format(returncode=returncode),
                 file=_sys.stderr,
             )
         else:
@@ -43,9 +44,7 @@ class CheckCommand:
         @_functools.wraps(func)
         def _wrapper(*args: str, **kwargs: bool) -> int:
             returncode = func(*args, **kwargs)
-            cls._announce_completion(
-                "Success: no issues found in file", returncode
-            )
+            cls._announce_completion(_messages.SUCCESS_FILE, returncode)
             return returncode
 
         return _wrapper
@@ -62,12 +61,11 @@ class CheckCommand:
         def _wrapper(*args: str, **kwargs: bool) -> int:
             returncode = 0
             if not _files.reduce():
-                print("No files found")
+                print(_messages.NO_FILES_FOUND)
             else:
                 returncode = func(*args, **kwargs)
                 cls._announce_completion(
-                    f"Success: no issues found in {len(_files)} source files",
-                    returncode,
+                    _messages.SUCCESS_FILES.format(len=len(_files)), returncode
                 )
 
             return returncode
@@ -115,7 +113,9 @@ class ClassDecorator:
                 return func(*args, **kwargs)
             except _CommandNotFoundError as err:
                 _warnings.warn(
-                    f"{str(err).split(':', maxsplit=1)[0]}: Command not found",
+                    _messages.COMMAND_NOT_FOUND.format(
+                        command=str(err).split(":", maxsplit=1)[0]
+                    ),
                     RuntimeWarning,
                 )
 

@@ -4,6 +4,7 @@ pyaud._default
 """
 import inspect as _inspect
 
+from . import messages as _messages
 from . import plugins as _plugins
 from ._objects import NAME as _NAME
 from ._objects import colors as _colors
@@ -15,10 +16,10 @@ class _Audit(_plugins.Action):
 
     def action(self, *args: str, **kwargs: bool) -> int:
         returncode = 0
-        message = _colors.green.bold.get("Success: All checks have passed")
+        message = _colors.green.bold.get(_messages.AUDIT_PASSED)
         bullet = _colors.cyan.get("-")
         _colors.cyan.bold.print(f"\n{_NAME} {self.name}")
-        _colors.green.underline.print("running the following plugins")
+        _colors.green.underline.print(_messages.AUDIT_RUNNING)
         results = []
         print(f"{bullet} " + f"\n{bullet} ".join(_toml[self.name]))
         funcs = _toml[self.name]
@@ -29,9 +30,7 @@ class _Audit(_plugins.Action):
                 if _plugins.get(func)(**kwargs):
                     symbol = _colors.red.get("\u2716")
                     returncode = 1
-                    message = _colors.red.bold.get(
-                        "Failed: One or more checks have failed"
-                    )
+                    message = _colors.red.bold.get(_messages.AUDIT_FAILED)
 
             results.append(f"{func} {symbol}")
 

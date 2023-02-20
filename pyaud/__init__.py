@@ -1,5 +1,5 @@
 """Framework for writing Python package audits."""
-from . import exceptions, plugins
+from . import exceptions, messages, plugins
 from ._core import pyaud
 from ._main import main
 from ._objects import BasePlugin, files
@@ -13,4 +13,5 @@ __all__ = [
     "plugins",
     "main",
     "pyaud",
+    "messages",
 ]

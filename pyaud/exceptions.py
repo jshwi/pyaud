@@ -11,6 +11,8 @@ new plugins as well.
 """
 from __future__ import annotations
 
+from . import messages as _messages
+
 
 class NameConflictError(Exception):
     """Raise if adding plugin whose name is not unique.
@@ -20,4 +22,6 @@ class NameConflictError(Exception):
     """
 
     def __init__(self, plugin: str, name: str) -> None:
-        super().__init__(f"plugin name conflict at {plugin}: '{name}'")
+        super().__init__(
+            _messages.NAME_CONFLICT_ERROR.format(plugin=plugin, name=name)
+        )
