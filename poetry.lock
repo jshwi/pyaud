@@ -809,21 +809,6 @@ files = [
 gitdb = ">=4.0.1,<5"
 
 [[package]]
-name = "gitspy"
-version = "0.3.0"
-description = "Intuitive Git for Python"
-category = "main"
-optional = false
-python-versions = ">=3.8,<4.0"
-files = [
-    {file = "gitspy-0.3.0-py3-none-any.whl", hash = "sha256:8ca2e79c39d95d1a374d35bd3f31741fec168884fb58243adda65ea4bdfbe13d"},
-    {file = "gitspy-0.3.0.tar.gz", hash = "sha256:74e582d2f13001f61133e02c5ceb252a1511d3859cfdff16637e50ba0f3091bd"},
-]
-
-[package.dependencies]
-spall = ">=0,<1"
-
-[[package]]
 name = "handy-archives"
 version = "0.1.4"
 description = "Some handy archive helpers for Python."
@@ -1596,14 +1581,14 @@ tests = ["pytest"]
 
 [[package]]
 name = "pyaud-plugins"
-version = "0.12.0"
+version = "0.13.1"
 description = "Plugin package for Pyaud"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "pyaud_plugins-0.12.0-py3-none-any.whl", hash = "sha256:c40b2952333021810b2c1d6ddb01118a728fda463d2eddc9544e57960e3a4015"},
-    {file = "pyaud_plugins-0.12.0.tar.gz", hash = "sha256:fc9123c15fd4547ac538823b55822040d67a86c83cd7a997551f2ca1c6feec2f"},
+    {file = "pyaud_plugins-0.13.1-py3-none-any.whl", hash = "sha256:24ef324bc0324bc5f632f1725ce1379eddc0ea014a6dba2b6fe66383d35467b9"},
+    {file = "pyaud_plugins-0.13.1.tar.gz", hash = "sha256:28cbd30902c4548dcbaf3257c89afcc0fbc0cc039be9a69241694fb6b9e01e20"},
 ]
 
 [package.dependencies]
@@ -1617,16 +1602,18 @@ docsig = ">=0,<1"
 environs = ">=9.4.0,<10.0.0"
 flynt = ">=0.75,<0.77"
 gitpython = ">=3.1.30,<4.0.0"
-gitspy = ">=0,<1"
 isort = ">=5.10.1,<6.0.0"
-mypy = ">=0.930,<0.992"
+mypy = ">=0.930,<1.1"
 object-colors = ">=2.0.1,<3.0.0"
 pipfile-requirements = ">=0.3.0,<0.4.0"
+pyaud = ">=4.0.2,<6.0.0"
 pylint = ">=2.12.2,<3.0.0"
 pytest = ">=7.2.0,<8.0.0"
 pytest-cov = ">=3,<5"
 python-dotenv = ">=0.19.2,<0.22.0"
+pyyaml = ">=6.0,<7.0"
 readmetester = ">=1.0.1,<3.0.0"
+setuptools = ">=67.2.0,<68.0.0"
 Sphinx = ">=4.3.2,<7.0.0"
 sphinx-markdown-builder = ">=0.5.5,<0.6.0"
 sphinxcontrib-fulltoc = ">=1.2.0,<2.0.0"
@@ -1831,7 +1818,7 @@ files = [
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -2035,7 +2022,7 @@ files = [
 name = "setuptools"
 version = "67.2.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
