@@ -191,7 +191,8 @@ def test_audit_failure(
     pyaud.plugins.register(name=LINT)(_Lint)
     mock_spall_subprocess_open_process(1)
     pyaud.files.append(Path.cwd() / FILE)
-    main(LINT)
+    returncode = main(LINT)
+    assert returncode == 1
 
 
 def test_check_command_no_files_found(
@@ -203,8 +204,9 @@ def test_check_command_no_files_found(
     :param capsys: Capture sys out and err.
     """
     pyaud.plugins.register(PLUGIN_NAME[1])(MockAudit)
-    main(PLUGIN_NAME[1])
+    returncode = main(PLUGIN_NAME[1])
     std = capsys.readouterr()
+    assert returncode == 0
     assert "No files found" in std.out
 
 
@@ -226,7 +228,8 @@ def test_audit_error_did_no_pass_all_checks(
     )
     pyaud.plugins.register(name=PLUGIN_NAME[1])(plugins[0])
     pyaud.files.append(Path.cwd() / FILES)
-    main(PLUGIN_NAME[1])
+    returncode = main(PLUGIN_NAME[1])
+    assert returncode == 1
 
 
 def test_no_exe_provided(
@@ -255,12 +258,13 @@ def test_modules(main: MockMainType, capsys: pytest.CaptureFixture) -> None:
     :param main: Patch package entry point.
     :param capsys: Capture sys out and err.
     """
-    main(MODULES)
+    returncode = main(MODULES)
     std = capsys.readouterr()
     assert (
         "\naudit   -- Read from [audit] key in config\n"
         "modules -- Display all available plugins and their documentation\n"
     ) in std.out
+    assert returncode == 0
 
 
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
@@ -282,8 +286,9 @@ def test_audit_fail(
     make_tree(Path.cwd(), {FILE: None, DOCS: {CONFPY: None}})
     pyaud.files.append(Path.cwd() / FILE)
     mock_spall_subprocess_open_process(1)
-    main(AUDIT, f"--audit={PLUGIN_NAME[1]}")
+    returncode = main(AUDIT, f"--audit={PLUGIN_NAME[1]}")
     std = capsys.readouterr()
+    assert returncode == 1
     assert "Failed: returned non-zero exit status" in std.err
 
 
@@ -314,8 +319,9 @@ def test_parametrize(
     pyaud.plugins.register(name=PLUGIN_NAME[1])(plugin_one)
     pyaud.plugins.register(name=PLUGIN_NAME[2])(plugin_two)
     pyaud.plugins.register(name=PARAMS)(_Params)
-    main(PARAMS)
+    returncode = main(PARAMS)
     std = capsys.readouterr()
+    assert returncode == 0
     assert f"pyaud {PLUGIN_NAME[1]}" in std.out
     assert f"pyaud {PLUGIN_NAME[2]}" in std.out
 
@@ -417,8 +423,9 @@ def test_audit_success(
     make_tree(Path.cwd(), {FILE: None, DOCS: {CONFPY: None}})
     pyaud.files.append(Path.cwd() / FILE)
     mock_spall_subprocess_open_process(1)
-    main(AUDIT, "--audit=modules")
+    returncode = main(AUDIT, "--audit=modules")
     std = capsys.readouterr()
+    assert returncode == 0
     assert "Display all available plugins and their documentation" in std.out
 
 
