@@ -81,11 +81,11 @@ class _IndexedState:
 class _HashMapping(_JSONIO):
     _FB = "fallback"
 
-    def __init__(self, project: str, cls: type[_BasePlugin]) -> None:
+    def __init__(self, cls: type[_BasePlugin]) -> None:
         super().__init__(
             _Path(_os.environ["PYAUD_CACHE"]) / __version__ / "files.json"
         )
-        self._project = project
+        self._project = _Path.cwd().name
         try:
             self._commit = _git.Repo(_Path.cwd()).git.rev_parse("HEAD")
         except _git.GitCommandError:
@@ -144,7 +144,7 @@ def _cache_files_wrapper(
     def _wrapper(*args: str, **kwargs: bool) -> int:
         if cls.cache and _files:
             returncode = 0
-            hashed = _HashMapping(_Path.cwd().name, cls)
+            hashed = _HashMapping(cls)
             with _IndexedState() as state:
                 for file in list(_files):
                     if hashed.match_file(file):
@@ -179,7 +179,7 @@ def _cache_file_wrapper(
     @_functools.wraps(func)
     def _wrapper(*args: str, **kwargs: bool) -> int:
         if cls.cache_file is not None:
-            hashed = _HashMapping(_Path.cwd().name, cls)
+            hashed = _HashMapping(cls)
             returncode = 0
             file = cls.cache_file
             if file is not None:
