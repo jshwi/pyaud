@@ -11,6 +11,7 @@ import typing as t
 from pathlib import Path
 
 import pytest
+from mypy_extensions import KwArg, VarArg
 
 import pyaud
 
@@ -49,7 +50,7 @@ def fixture_mock_environment(
     :param mock_repo: Mock ``git.Repo`` class.
     """
     repo_abs = tmp_path / repo[1]
-    mock_repo(rev_parse=lambda _: None, status=lambda _: None)
+    mock_repo()
     monkeypatch.setenv("PYAUD_CACHE", str(tmp_path / ".pyaud_cache"))
     monkeypatch.setattr("os.getcwd", lambda: str(repo_abs))
     monkeypatch.setattr("pyaud.plugins._plugins", pyaud.plugins.Plugins())
@@ -173,10 +174,17 @@ def fixture_mock_repo(monkeypatch: pytest.MonkeyPatch) -> FixtureMockRepo:
     :return: Function for using this fixture.
     """
 
-    def _mock_repo(**kwargs: t.Callable[..., str]) -> None:
+    def _mock_repo(
+        **kwargs: t.Callable[[VarArg(t.Any), KwArg(t.Any)], None]
+    ) -> None:
+        default_kwargs = {
+            "rev_parse": lambda *_, **__: None,
+            "status": lambda *_, **__: None,
+        }
+        default_kwargs.update(kwargs)
         git_repo = type("Repo", (), {})
         git_repo.git = type("git", (), {})  # type: ignore
-        for key, value in kwargs.items():
+        for key, value in default_kwargs.items():
             setattr(git_repo.git, key, value)  # type: ignore
 
         monkeypatch.setattr("pyaud._cache._git.Repo", lambda _: git_repo)
