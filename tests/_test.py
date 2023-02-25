@@ -445,7 +445,8 @@ def test_parametrize_fail(
     )
     pyaud.plugins.register(name=PLUGIN_NAME[1])(plugins[0])
     pyaud.plugins.register(name=PARAMS)(_Params)
-    assert main(PARAMS) == 1
+    returncode = main(PARAMS)
+    assert returncode == 1
 
 
 def test_subprocess(
