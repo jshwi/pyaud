@@ -136,76 +136,64 @@ class _HashMapping(_JSONIO):
         super().write()
 
 
-# handle caching of file(s)
-class _FileCacher:  # pylint: disable=too-few-public-methods
-    def __init__(
-        self,
-        cls: type[_BasePlugin],
-        func: _t.Callable[..., int],
-        *args: str,
-        **kwargs: bool,
-    ) -> None:
-        self._cls = cls
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
-        self.hashed = _HashMapping(_Path.cwd().name, self._cls)
-
-    def files(self) -> int:
-        """Handle caching of a single file.
-
-        :return: Exit status.
-        """
-        returncode = 0
-        with _IndexedState() as state:
-            for file in list(_files):
-                if self.hashed.match_file(file):
-                    _files.remove(file)
-                else:
-                    if self._cls.cache_all:
-                        state.restore()
-                        break
-
-            if not _files and state.length:
-                _colors.green.bold.print(_messages.NO_FILES_CHANGED)
+# handle caching of a single file
+def _cache_files_wrapper(
+    cls: type[_BasePlugin],
+    func: _t.Callable[..., int],
+    *args: str,
+    **kwargs: bool,
+) -> int:
+    returncode = 0
+    hashed = _HashMapping(_Path.cwd().name, cls)
+    with _IndexedState() as state:
+        for file in list(_files):
+            if hashed.match_file(file):
+                _files.remove(file)
             else:
-                returncode = self.func(*self.args, **self.kwargs)
+                if cls.cache_all:
+                    state.restore()
+                    break
 
-            if not returncode:
-                for path in _files:
-                    self.hashed.save_hash(path)
+        if not _files and state.length:
+            _colors.green.bold.print(_messages.NO_FILES_CHANGED)
+        else:
+            returncode = func(*args, **kwargs)
 
-                self.hashed.write()
+        if not returncode:
+            for path in _files:
+                hashed.save_hash(path)
 
-        return returncode
+            hashed.write()
 
-    def file(self) -> int:
-        """Handle caching of a repo's python files.
+    return returncode
 
-        :return: Exit status.
-        """
-        returncode = 0
-        file = self._cls.cache_file
-        if file is not None:
-            path = _Path.cwd() / file
-            returncode = self.func(*self.args, **self.kwargs)
-            if returncode:
-                self.hashed.save_hash(path)
-                self.hashed.write()
-                return returncode
 
-            if (
-                not returncode
-                and path.is_file()
-                and self.hashed.match_file(path)
-            ):
-                _colors.green.print(_messages.NO_FILE_CHANGED)
-                return 0
+# handle caching of a repo's python files
+def _cache_file_wrapper(
+    cls: type[_BasePlugin],
+    func: _t.Callable[..., int],
+    *args: str,
+    **kwargs: bool,
+) -> int:
+    hashed = _HashMapping(_Path.cwd().name, cls)
+    returncode = 0
+    file = cls.cache_file
+    if file is not None:
+        path = _Path.cwd() / file
+        returncode = func(*args, **kwargs)
+        if returncode:
+            hashed.save_hash(path)
+            hashed.write()
+            return returncode
 
-            self.hashed.save_hash(path)
-            self.hashed.write()
+        if not returncode and path.is_file() and hashed.match_file(path):
+            _colors.green.print(_messages.NO_FILE_CHANGED)
+            return 0
 
-        return returncode
+        hashed.save_hash(path)
+        hashed.write()
+
+    return returncode
 
 
 # run the routine common with single file fixes
@@ -259,12 +247,11 @@ def _cache_wrapper(
     @_functools.wraps(func)
     def _wrapper(*args: str, **kwargs: bool) -> int:
         if not kwargs.get("no_cache", False):
-            _file_cacher = _FileCacher(cls, func, *args, **kwargs)
             if cls.cache_file is not None:
-                return _file_cacher.file()
+                return _cache_file_wrapper(cls, func, *args, **kwargs)
 
             if cls.cache and _files:
-                return _file_cacher.files()
+                return _cache_files_wrapper(cls, func, *args, **kwargs)
 
         return func(*args, **kwargs)
 
