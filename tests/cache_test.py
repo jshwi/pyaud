@@ -39,6 +39,7 @@ CONTENT_HASHES = (
     [
         "commit",
         "dirty",
+        "rev",
         "existing_cache",
         "cache_file_action",
         "python_file_action",
@@ -53,6 +54,7 @@ CONTENT_HASHES = (
         (
             COMMITS[0],
             False,
+            f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {},
             lambda _, __, ___: None,
             lambda x, y: x.write_text(y),
@@ -75,6 +77,7 @@ CONTENT_HASHES = (
         (
             COMMITS[0],
             False,
+            f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {repo[1]: {COMMITS[0]: {x: {}}, FALLBACK: {x: {}}}},
             lambda x, y, z: x.write_text(json.dumps(y(z))),
             lambda x, y: x.write_text(y),
@@ -97,6 +100,7 @@ CONTENT_HASHES = (
         (
             COMMITS[0],
             False,
+            f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {
                 repo[1]: {
                     COMMITS[0]: {
@@ -128,6 +132,7 @@ CONTENT_HASHES = (
         (
             COMMITS[0],
             False,
+            f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {
                 repo[1]: {
                     COMMITS[0]: {
@@ -159,6 +164,7 @@ CONTENT_HASHES = (
         (
             COMMITS[0],
             False,
+            f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {
                 repo[1]: {
                     COMMITS[1]: {
@@ -193,6 +199,7 @@ CONTENT_HASHES = (
         (
             COMMITS[0],
             False,
+            f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {
                 repo[1]: {
                     COMMITS[0]: {
@@ -224,6 +231,7 @@ CONTENT_HASHES = (
         (
             COMMITS[0],
             True,
+            f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {
                 repo[1]: {
                     COMMITS[0]: {
@@ -258,6 +266,7 @@ CONTENT_HASHES = (
         (
             COMMITS[0],
             False,
+            f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {
                 repo[1]: {
                     COMMITS[0]: {
@@ -287,6 +296,7 @@ CONTENT_HASHES = (
         (
             COMMITS[0],
             False,
+            f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda: "no json",
             lambda x, y, z: x.write_text(z),
             lambda x, y: x.write_text(y),
@@ -306,6 +316,38 @@ CONTENT_HASHES = (
                 }
             },
         ),
+        (
+            COMMITS[0],
+            False,
+            COMMITS[0],
+            lambda x: {
+                repo[1]: {
+                    COMMITS[1]: {
+                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                    },
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                    },
+                }
+            },
+            lambda x, y, z: x.write_text(json.dumps(y(z))),
+            lambda x, y: x.write_text(y),
+            CONTENT_HASHES[1].content_str,
+            CONTENT_HASHES[0].content_str,
+            (flag.fix,),
+            0,
+            pyaud.messages.SUCCESS_FILE,
+            lambda x: {
+                repo[1]: {
+                    FALLBACK: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                    COMMITS[0]: {
+                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                    },
+                }
+            },
+        ),
     ],
     ids=[
         "initial-bad",
@@ -317,6 +359,7 @@ CONTENT_HASHES = (
         "dirty-working-tree",
         "unlink",
         "invalid-json",
+        "test-gc",
     ],
 )
 def test_fix_file(
@@ -326,6 +369,7 @@ def test_fix_file(
     cache_file: Path,
     commit: str,
     dirty: bool,
+    rev: str,
     existing_cache: t.Callable[[str], dict[str, dict[str, dict[str, str]]]],
     cache_file_action: t.Callable[
         [Path, t.Callable[[str], dict[str, dict[str, dict[str, str]]]], str],
@@ -348,6 +392,7 @@ def test_fix_file(
         file.
     :param commit: Commit hash of the environment that's being tested.
     :param dirty: Boolean value for whether working tree dirty.
+    :param rev: Commits that have a revision.
     :param existing_cache: State of the cache file before testing.
     :param cache_file_action: Action to write to existing cache file.
     :param python_file_action: Action to write to existing python file.
@@ -382,7 +427,11 @@ def test_fix_file(
             )
 
     name = "whitelist"
-    mock_repo(rev_parse=lambda _: commit, status=lambda _: dirty)
+    mock_repo(
+        rev_parse=lambda _: commit,
+        status=lambda _: dirty,
+        rev_list=lambda _: rev,
+    )
     pyaud.files.append(path)
     cache_file_action(cache_file, existing_cache, str(_Whitelist))
     pyaud.plugins.register()(_Whitelist)

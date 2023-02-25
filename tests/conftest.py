@@ -180,6 +180,7 @@ def fixture_mock_repo(monkeypatch: pytest.MonkeyPatch) -> FixtureMockRepo:
         default_kwargs = {
             "rev_parse": lambda *_, **__: None,
             "status": lambda *_, **__: None,
+            "rev_list": lambda *_, **__: "",
         }
         default_kwargs.update(kwargs)
         git_repo = type("Repo", (), {})

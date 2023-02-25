@@ -13,6 +13,7 @@ import git as _git
 from . import messages as _messages
 from . import plugins as _plugins
 from ._builtins import register_builtin_plugins as _register_builtin_plugins
+from ._objects import JSONIO as _JSONIO
 from ._objects import NAME as _NAME
 from ._objects import colors as _colors
 from ._objects import files as _files
@@ -41,6 +42,27 @@ def _create_cachedir() -> None:
     (path / ".gitignore").write_text(f"# Created by {_NAME} automatically.\n*")
 
 
+# remove cache of commits with no revision
+def _garbage_collection() -> None:
+    path = _Path.cwd()
+    repo = _git.Repo(path)
+    commits = repo.git.rev_list("--all").splitlines()
+    json = _JSONIO(
+        _Path(_os.environ["PYAUD_CACHE"]) / __version__ / _plugins.CACHE_FILE
+    )
+    json.read()
+    project = json.get(path.name, {})
+    for commit in dict(project):
+        if (
+            commit not in commits
+            and commit != _plugins.FALLBACK
+            and not commit.startswith(_plugins.UNCOMMITTED)
+        ):
+            del project[commit]
+
+    json.write()
+
+
 def pyaud(  # pylint: disable=too-many-arguments
     module: str,
     audit: list[str] | None = None,
@@ -66,4 +88,5 @@ def pyaud(  # pylint: disable=too-many-arguments
     _register_builtin_plugins()
     _plugins.load()
     _create_cachedir()
+    _garbage_collection()
     return _plugins.get(module, "modules")(fix=fix, no_cache=no_cache)
