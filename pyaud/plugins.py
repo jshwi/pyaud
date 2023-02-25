@@ -96,6 +96,12 @@ class _HashMapping(_JSONIO):
         if _git.Repo(_Path.cwd()).git.status("--short"):
             self._commit = f"uncommitted-{self._commit}"
 
+        super().read()
+        project_obj = self.get(self._project, {})
+        fallback = project_obj.get(self._FB, {})
+        project_obj[self._commit] = project_obj.get(self._commit, fallback)
+        self._session = project_obj[self._commit].get(self._cls, {})
+
     def match_file(self, path: _Path) -> bool:
         """Match selected class against a file relevant to it.
 
@@ -123,14 +129,6 @@ class _HashMapping(_JSONIO):
             if relpath in self._session:
                 del self._session[relpath]
 
-    def read(self) -> None:
-        """Read from file to object."""
-        super().read()
-        project = self.get(self._project, {})
-        fallback = project.get(self._FB, {})
-        project[self._commit] = project.get(self._commit, fallback)
-        self._session = project[self._commit].get(self._cls, {})
-
     def write(self) -> None:
         """Write data to file."""
         cls = {self._cls: dict(self._session)}
@@ -152,7 +150,6 @@ class _FileCacher:  # pylint: disable=too-few-public-methods
         self.args = args
         self.kwargs = kwargs
         self.hashed = _HashMapping(_Path.cwd().name, self._cls)
-        self.hashed.read()
 
     def files(self) -> int:
         """Handle caching of a single file.
