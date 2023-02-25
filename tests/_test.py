@@ -77,7 +77,7 @@ def test_register_invalid_type() -> None:
     assert TYPE_ERROR in str(err.value)
 
 
-def test_plugin_assign_non_type_key() -> None:
+def test_register_invalid_subclass_type() -> None:
     """Test assigning of incompatible type to `_Plugin` instance."""
     unique = "test-plugin-assign-non-type-key"
     with pytest.raises(TypeError) as err:
@@ -165,7 +165,7 @@ def test_command_not_found_error(
         exe()
 
 
-def test_warn_no_fix(
+def test_audit_failure(
     main: MockMainType,
     mock_spall_subprocess_open_process: FixtureMockSpallSubprocessOpenProcess,
 ) -> None:
