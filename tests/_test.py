@@ -458,3 +458,8 @@ def test_default_key() -> None:
         assert obj[KEY] == "temp_value"
 
     assert obj[KEY] == "default_value"
+
+
+def test_plugins_call() -> None:
+    """Get coverage on ``Plugin.__call__.``"""
+    assert pyaud.plugins.Plugin("name")() == 0
