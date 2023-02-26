@@ -439,3 +439,22 @@ def test_staged_file_removed(main: FixtureMain) -> None:
         main(AUDIT, f"--audit={plugin_name[1]}")
 
     assert pyaud.messages.REMOVED_FILES in str(err.value)
+
+
+def test_keyboard_interrupt(
+    monkeypatch: pytest.MonkeyPatch, main: FixtureMain
+) -> None:
+    """Test commandline ``KeyboardInterrupt``.
+
+    :param monkeypatch: Mock patch environment and attributes.
+    :param main: Patch package entry point.
+    """
+
+    def _pyaud(*_: str, **__: bool) -> t.Any:
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr("pyaud._main._pyaud", _pyaud)
+    with pytest.raises(SystemExit) as err:
+        main(plugin_name[1])
+
+    assert pyaud.messages.KEYBOARD_INTERRUPT in str(err.value)
