@@ -1084,14 +1084,14 @@ files = [
 
 [[package]]
 name = "lsfiles"
-version = "0.4.0"
+version = "0.5.0"
 description = "Path object VC index"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "lsfiles-0.4.0-py3-none-any.whl", hash = "sha256:4de1e535c19cd7b55d22444865ffb9e1c0326bf6b4a712805ead65cbb3e7df21"},
-    {file = "lsfiles-0.4.0.tar.gz", hash = "sha256:98c30508fbc7da1176421027e3574089903d0a221535791604f1d288cc8ffbee"},
+    {file = "lsfiles-0.5.0-py3-none-any.whl", hash = "sha256:374283b331ce8188ad47fd3241aba1365d9aab245a5210289a1c70be262f5bc5"},
+    {file = "lsfiles-0.5.0.tar.gz", hash = "sha256:81f5fa7695a1017aadc43dd7c5f7e0d4db86822f5ba5ce77dd30ddc3d9d7b048"},
 ]
 
 [package.dependencies]
