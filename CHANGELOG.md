@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v6.0.1...HEAD)
 ------------------------------------------------------------------------
+### Added
+- Block runs when staged file removed
 
 [6.0.1](https://github.com/jshwi/pyaud/releases/tag/v6.0.1) - 2023-02-26
 ------------------------------------------------------------------------

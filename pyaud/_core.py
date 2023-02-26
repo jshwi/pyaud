@@ -29,6 +29,16 @@ def _populate_files(exclude: str | None = None) -> None:
             _colors.red.bold.get(_messages.INVALID_REPOSITORY.format(path=err))
         )
 
+    if [i for i in _files if not i.is_file()]:
+        _sys.exit(
+            "{}\n{}".format(
+                _colors.red.bold.get(_messages.REMOVED_FILES),
+                _messages.RUN_COMMAND.format(
+                    command=_colors.cyan.get("git add")
+                ),
+            )
+        )
+
 
 def _create_cachedir() -> None:
     path = _Path(_os.environ["PYAUD_CACHE"])

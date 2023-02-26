@@ -18,6 +18,7 @@ import pytest
 import pyaud
 
 from . import (
+    AUDIT,
     INIT,
     KEY,
     PARAMS,
@@ -121,8 +122,10 @@ def test_audit_error_did_no_pass_all_checks(
     plugins = mock_action_plugin_factory(
         PluginTuple(plugin_name[1], action=action)
     )
+    path = Path.cwd() / python_file[1]
+    path.touch()
     pyaud.plugins.register(name=plugin_name[1])(plugins[0])
-    pyaud.files.append(Path.cwd() / python_file[1])
+    pyaud.files.append(path)
     returncode = main(plugin_name[1])
     assert returncode == 1
 
@@ -183,9 +186,11 @@ def test_audit(
         def audit(self, *_: str, **__: bool) -> int:
             return expected_returncode
 
+    path = Path.cwd() / python_file[1]
+    path.touch()
     pyaud.plugins.register(plugin_name[1])(_MockAudit)
-    pyaud.files.append(Path.cwd() / python_file[1])
-    returncode = main("audit", f"--audit={plugin_name[1]}")
+    pyaud.files.append(path)
+    returncode = main(AUDIT, f"--audit={plugin_name[1]}")
     assert returncode == expected_returncode
     assert expected_output in capsys.readouterr()[expected_returncode]
 
@@ -201,9 +206,11 @@ def test_audit_raise(main: FixtureMain) -> None:
         def audit(self, *_: str, **__: bool) -> int:
             raise CalledProcessError(1, "command")
 
+    path = Path.cwd() / python_file[1]
+    path.touch()
     pyaud.plugins.register(plugin_name[1])(_MockAudit)
-    pyaud.files.append(Path.cwd() / python_file[1])
-    returncode = main("audit", f"--audit={plugin_name[1]}")
+    pyaud.files.append(path)
+    returncode = main(AUDIT, f"--audit={plugin_name[1]}")
     assert returncode == 1
 
 
@@ -411,3 +418,24 @@ def test_not_a_valid_git_repository(
     assert pyaud.messages.INVALID_REPOSITORY.split(":", maxsplit=1)[0] in str(
         err.value
     )
+
+
+def test_staged_file_removed(main: FixtureMain) -> None:
+    """Test run blocked when staged file removed.
+
+    Without this, files that do not exist could be passed to plugin
+    args.
+
+    :param main: Patch package entry point.
+    """
+
+    class _MockAudit(pyaud.plugins.Audit):
+        def audit(self, *_: str, **__: bool) -> int:  # type: ignore
+            """Nothing to do."""
+
+    pyaud.plugins.register(plugin_name[1])(_MockAudit)
+    pyaud.files.append(Path.cwd() / python_file[1])
+    with pytest.raises(SystemExit) as err:
+        main(AUDIT, f"--audit={plugin_name[1]}")
+
+    assert pyaud.messages.REMOVED_FILES in str(err.value)

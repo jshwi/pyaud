@@ -15,6 +15,7 @@ from templatest.utils import VarPrefix, VarSeq, VarSeqSuffix
 
 import pyaud
 
+AUDIT = "audit"
 FIX = "fix"
 FIX_ALL = "fix-all"
 INIT = "__init__.py"

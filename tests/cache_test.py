@@ -41,6 +41,7 @@ CONTENT_HASHES = (
         "dirty",
         "rev",
         "existing_cache",
+        "append",
         "cache_file_action",
         "python_file_action",
         "file_content",
@@ -56,6 +57,7 @@ CONTENT_HASHES = (
             False,
             f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {},
+            pyaud.files.append,
             lambda _, __, ___: None,
             lambda x, y: x.write_text(y),
             CONTENT_HASHES[0].content_str,
@@ -79,6 +81,7 @@ CONTENT_HASHES = (
             False,
             f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {repo[1]: {COMMITS[0]: {x: {}}, FALLBACK: {x: {}}}},
+            pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
             lambda x, y: x.write_text(y),
             CONTENT_HASHES[0].content_str,
@@ -111,6 +114,7 @@ CONTENT_HASHES = (
                     },
                 }
             },
+            pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
             lambda x, y: x.write_text(y),
             CONTENT_HASHES[0].content_str,
@@ -143,6 +147,7 @@ CONTENT_HASHES = (
                     },
                 }
             },
+            pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
             lambda x, y: x.write_text(y),
             CONTENT_HASHES[1].content_str,
@@ -175,6 +180,7 @@ CONTENT_HASHES = (
                     },
                 }
             },
+            pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
             lambda x, y: x.write_text(y),
             CONTENT_HASHES[1].content_str,
@@ -210,6 +216,7 @@ CONTENT_HASHES = (
                     },
                 }
             },
+            pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
             lambda x, y: x.write_text(y),
             CONTENT_HASHES[1].content_str,
@@ -242,6 +249,7 @@ CONTENT_HASHES = (
                     },
                 }
             },
+            pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
             lambda x, y: x.write_text(y),
             CONTENT_HASHES[1].content_str,
@@ -277,6 +285,7 @@ CONTENT_HASHES = (
                     },
                 }
             },
+            lambda _: None,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
             lambda _, __: None,
             None,
@@ -298,6 +307,7 @@ CONTENT_HASHES = (
             False,
             f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda: "no json",
+            pyaud.files.append,
             lambda x, y, z: x.write_text(z),
             lambda x, y: x.write_text(y),
             CONTENT_HASHES[0].content_str,
@@ -330,6 +340,7 @@ CONTENT_HASHES = (
                     },
                 }
             },
+            pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
             lambda x, y: x.write_text(y),
             CONTENT_HASHES[1].content_str,
@@ -371,6 +382,7 @@ def test_fix_file(
     dirty: bool,
     rev: str,
     existing_cache: t.Callable[[str], dict[str, dict[str, dict[str, str]]]],
+    append: t.Callable[[Path], None],
     cache_file_action: t.Callable[
         [Path, t.Callable[[str], dict[str, dict[str, dict[str, str]]]], str],
         None,
@@ -394,6 +406,7 @@ def test_fix_file(
     :param dirty: Boolean value for whether working tree dirty.
     :param rev: Commits that have a revision.
     :param existing_cache: State of the cache file before testing.
+    :param append: Append to files.
     :param cache_file_action: Action to write to existing cache file.
     :param python_file_action: Action to write to existing python file.
     :param file_content: Contents of file for testing.
@@ -432,7 +445,7 @@ def test_fix_file(
         status=lambda _: dirty,
         rev_list=lambda _: rev,
     )
-    pyaud.files.append(path)
+    append(path)
     cache_file_action(cache_file, existing_cache, str(_Whitelist))
     pyaud.plugins.register()(_Whitelist)
     python_file_action(path, file_content)
@@ -442,6 +455,7 @@ def test_fix_file(
     assert returncode == expected_returncode
     assert expected_message in out
     assert cache == expected_cache(str(_Whitelist))
+    pyaud.files.clear()
 
 
 @pytest.mark.parametrize(
