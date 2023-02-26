@@ -79,7 +79,7 @@ version = "6.1.0"
 [tool.poetry.dependencies]
 arcon = "^0.2.1"
 gitpython = "^3.1.30"
-lsfiles = ">=0.3"
+lsfiles = ">=0.5"
 object-colors = "^2.0.1"
 pyaud-plugins = ">=0.8"
 python = "^3.8"
