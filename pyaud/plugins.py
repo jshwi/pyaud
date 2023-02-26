@@ -166,7 +166,9 @@ class _TempEnvVar:
 
 
 # handle caching of a single file
-def _cache_files_wrapper(cls_call, self, *args, **kwargs) -> int:
+def _cache_files_wrapper(
+    cls_call: _t.Callable[..., int], self: Plugin, *args: str, **kwargs: bool
+) -> int:
     returncode = 0
     hashed = _HashMapping(self.__class__)
     with _IndexedState() as state:
@@ -193,7 +195,9 @@ def _cache_files_wrapper(cls_call, self, *args, **kwargs) -> int:
 
 
 # handle caching of a repo's python files
-def _cache_file_wrapper(cls_call, self, *args, **kwargs) -> int:
+def _cache_file_wrapper(
+    cls_call: _t.Callable[..., int], self: Plugin, *args: str, **kwargs: bool
+) -> int:
     hashed = _HashMapping(self.__class__)
     returncode = 0
     file = self.cache_file
@@ -219,7 +223,7 @@ def _cache_file_wrapper(cls_call, self, *args, **kwargs) -> int:
 def _cache_wrapper(cls: type[Plugin]) -> type[Plugin]:
     cls_call = cls.__call__
 
-    def __call__(self, *args: str, **kwargs: bool) -> int:
+    def __call__(self: Plugin, *args: str, **kwargs: bool) -> int:
         if not kwargs.get("no_cache", False):
             if cls.cache_file is not None:
                 return _cache_file_wrapper(cls_call, self, *args, **kwargs)
