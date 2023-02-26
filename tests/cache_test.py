@@ -445,9 +445,10 @@ def test_fix_file(
 
 
 @pytest.mark.parametrize(
-    "use_cache_all,expected_returncode,expected_output,conditions",
+    "no_cache,use_cache_all,expected_returncode,expected_output,conditions",
     [
         (
+            False,
             False,
             0,
             [
@@ -475,6 +476,7 @@ def test_fix_file(
         ),
         (
             False,
+            False,
             1,
             [
                 pyaud.messages.FAILED.format(returncode=1),
@@ -500,6 +502,7 @@ def test_fix_file(
             ],
         ),
         (
+            False,
             True,
             0,
             [
@@ -526,6 +529,7 @@ def test_fix_file(
             ],
         ),
         (
+            False,
             True,
             1,
             [
@@ -551,17 +555,46 @@ def test_fix_file(
                 ),
             ],
         ),
+        (
+            True,
+            True,
+            0,
+            [
+                pyaud.messages.SUCCESS_FILES.format(len=3),
+                pyaud.messages.SUCCESS_FILES.format(len=3),
+                pyaud.messages.SUCCESS_FILES.format(len=3),
+            ],
+            [
+                (
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                ),
+                (
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                ),
+                (
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                    lambda x, y: x in y,
+                ),
+            ],
+        ),
     ],
     ids=[
         "no-cache-all-passed",
         "no-cache-all-failed",
         "cache-all-passed",
         "cache-all-failed",
+        "test-no-cache-passed",
     ],
 )
 def test_no_cache_all(
     capsys: pytest.CaptureFixture,
     main: FixtureMain,
+    no_cache: bool,
     use_cache_all: bool,
     expected_returncode: int,
     expected_output: list[str],
@@ -579,6 +612,7 @@ def test_no_cache_all(
 
     :param capsys: Capture sys out and err.
     :param main: Patch package entry point.
+    :param no_cache: Boolean value for whether to use cache or not.
     :param use_cache_all: Cache all files to skip an audit or cache
         single files to skip a file in an audit.
     :param expected_returncode: Expected returncode.
@@ -611,7 +645,7 @@ def test_no_cache_all(
     #: =========
     #: No files have been cached.
     #: Populating first cache.
-    returncode = main(name)
+    returncode = main(name, flag.no_cache) if no_cache else main(name)
     out = capsys.readouterr()[expected_returncode]
     assert expected_output[0] in out
     assert returncode == expected_returncode

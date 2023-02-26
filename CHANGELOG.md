@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v6.0.0...HEAD)
 ------------------------------------------------------------------------
+### Fixed
+- Fix `-n/--no-cache` argument
 
 [6.0.0](https://github.com/jshwi/pyaud/releases/tag/v6.0.0) - 2023-02-26
 ------------------------------------------------------------------------

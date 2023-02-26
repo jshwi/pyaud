@@ -166,70 +166,66 @@ class _TempEnvVar:
 
 
 # handle caching of a single file
-def _cache_files_wrapper(cls: type[Plugin]) -> type[Plugin]:
-    cls_call = cls.__call__
+def _cache_files_wrapper(cls_call, self, *args, **kwargs) -> int:
+    returncode = 0
+    hashed = _HashMapping(self.__class__)
+    with _IndexedState() as state:
+        for file in list(_files):
+            if hashed.match_file(file):
+                _files.remove(file)
+            else:
+                if self.cache_all:
+                    state.restore()
+                    break
 
-    def __call__(self, *args: str, **kwargs: bool) -> int:
-        if self.cache and _files:
-            returncode = 0
-            hashed = _HashMapping(self.__class__)
-            with _IndexedState() as state:
-                for file in list(_files):
-                    if hashed.match_file(file):
-                        _files.remove(file)
-                    else:
-                        if self.cache_all:
-                            state.restore()
-                            break
+        if not _files and state.length:
+            _colors.green.bold.print(_messages.NO_FILES_CHANGED)
+        else:
+            returncode = cls_call(self, *args, **kwargs)
 
-                if not _files and state.length:
-                    _colors.green.bold.print(_messages.NO_FILES_CHANGED)
-                else:
-                    returncode = cls_call(self, *args, **kwargs)
+        if not returncode:
+            for path in _files:
+                hashed.save_hash(path)
 
-                if not returncode:
-                    for path in _files:
-                        hashed.save_hash(path)
+            hashed.write()
 
-                    hashed.write()
-
-            return returncode
-
-        return cls_call(self, *args, **kwargs)
-
-    setattr(cls, cls.__call__.__name__, __call__)
-    return cls
+    return returncode
 
 
 # handle caching of a repo's python files
-def _cache_file_wrapper(cls: type[Plugin]) -> type[Plugin]:
+def _cache_file_wrapper(cls_call, self, *args, **kwargs) -> int:
+    hashed = _HashMapping(self.__class__)
+    returncode = 0
+    file = self.cache_file
+    if file is not None:
+        path = _Path.cwd() / file
+        returncode = cls_call(self, *args, **kwargs)
+        if returncode:
+            hashed.save_hash(path)
+            hashed.write()
+            return returncode
+
+        if not returncode and path.is_file() and hashed.match_file(path):
+            _colors.green.print(_messages.NO_FILE_CHANGED)
+            return 0
+
+        hashed.save_hash(path)
+        hashed.write()
+
+    return returncode
+
+
+# wrap plugin with a hashing function
+def _cache_wrapper(cls: type[Plugin]) -> type[Plugin]:
     cls_call = cls.__call__
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
-        if self.cache_file is not None:
-            hashed = _HashMapping(self.__class__)
-            returncode = 0
-            file = self.cache_file
-            if file is not None:
-                path = _Path.cwd() / file
-                returncode = cls_call(self, *args, **kwargs)
-                if returncode:
-                    hashed.save_hash(path)
-                    hashed.write()
-                    return returncode
+        if not kwargs.get("no_cache", False):
+            if cls.cache_file is not None:
+                return _cache_file_wrapper(cls_call, self, *args, **kwargs)
 
-                if (
-                    not returncode
-                    and path.is_file()
-                    and hashed.match_file(path)
-                ):
-                    _colors.green.print(_messages.NO_FILE_CHANGED)
-                    return 0
-
-                hashed.save_hash(path)
-                hashed.write()
-
-            return returncode
+            if cls.cache and _files:
+                return _cache_files_wrapper(cls_call, self, *args, **kwargs)
 
         return cls_call(self, *args, **kwargs)
 
@@ -342,7 +338,7 @@ class Plugin(BasePlugin):
     """
 
     def __new__(cls, name: str) -> Plugin:  # pylint: disable=unused-argument
-        return super().__new__(_cache_files_wrapper(_cache_file_wrapper(cls)))
+        return super().__new__(_cache_wrapper(cls))
 
     def __init__(self, name: str) -> None:
         self._name = name
