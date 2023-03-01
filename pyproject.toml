@@ -106,7 +106,6 @@ pyaud = "pyaud.__main__:main"
 audit = [
   "commit-policy",
   "const",
-  "docs",
   "files",
   "format",
   "format-docs",
