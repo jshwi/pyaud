@@ -11,7 +11,7 @@ This file is auto-generated and any changes made to it will be overwritten
 Test when audit passes and fails.
 
 
-### Audit error did no pass all checks(main: callable[[...], int], mock action plugin factory: callable[[...], sequence[type[[pyaud.plugins.action]
+### Audit error did no pass all checks
 
 Test raising of `AuditError`.
 
@@ -70,17 +70,17 @@ Test default value for exe property.
 Test exit when not in a git repository.
 
 
-### Parametrize(main: callable[[...], int], capsys:  pytest.capture.capturefixture, mock action plugin factory: callable[[...], sequence[type[[pyaud.plugins.action]
+### Parametrize
 
 Test class for running multiple plugins.
 
 
-### Parametrize fail(main: callable[[...], int], mock action plugin factory: callable[[...], sequence[type[[pyaud.plugins.action]
+### Parametrize fail
 
 Test class for running multiple plugins.
 
 
-### Plugin mro(mock action plugin factory: callable[[...], sequence[type[[pyaud.plugins.action]
+### Plugin mro
 
 Assert that plugins can inherit other plugins.
 
@@ -110,7 +110,7 @@ Get coverage on `Plugin.__call__.`
 Test correct error is displayed when registering unknown type.
 
 
-### Register plugin name conflict error(mock action plugin factory: callable[[...], sequence[type[[pyaud.plugins.action]
+### Register plugin name conflict error
 
 Test `NameConflictError` is raised when same name provided.
 
@@ -123,7 +123,7 @@ Without this, files that do not exist could be passed to plugin
 args.
 
 
-### Subprocess(mock action plugin factory: callable[[...], sequence[type[[pyaud.plugins.action]
+### Subprocess
 
 Test registering a subprocess.
 
