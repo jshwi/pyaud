@@ -40,6 +40,7 @@ extensions = [
     "sphinxcontrib.fulltoc",
     "sphinxcontrib.programoutput",
     "sphinx_toolbox.more_autodoc.autonamedtuple",
+    "sphinx_immaterial",
 ]
 
 
@@ -59,15 +60,92 @@ pygments_style = "monokai"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "graphite"
+html_theme = "sphinx_immaterial"
 html_domain_indices = True
 html_use_index = True
 html_show_sourcelink = True
 html_show_sphinx = False
-html_theme_path = ["_themes"]
+# html_theme_path = ["_themes"]
 html_sidebars = {"**": ["globaltoc.html", "searchbox.html"]}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ["_static"]
+
+# material theme options
+html_theme_options = {
+    "icon": {
+        "repo": "fontawesome/brands/github",
+        "edit": "material/file-edit-outline",
+    },
+    "site_url": "https://pyaud.readthedocs.io/",
+    "repo_url": "https://github.com/jshwi/pyaud/",
+    "repo_name": "pyaud",
+    "repo_type": "github",
+    "edit_uri": "blob/master/docs",
+    "globaltoc_collapse": True,
+    "features": [
+        "navigation.expand",
+        # "navigation.tabs",
+        # "toc.integrate",
+        "navigation.sections",
+        # "navigation.instant",
+        # "header.autohide",
+        "navigation.top",
+        # "navigation.tracking",
+        # "search.highlight",
+        "search.share",
+        "toc.follow",
+        "toc.sticky",
+        "content.tabs.link",
+        "announce.dismiss",
+    ],
+    "palette": [
+        # {
+        #     "media": "(prefers-color-scheme: light)",
+        #     "scheme": "default",
+        #     "primary": "light-green",
+        #     "accent": "light-blue",
+        #     "toggle": {
+        #         "icon": "material/lightbulb-outline",
+        #         "name": "Switch to dark mode",
+        #     },
+        # },
+        {
+            # "media": "(prefers-color-scheme: dark)",
+            "scheme": "slate",
+            "primary": "deep-orange",
+            "accent": "lime",
+            # "toggle": {
+            #     "icon": "material/lightbulb",
+            #     "name": "Switch to light mode",
+            # },
+        }
+    ],
+    "version_dropdown": True,
+    # "version_info": [
+    #     {
+    #         "version": "pyaud.readthedocs.io",
+    #         "title": "ReadTheDocs",
+    #         "aliases": [],
+    #     },
+    #     {
+    #         "version": "https://jshwi.github.io/pyaud",
+    #         "title": "Github Pages",
+    #         "aliases": [],
+    #     },
+    # ],
+    "toc_title_is_page_title": True,
+    "social": [
+        {
+            "icon": "fontawesome/brands/github",
+            "link": "https://github.com/jshwi/pyaud/",
+            "name": "Source on github.com",
+        },
+        {
+            "icon": "fontawesome/brands/python",
+            "link": "https://pypi.org/project/pyaud/",
+        },
+    ],
+}
