@@ -23,6 +23,7 @@ exclude: |
     | whitelist\.py
     | \.idea\/.*
     | \.github\/COMMIT_POLICY\.md
+    | docs\/conf\.py
   )$
 repos:
   - repo: local
