@@ -8,7 +8,7 @@ ci:
     - vulture
     - tests
     - toc
-    - deptry
+    - about-tests
     - commit-policy
 default_language_version:
   python: python3.8
@@ -22,6 +22,7 @@ exclude: |
     | \.bumpversion\.cfg
     | whitelist\.py
     | \.idea\/.*
+    | tests\/TESTS\.md
     | \.github\/COMMIT_POLICY\.md
   )$
 repos:
@@ -86,6 +87,13 @@ repos:
         language: system
         always_run: true
         pass_filenames: false
+      # check tests/TESTS.md is up-to-date
+      - id: about-tests
+        name: about tests
+        language: system
+        entry: poetry run pyaud about-tests
+        pass_filenames: false
+      # check .github/COMMIT_POLICY.md is up-to-date
       - id: commit-policy
         name: commit policy
         language: system

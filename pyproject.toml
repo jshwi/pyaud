@@ -104,6 +104,7 @@ pyaud = "pyaud.__main__:main"
 
 [tool.pyaud]
 audit = [
+  "about-tests",
   "commit-policy",
   "const",
   "docs",
