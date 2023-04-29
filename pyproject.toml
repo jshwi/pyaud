@@ -74,7 +74,7 @@ maintainers = [
 name = "pyaud"
 readme = "README.rst"
 repository = "https://github.com/jshwi/pyaud"
-version = "6.2.1"
+version = "6.2.2"
 
 [tool.poetry.dependencies]
 arcon = "^0.2.1"
