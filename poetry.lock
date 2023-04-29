@@ -16,7 +16,7 @@ files = [
 name = "apeye"
 version = "1.3.0"
 description = "Handy tools for working with URLs and APIs."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.1"
 files = [
@@ -38,7 +38,7 @@ limiter = ["cachecontrol[filecache] (>=0.12.6)", "lockfile (>=0.12.2)"]
 name = "apeye-core"
 version = "1.1.1"
 description = "Core (offline) functionality for the apeye library."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.1"
 files = [
@@ -54,7 +54,7 @@ idna = ">=2.5"
 name = "appdirs"
 version = "1.4.4"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 files = [
@@ -389,22 +389,6 @@ files = [
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
-name = "codecov"
-version = "2.1.12"
-description = "Hosted coverage reports for GitHub, Bitbucket and Gitlab"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-files = [
-    {file = "codecov-2.1.12-py2.py3-none-any.whl", hash = "sha256:585dc217dc3d8185198ceb402f85d5cb5dbfa0c5f350a5abcdf9e347776a5b47"},
-    {file = "codecov-2.1.12.tar.gz", hash = "sha256:a0da46bb5025426da895af90938def8ee12d37fcbcbbbc15b6dc64cf7ebc51c1"},
-]
-
-[package.dependencies]
-coverage = "*"
-requests = ">=2.7.9"
-
-[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -578,23 +562,6 @@ files = [
 graph = ["objgraph (>=1.7.2)"]
 
 [[package]]
-name = "dist-meta"
-version = "0.6.0"
-description = "Parse and create Python distribution metadata."
-category = "main"
-optional = false
-python-versions = ">=3.6.1"
-files = [
-    {file = "dist-meta-0.6.0.tar.gz", hash = "sha256:2be2ac8a925d56be1a68ff0bc5d339d44693b43906929a77b8aa3200d0238f5c"},
-    {file = "dist_meta-0.6.0-py3-none-any.whl", hash = "sha256:e86c54b8b7157f1478632121aab38dff0f2783abf515ef68c0487d58b245d7f7"},
-]
-
-[package.dependencies]
-domdf-python-tools = ">=3.1.0"
-handy-archives = ">=0.1.0"
-packaging = ">=20.9"
-
-[[package]]
 name = "distlib"
 version = "0.3.6"
 description = "Distribution utilities"
@@ -608,23 +575,17 @@ files = [
 
 [[package]]
 name = "docformatter"
-version = "1.5.1"
-description = "Formats docstrings to follow PEP 257"
+version = "1.4"
+description = "Formats docstrings to follow PEP 257."
 category = "main"
 optional = false
-python-versions = ">=3.6,<4.0"
+python-versions = "*"
 files = [
-    {file = "docformatter-1.5.1-py3-none-any.whl", hash = "sha256:05d6e4c528278b3a54000e08695822617a38963a380f5aef19e12dd0e630f19a"},
-    {file = "docformatter-1.5.1.tar.gz", hash = "sha256:3fa3cdb90cdbcdee82747c58410e47fc7e2e8c352b82bed80767915eb03f2e43"},
+    {file = "docformatter-1.4.tar.gz", hash = "sha256:064e6d81f04ac96bc0d176cbaae953a0332482b22d3ad70d47c8a7f2732eef6f"},
 ]
 
 [package.dependencies]
-charset_normalizer = ">=2.0.0,<3.0.0"
-tomli = {version = ">=2.0.0,<3.0.0", markers = "python_version >= \"3.7\""}
-untokenize = ">=0.1.1,<0.2.0"
-
-[package.extras]
-tomli = ["tomli (<2.0.0)"]
+untokenize = "*"
 
 [[package]]
 name = "docsig"
@@ -658,26 +619,10 @@ files = [
 ]
 
 [[package]]
-name = "dom-toml"
-version = "0.6.0"
-description = "Dom's tools for Tom's Obvious, Minimal Language."
-category = "main"
-optional = false
-python-versions = ">=3.6.1"
-files = [
-    {file = "dom_toml-0.6.0-py3-none-any.whl", hash = "sha256:6e40b3d4a88db2ef5fe6b433238ca00f4f6ffe34a6de16a9f015cf9122898b20"},
-    {file = "dom_toml-0.6.0.tar.gz", hash = "sha256:6f486ad979ec44814d7c6efb38d46301e100c8ad1a7f3524eca579ce48a0a6bc"},
-]
-
-[package.dependencies]
-domdf-python-tools = ">=2.8.0"
-toml = ">=0.10.2"
-
-[[package]]
 name = "domdf-python-tools"
 version = "3.6.0"
 description = "Helpful functions for Python 🐍 🛠️"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -807,22 +752,6 @@ files = [
 
 [package.dependencies]
 gitdb = ">=4.0.1,<5"
-
-[[package]]
-name = "handy-archives"
-version = "0.1.4"
-description = "Some handy archive helpers for Python."
-category = "main"
-optional = false
-python-versions = ">=3.6.1"
-files = [
-    {file = "handy-archives-0.1.4.tar.gz", hash = "sha256:c951e9a3370ce678591c797457240dbf86b77923f8c8a61a60bdb7f6c52c9110"},
-    {file = "handy_archives-0.1.4-py3-none-any.whl", hash = "sha256:0c5db273e338a197e7cb00cf4f652d2c06c7a545751a791a0f33a584f2c3eaef"},
-]
-
-[package.extras]
-all = ["coincidence (>=0.2.0)", "pytest (>=6.0.0)"]
-testing = ["coincidence (>=0.2.0)", "pytest (>=6.0.0)"]
 
 [[package]]
 name = "html2text"
@@ -1342,7 +1271,7 @@ files = [
 name = "natsort"
 version = "8.3.0"
 description = "Simple yet flexible natural sorting in Python."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1452,22 +1381,6 @@ files = [
 ]
 
 [[package]]
-name = "pipfile-requirements"
-version = "0.3.0"
-description = "A CLI tool to covert Pipfile/Pipfile.lock to requirments.txt"
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "pipfile-requirements-0.3.0.tar.gz", hash = "sha256:d47591d46d8bfecf9257967992feae31fa83aff7ab6417373c7de5ea92ab849f"},
-    {file = "pipfile_requirements-0.3.0-py2.py3-none-any.whl", hash = "sha256:dc2ff7515ce35f8b37a500e87e7b9cd39f0f5c18eb6024543366eb6d4226869b"},
-]
-
-[package.dependencies]
-packaging = "*"
-toml = "*"
-
-[[package]]
 name = "platformdirs"
 version = "3.0.0"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
@@ -1562,45 +1475,39 @@ tests = ["pytest"]
 
 [[package]]
 name = "pyaud-plugins"
-version = "0.14.0"
+version = "0.15.0"
 description = "Plugin package for Pyaud"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "pyaud_plugins-0.14.0-py3-none-any.whl", hash = "sha256:345ab6784775a55bd372e7bfd3642b72599156cf7d44842658380660ebc0f1bf"},
-    {file = "pyaud_plugins-0.14.0.tar.gz", hash = "sha256:0713691c0b16464fa4813c90ec5fbf96a50a38c3b3910a1b172806e66c44a2d7"},
+    {file = "pyaud_plugins-0.15.0-py3-none-any.whl", hash = "sha256:9a9549c668a7ac560457523cd629c1f0a2b94f9fbb1b4888d2fcbd293aa34b37"},
+    {file = "pyaud_plugins-0.15.0.tar.gz", hash = "sha256:7bdbeaa8ad85d8d442d9172a955ff31675cb80612cfa9c7f10e9985aee7869cc"},
 ]
 
 [package.dependencies]
-appdirs = ">=1.4.4,<2.0.0"
 black = ">=21.12,<24.0"
-codecov = ">=2.1.12,<3.0.0"
 constcheck = ">=0,<1"
 coverage = ">=6.2,<8.0"
-docformatter = ">=1.4,<2.0"
+docformatter = "1.4"
 docsig = ">=0.34.0"
 environs = ">=9.4.0,<10.0.0"
-flynt = ">=0.75,<0.77"
+flynt = ">=0.75,<0.79"
 gitpython = ">=3.1.30,<4.0.0"
 isort = ">=5.10.1,<6.0.0"
-mypy = ">=0.930,<1.1"
+mypy = ">=0.930,<1.3"
 object-colors = ">=2.0.1,<3.0.0"
-pipfile-requirements = ">=0.3.0,<0.4.0"
 pyaud = ">=5.0.1,<7.0.0"
 pylint = ">=2.12.2,<3.0.0"
 pytest = ">=7.2.0,<8.0.0"
 pytest-cov = ">=3,<5"
-python-dotenv = ">=0.19.2,<1.1.0"
 pyyaml = ">=6.0,<7.0"
-readmetester = ">=1.0.1,<3.0.0"
 setuptools = ">=67.2.0,<68.0.0"
 Sphinx = ">=4.3.2,<7.0.0"
 sphinx-markdown-builder = ">=0.5.5,<0.6.0"
 sphinxcontrib-fulltoc = ">=1.2.0,<2.0.0"
 sphinxcontrib-programoutput = ">=0.17,<0.18"
-toml = ">=0.10.2,<0.11.0"
-toml-sort = ">=0.20,<0.23"
+toml-sort = ">=0.20,<0.24"
 tomli = ">=2.0.1,<3.0.0"
 vulture = ">=2.3,<3.0"
 
@@ -1663,34 +1570,6 @@ typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""
 [package.extras]
 spelling = ["pyenchant (>=3.2,<4.0)"]
 testutils = ["gitpython (>3)"]
-
-[[package]]
-name = "pyproject-parser"
-version = "0.7.0"
-description = "Parser for 'pyproject.toml'"
-category = "main"
-optional = false
-python-versions = ">=3.6.1"
-files = [
-    {file = "pyproject-parser-0.7.0.tar.gz", hash = "sha256:78a8716965783486620efb0b2cc43fba7ac8eb3e71c953233faf82e75259ff73"},
-    {file = "pyproject_parser-0.7.0-py3-none-any.whl", hash = "sha256:a0aac7930f5429737b44f2bd7825980a46f312c7352e2a7a99d7196721665c2c"},
-]
-
-[package.dependencies]
-apeye-core = ">=1.0.0"
-attrs = ">=20.3.0"
-dom-toml = ">=0.4.0"
-domdf-python-tools = ">=2.8.0"
-natsort = ">=7.1.1"
-packaging = ">=20.9"
-shippinglabel = ">=1.0.0"
-toml = ">=0.10.2"
-typing-extensions = ">=3.7.4.3"
-
-[package.extras]
-all = ["click (>=7.1.2)", "consolekit (>=1.4.1)", "docutils (==0.16)", "readme-renderer[md] (>=27.0)", "sdjson (>=0.3.1)"]
-cli = ["click (>=7.1.2)", "consolekit (>=1.4.1)", "sdjson (>=0.3.1)"]
-readme = ["docutils (==0.16)", "readme-renderer[md] (>=27.0)"]
 
 [[package]]
 name = "pytest"
@@ -1866,24 +1745,6 @@ Pygments = ">=2.5.1"
 md = ["cmarkgfm (>=0.8.0)"]
 
 [[package]]
-name = "readmetester"
-version = "2.4.1"
-description = "Parse, test, and assert RST code-blocks"
-category = "main"
-optional = false
-python-versions = ">=3.8,<4.0"
-files = [
-    {file = "readmetester-2.4.1-py3-none-any.whl", hash = "sha256:f471b3180056171dd496e70ef64a63194b341c5eb33ee85c2d9121b885b80ea1"},
-    {file = "readmetester-2.4.1.tar.gz", hash = "sha256:10851e41908a4e1a28c2d1f09a74f8bc2e079529c506d5a5683bb9a189449382"},
-]
-
-[package.dependencies]
-object-colors = ">=2.0.0,<3.0.0"
-Pygments = ">=2.8.1,<3.0.0"
-pyproject-parser = ">=0.4.3,<0.8.0"
-restructuredtext-lint = ">=1.4.0,<2.0.0"
-
-[[package]]
 name = "requests"
 version = "2.28.2"
 description = "Python HTTP for Humans."
@@ -1904,20 +1765,6 @@ urllib3 = ">=1.21.1,<1.27"
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
-
-[[package]]
-name = "restructuredtext-lint"
-version = "1.4.0"
-description = "reStructuredText linter"
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "restructuredtext_lint-1.4.0.tar.gz", hash = "sha256:1b235c0c922341ab6c530390892eb9e92f90b9b75046063e047cacfb0f050c45"},
-]
-
-[package.dependencies]
-docutils = ">=0.11,<1.0"
 
 [[package]]
 name = "restview"
@@ -2015,27 +1862,6 @@ files = [
 docs = ["furo", "jaraco.packaging (>=9)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-hoverxref (<2)", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (==0.8.3)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
 testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8 (<5)", "flake8-2020", "ini2toml[lite] (>=0.9)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pip (>=19.1)", "pip-run (>=8.8)", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.3)", "pytest-flake8", "pytest-mypy (>=0.9.1)", "pytest-perf", "pytest-timeout", "pytest-xdist", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
 testing-integration = ["build[virtualenv]", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
-
-[[package]]
-name = "shippinglabel"
-version = "1.4.1"
-description = "Utilities for handling packages."
-category = "main"
-optional = false
-python-versions = ">=3.6.1"
-files = [
-    {file = "shippinglabel-1.4.1-py3-none-any.whl", hash = "sha256:dec30a73115ef96a6f54bbf11a367eb3c131197be4b26b4ed4077513ad883117"},
-    {file = "shippinglabel-1.4.1.tar.gz", hash = "sha256:26abe446306d94f3bae8d9c6740b732868f1f982535e0785947e4a74858d1f1f"},
-]
-
-[package.dependencies]
-apeye = ">=1.0.0"
-dist-meta = ">=0.1.2"
-dom-toml = ">=0.2.2"
-domdf-python-tools = ">=3.1.0"
-packaging = ">=20.9"
-platformdirs = ">=2.3.0"
-typing-extensions = ">=3.7.4.3"
 
 [[package]]
 name = "six"
