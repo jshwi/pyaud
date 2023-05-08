@@ -149,14 +149,14 @@ repos:
         args:
           - "--write"
   - repo: https://github.com/PyCQA/docformatter
-    rev: "v1.6.4"
+    rev: "v1.6.5"
     hooks:
       - id: docformatter
         args:
           - "--recursive"
           - "--wrap-summaries=72"
   - repo: https://github.com/pappasam/toml-sort
-    rev: "v0.23.0"
+    rev: "v0.23.1"
     hooks:
       - id: toml-sort
         args:
@@ -172,7 +172,7 @@ repos:
     hooks:
       - id: constcheck
   - repo: https://github.com/pre-commit/pre-commit
-    rev: "v3.2.2"
+    rev: "v3.3.1"
     hooks:
       - id: validate_manifest
   - repo: https://github.com/siderolabs/conform
@@ -187,7 +187,7 @@ repos:
           - "--recursive"
           - "-lll"
   - repo: https://github.com/asottile/pyupgrade
-    rev: "v3.3.2"
+    rev: "v3.4.0"
     hooks:
       - id: pyupgrade
         args:
