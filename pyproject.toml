@@ -95,7 +95,7 @@ pytest = "^7.4.0"
 pytest-randomly = "^3.13.0"
 pytest-sugar = "^0.9.5"
 restview = "^3.0.0"
-sphinx-immaterial = "^0.11.5"
+sphinx-immaterial = "^0.11.6"
 sphinx-toolbox = "^3.5.0"
 templatest = "^0.8.0"
 
