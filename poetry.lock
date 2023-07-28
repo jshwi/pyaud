@@ -611,16 +611,21 @@ files = [
 
 [[package]]
 name = "docformatter"
-version = "1.4"
-description = "Formats docstrings to follow PEP 257."
+version = "1.7.5"
+description = "Formats docstrings to follow PEP 257"
 optional = false
-python-versions = "*"
+python-versions = ">=3.7,<4.0"
 files = [
-    {file = "docformatter-1.4.tar.gz", hash = "sha256:064e6d81f04ac96bc0d176cbaae953a0332482b22d3ad70d47c8a7f2732eef6f"},
+    {file = "docformatter-1.7.5-py3-none-any.whl", hash = "sha256:a24f5545ed1f30af00d106f5d85dc2fce4959295687c24c8f39f5263afaf9186"},
+    {file = "docformatter-1.7.5.tar.gz", hash = "sha256:ffed3da0daffa2e77f80ccba4f0e50bfa2755e1c10e130102571c890a61b246e"},
 ]
 
 [package.dependencies]
-untokenize = "*"
+charset_normalizer = ">=3.0.0,<4.0.0"
+untokenize = ">=0.1.1,<0.2.0"
+
+[package.extras]
+tomli = ["tomli (>=2.0.0,<3.0.0)"]
 
 [[package]]
 name = "docsig"
@@ -1468,33 +1473,33 @@ tests = ["pytest"]
 
 [[package]]
 name = "pyaud-plugins"
-version = "0.15.0"
+version = "0.15.1"
 description = "Plugin package for Pyaud"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "pyaud_plugins-0.15.0-py3-none-any.whl", hash = "sha256:9a9549c668a7ac560457523cd629c1f0a2b94f9fbb1b4888d2fcbd293aa34b37"},
-    {file = "pyaud_plugins-0.15.0.tar.gz", hash = "sha256:7bdbeaa8ad85d8d442d9172a955ff31675cb80612cfa9c7f10e9985aee7869cc"},
+    {file = "pyaud_plugins-0.15.1-py3-none-any.whl", hash = "sha256:b3cf251e499aa157a2c46379c65687d2298a506b5f4c50e1a3d5fd99ff6131c6"},
+    {file = "pyaud_plugins-0.15.1.tar.gz", hash = "sha256:9b36f6ee7abb94dff99ff6fe96efe3999a77b98a7c28bf1c146f89d884133a7d"},
 ]
 
 [package.dependencies]
 black = ">=21.12,<24.0"
 constcheck = ">=0,<1"
 coverage = ">=6.2,<8.0"
-docformatter = "1.4"
+docformatter = "1.7.5"
 docsig = ">=0.34.0"
 environs = ">=9.4.0,<10.0.0"
-flynt = ">=0.75,<0.79"
+flynt = ">=0.75,<1.1"
 gitpython = ">=3.1.30,<4.0.0"
 isort = ">=5.10.1,<6.0.0"
-mypy = ">=0.930,<1.3"
+mypy = ">=0.930,<1.5"
 object-colors = ">=2.0.1,<3.0.0"
 pyaud = ">=5.0.1,<7.0.0"
 pylint = ">=2.12.2,<3.0.0"
 pytest = ">=7.2.0,<8.0.0"
 pytest-cov = ">=3,<5"
 pyyaml = ">=6.0,<7.0"
-setuptools = ">=67.2.0,<68.0.0"
+setuptools = ">=67.2,<69.0"
 Sphinx = ">=4.3.2,<7.0.0"
 sphinx-markdown-builder = ">=0.5.5,<0.6.0"
 sphinxcontrib-fulltoc = ">=1.2.0,<2.0.0"
