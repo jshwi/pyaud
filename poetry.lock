@@ -1473,13 +1473,13 @@ tests = ["pytest"]
 
 [[package]]
 name = "pyaud-plugins"
-version = "0.15.1"
+version = "0.15.3"
 description = "Plugin package for Pyaud"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "pyaud_plugins-0.15.1-py3-none-any.whl", hash = "sha256:b3cf251e499aa157a2c46379c65687d2298a506b5f4c50e1a3d5fd99ff6131c6"},
-    {file = "pyaud_plugins-0.15.1.tar.gz", hash = "sha256:9b36f6ee7abb94dff99ff6fe96efe3999a77b98a7c28bf1c146f89d884133a7d"},
+    {file = "pyaud_plugins-0.15.3-py3-none-any.whl", hash = "sha256:053067aa6017a3bb0e9df0e43384ebb9bae0904b25fe543c6ed27f121377c077"},
+    {file = "pyaud_plugins-0.15.3.tar.gz", hash = "sha256:7b51ee18e2a5c2373dd1ee8074abd3d489a7d07b6285e5876152cc2017397cfa"},
 ]
 
 [package.dependencies]
