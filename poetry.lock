@@ -1473,13 +1473,13 @@ tests = ["pytest"]
 
 [[package]]
 name = "pyaud-plugins"
-version = "0.15.3"
+version = "0.16.0"
 description = "Plugin package for Pyaud"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "pyaud_plugins-0.15.3-py3-none-any.whl", hash = "sha256:053067aa6017a3bb0e9df0e43384ebb9bae0904b25fe543c6ed27f121377c077"},
-    {file = "pyaud_plugins-0.15.3.tar.gz", hash = "sha256:7b51ee18e2a5c2373dd1ee8074abd3d489a7d07b6285e5876152cc2017397cfa"},
+    {file = "pyaud_plugins-0.16.0-py3-none-any.whl", hash = "sha256:38184768fa19f4a6b50e708c9186e5de37d76be5e06a6fd0dbbd9deb01c21ff2"},
+    {file = "pyaud_plugins-0.16.0.tar.gz", hash = "sha256:f708889a3224d595c99604d7670cbcd1df9cd74be8b82a644cf235e7b5b44fc8"},
 ]
 
 [package.dependencies]
@@ -1492,9 +1492,10 @@ environs = ">=9.4.0,<10.0.0"
 flynt = ">=0.75,<1.1"
 gitpython = ">=3.1.30,<4.0.0"
 isort = ">=5.10.1,<6.0.0"
-mypy = ">=0.930,<1.5"
+mypy = ">=0.930,<1.6"
 object-colors = ">=2.0.1,<3.0.0"
 pyaud = ">=5.0.1,<7.0.0"
+pygments = ">=2.16.1,<3.0.0"
 pylint = ">=2.12.2,<3.0.0"
 pytest = ">=7.2.0,<8.0.0"
 pytest-cov = ">=3,<5"
@@ -1676,13 +1677,13 @@ dev = ["Sphinx", "black", "build", "coverage", "docformatter", "flake8", "flake8
 
 [[package]]
 name = "pygments"
-version = "2.15.1"
+version = "2.16.1"
 description = "Pygments is a syntax highlighting package written in Python."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "Pygments-2.15.1-py3-none-any.whl", hash = "sha256:db2db3deb4b4179f399a09054b023b6a586b76499d36965813c71aa8ed7b5fd1"},
-    {file = "Pygments-2.15.1.tar.gz", hash = "sha256:8ace4d3c1dd481894b2005f560ead0f9f19ee64fe983366be1a21e171d12775c"},
+    {file = "Pygments-2.16.1-py3-none-any.whl", hash = "sha256:13fc09fa63bc8d8671a6d247e1eb303c4b343eaee81d861f3404db2935653692"},
+    {file = "Pygments-2.16.1.tar.gz", hash = "sha256:1daff0494820c69bc8941e407aa20f577374ee88364ee10a98fdbe0aece96e29"},
 ]
 
 [package.extras]
