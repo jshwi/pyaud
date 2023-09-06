@@ -41,7 +41,7 @@ class MutableMapping(_t.MutableMapping[_KT, _VT]):
 
     def _nested_update(
         self, obj: dict[_KT, _t.Any], update: dict[_KT, _t.Any]
-    ) -> _t.Dict[_KT, _t.Any]:
+    ) -> dict[_KT, _t.Any]:
         # add to __setitem__ to ensure that no entire dict keys with
         # missing nested keys overwrite all other values
         # run recursively to cover all nested objects if value is a dict

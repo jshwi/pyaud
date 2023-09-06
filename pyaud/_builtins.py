@@ -3,6 +3,7 @@ pyaud._default
 ==============
 """
 import inspect as _inspect
+import typing as _t
 
 from . import messages as _messages
 from . import plugins as _plugins
@@ -14,7 +15,7 @@ from ._objects import toml as _toml
 class _Audit(_plugins.Action):
     """Read from [audit] key in config."""
 
-    def action(self, *args: str, **kwargs: bool) -> int:
+    def action(self, *args: str, **kwargs: _t.Any) -> int:
         returncode = 0
         message = _colors.green.bold.get(_messages.AUDIT_PASSED)
         bullet = _colors.cyan.get("-")
@@ -42,7 +43,7 @@ class _Audit(_plugins.Action):
 class _Modules(_plugins.Action):
     """Display all available plugins and their documentation."""
 
-    def action(self, *args: str, **kwargs: bool) -> int:
+    def action(self, *args: str, **kwargs: _t.Any) -> int:
         print()
         mapping = _plugins.mapping()
         for key in sorted(mapping):

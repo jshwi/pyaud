@@ -127,7 +127,7 @@ class _HashMapping(_JSONIO):
 
 # handle caching of a single file
 def _cache_files_wrapper(
-    cls_call: _t.Callable[..., int], self: Plugin, *args: str, **kwargs: bool
+    cls_call: _t.Callable[..., int], self: Plugin, *args: str, **kwargs: _t.Any
 ) -> int:
     returncode = 0
     hashed = _HashMapping(self.__class__)
@@ -156,7 +156,7 @@ def _cache_files_wrapper(
 
 # handle caching of a repo's python files
 def _cache_file_wrapper(
-    cls_call: _t.Callable[..., int], self: Plugin, *args: str, **kwargs: bool
+    cls_call: _t.Callable[..., int], self: Plugin, *args: str, **kwargs: _t.Any
 ) -> int:
     hashed = _HashMapping(self.__class__)
     returncode = 0
@@ -183,7 +183,7 @@ def _cache_file_wrapper(
 def _cache_wrapper(cls: type[Plugin]) -> type[Plugin]:
     cls_call = cls.__call__
 
-    def __call__(self: Plugin, *args: str, **kwargs: bool) -> int:
+    def __call__(self: Plugin, *args: str, **kwargs: _t.Any) -> int:
         if not kwargs.get("no_cache", False):
             if cls.cache_file is not None:
                 return _cache_file_wrapper(cls_call, self, *args, **kwargs)
@@ -201,7 +201,7 @@ def _cache_wrapper(cls: type[Plugin]) -> type[Plugin]:
 def _file_wrapper(cls: PluginType) -> PluginType:
     cls_call = cls.__call__
 
-    def __call__(self, *args: str, **kwargs: bool) -> int:
+    def __call__(self, *args: str, **kwargs: _t.Any) -> int:
         returncode = cls_call(self, *args, **kwargs)
         if returncode:
             _colors.red.bold.print(
@@ -221,7 +221,7 @@ def _file_wrapper(cls: PluginType) -> PluginType:
 def _files_wrapper(cls: PluginType) -> PluginType:
     cls_call = cls.__call__
 
-    def __call__(self, *args: str, **kwargs: bool) -> int:
+    def __call__(self, *args: str, **kwargs: _t.Any) -> int:
         returncode = 0
         if _files.reduce():
             returncode = cls_call(self, *args, **kwargs)
@@ -244,7 +244,7 @@ def _files_wrapper(cls: PluginType) -> PluginType:
 def _fix_wrapper(cls: PluginType) -> PluginType:
     cls_call = cls.__call__
 
-    def __call__(self, *args: str, **kwargs: bool) -> int:
+    def __call__(self, *args: str, **kwargs: _t.Any) -> int:
         returncode = cls_call(self, *args, **kwargs)
         if returncode:
             if kwargs.get("fix", False):
@@ -261,7 +261,7 @@ def _fix_wrapper(cls: PluginType) -> PluginType:
 def _commandline_error_catcher(cls: PluginType) -> PluginType:
     cls_call = cls.__call__
 
-    def __call__(self, *args: str, **kwargs: bool) -> int:
+    def __call__(self, *args: str, **kwargs: _t.Any) -> int:
         try:
             return cls_call(self, *args, **kwargs)
 
@@ -285,7 +285,7 @@ class BasePlugin(_ABC):  # pylint: disable=too-few-public-methods
     cache_all = False
 
     #: set a single cache file for plugin subclass.
-    cache_file: _t.Optional[_t.Union[str, _Path]] = None
+    cache_file: str | _Path | None = None
 
 
 class Plugin(BasePlugin):
@@ -311,7 +311,7 @@ class Plugin(BasePlugin):
         """Name of the plugin."""
         return self._name
 
-    def __call__(self, *args: str, **kwargs: bool) -> int:
+    def __call__(self, *args: str, **kwargs: _t.Any) -> int:
         """Enables calling of all plugin instances."""
         return 0
 
@@ -338,7 +338,7 @@ class Audit(Plugin):
     """
 
     @_abstractmethod
-    def audit(self, *args: str, **kwargs: bool) -> int:
+    def audit(self, *args: str, **kwargs: _t.Any) -> int:
         """All audit logic to be written within this method.
 
         :param args: Args that can be passed from other plugins.
@@ -348,7 +348,7 @@ class Audit(Plugin):
             notify call whether process has succeeded or failed.
         """
 
-    def __call__(self, *args: str, **kwargs: bool) -> int:
+    def __call__(self, *args: str, **kwargs: _t.Any) -> int:
         return self.audit(*args, **kwargs)
 
 
@@ -383,7 +383,7 @@ class BaseFix(Audit):
     """
 
     @_abstractmethod
-    def audit(self, *args: str, **kwargs: bool) -> int:
+    def audit(self, *args: str, **kwargs: _t.Any) -> int:
         """All audit logic to be written within this method.
 
         :param args: Args that can be passed from other plugins.
@@ -397,7 +397,7 @@ class BaseFix(Audit):
         """
 
     @_abstractmethod
-    def fix(self, *args: str, **kwargs: bool) -> int:
+    def fix(self, *args: str, **kwargs: _t.Any) -> int:
         """Run if audit fails but only if running a fix.
 
         :param args: Args that can be passed from other plugins.
@@ -407,7 +407,7 @@ class BaseFix(Audit):
             notify __call__ whether process has succeeded or failed.
         """
 
-    def __call__(self, *args: str, **kwargs: bool) -> int:
+    def __call__(self, *args: str, **kwargs: _t.Any) -> int:
         return self.audit(*args, **kwargs)
 
 
@@ -430,7 +430,7 @@ class Fix(BaseFix):
     """
 
     @_abstractmethod
-    def audit(self, *args: str, **kwargs: bool) -> int:
+    def audit(self, *args: str, **kwargs: _t.Any) -> int:
         """All audit logic to be written within this method.
 
         :param args: Args that can be passed from other plugins.
@@ -444,7 +444,7 @@ class Fix(BaseFix):
         """
 
     @_abstractmethod
-    def fix(self, *args: str, **kwargs: bool) -> int:
+    def fix(self, *args: str, **kwargs: _t.Any) -> int:
         """Run if audit fails but only if running a fix.
 
         :param args: Args that can be passed from other plugins.
@@ -474,7 +474,7 @@ class FixAll(BaseFix):
     """
 
     @_abstractmethod
-    def audit(self, *args: str, **kwargs: bool) -> int:
+    def audit(self, *args: str, **kwargs: _t.Any) -> int:
         """All audit logic to be written within this method.
 
         :param args: Args that can be passed from other plugins.
@@ -488,7 +488,7 @@ class FixAll(BaseFix):
         """
 
     @_abstractmethod
-    def fix(self, *args: str, **kwargs: bool) -> int:
+    def fix(self, *args: str, **kwargs: _t.Any) -> int:
         """Run if audit fails but only if running a fix.
 
         :param args: Args that can be passed from other plugins.
@@ -515,7 +515,7 @@ class Action(Plugin):
     """
 
     @_abstractmethod
-    def action(self, *args: str, **kwargs: bool) -> int:
+    def action(self, *args: str, **kwargs: _t.Any) -> int:
         """All logic to be written within this method.
 
         :param args: Args that can be passed from other plugins.
@@ -523,7 +523,7 @@ class Action(Plugin):
         :return: Any value and type can be returned.
         """
 
-    def __call__(self, *args: str, **kwargs: bool) -> int:
+    def __call__(self, *args: str, **kwargs: _t.Any) -> int:
         return self.action(*args, **kwargs)
 
 
@@ -547,7 +547,7 @@ class Parametrize(Plugin):
         :return: List of plugin names, as defined in ``@register``.
         """
 
-    def __call__(self, *args: str, **kwargs: bool) -> int:
+    def __call__(self, *args: str, **kwargs: _t.Any) -> int:
         returncode = 0
         for name in self.plugins():
             _colors.cyan.bold.print(f"\n{_NAME} {name}")
