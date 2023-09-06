@@ -61,10 +61,6 @@ class MutableMapping(_t.MutableMapping[_KT, _VT]):
         return obj
 
 
-class _Toml(MutableMapping):
-    """Base class for all ``toml`` object interaction."""
-
-
 class JSONIO(MutableMapping):
     """Base class JSON input/output actions.
 
@@ -88,7 +84,6 @@ class JSONIO(MutableMapping):
         self._path.write_text(_json.dumps(dict(self), separators=(",", ":")))
 
 
-toml = _Toml()
 colors = _Color()
 files = _LSFiles()
 

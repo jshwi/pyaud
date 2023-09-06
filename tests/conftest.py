@@ -15,9 +15,6 @@ from mypy_extensions import KwArg, VarArg
 
 import pyaud
 
-# noinspection PyProtectedMember
-import pyaud._objects as pc
-
 # noinspection PyUnresolvedReferences,PyProtectedMember
 from pyaud import _builtins
 
@@ -31,6 +28,8 @@ from . import (
     PluginTuple,
     repo,
 )
+
+# noinspection PyProtectedMember
 
 original_pyaud_plugin_load = pyaud.plugins.load
 original_pyaud_main_register_builtin_plugins = (
@@ -57,11 +56,9 @@ def fixture_mock_environment(
     monkeypatch.setattr("pyaud._core._register_builtin_plugins", lambda: None)
     monkeypatch.setattr("pyaud._core._files.populate", lambda _: None)
     pyaud.files.clear()
-    pc.toml.clear()
     repo_abs.mkdir()
     # noinspection PyProtectedMember
     pyaud._core._create_cachedir()
-    pc.toml["audit"] = {}
 
 
 @pytest.fixture(name="main")

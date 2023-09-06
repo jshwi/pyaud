@@ -17,7 +17,6 @@ from ._objects import JSONIO as _JSONIO
 from ._objects import NAME as _NAME
 from ._objects import colors as _colors
 from ._objects import files as _files
-from ._objects import toml as _toml
 from ._version import __version__
 
 
@@ -94,9 +93,10 @@ def pyaud(  # pylint: disable=too-many-arguments
     """
     _os.environ["PYAUD_CACHE"] = _os.environ.get("PYAUD_CACHE", ".pyaud_cache")
     _populate_files(exclude)
-    _toml["audit"] = audit
     _register_builtin_plugins()
     _plugins.load()
     _create_cachedir()
     _garbage_collection()
-    return _plugins.get(module, "modules")(fix=fix, no_cache=no_cache)
+    return _plugins.get(module, "modules")(
+        fix=fix, no_cache=no_cache, audit=audit
+    )

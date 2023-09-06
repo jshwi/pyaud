@@ -9,22 +9,21 @@ from . import messages as _messages
 from . import plugins as _plugins
 from ._objects import NAME as _NAME
 from ._objects import colors as _colors
-from ._objects import toml as _toml
 
 
 class _Audit(_plugins.Action):
     """Read from [audit] key in config."""
 
     def action(self, *args: str, **kwargs: _t.Any) -> int:
+        audit = kwargs["audit"]
         returncode = 0
         message = _colors.green.bold.get(_messages.AUDIT_PASSED)
         bullet = _colors.cyan.get("-")
         _colors.cyan.bold.print(f"\n{_NAME} {self.name}")
         _colors.green.underline.print(_messages.AUDIT_RUNNING)
         results = []
-        print(f"{bullet} " + f"\n{bullet} ".join(_toml[self.name]))
-        funcs = _toml[self.name]
-        for func in funcs:
+        print(f"{bullet} " + f"\n{bullet} ".join(audit))
+        for func in audit:
             symbol = _colors.green.get("\u2713")
             if func in _plugins.registered():
                 _colors.cyan.bold.print(f"\n{_NAME} {func}")
