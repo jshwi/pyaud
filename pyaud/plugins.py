@@ -639,9 +639,9 @@ class Plugins(_MutableMapping):
 
     Instantiate plugin on running __setitem__.
 
-    :raise NameConflictError: If name of registered plugin is not
+    :raises NameConflictError: If name of registered plugin is not
         unique.
-    :raise TypeError: If non plugin type registered.
+    :raises TypeError: If non plugin type registered.
     """
 
     def __setitem__(self, name: str, plugin: PluginType) -> None:
