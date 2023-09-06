@@ -60,11 +60,6 @@ Test `audit` positional argument and docstring display.
 Test all and display of all module docstrings.
 
 
-### No exe provided
-
-Test default value for exe property.
-
-
 ### Not a valid git repository
 
 Test exit when not in a git repository.

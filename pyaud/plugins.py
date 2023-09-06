@@ -340,11 +340,6 @@ class Plugin(BasePlugin):
         return {}
 
     @property
-    def exe(self) -> list[str]:
-        """List of executables to add to ``subprocess`` dict."""
-        return []
-
-    @property
     def name(self) -> str:
         """Name of the plugin."""
         return self._name

@@ -74,18 +74,10 @@ class Tracker:
         self.kwargs.append(kwargs)
 
 
-class MockAudit(pyaud.plugins.Audit):
-    """Nothing to do."""
-
-    def audit(self, *_: str, **__: bool) -> int:  # type: ignore
-        """Nothing to do."""
-
-
 class PluginTuple(t.NamedTuple):
     """Tuple of values to construct an ``Action`` plugin."""
 
     name: str
-    exe: t.Optional[str] = None
     action: t.Optional[t.Callable[..., int]] = None
 
 

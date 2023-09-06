@@ -29,7 +29,6 @@ from . import (
     FixtureMain,
     FixtureMakeTree,
     FixtureMockActionPluginFactory,
-    MockAudit,
     PluginTuple,
     Tracker,
     plugin_class,
@@ -127,13 +126,6 @@ def test_audit_error_did_no_pass_all_checks(
     pyaud.files.append(path)
     returncode = main(plugin_name[1])
     assert returncode == 1
-
-
-def test_no_exe_provided() -> None:
-    """Test default value for exe property."""
-    unique = datetime.datetime.now().strftime(STRFTIME)
-    pyaud.plugins.register(name=unique)(MockAudit)
-    assert pyaud.plugins.get(unique).exe == []
 
 
 @pytest.mark.usefixtures(UNPATCH_REGISTER_DEFAULT_PLUGINS)
@@ -338,7 +330,7 @@ def test_parametrize_fail(
             return [plugin_name[1]]
 
     plugins = mock_action_plugin_factory(
-        PluginTuple(plugin_name[1], "not_a_command", lambda x, *y, **z: 1)
+        PluginTuple(plugin_name[1], lambda x, *y, **z: 1)
     )
     pyaud.plugins.register(name=plugin_name[1])(plugins[0])
     pyaud.plugins.register(name=PARAMS)(_Params)
