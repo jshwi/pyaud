@@ -26,19 +26,9 @@ Test when audit fails with raised error.
 Test names are automatically added as they should be.
 
 
-### Default key
-
-Test setting and restoring of existing dict keys.
-
-
 ### Default plugin
 
 Test invalid module name provided.
-
-
-### Del key in context
-
-Confirm there is no error raised when deleting temp key-value.
 
 
 ### Imports

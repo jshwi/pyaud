@@ -20,12 +20,10 @@ import pyaud
 from . import (
     AUDIT,
     INIT,
-    KEY,
     PARAMS,
     STRFTIME,
     TESTS,
     UNPATCH_REGISTER_DEFAULT_PLUGINS,
-    VALUE,
     FixtureMain,
     FixtureMakeTree,
     FixtureMockActionPluginFactory,
@@ -336,23 +334,6 @@ def test_parametrize_fail(
     pyaud.plugins.register(name=PARAMS)(_Params)
     returncode = main(PARAMS)
     assert returncode == 1
-
-
-def test_del_key_in_context() -> None:
-    """Confirm there is no error raised when deleting temp key-value."""
-    obj: t.Dict[str, str] = {}
-    with pyaud.plugins._TempEnvVar(obj, key=VALUE):
-        assert obj[KEY] == VALUE
-        del obj[KEY]
-
-
-def test_default_key() -> None:
-    """Test setting and restoring of existing dict keys."""
-    obj = {KEY: "default_value"}
-    with pyaud.plugins._TempEnvVar(obj, **{KEY: "temp_value"}):
-        assert obj[KEY] == "temp_value"
-
-    assert obj[KEY] == "default_value"
 
 
 def test_plugins_call() -> None:

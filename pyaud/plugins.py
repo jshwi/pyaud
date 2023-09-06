@@ -125,33 +125,6 @@ class _HashMapping(_JSONIO):
         super().write()
 
 
-# temporarily set a mutable mapping key-value pair
-class _TempEnvVar:
-    def __init__(self, obj: _t.MutableMapping, **kwargs: str) -> None:
-        self._obj = obj
-        self._default = {k: obj.get(k) for k in kwargs}
-        self._obj.update(kwargs)
-
-    def __enter__(self) -> _TempEnvVar:
-        return self
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: _TracebackType | None,
-    ) -> None:
-        for key, value in self._default.items():
-            if value is None:
-                try:
-                    del self._obj[key]
-                except KeyError:
-                    # in the case that key gets deleted within context
-                    pass
-            else:
-                self._obj[key] = self._default[key]
-
-
 # handle caching of a single file
 def _cache_files_wrapper(
     cls_call: _t.Callable[..., int], self: Plugin, *args: str, **kwargs: bool
@@ -285,17 +258,6 @@ def _fix_wrapper(cls: PluginType) -> PluginType:
     return cls
 
 
-def _env_wrapper(cls: PluginType) -> PluginType:
-    cls_call = cls.__call__
-
-    def __call__(self, *args: str, **kwargs: bool) -> int:
-        with _TempEnvVar(_os.environ, **self.env):
-            return cls_call(self, *args, **kwargs)
-
-    setattr(cls, cls.__call__.__name__, __call__)
-    return cls
-
-
 def _commandline_error_catcher(cls: PluginType) -> PluginType:
     cls_call = cls.__call__
 
@@ -345,11 +307,6 @@ class Plugin(BasePlugin):
         self._name = name
 
     @property
-    def env(self) -> dict[str, str]:
-        """Return environment which will remain active for run."""
-        return {}
-
-    @property
     def name(self) -> str:
         """Name of the plugin."""
         return self._name
@@ -360,7 +317,6 @@ class Plugin(BasePlugin):
 
 
 @_commandline_error_catcher
-@_env_wrapper
 @_files_wrapper
 class Audit(Plugin):
     """Blueprint for writing audit-only plugins.
@@ -399,7 +355,6 @@ class Audit(Plugin):
 #: Blueprint for writing audit and fix plugins.
 @_fix_wrapper
 @_commandline_error_catcher
-@_env_wrapper
 class BaseFix(Audit):
     """Blueprint for writing audit and fix plugins.
 
@@ -545,7 +500,6 @@ class FixAll(BaseFix):
 
 
 @_commandline_error_catcher
-@_env_wrapper
 class Action(Plugin):
     """Blueprint for writing generic plugins.
 

@@ -1,8 +1,5 @@
-exc_tb  # unused variable (pyaud/plugins.py:142)
 exc_tb  # unused variable (pyaud/plugins.py:60)
-exc_type  # unused variable (pyaud/plugins.py:140)
 exc_type  # unused variable (pyaud/plugins.py:58)
-exc_val  # unused variable (pyaud/plugins.py:141)
 exc_val  # unused variable (pyaud/plugins.py:59)
 fixture_cache_file  # unused function (tests/conftest.py:189)
 fixture_main  # unused function (tests/conftest.py:67)
