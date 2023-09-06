@@ -27,7 +27,6 @@ from . import (
     FixtureMakeTree,
     FixtureMockActionPluginFactory,
     FixtureMockRepo,
-    FixtureMockSpallSubprocessOpenProcess,
     MockActionPluginList,
     PluginTuple,
     repo,
@@ -145,12 +144,6 @@ def fixture_mock_action_plugin_factory() -> FixtureMockActionPluginFactory:
             class MockActionPlugin(pyaud.plugins.Action):
                 """Nothing to do."""
 
-                exe_str = param.exe or "exe"
-
-                @property
-                def exe(self) -> list[str]:
-                    return [param.exe or "exe"]  # noqa
-
                 def action(self, *args: str, **kwargs: bool) -> int:
                     """Nothing to do."""
                     if param.action is not None:  # noqa
@@ -191,24 +184,6 @@ def fixture_mock_repo(monkeypatch: pytest.MonkeyPatch) -> FixtureMockRepo:
         monkeypatch.setattr("pyaud.plugins._git.Repo", lambda _: git_repo)
 
     return _mock_repo
-
-
-@pytest.fixture(name="mock_spall_subprocess_open_process")
-def fixture_mock_spall_subprocess_open_process(
-    monkeypatch: pytest.MonkeyPatch,
-) -> FixtureMockSpallSubprocessOpenProcess:
-    """Patch ``spall.Subprocess._open_process`` returncode.
-
-    :param monkeypatch: Mock patch environment and attributes.
-    :return: Function for using this fixture.
-    """
-
-    def _mock_spall_open_process(returncode: int) -> None:
-        monkeypatch.setattr(
-            "spall.Subprocess._open_process", lambda *_, **__: returncode
-        )
-
-    return _mock_spall_open_process
 
 
 @pytest.fixture(name="cache_file")

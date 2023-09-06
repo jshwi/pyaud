@@ -24,9 +24,6 @@ class MutableMapping(_t.MutableMapping[_KT, _VT]):
     def __init__(self) -> None:
         self._dict: dict[_KT, _VT] = {}
 
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {self._dict}>"
-
     def __len__(self) -> int:
         return self._dict.__len__()
 

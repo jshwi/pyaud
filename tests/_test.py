@@ -29,7 +29,6 @@ from . import (
     FixtureMain,
     FixtureMakeTree,
     FixtureMockActionPluginFactory,
-    FixtureMockSpallSubprocessOpenProcess,
     MockAudit,
     PluginTuple,
     Tracker,
@@ -130,16 +129,9 @@ def test_audit_error_did_no_pass_all_checks(
     assert returncode == 1
 
 
-def test_no_exe_provided(
-    mock_spall_subprocess_open_process: FixtureMockSpallSubprocessOpenProcess,
-) -> None:
-    """Test default value for exe property.
-
-    :param mock_spall_subprocess_open_process: Patch
-        ``spall.Subprocess._open_process`` returncode.
-    """
+def test_no_exe_provided() -> None:
+    """Test default value for exe property."""
     unique = datetime.datetime.now().strftime(STRFTIME)
-    mock_spall_subprocess_open_process(1)
     pyaud.plugins.register(name=unique)(MockAudit)
     assert pyaud.plugins.get(unique).exe == []
 
@@ -352,29 +344,6 @@ def test_parametrize_fail(
     pyaud.plugins.register(name=PARAMS)(_Params)
     returncode = main(PARAMS)
     assert returncode == 1
-
-
-def test_subprocess(
-    mock_action_plugin_factory: FixtureMockActionPluginFactory,
-) -> None:
-    """Test registering a subprocess.
-
-    :param mock_action_plugin_factory: Factory for creating mock action
-        plugin objects.
-    """
-    plugins = mock_action_plugin_factory(
-        PluginTuple(
-            plugin_class[1],
-            "command",
-            lambda x, *y, **z: x.subprocess[x.exe_str].call(*y, **z),
-        )
-    )
-    pyaud.plugins.register(plugin_name[1])(plugins[0])
-    exe = pyaud.plugins.get(plugin_name[1])
-    assert (
-        str(exe.subprocess)
-        == "<Subprocesses {'command': <Subprocess (command)>}>"
-    )
 
 
 def test_del_key_in_context() -> None:

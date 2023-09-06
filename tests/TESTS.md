@@ -123,8 +123,3 @@ Without this, files that do not exist could be passed to plugin
 args.
 
 
-### Subprocess
-
-Test registering a subprocess.
-
-

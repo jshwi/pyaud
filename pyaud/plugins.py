@@ -21,7 +21,6 @@ from subprocess import CalledProcessError as _CalledProcessError
 from types import TracebackType as _TracebackType
 
 import git as _git
-from spall import Subprocess as _Subprocess
 
 from . import messages as _messages
 from ._objects import JSONIO as _JSONIO
@@ -37,18 +36,6 @@ IMPORT_RE = _re.compile("^pyaud[-_].*$")
 CACHE_FILE = "files.json"
 FALLBACK = "fallback"
 UNCOMMITTED = "uncommitted"
-
-
-class Subprocesses(_MutableMapping):
-    """Instantiate collection of ``Subprocess`` objects.
-
-    :param args: Commands to create subprocesses from.
-    """
-
-    def __init__(self, args: list[str]) -> None:
-        super().__init__()
-        for arg in args:
-            self[arg] = _Subprocess(arg)
 
 
 # store index and ensure it's in its original state on exit
@@ -346,7 +333,6 @@ class Plugin(BasePlugin):
 
     def __init__(self, name: str) -> None:
         self._name = name
-        self._subprocess = Subprocesses(self.exe)
 
     @property
     def env(self) -> dict[str, str]:
@@ -362,11 +348,6 @@ class Plugin(BasePlugin):
     def name(self) -> str:
         """Name of the plugin."""
         return self._name
-
-    @property
-    def subprocess(self) -> Subprocesses:
-        """Collection of ``Subprocess`` objects."""
-        return self._subprocess
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
         """Enables calling of all plugin instances."""

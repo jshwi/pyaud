@@ -31,7 +31,6 @@ FixtureMakeTree = t.Callable[[Path, t.Dict[t.Any, t.Any]], None]
 MockActionPluginList = t.Sequence[t.Type[pyaud.plugins.Action]]
 FixtureMockActionPluginFactory = t.Callable[..., MockActionPluginList]
 FixtureMockRepo = t.Callable[[KwArg(t.Callable[..., t.Any])], None]
-FixtureMockSpallSubprocessOpenProcess = t.Callable[[int], None]
 
 plugin_name = VarSeq("plugin", suffix="-")
 plugin_class = VarSeq("Plugin")
