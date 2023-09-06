@@ -290,11 +290,21 @@ def _env_wrapper(cls: PluginType) -> PluginType:
 
     def __call__(self, *args: str, **kwargs: bool) -> int:
         with _TempEnvVar(_os.environ, **self.env):
-            try:
-                return cls_call(self, *args, **kwargs)
+            return cls_call(self, *args, **kwargs)
 
-            except _CalledProcessError:
-                return 1
+    setattr(cls, cls.__call__.__name__, __call__)
+    return cls
+
+
+def _commandline_error_catcher(cls: PluginType) -> PluginType:
+    cls_call = cls.__call__
+
+    def __call__(self, *args: str, **kwargs: bool) -> int:
+        try:
+            return cls_call(self, *args, **kwargs)
+
+        except _CalledProcessError:
+            return 1
 
     setattr(cls, cls.__call__.__name__, __call__)
     return cls
@@ -349,6 +359,7 @@ class Plugin(BasePlugin):
         return 0
 
 
+@_commandline_error_catcher
 @_env_wrapper
 @_files_wrapper
 class Audit(Plugin):
@@ -387,6 +398,7 @@ class Audit(Plugin):
 
 #: Blueprint for writing audit and fix plugins.
 @_fix_wrapper
+@_commandline_error_catcher
 @_env_wrapper
 class BaseFix(Audit):
     """Blueprint for writing audit and fix plugins.
@@ -532,6 +544,7 @@ class FixAll(BaseFix):
         """
 
 
+@_commandline_error_catcher
 @_env_wrapper
 class Action(Plugin):
     """Blueprint for writing generic plugins.
