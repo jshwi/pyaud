@@ -6,7 +6,6 @@ tests.conftest
 # pylint: disable=cell-var-from-loop
 from __future__ import annotations
 
-import os
 import typing as t
 from pathlib import Path
 
@@ -49,7 +48,9 @@ def fixture_mock_environment(
     """
     repo_abs = tmp_path / repo[1]
     mock_repo()
-    monkeypatch.setenv("PYAUD_CACHE", str(tmp_path / ".pyaud_cache"))
+    monkeypatch.setattr(
+        "pyaud._cachedir.PATH", tmp_path / ".pyaud_cache" / "0.0.0"
+    )
     monkeypatch.setattr("os.getcwd", lambda: str(repo_abs))
     monkeypatch.setattr("pyaud.plugins._plugins", pyaud.plugins.Plugins())
     monkeypatch.setattr("pyaud.plugins.load", lambda: None)
@@ -57,8 +58,8 @@ def fixture_mock_environment(
     monkeypatch.setattr("lsfiles.LSFiles.populate", lambda *_: None)
     pyaud.files.clear()
     repo_abs.mkdir()
-    # noinspection PyProtectedMember
-    pyaud._core._create_cachedir()
+    # noinspection PyProtectedMember,PyUnresolvedReferences
+    pyaud._cachedir.create()
 
 
 @pytest.fixture(name="main")
@@ -189,8 +190,7 @@ def fixture_cache_file() -> Path:
 
     :return: Path to test cache file.
     """
-    cache_file = (
-        Path(os.environ["PYAUD_CACHE"]) / pyaud.__version__ / "files.json"
-    )
+    # noinspection PyUnresolvedReferences,PyProtectedMember
+    cache_file = pyaud._cachedir.PATH / pyaud.plugins.CACHE_FILE
     cache_file.parent.mkdir(exist_ok=True, parents=True)
     return cache_file

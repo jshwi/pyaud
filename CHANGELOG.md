@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - update error reporting
 
 ### Removed
+- remove `PYAUD_CACHE`
 - remove `pyaud.plugins.Plugins.env`
 - remove `pyaud.plugins.Plugin.exe`
 - remove `pyaud.plugins.Plugin.subprocess`

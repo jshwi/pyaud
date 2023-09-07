@@ -9,7 +9,6 @@ from __future__ import annotations
 import hashlib as _hashlib
 import importlib as _importlib
 import inspect as _inspect
-import os as _os
 import pkgutil as _pkgutil
 import re as _re
 import sys as _sys
@@ -22,13 +21,13 @@ from types import TracebackType as _TracebackType
 
 import git as _git
 
+from . import _cachedir
 from . import messages as _messages
 from ._objects import JSONIO as _JSONIO
 from ._objects import NAME as _NAME
 from ._objects import MutableMapping as _MutableMapping
 from ._objects import colors as _colors
 from ._objects import files as _files
-from ._version import __version__
 from .exceptions import NameConflictError as _NameConflictError
 
 IMPORT_RE = _re.compile("^pyaud[-_].*$")
@@ -71,9 +70,7 @@ class _IndexedState:
 # persistent data object
 class _HashMapping(_JSONIO):
     def __init__(self, cls: type[BasePlugin]) -> None:
-        super().__init__(
-            _Path(_os.environ["PYAUD_CACHE"]) / __version__ / CACHE_FILE
-        )
+        super().__init__(_cachedir.PATH / CACHE_FILE)
         self._project = _Path.cwd().name
         self._cls = str(cls)
         self._repo = _git.Repo(_Path.cwd())

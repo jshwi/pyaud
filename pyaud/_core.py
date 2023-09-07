@@ -4,29 +4,15 @@ pyaud._core
 """
 from __future__ import annotations
 
-import os as _os
 from pathlib import Path as _Path
 
 import git as _git
 
+from . import _cachedir
 from . import plugins as _plugins
 from ._builtins import register_builtin_plugins as _register_builtin_plugins
 from ._objects import JSONIO as _JSONIO
-from ._objects import NAME as _NAME
 from ._objects import files as _files
-from ._version import __version__
-
-
-def _create_cachedir() -> None:
-    path = _Path(_os.environ["PYAUD_CACHE"])
-    (path / __version__).mkdir(exist_ok=True, parents=True)
-    (path / "CACHEDIR.TAG").write_text(
-        "Signature: 8a477f597d28d172789f06886806bc55\n"
-        f"# This file is a cache directory tag created by {_NAME}.\n"
-        "# For information about cache directory tags, see:\n"
-        "#	https://bford.info/cachedir/spec.html\n"
-    )
-    (path / ".gitignore").write_text(f"# Created by {_NAME} automatically.\n*")
 
 
 # remove cache of commits with no revision
@@ -34,9 +20,7 @@ def _garbage_collection() -> None:
     path = _Path.cwd()
     repo = _git.Repo(path)
     commits = repo.git.rev_list("--all").splitlines()
-    json = _JSONIO(
-        _Path(_os.environ["PYAUD_CACHE"]) / __version__ / _plugins.CACHE_FILE
-    )
+    json = _JSONIO(_cachedir.PATH / _plugins.CACHE_FILE)
     json.read()
     project = json.get(path.name, {})
     for commit in dict(project):
@@ -69,11 +53,10 @@ def pyaud(  # pylint: disable=too-many-arguments
     :param no_cache: Disable file caching.
     :return: Exit status.
     """
-    _os.environ["PYAUD_CACHE"] = _os.environ.get("PYAUD_CACHE", ".pyaud_cache")
     _files.populate(exclude)
     _register_builtin_plugins()
     _plugins.load()
-    _create_cachedir()
+    _cachedir.create()
     _garbage_collection()
     return _plugins.get(module, "modules")(
         fix=fix, no_cache=no_cache, audit=audit
