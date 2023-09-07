@@ -565,7 +565,7 @@ PluginType = _t.Union[
 PluginInstance = _t.Union[Audit, BaseFix, Fix, FixAll, Action, Parametrize]
 
 
-class Plugins(_MutableMapping):
+class Plugins(_MutableMapping[str, PluginInstance]):
     """Holds registered plugins.
 
     Instantiate plugin on running __setitem__.
@@ -574,24 +574,6 @@ class Plugins(_MutableMapping):
         unique.
     :raises TypeError: If non plugin type registered.
     """
-
-    def __setitem__(self, name: str, plugin: PluginType) -> None:
-        # only unique names to be set in `plugins` object
-        # if name is not unique raise `NameConflictError`
-        if name in self:
-            raise _NameConflictError(plugin.__name__, name)
-
-        mro = tuple(p.__name__ for p in _inspect.getmro(plugin))
-        if not hasattr(plugin, "__bases__") or not any(
-            i in PLUGIN_NAMES for i in mro
-        ):
-            raise TypeError(
-                _messages.TYPE_ERROR.format(
-                    valid=", ".join(PLUGIN_NAMES), invalid=mro
-                )
-            )
-
-        super().__setitem__(name, plugin(name))
 
 
 _plugins = Plugins()
@@ -612,7 +594,20 @@ def register(name: str | None = None) -> _t.Callable[[PluginType], PluginType]:
     """
 
     def _register(plugin: PluginType) -> PluginType:
-        _plugins[name or _name_plugin(plugin)] = plugin
+        plugin_name = name or _name_plugin(plugin)
+        if plugin_name in _plugins:
+            raise _NameConflictError(plugin.__name__, plugin_name)
+
+        mro = tuple(p.__name__ for p in _inspect.getmro(plugin))
+        if not hasattr(plugin, "__bases__") or not any(
+            i in PLUGIN_NAMES for i in mro
+        ):
+            raise TypeError(
+                _messages.TYPE_ERROR.format(
+                    valid=", ".join(PLUGIN_NAMES), invalid=mro
+                )
+            )
+        _plugins[plugin_name] = plugin(plugin_name)
         return plugin
 
     return _register
