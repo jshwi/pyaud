@@ -30,12 +30,13 @@ from .exceptions import NameConflictError as _NameConflictError
 
 IMPORT_RE = _re.compile("^pyaud[-_].*$")
 
-FALLBACK = "fallback"
 UNCOMMITTED = "uncommitted"
 
 
 # persistent data object
 class _HashMapping:
+    FALLBACK = "fallback"
+
     def __init__(self, cls: type[BasePlugin]) -> None:
         self._dict: dict[str, _t.Any] = {}
         self._path = _cachedir.PATH / "files.json"
@@ -45,7 +46,7 @@ class _HashMapping:
         try:
             self._commit = self._repo.git.rev_parse("HEAD")
         except _git.GitCommandError:
-            self._commit = FALLBACK
+            self._commit = self.FALLBACK
 
         if self._repo.git.status("--short"):
             self._commit = f"{UNCOMMITTED}-{self._commit}"
@@ -53,7 +54,7 @@ class _HashMapping:
         self.read()
         self._garbage_collection()
         project_obj = self._dict.get(self._project, {})
-        fallback = project_obj.get(FALLBACK, {})
+        fallback = project_obj.get(self.FALLBACK, {})
         project_obj[self._commit] = project_obj.get(self._commit, fallback)
         self._session = project_obj[self._commit].get(self._cls, {})
 
@@ -91,7 +92,7 @@ class _HashMapping:
         for commit in dict(project):
             if (
                 commit not in commits
-                and commit != FALLBACK
+                and commit != self.FALLBACK
                 and not commit.startswith(UNCOMMITTED)
             ):
                 del project[commit]
@@ -131,7 +132,8 @@ class _HashMapping:
         """Write data to file."""
         cls = {self._cls: dict(self._session)}
         self._dict = self._nested_update(
-            self._dict, {self._project: {FALLBACK: cls, self._commit: cls}}
+            self._dict,
+            {self._project: {self.FALLBACK: cls, self._commit: cls}},
         )
         self._path.write_text(_json.dumps(self._dict, separators=(",", ":")))
 
