@@ -1,3 +1,4 @@
+_.excepthook  # unused attribute (pyaud/_main.py:23)
 exc_tb  # unused variable (pyaud/plugins.py:60)
 exc_type  # unused variable (pyaud/plugins.py:58)
 exc_val  # unused variable (pyaud/plugins.py:59)

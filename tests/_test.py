@@ -354,12 +354,10 @@ def test_not_a_valid_git_repository(
         raise git.InvalidGitRepositoryError
 
     monkeypatch.setattr("pyaud.files.populate", _populate)
-    with pytest.raises(SystemExit) as err:
+    with pytest.raises(git.InvalidGitRepositoryError) as err:
         assert main("") == 1
 
-    assert pyaud.messages.INVALID_REPOSITORY.split(":", maxsplit=1)[0] in str(
-        err.value
-    )
+    assert "InvalidGitRepositoryError" in str(err)
 
 
 def test_staged_file_removed(main: FixtureMain) -> None:
@@ -396,10 +394,10 @@ def test_keyboard_interrupt(
         raise KeyboardInterrupt
 
     monkeypatch.setattr("pyaud._main._pyaud", _pyaud)
-    with pytest.raises(SystemExit) as err:
+    with pytest.raises(KeyboardInterrupt) as err:
         main(plugin_name[1])
 
-    assert pyaud.messages.KEYBOARD_INTERRUPT in str(err.value)
+    assert "KeyboardInterrupt" in str(err)
 
 
 def test_mutable_mapping_delete() -> None:

@@ -21,13 +21,7 @@ from ._version import __version__
 
 
 def _populate_files(exclude: str | None = None) -> None:
-    try:
-        _files.populate(exclude)
-    except _git.InvalidGitRepositoryError as err:
-        _sys.exit(
-            _colors.red.bold.get(_messages.INVALID_REPOSITORY.format(path=err))
-        )
-
+    _files.populate(exclude)
     if [i for i in _files if not i.is_file()]:
         _sys.exit(
             "{}\n{}".format(
