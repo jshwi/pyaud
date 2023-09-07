@@ -23,11 +23,11 @@ import git as _git
 
 from . import _cachedir
 from . import messages as _messages
+from ._files import files as _files
 from ._objects import JSONIO as _JSONIO
 from ._objects import NAME as _NAME
 from ._objects import MutableMapping as _MutableMapping
 from ._objects import colors as _colors
-from ._objects import files as _files
 from .exceptions import NameConflictError as _NameConflictError
 
 IMPORT_RE = _re.compile("^pyaud[-_].*$")

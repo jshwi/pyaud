@@ -11,8 +11,8 @@ import git as _git
 from . import _cachedir
 from . import plugins as _plugins
 from ._builtins import register_builtin_plugins as _register_builtin_plugins
+from ._files import files as _files
 from ._objects import JSONIO as _JSONIO
-from ._objects import files as _files
 
 
 # remove cache of commits with no revision
