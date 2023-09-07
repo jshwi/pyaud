@@ -30,7 +30,6 @@ from .exceptions import NameConflictError as _NameConflictError
 
 IMPORT_RE = _re.compile("^pyaud[-_].*$")
 
-CACHE_FILE = "files.json"
 FALLBACK = "fallback"
 UNCOMMITTED = "uncommitted"
 
@@ -39,7 +38,7 @@ UNCOMMITTED = "uncommitted"
 class _HashMapping:
     def __init__(self, cls: type[BasePlugin]) -> None:
         self._dict: dict[str, _t.Any] = {}
-        self._path = _cachedir.PATH / CACHE_FILE
+        self._path = _cachedir.PATH / "files.json"
         self._project = _Path.cwd().name
         self._cls = str(cls)
         self._repo = _git.Repo(_Path.cwd())

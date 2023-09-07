@@ -191,6 +191,6 @@ def fixture_cache_file() -> Path:
     :return: Path to test cache file.
     """
     # noinspection PyUnresolvedReferences,PyProtectedMember
-    cache_file = pyaud._cachedir.PATH / pyaud.plugins.CACHE_FILE
+    cache_file = pyaud._cachedir.PATH / "files.json"
     cache_file.parent.mkdir(exist_ok=True, parents=True)
     return cache_file
