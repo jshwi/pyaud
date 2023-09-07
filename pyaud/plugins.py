@@ -565,7 +565,7 @@ PluginType = _t.Union[
 PluginInstance = _t.Union[Audit, BaseFix, Fix, FixAll, Action, Parametrize]
 
 
-class Plugins(_MutableMapping[str, PluginInstance]):
+class Plugins(_t.Dict[str, PluginInstance]):
     """Holds registered plugins.
 
     Instantiate plugin on running __setitem__.
