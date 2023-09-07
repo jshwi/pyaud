@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib as _hashlib
 import importlib as _importlib
 import inspect as _inspect
+import json as _json
 import pkgutil as _pkgutil
 import re as _re
 import sys as _sys
@@ -23,7 +24,6 @@ import git as _git
 from . import _cachedir
 from . import messages as _messages
 from ._files import files as _files
-from ._objects import JSONIO as _JSONIO
 from ._objects import NAME as _NAME
 from ._objects import MutableMapping as _MutableMapping
 from ._objects import colors as _colors
@@ -37,9 +37,10 @@ UNCOMMITTED = "uncommitted"
 
 
 # persistent data object
-class _HashMapping(_JSONIO):
+class _HashMapping(_MutableMapping):
     def __init__(self, cls: type[BasePlugin]) -> None:
-        super().__init__(_cachedir.PATH / CACHE_FILE)
+        super().__init__()
+        self._path = _cachedir.PATH / CACHE_FILE
         self._project = _Path.cwd().name
         self._cls = str(cls)
         self._repo = _git.Repo(_Path.cwd())
@@ -51,7 +52,7 @@ class _HashMapping(_JSONIO):
         if self._repo.git.status("--short"):
             self._commit = f"{UNCOMMITTED}-{self._commit}"
 
-        super().read()
+        self.read()
         self._garbage_collection()
         project_obj = self.get(self._project, {})
         fallback = project_obj.get(FALLBACK, {})
@@ -97,11 +98,19 @@ class _HashMapping(_JSONIO):
             ):
                 del project[commit]
 
+    def read(self) -> None:
+        """Read from file to object."""
+        if self._path.is_file():
+            try:
+                self.update(_json.loads(self._path.read_text()))
+            except _json.decoder.JSONDecodeError:
+                pass
+
     def write(self) -> None:
         """Write data to file."""
         cls = {self._cls: dict(self._session)}
         self[self._project] = {FALLBACK: cls, self._commit: cls}
-        super().write()
+        self._path.write_text(_json.dumps(dict(self), separators=(",", ":")))
 
 
 # handle caching of a single file

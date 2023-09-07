@@ -4,7 +4,6 @@ pyaud._objects
 """
 from __future__ import annotations
 
-import json as _json
 import typing as _t
 from pathlib import Path as _Path
 
@@ -58,29 +57,6 @@ class MutableMapping(_t.MutableMapping[_KT, _VT]):
             obj[key] = value
 
         return obj
-
-
-class JSONIO(MutableMapping):
-    """Base class JSON input/output actions.
-
-    :param path: Path to data file.
-    """
-
-    def __init__(self, path: _Path) -> None:
-        super().__init__()
-        self._path = path
-
-    def read(self) -> None:
-        """Read from file to object."""
-        if self._path.is_file():
-            try:
-                self.update(_json.loads(self._path.read_text()))
-            except _json.decoder.JSONDecodeError:
-                pass
-
-    def write(self) -> None:
-        """Write data to file."""
-        self._path.write_text(_json.dumps(dict(self), separators=(",", ":")))
 
 
 colors = _Color()
