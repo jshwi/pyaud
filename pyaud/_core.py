@@ -33,6 +33,4 @@ def pyaud(  # pylint: disable=too-many-arguments
     _register_builtin_plugins()
     _plugins.load()
     _cachedir.create()
-    return _plugins.get(module, "modules")(
-        fix=fix, no_cache=no_cache, audit=audit
-    )
+    return _plugins.get(module)(fix=fix, no_cache=no_cache, audit=audit)

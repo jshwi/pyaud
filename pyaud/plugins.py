@@ -634,11 +634,10 @@ def registered() -> list[str]:
     return sorted(list(_plugins))
 
 
-def get(name: str, default: str | None = None) -> PluginInstance:
+def get(name: str) -> PluginInstance:
     """Get plugins by name.
 
     :param name: Unique name of plugin.
-    :param default: Default plugin if name not valid.
     :return: Callable plugin instance.
     """
     try:
@@ -647,7 +646,7 @@ def get(name: str, default: str | None = None) -> PluginInstance:
         _colors.red.print(
             _messages.NOT_FOUND.format(name=name), file=_sys.stderr
         )
-        return _plugins[default]
+        return _plugins["modules"]
 
 
 def load() -> None:
