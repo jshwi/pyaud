@@ -1,7 +1,4 @@
 _.excepthook  # unused attribute (pyaud/_main.py:23)
-exc_tb  # unused variable (pyaud/plugins.py:59)
-exc_type  # unused variable (pyaud/plugins.py:57)
-exc_val  # unused variable (pyaud/plugins.py:58)
 fixture_cache_file  # unused function (tests/conftest.py:187)
 fixture_main  # unused function (tests/conftest.py:65)
 fixture_make_tree  # unused function (tests/conftest.py:83)

@@ -17,7 +17,6 @@ from abc import ABC as _ABC
 from abc import abstractmethod as _abstractmethod
 from pathlib import Path as _Path
 from subprocess import CalledProcessError as _CalledProcessError
-from types import TracebackType as _TracebackType
 
 import git as _git
 
@@ -35,36 +34,6 @@ IMPORT_RE = _re.compile("^pyaud[-_].*$")
 CACHE_FILE = "files.json"
 FALLBACK = "fallback"
 UNCOMMITTED = "uncommitted"
-
-
-# store index and ensure it's in its original state on exit
-class _IndexedState:
-    def __init__(self) -> None:
-        self._length = len(_files)
-        self._index = list(_files)
-        self._restored = False
-
-    @property
-    def length(self) -> int:
-        """Number of files for run."""
-        return self._length
-
-    def __enter__(self) -> _IndexedState:
-        return self
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: _TracebackType | None,
-    ) -> None:
-        if not self._restored:
-            _files.extend(self._index)
-
-    def restore(self) -> None:
-        """Restore the original state of index."""
-        self._restored = True
-        _files.extend(self._index)
 
 
 # persistent data object
@@ -128,7 +97,7 @@ def _cache_files_wrapper(
 ) -> int:
     returncode = 0
     hashed = _HashMapping(self.__class__)
-    with _IndexedState() as state:
+    with _files() as state:
         for file in list(_files):
             if hashed.match_file(file):
                 _files.remove(file)
