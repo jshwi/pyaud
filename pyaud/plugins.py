@@ -97,16 +97,16 @@ def _cache_files_wrapper(
 ) -> int:
     returncode = 0
     hashed = _HashMapping(self.__class__)
-    with _files() as state:
-        for file in list(_files):
+    with _files.state() as state:
+        for file in state:
             if hashed.match_file(file):
                 _files.remove(file)
             else:
                 if self.cache_all:
-                    state.restore()
+                    _files.restore()
                     break
 
-        if not _files and state.length:
+        if not _files and len(state):
             _colors.green.bold.print(_messages.NO_FILES_CHANGED)
         else:
             returncode = cls_call(self, *args, **kwargs)
