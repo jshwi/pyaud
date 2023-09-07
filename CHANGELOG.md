@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - update error reporting
 
 ### Removed
+- remove `pyaud.plugins.UNCOMMITTED`
 - remove `pyaud.plugins.FALLBACK`
 - remove `pyaud.plugins.CACHE_FILE`
 - remove `PYAUD_CACHE`

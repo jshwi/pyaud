@@ -30,12 +30,11 @@ from .exceptions import NameConflictError as _NameConflictError
 
 IMPORT_RE = _re.compile("^pyaud[-_].*$")
 
-UNCOMMITTED = "uncommitted"
-
 
 # persistent data object
 class _HashMapping:
     FALLBACK = "fallback"
+    UNCOMMITTED = "uncommitted"
 
     def __init__(self, cls: type[BasePlugin]) -> None:
         self._dict: dict[str, _t.Any] = {}
@@ -49,7 +48,7 @@ class _HashMapping:
             self._commit = self.FALLBACK
 
         if self._repo.git.status("--short"):
-            self._commit = f"{UNCOMMITTED}-{self._commit}"
+            self._commit = f"{self.UNCOMMITTED}-{self._commit}"
 
         self.read()
         self._garbage_collection()
@@ -93,7 +92,7 @@ class _HashMapping:
             if (
                 commit not in commits
                 and commit != self.FALLBACK
-                and not commit.startswith(UNCOMMITTED)
+                and not commit.startswith(self.UNCOMMITTED)
             ):
                 del project[commit]
 
