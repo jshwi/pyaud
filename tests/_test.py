@@ -399,14 +399,3 @@ def test_keyboard_interrupt(
         main(plugin_name[1])
 
     assert "KeyboardInterrupt" in str(err)
-
-
-def test_mutable_mapping_delete() -> None:
-    """Quick coverage on deprecated mapping."""
-    mapping: pyaud._objects.MutableMapping[
-        int, int
-    ] = pyaud._objects.MutableMapping()
-    mapping[1] = 1
-    assert 1 in mapping
-    del mapping[1]
-    assert not mapping

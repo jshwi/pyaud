@@ -25,7 +25,6 @@ from . import _cachedir
 from . import messages as _messages
 from ._files import files as _files
 from ._objects import NAME as _NAME
-from ._objects import MutableMapping as _MutableMapping
 from ._objects import colors as _colors
 from .exceptions import NameConflictError as _NameConflictError
 
@@ -37,9 +36,9 @@ UNCOMMITTED = "uncommitted"
 
 
 # persistent data object
-class _HashMapping(_MutableMapping):
+class _HashMapping:
     def __init__(self, cls: type[BasePlugin]) -> None:
-        super().__init__()
+        self._dict: dict[str, _t.Any] = {}
         self._path = _cachedir.PATH / CACHE_FILE
         self._project = _Path.cwd().name
         self._cls = str(cls)
@@ -54,7 +53,7 @@ class _HashMapping(_MutableMapping):
 
         self.read()
         self._garbage_collection()
-        project_obj = self.get(self._project, {})
+        project_obj = self._dict.get(self._project, {})
         fallback = project_obj.get(FALLBACK, {})
         project_obj[self._commit] = project_obj.get(self._commit, fallback)
         self._session = project_obj[self._commit].get(self._cls, {})
@@ -89,7 +88,7 @@ class _HashMapping(_MutableMapping):
     # remove cache of commits with no revision
     def _garbage_collection(self) -> None:
         commits = self._repo.git.rev_list("--all").splitlines()
-        project = self.get(self._project, {})
+        project = self._dict.get(self._project, {})
         for commit in dict(project):
             if (
                 commit not in commits
@@ -98,19 +97,44 @@ class _HashMapping(_MutableMapping):
             ):
                 del project[commit]
 
+    def _nested_update(
+        self, obj: dict[str, _t.Any], update: dict[str, _t.Any]
+    ) -> dict[str, _t.Any]:
+        # add to __setitem__ to ensure that no entire dict keys with
+        # missing nested keys overwrite all other values
+        # run recursively to cover all nested objects if value is a dict
+        # if value is a str pass through ``Path.expanduser()`` to
+        # translate paths prefixed with ``~/`` for ``/home/<user>``
+        # if value is all else assign it to obj key
+        # return obj for recursive assigning of nested dicts
+        for key, value in update.items():
+            if isinstance(value, dict):
+                value = self._nested_update(obj.get(key, {}), value)
+
+            elif isinstance(value, str):
+                value = str(_Path(value).expanduser())
+
+            obj[key] = value
+
+        return obj
+
     def read(self) -> None:
         """Read from file to object."""
         if self._path.is_file():
             try:
-                self.update(_json.loads(self._path.read_text()))
+                self._dict = self._nested_update(
+                    self._dict, _json.loads(self._path.read_text())
+                )
             except _json.decoder.JSONDecodeError:
                 pass
 
     def write(self) -> None:
         """Write data to file."""
         cls = {self._cls: dict(self._session)}
-        self[self._project] = {FALLBACK: cls, self._commit: cls}
-        self._path.write_text(_json.dumps(dict(self), separators=(",", ":")))
+        self._dict = self._nested_update(
+            self._dict, {self._project: {FALLBACK: cls, self._commit: cls}}
+        )
+        self._path.write_text(_json.dumps(self._dict, separators=(",", ":")))
 
 
 # handle caching of a single file
