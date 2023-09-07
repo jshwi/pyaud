@@ -52,6 +52,7 @@ class _HashMapping(_JSONIO):
             self._commit = f"{UNCOMMITTED}-{self._commit}"
 
         super().read()
+        self._garbage_collection()
         project_obj = self.get(self._project, {})
         fallback = project_obj.get(FALLBACK, {})
         project_obj[self._commit] = project_obj.get(self._commit, fallback)
@@ -83,6 +84,18 @@ class _HashMapping(_JSONIO):
         else:
             if relpath in self._session:
                 del self._session[relpath]
+
+    # remove cache of commits with no revision
+    def _garbage_collection(self) -> None:
+        commits = self._repo.git.rev_list("--all").splitlines()
+        project = self.get(self._project, {})
+        for commit in dict(project):
+            if (
+                commit not in commits
+                and commit != FALLBACK
+                and not commit.startswith(UNCOMMITTED)
+            ):
+                del project[commit]
 
     def write(self) -> None:
         """Write data to file."""
