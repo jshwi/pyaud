@@ -37,25 +37,40 @@ class _HashMapping:
     UNCOMMITTED = "uncommitted"
 
     def __init__(self, cls: type[BasePlugin]) -> None:
-        self._dict: dict[str, _t.Any] = {}
-        self._path = _cachedir.PATH / "files.json"
-        self._project = _Path.cwd().name
         self._cls = str(cls)
-        self._repo = _git.Repo(_Path.cwd())
+        self._path = _cachedir.PATH / "files.json"
+        self._dict: dict[str, _t.Any] = {}
+        self._cwd = _Path.cwd()
+        self._name = self._cwd.name
+        repo = _git.Repo(self._cwd)
+        commits = repo.git.rev_list("--all").splitlines()
+        if self._path.is_file():
+            try:
+                self._dict.update(_json.loads(self._path.read_text()))
+            except _json.decoder.JSONDecodeError:
+                pass
+
         try:
-            self._commit = self._repo.git.rev_parse("HEAD")
+            self._head = repo.git.rev_parse("HEAD")
         except _git.GitCommandError:
-            self._commit = self.FALLBACK
+            self._head = self.FALLBACK
 
-        if self._repo.git.status("--short"):
-            self._commit = f"{self.UNCOMMITTED}-{self._commit}"
+        if repo.git.status("--short"):
+            self._head = f"{self.UNCOMMITTED}-{self._head}"
 
-        self.read()
-        self._garbage_collection()
-        project_obj = self._dict.get(self._project, {})
-        fallback = project_obj.get(self.FALLBACK, {})
-        project_obj[self._commit] = project_obj.get(self._commit, fallback)
-        self._session = project_obj[self._commit].get(self._cls, {})
+        project_obj = self._dict.get(self._name, {})
+        self._session = project_obj.get(
+            self._head, project_obj.get(self.FALLBACK, {})
+        ).get(self._cls, {})
+
+        # remove cache of commits with no revision
+        for commit in dict(project_obj):
+            if (
+                commit not in commits
+                and commit != self.FALLBACK
+                and not commit.startswith(self.UNCOMMITTED)
+            ):
+                del project_obj[commit]
 
     def match_file(self, path: _Path) -> bool:
         """Match selected class against a file relevant to it.
@@ -63,7 +78,7 @@ class _HashMapping:
         :param path: Path to the file to check if it has changed.
         :return: Is the file a match (not changed)? True or False.
         """
-        relpath = str(path.relative_to(_Path.cwd()))
+        relpath = str(path.relative_to(self._cwd))
         newhash = _hashlib.new(  # type: ignore
             "md5", path.read_bytes(), usedforsecurity=False
         ).hexdigest()
@@ -74,7 +89,7 @@ class _HashMapping:
 
         :param path: Path to hash.
         """
-        relpath = str(path.relative_to(_Path.cwd()))
+        relpath = str(path.relative_to(self._cwd))
         if path.is_file():
             newhash = _hashlib.new(  # type: ignore
                 "md5", path.read_bytes(), usedforsecurity=False
@@ -83,18 +98,6 @@ class _HashMapping:
         else:
             if relpath in self._session:
                 del self._session[relpath]
-
-    # remove cache of commits with no revision
-    def _garbage_collection(self) -> None:
-        commits = self._repo.git.rev_list("--all").splitlines()
-        project = self._dict.get(self._project, {})
-        for commit in dict(project):
-            if (
-                commit not in commits
-                and commit != self.FALLBACK
-                and not commit.startswith(self.UNCOMMITTED)
-            ):
-                del project[commit]
 
     def _nested_update(
         self, obj: dict[str, _t.Any], update: dict[str, _t.Any]
@@ -117,22 +120,11 @@ class _HashMapping:
 
         return obj
 
-    def read(self) -> None:
-        """Read from file to object."""
-        if self._path.is_file():
-            try:
-                self._dict = self._nested_update(
-                    self._dict, _json.loads(self._path.read_text())
-                )
-            except _json.decoder.JSONDecodeError:
-                pass
-
     def write(self) -> None:
         """Write data to file."""
         cls = {self._cls: dict(self._session)}
         self._dict = self._nested_update(
-            self._dict,
-            {self._project: {self.FALLBACK: cls, self._commit: cls}},
+            self._dict, {self._name: {self.FALLBACK: cls, self._head: cls}}
         )
         self._path.write_text(_json.dumps(self._dict, separators=(",", ":")))
 
