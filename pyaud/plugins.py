@@ -36,23 +36,33 @@ class _HashMapping:
     FALLBACK = "fallback"
 
     def __init__(self, cls: type[BasePlugin]) -> None:
-        self._dict: dict[str, _t.Any] = {}
-        self._path = _cachedir.PATH / "files.json"
+        self._head = "uncommitted"
         self._cls = str(cls)
-        self._repo = _git.Repo(_Path.cwd())
-        try:
-            self._commit = self._repo.git.rev_parse("HEAD")
-        except _git.GitCommandError:
-            self._commit = self.FALLBACK
+        self._path = _cachedir.PATH / "files.json"
+        self._dict: dict[str, _t.Any] = {}
+        self._cwd = _Path.cwd()
+        repo = _git.Repo(self._cwd)
+        if self._path.is_file():
+            try:
+                self._dict.update(_json.loads(self._path.read_text()))
 
-        if self._repo.git.status("--short"):
-            self._commit = "uncommitted"
+                # remove cache of commits with no revision
+                commits = repo.git.rev_list(all=True).splitlines()
+                for commit in dict(self._dict):
+                    if commit not in commits and commit != self.FALLBACK:
+                        del self._dict[commit]
+            except _json.decoder.JSONDecodeError:
+                pass
 
-        self.read()
-        self._garbage_collection()
-        fallback = self._dict.get(self.FALLBACK, {})
-        self._dict[self._commit] = self._dict.get(self._commit, fallback)
-        self._session = self._dict[self._commit].get(self._cls, {})
+        if not repo.git.status(short=True):
+            try:
+                self._head = repo.git.rev_parse("HEAD")
+            except _git.GitCommandError:
+                self._head = self.FALLBACK
+
+        self._session = self._dict.get(
+            self._head, self._dict.get(self.FALLBACK, {})
+        ).get(self._cls, {})
 
     def match_file(self, path: _Path) -> bool:
         """Match selected class against a file relevant to it.
@@ -60,7 +70,7 @@ class _HashMapping:
         :param path: Path to the file to check if it has changed.
         :return: Is the file a match (not changed)? True or False.
         """
-        relpath = str(path.relative_to(_Path.cwd()))
+        relpath = str(path.relative_to(self._cwd))
         newhash = _hashlib.new(  # type: ignore
             "md5", path.read_bytes(), usedforsecurity=False
         ).hexdigest()
@@ -71,7 +81,7 @@ class _HashMapping:
 
         :param path: Path to hash.
         """
-        relpath = str(path.relative_to(_Path.cwd()))
+        relpath = str(path.relative_to(self._cwd))
         if path.is_file():
             newhash = _hashlib.new(  # type: ignore
                 "md5", path.read_bytes(), usedforsecurity=False
@@ -81,18 +91,9 @@ class _HashMapping:
             if relpath in self._session:
                 del self._session[relpath]
 
-        cls = {self._cls: dict(self._session)}
-        self._dict = self._nested_update(
-            self._dict, {self.FALLBACK: cls, self._commit: cls}
-        )
+        cls = {self._cls: self._session}
+        self._nested_update(self._dict, {self.FALLBACK: cls, self._head: cls})
         self._path.write_text(_json.dumps(self._dict, separators=(",", ":")))
-
-    # remove cache of commits with no revision
-    def _garbage_collection(self) -> None:
-        commits = self._repo.git.rev_list("--all").splitlines()
-        for commit in dict(self._dict):
-            if commit not in commits and commit != self.FALLBACK:
-                del self._dict[commit]
 
     def _nested_update(
         self, obj: dict[str, _t.Any], update: dict[str, _t.Any]
@@ -114,16 +115,6 @@ class _HashMapping:
             obj[key] = value
 
         return obj
-
-    def read(self) -> None:
-        """Read from file to object."""
-        if self._path.is_file():
-            try:
-                self._dict = self._nested_update(
-                    self._dict, _json.loads(self._path.read_text())
-                )
-            except _json.decoder.JSONDecodeError:
-                pass
 
 
 # handle caching of a single file
