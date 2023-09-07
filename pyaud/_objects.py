@@ -5,11 +5,14 @@ pyaud._objects
 from __future__ import annotations
 
 import json as _json
+import sys as _sys
 import typing as _t
 from pathlib import Path as _Path
 
 from lsfiles import LSFiles as _LSFiles
 from object_colors import Color as _Color
+
+from . import messages as _messages
 
 NAME = __name__.split(".", maxsplit=1)[0]
 
@@ -84,7 +87,21 @@ class JSONIO(MutableMapping):
         self._path.write_text(_json.dumps(dict(self), separators=(",", ":")))
 
 
+class _Files(_LSFiles):
+    def populate(self, exclude: str | None = None) -> None:
+        super().populate(exclude)
+        if [i for i in self if not i.is_file()]:
+            _sys.exit(
+                "{}\n{}".format(
+                    colors.red.bold.get(_messages.REMOVED_FILES),
+                    _messages.RUN_COMMAND.format(
+                        command=colors.cyan.get("git add")
+                    ),
+                )
+            )
+
+
 colors = _Color()
-files = _LSFiles()
+files = _Files()
 
 colors.populate_colors()

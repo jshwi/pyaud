@@ -14,6 +14,7 @@ from subprocess import CalledProcessError
 
 import git
 import pytest
+from lsfiles import LSFiles
 
 import pyaud
 
@@ -350,10 +351,10 @@ def test_not_a_valid_git_repository(
     :param main: Patch package entry point.
     """
 
-    def _populate(_: str | None = None):
+    def _populate(_: LSFiles, __: str | None = None):
         raise git.InvalidGitRepositoryError
 
-    monkeypatch.setattr("pyaud.files.populate", _populate)
+    monkeypatch.setattr("lsfiles.LSFiles.populate", _populate)
     with pytest.raises(git.InvalidGitRepositoryError) as err:
         assert main("") == 1
 
