@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - prune uncommitted objects from cache
 
 ### Changed
+- change `pyaud.plugins.PLUGIN_NAMES` type to tuple
 - change `pyaud.plugins.PLUGINS` type to tuple
 - change name of uncommitted key
 - remove project key from cache
