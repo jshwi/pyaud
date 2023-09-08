@@ -81,6 +81,12 @@ class _HashMapping:
             if relpath in self._session:
                 del self._session[relpath]
 
+        cls = {self._cls: dict(self._session)}
+        self._dict = self._nested_update(
+            self._dict, {self.FALLBACK: cls, self._commit: cls}
+        )
+        self._path.write_text(_json.dumps(self._dict, separators=(",", ":")))
+
     # remove cache of commits with no revision
     def _garbage_collection(self) -> None:
         commits = self._repo.git.rev_list("--all").splitlines()
@@ -119,14 +125,6 @@ class _HashMapping:
             except _json.decoder.JSONDecodeError:
                 pass
 
-    def write(self) -> None:
-        """Write data to file."""
-        cls = {self._cls: dict(self._session)}
-        self._dict = self._nested_update(
-            self._dict, {self.FALLBACK: cls, self._commit: cls}
-        )
-        self._path.write_text(_json.dumps(self._dict, separators=(",", ":")))
-
 
 # handle caching of a single file
 def _cache_files_wrapper(
@@ -151,7 +149,6 @@ def _cache_files_wrapper(
         if not returncode:
             for path in _files:
                 hashed.save_hash(path)
-                hashed.write()
 
     return returncode
 
@@ -168,7 +165,6 @@ def _cache_file_wrapper(
         returncode = cls_call(self, *args, **kwargs)
         if returncode:
             hashed.save_hash(path)
-            hashed.write()
             return returncode
 
         if not returncode and path.is_file() and hashed.match_file(path):
@@ -176,7 +172,6 @@ def _cache_file_wrapper(
             return 0
 
         hashed.save_hash(path)
-        hashed.write()
 
     return returncode
 
