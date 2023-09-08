@@ -119,7 +119,7 @@ class _HashMapping:
 
 # handle caching of a single file
 def _cache_files_wrapper(
-    cls_call: _t.Callable[..., int], self: Plugin, *args: str, **kwargs: _t.Any
+    self: Plugin, cls_call: _t.Callable[..., int], *args: str, **kwargs: _t.Any
 ) -> int:
     returncode = 0
     hashed = _HashMapping(self.__class__)
@@ -146,7 +146,7 @@ def _cache_files_wrapper(
 
 # handle caching of a repo's python files
 def _cache_file_wrapper(
-    cls_call: _t.Callable[..., int], self: Plugin, *args: str, **kwargs: _t.Any
+    self: Plugin, cls_call: _t.Callable[..., int], *args: str, **kwargs: _t.Any
 ) -> int:
     hashed = _HashMapping(self.__class__)
     returncode = 0
@@ -174,10 +174,10 @@ def _cache_wrapper(cls: type[Plugin]) -> type[Plugin]:
     def __call__(self: Plugin, *args: str, **kwargs: _t.Any) -> int:
         if not kwargs.get("no_cache", False):
             if cls.cache_file is not None:
-                return _cache_file_wrapper(cls_call, self, *args, **kwargs)
+                return _cache_file_wrapper(self, cls_call, *args, **kwargs)
 
             if cls.cache and _files:
-                return _cache_files_wrapper(cls_call, self, *args, **kwargs)
+                return _cache_files_wrapper(self, cls_call, *args, **kwargs)
 
         return cls_call(self, *args, **kwargs)
 
