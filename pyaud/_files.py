@@ -2,7 +2,7 @@
 pyaud._files
 ============
 """
-from __future__ import annotations
+from __future__ import annotations as _annotations
 
 import contextlib as _contextlib
 import copy
