@@ -561,11 +561,8 @@ PluginType = _t.Union[
     _t.Type[Parametrize],
 ]
 
-# array of plugin types after instantiation
-PluginInstance = _t.Union[Audit, BaseFix, Fix, FixAll, Action, Parametrize]
 
-
-class Plugins(_t.Dict[str, PluginInstance]):
+class Plugins(_t.Dict[str, Plugin]):
     """Holds registered plugins.
 
     Instantiate plugin on running __setitem__.
@@ -613,7 +610,7 @@ def register(name: str | None = None) -> _t.Callable[[PluginType], PluginType]:
     return _register
 
 
-def mapping() -> dict[str, PluginInstance]:
+def mapping() -> dict[str, Plugin]:
     """Get dict of named keys and their corresponding plugin values.
 
     :return: Mapping of plugins and their unique names.
@@ -629,7 +626,7 @@ def registered() -> list[str]:
     return sorted(list(_plugins))
 
 
-def get(name: str) -> PluginInstance:
+def get(name: str) -> Plugin:
     """Get plugins by name.
 
     :param name: Unique name of plugin.
