@@ -9,8 +9,6 @@ All exceptions made public for if they need to be reraised or excepted.
 Exceptions are already built into the architecture but can be used in
 new plugins as well.
 """
-from __future__ import annotations
-
 from . import messages as _messages
 
 
