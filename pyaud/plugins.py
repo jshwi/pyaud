@@ -34,7 +34,6 @@ IMPORT_RE = _re.compile("^pyaud[-_].*$")
 # persistent data object
 class _HashMapping:
     FALLBACK = "fallback"
-    UNCOMMITTED = "uncommitted"
 
     def __init__(self, cls: type[BasePlugin]) -> None:
         self._dict: dict[str, _t.Any] = {}
@@ -47,7 +46,7 @@ class _HashMapping:
             self._commit = self.FALLBACK
 
         if self._repo.git.status("--short"):
-            self._commit = f"{self.UNCOMMITTED}-{self._commit}"
+            self._commit = "uncommitted"
 
         self.read()
         self._garbage_collection()
