@@ -235,7 +235,7 @@ CONTENT_HASHES = (
                 FALLBACK: {
                     x: {python_file[1]: CONTENT_HASHES[0].content_hash}
                 },
-                f"{UNCOMMITTED}-{COMMITS[0]}": {
+                UNCOMMITTED: {
                     x: {python_file[1]: CONTENT_HASHES[0].content_hash}
                 },
             },

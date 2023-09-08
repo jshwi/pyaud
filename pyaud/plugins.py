@@ -34,9 +34,9 @@ IMPORT_RE = _re.compile("^pyaud[-_].*$")
 # persistent data object
 class _HashMapping:
     FALLBACK = "fallback"
-    UNCOMMITTED = "uncommitted"
 
     def __init__(self, cls: type[BasePlugin]) -> None:
+        self._head = "uncommitted"
         self._cls = str(cls)
         self._path = _cachedir.PATH / "files.json"
         self._dict: dict[str, _t.Any] = {}
@@ -49,13 +49,11 @@ class _HashMapping:
             except _json.decoder.JSONDecodeError:
                 pass
 
-        try:
-            self._head = repo.git.rev_parse("HEAD")
-        except _git.GitCommandError:
-            self._head = self.FALLBACK
-
-        if repo.git.status(short=True):
-            self._head = f"{self.UNCOMMITTED}-{self._head}"
+        if not repo.git.status(short=True):
+            try:
+                self._head = repo.git.rev_parse("HEAD")
+            except _git.GitCommandError:
+                self._head = self.FALLBACK
 
         self._session = self._dict.get(
             self._head, self._dict.get(self.FALLBACK, {})
