@@ -142,8 +142,7 @@ def _cache_files_wrapper(
         if not returncode:
             for path in _files:
                 hashed.save_hash(path)
-
-            hashed.write()
+                hashed.write()
 
     return returncode
 
