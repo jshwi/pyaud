@@ -89,11 +89,7 @@ class _HashMapping:
         commits = self._repo.git.rev_list("--all").splitlines()
         project = self._dict.get(self._project, {})
         for commit in dict(project):
-            if (
-                commit not in commits
-                and commit != self.FALLBACK
-                and not commit.startswith(self.UNCOMMITTED)
-            ):
+            if commit not in commits and commit != self.FALLBACK:
                 del project[commit]
 
     def _nested_update(

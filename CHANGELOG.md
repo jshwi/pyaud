@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v6.2.2...HEAD)
 ------------------------------------------------------------------------
+### Added
+- prune uncommitted objects from cache
+
 ### Changed
 - update error reporting
 
