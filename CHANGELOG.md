@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - prune uncommitted objects from cache
 
 ### Changed
+- remove project key from cache
 - update error reporting
 
 ### Removed
