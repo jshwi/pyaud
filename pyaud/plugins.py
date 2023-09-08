@@ -186,7 +186,7 @@ def _cache_wrapper(cls: type[Plugin]) -> type[Plugin]:
 
 
 # run the routine common with single file fixes
-def _file_wrapper(cls: PluginType) -> PluginType:
+def _file_wrapper(cls: type[Plugin]) -> type[Plugin]:
     cls_call = cls.__call__
 
     def __call__(self, *args: str, **kwargs: _t.Any) -> int:
@@ -206,7 +206,7 @@ def _file_wrapper(cls: PluginType) -> PluginType:
 
 
 # run the routine common with multiple source file fixes
-def _files_wrapper(cls: PluginType) -> PluginType:
+def _files_wrapper(cls: type[Plugin]) -> type[Plugin]:
     cls_call = cls.__call__
 
     def __call__(self, *args: str, **kwargs: _t.Any) -> int:
@@ -229,7 +229,7 @@ def _files_wrapper(cls: PluginType) -> PluginType:
     return cls
 
 
-def _fix_wrapper(cls: PluginType) -> PluginType:
+def _fix_wrapper(cls: type[Plugin]) -> type[Plugin]:
     cls_call = cls.__call__
 
     def __call__(self, *args: str, **kwargs: _t.Any) -> int:
@@ -246,7 +246,7 @@ def _fix_wrapper(cls: PluginType) -> PluginType:
     return cls
 
 
-def _commandline_error_catcher(cls: PluginType) -> PluginType:
+def _commandline_error_catcher(cls: type[Plugin]) -> type[Plugin]:
     cls_call = cls.__call__
 
     def __call__(self, *args: str, **kwargs: _t.Any) -> int:
@@ -551,16 +551,6 @@ PLUGINS = [Audit, BaseFix, Fix, FixAll, Action, Parametrize]
 # array of plugin names
 PLUGIN_NAMES = [t.__name__ for t in PLUGINS]
 
-# array of plugin types before instantiation
-PluginType = _t.Union[
-    _t.Type[Audit],
-    _t.Type[BaseFix],
-    _t.Type[Fix],
-    _t.Type[FixAll],
-    _t.Type[Action],
-    _t.Type[Parametrize],
-]
-
 
 class Plugins(_t.Dict[str, Plugin]):
     """Holds registered plugins.
@@ -576,12 +566,14 @@ class Plugins(_t.Dict[str, Plugin]):
 _plugins = Plugins()
 
 
-def _name_plugin(plugin: PluginType) -> str:
+def _name_plugin(plugin: type[Plugin]) -> str:
     parts = _re.findall("[A-Z][^A-Z]*", plugin.__name__)
     return "-".join(parts).lower()
 
 
-def register(name: str | None = None) -> _t.Callable[[PluginType], PluginType]:
+def register(
+    name: str | None = None,
+) -> _t.Callable[[type[Plugin]], type[Plugin]]:
     """Register subclassed plugin to collection.
 
     If name is not provided a name will be assigned automatically.
@@ -590,7 +582,7 @@ def register(name: str | None = None) -> _t.Callable[[PluginType], PluginType]:
     :return: Return registered plugin to call.
     """
 
-    def _register(plugin: PluginType) -> PluginType:
+    def _register(plugin: type[Plugin]) -> type[Plugin]:
         plugin_name = name or _name_plugin(plugin)
         if plugin_name in _plugins:
             raise _NameConflictError(plugin.__name__, plugin_name)
