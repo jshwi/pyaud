@@ -42,7 +42,7 @@ class _HashMapping:
         self._dict: dict[str, _t.Any] = {}
         self._cwd = _Path.cwd()
         repo = _git.Repo(self._cwd)
-        commits = repo.git.rev_list("--all").splitlines()
+        commits = repo.git.rev_list(all=True).splitlines()
         if self._path.is_file():
             try:
                 self._dict.update(_json.loads(self._path.read_text()))
@@ -54,7 +54,7 @@ class _HashMapping:
         except _git.GitCommandError:
             self._head = self.FALLBACK
 
-        if repo.git.status("--short"):
+        if repo.git.status(short=True):
             self._head = f"{self.UNCOMMITTED}-{self._head}"
 
         self._session = self._dict.get(
@@ -63,11 +63,7 @@ class _HashMapping:
 
         # remove cache of commits with no revision
         for commit in dict(self._dict):
-            if (
-                commit not in commits
-                and commit != self.FALLBACK
-                and commit != self._head
-            ):
+            if commit not in commits and commit != self.FALLBACK:
                 del self._dict[commit]
 
     def match_file(self, path: _Path) -> bool:
@@ -120,10 +116,8 @@ class _HashMapping:
 
     def write(self) -> None:
         """Write data to file."""
-        cls = {self._cls: dict(self._session)}
-        self._dict = self._nested_update(
-            self._dict, {self.FALLBACK: cls, self._head: cls}
-        )
+        cls = {self._cls: self._session}
+        self._nested_update(self._dict, {self.FALLBACK: cls, self._head: cls})
         self._path.write_text(_json.dumps(self._dict, separators=(",", ":")))
 
 

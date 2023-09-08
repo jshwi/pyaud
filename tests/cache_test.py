@@ -401,8 +401,8 @@ def test_fix_file(
     name = "whitelist"
     mock_repo(
         rev_parse=lambda _: commit,
-        status=lambda _: dirty,
-        rev_list=lambda _: rev,
+        status=lambda *_, **__: dirty,
+        rev_list=lambda *_, **__: rev,
     )
     append(path)
     cache_file_action(cache_file, existing_cache, str(_Whitelist))
@@ -674,7 +674,7 @@ def test_no_rev(main: FixtureMain, mock_repo: FixtureMockRepo) -> None:
 
     path.write_text(CONTENT_HASHES[0].content_str)
     pyaud.files.append(path)
-    mock_repo(rev_parse=_rev_parse, status=lambda _: False)
+    mock_repo(rev_parse=_rev_parse, status=lambda *_, **__: False)
     name = _Whitelist.__name__[1:].lower()
     pyaud.plugins.register()(_Whitelist)
     returncode = main(name)
