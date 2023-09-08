@@ -14,14 +14,7 @@ import pytest
 
 import pyaud
 
-from . import (
-    ContentHash,
-    FixtureMain,
-    FixtureMockRepo,
-    flag,
-    python_file,
-    repo,
-)
+from . import ContentHash, FixtureMain, FixtureMockRepo, flag, python_file
 
 FALLBACK = "fallback"
 UNCOMMITTED = "uncommitted"
@@ -66,21 +59,19 @@ CONTENT_HASHES = (
             0,
             pyaud.messages.SUCCESS_FILE,
             lambda x: {
-                repo[1]: {
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                }
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
             },
         ),
         (
             COMMITS[0],
             False,
             f"{COMMITS[0]}\n{COMMITS[1]}",
-            lambda x: {repo[1]: {COMMITS[0]: {x: {}}, FALLBACK: {x: {}}}},
+            lambda x: {COMMITS[0]: {x: {}}, FALLBACK: {x: {}}},
             pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
             lambda x, y: x.write_text(y),
@@ -90,14 +81,12 @@ CONTENT_HASHES = (
             0,
             pyaud.messages.SUCCESS_FILE,
             lambda x: {
-                repo[1]: {
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                }
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
             },
         ),
         (
@@ -105,14 +94,12 @@ CONTENT_HASHES = (
             False,
             f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {
-                repo[1]: {
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                }
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
             },
             pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
@@ -123,14 +110,12 @@ CONTENT_HASHES = (
             0,
             pyaud.messages.NO_FILE_CHANGED,
             lambda x: {
-                repo[1]: {
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                }
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
             },
         ),
         (
@@ -138,14 +123,12 @@ CONTENT_HASHES = (
             False,
             f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {
-                repo[1]: {
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                }
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
             },
             pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
@@ -156,14 +139,12 @@ CONTENT_HASHES = (
             1,
             pyaud.messages.FAILED.format(returncode=1),
             lambda x: {
-                repo[1]: {
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
-                    },
-                }
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                },
             },
         ),
         (
@@ -171,14 +152,12 @@ CONTENT_HASHES = (
             False,
             f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {
-                repo[1]: {
-                    COMMITS[1]: {
-                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
-                    },
-                }
+                COMMITS[1]: {
+                    x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                },
             },
             pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
@@ -189,17 +168,15 @@ CONTENT_HASHES = (
             0,
             pyaud.messages.SUCCESS_FILE,
             lambda x: {
-                repo[1]: {
-                    COMMITS[1]: {
-                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                }
+                COMMITS[1]: {
+                    x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
             },
         ),
         (
@@ -207,14 +184,12 @@ CONTENT_HASHES = (
             False,
             f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {
-                repo[1]: {
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
-                    },
-                }
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                },
             },
             pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
@@ -225,14 +200,12 @@ CONTENT_HASHES = (
             0,
             pyaud.messages.SUCCESS_FILE,
             lambda x: {
-                repo[1]: {
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                }
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
             },
         ),
         (
@@ -240,14 +213,12 @@ CONTENT_HASHES = (
             True,
             f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {
-                repo[1]: {
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
-                    },
-                }
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                },
             },
             pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
@@ -258,17 +229,15 @@ CONTENT_HASHES = (
             0,
             pyaud.messages.SUCCESS_FILE,
             lambda x: {
-                repo[1]: {
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                    f"{UNCOMMITTED}-{COMMITS[0]}": {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                }
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
+                f"{UNCOMMITTED}-{COMMITS[0]}": {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
             },
         ),
         (
@@ -276,14 +245,12 @@ CONTENT_HASHES = (
             False,
             f"{COMMITS[0]}\n{COMMITS[1]}",
             lambda x: {
-                repo[1]: {
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                }
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
             },
             lambda _: None,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
@@ -294,12 +261,10 @@ CONTENT_HASHES = (
             1,
             pyaud.messages.FAILED.format(returncode=1),
             lambda x: {
-                repo[1]: {
-                    COMMITS[0]: {x: {}},
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                }
+                COMMITS[0]: {x: {}},
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
             },
         ),
         (
@@ -316,14 +281,12 @@ CONTENT_HASHES = (
             0,
             pyaud.messages.SUCCESS_FILE,
             lambda x: {
-                repo[1]: {
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                }
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
             },
         ),
         (
@@ -331,14 +294,12 @@ CONTENT_HASHES = (
             False,
             COMMITS[0],
             lambda x: {
-                repo[1]: {
-                    COMMITS[1]: {
-                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
-                    },
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[1].content_hash}
-                    },
-                }
+                COMMITS[1]: {
+                    x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                },
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[1].content_hash}
+                },
             },
             pyaud.files.append,
             lambda x, y, z: x.write_text(json.dumps(y(z))),
@@ -349,14 +310,12 @@ CONTENT_HASHES = (
             0,
             pyaud.messages.SUCCESS_FILE,
             lambda x: {
-                repo[1]: {
-                    FALLBACK: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                    COMMITS[0]: {
-                        x: {python_file[1]: CONTENT_HASHES[0].content_hash}
-                    },
-                }
+                FALLBACK: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
+                COMMITS[0]: {
+                    x: {python_file[1]: CONTENT_HASHES[0].content_hash}
+                },
             },
         ),
     ],

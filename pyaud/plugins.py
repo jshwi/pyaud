@@ -39,7 +39,6 @@ class _HashMapping:
     def __init__(self, cls: type[BasePlugin]) -> None:
         self._dict: dict[str, _t.Any] = {}
         self._path = _cachedir.PATH / "files.json"
-        self._project = _Path.cwd().name
         self._cls = str(cls)
         self._repo = _git.Repo(_Path.cwd())
         try:
@@ -52,10 +51,9 @@ class _HashMapping:
 
         self.read()
         self._garbage_collection()
-        project_obj = self._dict.get(self._project, {})
-        fallback = project_obj.get(self.FALLBACK, {})
-        project_obj[self._commit] = project_obj.get(self._commit, fallback)
-        self._session = project_obj[self._commit].get(self._cls, {})
+        fallback = self._dict.get(self.FALLBACK, {})
+        self._dict[self._commit] = self._dict.get(self._commit, fallback)
+        self._session = self._dict[self._commit].get(self._cls, {})
 
     def match_file(self, path: _Path) -> bool:
         """Match selected class against a file relevant to it.
@@ -87,10 +85,9 @@ class _HashMapping:
     # remove cache of commits with no revision
     def _garbage_collection(self) -> None:
         commits = self._repo.git.rev_list("--all").splitlines()
-        project = self._dict.get(self._project, {})
-        for commit in dict(project):
+        for commit in dict(self._dict):
             if commit not in commits and commit != self.FALLBACK:
-                del project[commit]
+                del self._dict[commit]
 
     def _nested_update(
         self, obj: dict[str, _t.Any], update: dict[str, _t.Any]
@@ -127,8 +124,7 @@ class _HashMapping:
         """Write data to file."""
         cls = {self._cls: dict(self._session)}
         self._dict = self._nested_update(
-            self._dict,
-            {self._project: {self.FALLBACK: cls, self._commit: cls}},
+            self._dict, {self.FALLBACK: cls, self._commit: cls}
         )
         self._path.write_text(_json.dumps(self._dict, separators=(",", ":")))
 
