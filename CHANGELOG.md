@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - update error reporting
 
 ### Removed
+- remove `pyaud.plugins.PluginType`
 - remove `pyaud.plugins.PluginInstance`
 - remove annotations from namespace
 - remove `pyaud.plugins.UNCOMMITTED`
