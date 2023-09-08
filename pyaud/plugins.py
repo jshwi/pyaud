@@ -68,7 +68,7 @@ class _HashMapping:
             if (
                 commit not in commits
                 and commit != self.FALLBACK
-                and not commit.startswith(self.UNCOMMITTED)
+                and commit != self._head
             ):
                 del project_obj[commit]
 
