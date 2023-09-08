@@ -46,6 +46,11 @@ class _HashMapping:
         if self._path.is_file():
             try:
                 self._dict.update(_json.loads(self._path.read_text()))
+
+                # remove cache of commits with no revision
+                for commit in dict(self._dict):
+                    if commit not in commits and commit != self.FALLBACK:
+                        del self._dict[commit]
             except _json.decoder.JSONDecodeError:
                 pass
 
@@ -58,11 +63,6 @@ class _HashMapping:
         self._session = self._dict.get(
             self._head, self._dict.get(self.FALLBACK, {})
         ).get(self._cls, {})
-
-        # remove cache of commits with no revision
-        for commit in dict(self._dict):
-            if commit not in commits and commit != self.FALLBACK:
-                del self._dict[commit]
 
     def match_file(self, path: _Path) -> bool:
         """Match selected class against a file relevant to it.
