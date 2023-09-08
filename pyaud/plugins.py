@@ -76,21 +76,6 @@ class _HashMapping:
         ).hexdigest()
         return newhash == self._session.get(relpath)
 
-    def save_hash(self, path: _Path) -> None:
-        """Populate file hash.
-
-        :param path: Path to hash.
-        """
-        relpath = str(path.relative_to(self._cwd))
-        if path.is_file():
-            newhash = _hashlib.new(  # type: ignore
-                "md5", path.read_bytes(), usedforsecurity=False
-            ).hexdigest()
-            self._session[relpath] = newhash
-        else:
-            if relpath in self._session:
-                del self._session[relpath]
-
     def _nested_update(
         self, obj: dict[str, _t.Any], update: dict[str, _t.Any]
     ) -> dict[str, _t.Any]:
@@ -112,8 +97,21 @@ class _HashMapping:
 
         return obj
 
-    def write(self) -> None:
-        """Write data to file."""
+    def save_hash(self, path: _Path) -> None:
+        """Populate file hash.
+
+        :param path: Path to hash.
+        """
+        relpath = str(path.relative_to(self._cwd))
+        if path.is_file():
+            newhash = _hashlib.new(  # type: ignore
+                "md5", path.read_bytes(), usedforsecurity=False
+            ).hexdigest()
+            self._session[relpath] = newhash
+        else:
+            if relpath in self._session:
+                del self._session[relpath]
+
         cls = {self._cls: self._session}
         self._nested_update(self._dict, {self.FALLBACK: cls, self._head: cls})
         self._path.write_text(_json.dumps(self._dict, separators=(",", ":")))
@@ -142,7 +140,6 @@ def _cache_files_wrapper(
         if not returncode:
             for path in _files:
                 hashed.save_hash(path)
-                hashed.write()
 
     return returncode
 
@@ -159,7 +156,6 @@ def _cache_file_wrapper(
         returncode = cls_call(self, *args, **kwargs)
         if returncode:
             hashed.save_hash(path)
-            hashed.write()
             return returncode
 
         if not returncode and path.is_file() and hashed.match_file(path):
@@ -167,7 +163,6 @@ def _cache_file_wrapper(
             return 0
 
         hashed.save_hash(path)
-        hashed.write()
 
     return returncode
 
