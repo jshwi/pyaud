@@ -42,12 +42,12 @@ class _HashMapping:
         self._dict: dict[str, _t.Any] = {}
         self._cwd = _Path.cwd()
         repo = _git.Repo(self._cwd)
-        commits = repo.git.rev_list(all=True).splitlines()
         if self._path.is_file():
             try:
                 self._dict.update(_json.loads(self._path.read_text()))
 
                 # remove cache of commits with no revision
+                commits = repo.git.rev_list(all=True).splitlines()
                 for commit in dict(self._dict):
                     if commit not in commits and commit != self.FALLBACK:
                         del self._dict[commit]
