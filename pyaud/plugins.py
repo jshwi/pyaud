@@ -546,7 +546,7 @@ class Parametrize(Plugin):
 
 
 # array of plugins
-PLUGINS = [Audit, BaseFix, Fix, FixAll, Action, Parametrize]
+PLUGINS = (Audit, BaseFix, Fix, FixAll, Action, Parametrize)
 
 # array of plugin names
 PLUGIN_NAMES = [t.__name__ for t in PLUGINS]
