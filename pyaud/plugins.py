@@ -552,6 +552,10 @@ PLUGINS = (Audit, BaseFix, Fix, FixAll, Action, Parametrize)
 PLUGIN_NAMES = tuple(t.__name__ for t in PLUGINS)
 
 # array of plugin types before instantiation
+# this ensures correct typing, at least for PyCharm
+# if the type taken and returned is simply the type `Plugin` then you
+# may get a warning like the following:
+#   Unresolved attribute reference 'action' for class 'Plugin'
 PluginType = _t.Union[
     _t.Type[Audit],
     _t.Type[BaseFix],
