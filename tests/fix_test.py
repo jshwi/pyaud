@@ -48,7 +48,7 @@ class TestFix:
 
     plugin_name = "fixer"
 
-    def _register_fixer(self, fixer: type[pyaud.plugins.Plugin]) -> None:
+    def _register_fixer(self, fixer: pyaud.plugins.PluginType) -> None:
         pyaud.plugins.register(self.plugin_name)(fixer)
 
     @pytest.mark.parametrize(
@@ -69,7 +69,7 @@ class TestFix:
         self,
         main: FixtureMain,
         capsys: pytest.CaptureFixture,
-        plugin: type[pyaud.plugins.Plugin],
+        plugin: pyaud.plugins.PluginType,
         expected: str,
     ) -> None:
         """Test plugin on pass when using the fix class.
@@ -95,7 +95,7 @@ class TestFix:
         ids=[FIX, FIX_ALL],
     )
     def test_on_fail(
-        self, main: FixtureMain, plugin: type[pyaud.plugins.Plugin]
+        self, main: FixtureMain, plugin: pyaud.plugins.PluginType
     ) -> None:
         """Test plugin on fail when using the fix class.
 
@@ -125,7 +125,7 @@ class TestFix:
         self,
         main: FixtureMain,
         capsys: pytest.CaptureFixture,
-        plugin: type[pyaud.plugins.Plugin],
+        plugin: pyaud.plugins.PluginType,
         expected: str,
     ) -> None:
         """Test plugin when using the fix class with ``-f/--fix``.
