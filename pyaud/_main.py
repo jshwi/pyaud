@@ -18,6 +18,7 @@ def main() -> int:
 
     :return: Exit status.
     """
+    _sys.stdout.errors = "replace"
     if _e.get("PYAUD_DEBUG", None) != "1":
         err = _Console(soft_wrap=False, stderr=True)
         _sys.excepthook = lambda x, y, _: err.print(
