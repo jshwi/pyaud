@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v7.2.0...HEAD)
 ------------------------------------------------------------------------
+### Fixed
+- use system agnostic root when finding pyproject.toml
 
 [7.2.0](https://github.com/jshwi/pyaud/releases/tag/v7.2.0) - 2023-09-17
 ------------------------------------------------------------------------
