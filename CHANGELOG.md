@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v7.2.1...HEAD)
 ------------------------------------------------------------------------
+### Fixed
+- published commit to pypi by accident
 
 [7.2.1](https://github.com/jshwi/pyaud/releases/tag/v7.2.1) - 2023-11-27
 ------------------------------------------------------------------------
