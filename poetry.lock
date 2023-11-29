@@ -1481,13 +1481,13 @@ tests = ["pytest"]
 
 [[package]]
 name = "pyaud-plugins"
-version = "0.18.1"
+version = "0.18.2"
 description = "Plugin package for Pyaud"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "pyaud_plugins-0.18.1-py3-none-any.whl", hash = "sha256:044599bee167cc1377a9c72c6bd91b2b40b7ec0e68ae0dca79b3778c4108b2e3"},
-    {file = "pyaud_plugins-0.18.1.tar.gz", hash = "sha256:6c98e4cf5bb8f025672dea96dcd600ec60277ffe3ab44acd9d1ba1e8ab720337"},
+    {file = "pyaud_plugins-0.18.2-py3-none-any.whl", hash = "sha256:853ea18fc2ba9997130558db18386231ed5e04237483678978c30038c4aa6393"},
+    {file = "pyaud_plugins-0.18.2.tar.gz", hash = "sha256:e1d04b90be736e406a37cf318021e440d7f01ea87337711d6101d9c31bb9ca10"},
 ]
 
 [package.dependencies]
@@ -1509,7 +1509,7 @@ pytest-cov = ">=3,<5"
 pyyaml = ">=6.0,<7.0"
 rich = ">=13.5.2,<14.0.0"
 setuptools = ">=67.2,<70.0"
-Sphinx = ">=4.3.2,<7.0.0"
+Sphinx = ">=4.3.2,<8.0.0"
 sphinx-markdown-builder = ">=0.5.5,<0.6.0"
 sphinxcontrib-fulltoc = ">=1.2.0,<2.0.0"
 sphinxcontrib-programoutput = ">=0.17,<0.18"
