@@ -81,7 +81,7 @@ arcon = "^0.3.1"
 gitpython = "^3.1.30"
 lsfiles = ">=0.5"
 object-colors = "^2.0.1"
-pyaud-plugins = ">=0.14.0"
+pyaud-plugins = "^0.19.1"
 python = "^3.8"
 rich = "^13.5.2"
 
