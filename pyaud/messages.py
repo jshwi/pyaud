@@ -2,6 +2,7 @@
 pyaud.messages
 ==============
 """
+
 AUDIT_PASSED = "Success: all checks have passed"
 AUDIT_FAILED = "Failed: one or more checks have failed"
 AUDIT_RUNNING = "running the following plugins"

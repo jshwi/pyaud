@@ -2,6 +2,7 @@
 tests._cache_test
 =================
 """
+
 # pylint: disable=too-many-locals,too-many-statements,too-many-arguments
 from __future__ import annotations
 

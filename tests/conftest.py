@@ -2,6 +2,7 @@
 tests.conftest
 ==============
 """
+
 # pylint: disable=protected-access,no-member,import-outside-toplevel
 # pylint: disable=cell-var-from-loop
 from __future__ import annotations

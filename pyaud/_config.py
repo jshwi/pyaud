@@ -2,6 +2,7 @@
 pyaud._config
 =============
 """
+
 from arcon import ArgumentParser as _ArgumentParser
 
 from ._objects import NAME as _NAME

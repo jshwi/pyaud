@@ -4,6 +4,7 @@ pyaud.__main__
 
 Module entry point.
 """
+
 import sys as _sys
 
 from pyaud import main
