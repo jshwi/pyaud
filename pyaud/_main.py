@@ -4,6 +4,7 @@ pyaud._main
 
 Contains package entry point.
 """
+
 import sys as _sys
 from os import environ as _e
 

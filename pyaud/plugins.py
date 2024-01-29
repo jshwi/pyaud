@@ -4,6 +4,7 @@ pyaud.plugins
 
 Main module used for public API.
 """
+
 from __future__ import annotations as _annotations
 
 import hashlib as _hashlib
