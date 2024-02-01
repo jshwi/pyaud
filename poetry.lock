@@ -1485,17 +1485,17 @@ tests = ["pytest"]
 
 [[package]]
 name = "pyaud-plugins"
-version = "0.21.0"
+version = "0.22.0"
 description = "Plugin package for Pyaud"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "pyaud_plugins-0.21.0-py3-none-any.whl", hash = "sha256:fdf77d61eb4971c03de3fd21437e6e4524f75abe7e42a8d2e4027e283d668c77"},
-    {file = "pyaud_plugins-0.21.0.tar.gz", hash = "sha256:37887784063701d7163896fcd453a67393c359dbe2814b2d09769383b22ff606"},
+    {file = "pyaud_plugins-0.22.0-py3-none-any.whl", hash = "sha256:fe589075df2f3e6b99e39c101ef61ec96b1dddb96f71c4cc867d8e4a120d0189"},
+    {file = "pyaud_plugins-0.22.0.tar.gz", hash = "sha256:4b3c342338e2b88e75f3fff56efafda0b9a21ad92f4b95dd875102d8ccc033b0"},
 ]
 
 [package.dependencies]
-black = ">=21.12,<25.0"
+black = ">=24.1.1,<25.0"
 constcheck = ">=0,<1"
 coverage = ">=6.2,<8.0"
 docformatter = "1.7.5"
@@ -2628,4 +2628,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "829846326bb6c6e9ecaa589c499a13fd91ee10c46f783622d9461b943564a8e9"
+content-hash = "a361e2f1053ce57f2ed74ab141b3d5bdc3b724ccedec8901fc61e5122a4cdb97"

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v7.4.0...HEAD)
 ------------------------------------------------------------------------
+### Changed
+- pin minimum pyaud-plugins version which enforces new style
 
 [7.4.0](https://github.com/jshwi/pyaud/releases/tag/v7.4.0) - 2024-01-31
 ------------------------------------------------------------------------
