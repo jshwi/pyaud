@@ -53,6 +53,7 @@ def fixture_mock_environment(
         "pyaud._cachedir.PATH", tmp_path / ".pyaud_cache" / "0.0.0"
     )
     monkeypatch.setattr("os.getcwd", lambda: str(repo_abs))
+    monkeypatch.setattr("pathlib.Path.cwd", lambda: repo_abs)
     monkeypatch.setattr("pyaud.plugins._plugins", pyaud.plugins.Plugins())
     monkeypatch.setattr("pyaud.plugins.load", lambda: None)
     monkeypatch.setattr("pyaud._core._register_builtin_plugins", lambda: None)
