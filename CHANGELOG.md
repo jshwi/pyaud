@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v7.5.0...HEAD)
 ------------------------------------------------------------------------
+### Fixed
+- relax version constraints for arcon
 
 [7.5.0](https://github.com/jshwi/pyaud/releases/tag/v7.5.0) - 2024-02-01
 ------------------------------------------------------------------------
