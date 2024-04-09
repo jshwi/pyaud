@@ -85,13 +85,13 @@ files = [
 
 [[package]]
 name = "arcon"
-version = "0.3.1"
+version = "0.4.0"
 description = "Persistent runtime config"
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = "<4.0,>=3.8"
 files = [
-    {file = "arcon-0.3.1-py3-none-any.whl", hash = "sha256:164f91ea41b23dcc04570a620e23eb0ab1492ff5ff7c9059e0b8ddb6bdcfbd20"},
-    {file = "arcon-0.3.1.tar.gz", hash = "sha256:49e904f7675a62161f6b9e1bee6979772317f9c0d4c28ae4bd04c5d0e22d11d9"},
+    {file = "arcon-0.4.0-py3-none-any.whl", hash = "sha256:19488bca11b6facb59c2d3f587e8685aa6afc99764b0956fa2c2837fc0fff6a9"},
+    {file = "arcon-0.4.0.tar.gz", hash = "sha256:b243f265d5f1eacf0025d072ef4d3385b0f33c20b247d017a25948b3b19805b1"},
 ]
 
 [package.dependencies]
@@ -645,17 +645,17 @@ tomli = ["tomli (>=2.0.0,<3.0.0)"]
 
 [[package]]
 name = "docsig"
-version = "0.44.3"
+version = "0.46.0"
 description = "Check signature params for proper documentation"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "docsig-0.44.3-py3-none-any.whl", hash = "sha256:823b6e6d110499d15ee695bb80f4ae406fd92510c353a8909e915d5ae8b78bcb"},
-    {file = "docsig-0.44.3.tar.gz", hash = "sha256:097a76b9ed0e299a6c670dd77129461f597e179a99e27ed61835944df96f39f9"},
+    {file = "docsig-0.46.0-py3-none-any.whl", hash = "sha256:31d0d5c1962588c96c42816232f7d95bc99fbd8e1dea65d482df9c0289e45ff6"},
+    {file = "docsig-0.46.0.tar.gz", hash = "sha256:ade0763189f1d1997adfe2374b3ac371e35e3dc0949631c6890ac424912d6ee4"},
 ]
 
 [package.dependencies]
-arcon = ">=0.3.1,<0.4.0"
+arcon = ">=0.4.0"
 astroid = ">=3.0.1,<4.0.0"
 object-colors = ">=2.1.0,<3.0.0"
 Pygments = ">=2.13.0,<3.0.0"
