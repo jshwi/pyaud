@@ -2274,13 +2274,13 @@ testing = ["bs4", "coverage", "pygments", "pytest (>=7.1,<8)", "pytest-cov", "py
 
 [[package]]
 name = "sphinx-toolbox"
-version = "3.7.0"
+version = "3.8.1"
 description = "Box of handy tools for Sphinx 🧰 📔"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "sphinx_toolbox-3.7.0-py3-none-any.whl", hash = "sha256:9ea800fb6b2ecc5f382ab3547b415029fe9603b0b7eeb4c15c5da77c1eb5f21a"},
-    {file = "sphinx_toolbox-3.7.0.tar.gz", hash = "sha256:045db70e6d73241ff0b922f2e76597e2cc4904dbabef9fc6f3a46718b0e48d51"},
+    {file = "sphinx_toolbox-3.8.1-py3-none-any.whl", hash = "sha256:53d8e77dd79e807d9ef18590c4b2960a5aa3c147415054b04c31a91afed8b88b"},
+    {file = "sphinx_toolbox-3.8.1.tar.gz", hash = "sha256:a4b39a6ea24fc8f10e24f052199bda17837a0bf4c54163a56f521552395f5e1a"},
 ]
 
 [package.dependencies]
@@ -2298,7 +2298,7 @@ sphinx = ">=3.2.0"
 sphinx-autodoc-typehints = ">=1.11.1"
 sphinx-jinja2-compat = ">=0.1.0"
 sphinx-prompt = ">=1.1.0"
-sphinx-tabs = ">=1.2.1,<3.5.0"
+sphinx-tabs = ">=1.2.1,<3.4.7"
 tabulate = ">=0.8.7"
 typing-extensions = ">=3.7.4.3,<3.10.0.1 || >3.10.0.1"
 
@@ -2683,4 +2683,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "306b412d5c56118c6da0bf48e4848eb120e4b4a384664bb226c95fba81b9dd32"
+content-hash = "3936708bd723bafcb0f50fb22a3d9290ac96a49b5c1a7aa0426108e578ecf97b"
