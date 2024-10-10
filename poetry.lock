@@ -1953,13 +1953,13 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "restview"
-version = "3.0.1"
+version = "3.0.2"
 description = "ReStructuredText viewer"
 optional = false
-python-versions = "*"
+python-versions = ">=3.7"
 files = [
-    {file = "restview-3.0.1-py2.py3-none-any.whl", hash = "sha256:16783ed371379e43d1f8dd31f93b10a1edffa5a718e1486357d578813bad3122"},
-    {file = "restview-3.0.1.tar.gz", hash = "sha256:8c1a171c159d46d15d5569f77021828883a121d6f9baf758d641fc1e54b05ae5"},
+    {file = "restview-3.0.2-py3-none-any.whl", hash = "sha256:9fbd26507f6ddc436a49d0ffced5bc8102a898f289fe53c1234a17be46eb660d"},
+    {file = "restview-3.0.2.tar.gz", hash = "sha256:8b4d75a0bed76b67b456ef7011f4eb6c98a556c9f837642df2202c7312fccc1a"},
 ]
 
 [package.dependencies]
@@ -2683,4 +2683,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "306b412d5c56118c6da0bf48e4848eb120e4b4a384664bb226c95fba81b9dd32"
+content-hash = "209653bd165538a2f81fb1373aa64af45b77bdff647131b1a310205fe365388c"
