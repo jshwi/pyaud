@@ -1,6 +1,6 @@
 pyaud
 =====
-|License| |PyPI| |CI| |CodeQL| |pre-commit.ci status| |codecov.io| |readthedocs.org| |python3.8| |Black| |isort| |docformatter| |pylint| |Security Status| |Known Vulnerabilities| |pyaud|
+|License| |PyPI| |CI| |CodeQL| |pre-commit.ci status| |codecov.io| |readthedocs.org| |python3.9| |Black| |isort| |docformatter| |pylint| |Security Status| |Known Vulnerabilities| |pyaud|
 
 .. |License| image:: https://img.shields.io/badge/License-MIT-yellow.svg
     :target: https://opensource.org/licenses/MIT
@@ -23,9 +23,9 @@ pyaud
 .. |readthedocs.org| image:: https://readthedocs.org/projects/pyaud/badge/?version=latest
     :target: https://pyaud.readthedocs.io/en/latest/?badge=latest
     :alt: readthedocs.org
-.. |python3.8| image:: https://img.shields.io/badge/python-3.8-blue.svg
+.. |python3.9| image:: https://img.shields.io/badge/python-3.9-blue.svg
     :target: https://www.python.org/downloads/release/python-380
-    :alt: python3.8
+    :alt: python3.9
 .. |Black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
     :alt: Black

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased](https://github.com/jshwi/pyaud/compare/v7.5.1...HEAD)
 ------------------------------------------------------------------------
+### Changed
+- drop support for python3.8
 
 [7.5.1](https://github.com/jshwi/pyaud/releases/tag/v7.5.1) - 2024-04-09
 ------------------------------------------------------------------------
