@@ -333,7 +333,7 @@ CONTENT_HASHES = (
         "test-gc",
     ],
 )
-def test_fix_file(
+def test_fix_file(  # pylint: disable=too-many-positional-arguments
     capsys: pytest.CaptureFixture,
     main: FixtureMain,
     mock_repo: FixtureMockRepo,
@@ -565,7 +565,7 @@ def test_fix_file(
         "test-no-cache-passed",
     ],
 )
-def test_no_cache_all(
+def test_no_cache_all(  # pylint: disable=too-many-positional-arguments
     capsys: pytest.CaptureFixture,
     main: FixtureMain,
     no_cache: bool,
