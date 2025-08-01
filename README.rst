@@ -127,8 +127,8 @@ Configuration values are declared in the pyproject.toml file
       "unused"
     ]
     exclude = '''
-      (?x)^(
-        | docs\/conf\.py
-        | whitelist\.py
-      )$
+    (?x)^(
+      | docs\/conf\.py
+      | whitelist\.py
+    )$
     '''
