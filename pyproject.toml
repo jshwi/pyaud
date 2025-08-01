@@ -35,8 +35,8 @@ omit = [
   "whitelist.py"
 ]
 
-[tool.deptry]
-ignore_obsolete = [
+[tool.deptry.per_rule_ignores]
+DEP002 = [
   "pyaud-plugins"
 ]
 
