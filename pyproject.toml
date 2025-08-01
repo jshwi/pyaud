@@ -119,10 +119,10 @@ audit = [
   "unused"
 ]
 exclude = '''
-  (?x)^(
-    | docs\/conf\.py
-    | whitelist\.py
-  )$
+(?x)^(
+  | docs\/conf\.py
+  | whitelist\.py
+)$
 '''
 
 [tool.pytest.ini_options]
