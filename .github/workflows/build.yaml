@@ -39,7 +39,7 @@ jobs:
         run: poetry run pyaud audit
       - name: Upload coverage
         id: upload-coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
       - name: Check Dependencies
         id: check-dependencies
         run: poetry run deptry .
