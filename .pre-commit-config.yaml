@@ -14,7 +14,7 @@ ci:
     - copyright-year
     - flynt
 default_language_version:
-  python: python3.9
+  python: python3.10
 default_stages:
   - commit
 exclude: |
