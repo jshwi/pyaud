@@ -16,7 +16,7 @@ ci:
 default_language_version:
   python: python3.10
 default_stages:
-  - commit
+  - pre-commit
 exclude: |
   (?x)^(
     | poetry\.lock
