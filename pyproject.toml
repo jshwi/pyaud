@@ -87,7 +87,7 @@ pyaud-plugins = ">=0.22.0"
 python = "^3.9"
 rich = "^13.5.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 bump2version = "^1.0.1"
 deptry = "^0.23.1"
 ipython = "^8.4.0"
