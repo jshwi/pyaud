@@ -168,7 +168,7 @@ def fixture_mock_repo(monkeypatch: pytest.MonkeyPatch) -> FixtureMockRepo:
     """
 
     def _mock_repo(
-        **kwargs: t.Callable[[VarArg(t.Any), KwArg(t.Any)], None]
+        **kwargs: t.Callable[[VarArg(t.Any), KwArg(t.Any)], None],
     ) -> None:
         default_kwargs = {
             "rev_parse": lambda *_, **__: None,
