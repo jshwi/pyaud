@@ -1,5 +1,5 @@
+filelock>=3.20.1 # not directly required, pinned by Snyk to avoid a vulnerability
 sphinx-immaterial==0.12.5
 sphinx-toolbox==4.1.0
 sphinxcontrib-fulltoc==1.2.0
 sphinxcontrib-programoutput==0.18
-filelock>=3.20.1 # not directly required, pinned by Snyk to avoid a vulnerability
