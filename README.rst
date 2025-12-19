@@ -1,7 +1,14 @@
+Status: Archived
+==================
+This repository has been archived and is no longer maintained
+
 pyaud
 =====
-|License| |PyPI| |CI| |CodeQL| |pre-commit.ci status| |codecov.io| |readthedocs.org| |python3.9| |Black| |isort| |docformatter| |pylint| |Security Status| |Known Vulnerabilities| |pyaud|
+|Archive| |License| |PyPI| |CI| |CodeQL| |pre-commit.ci status| |codecov.io| |readthedocs.org| |python3.9| |Black| |isort| |docformatter| |pylint| |Security Status| |Known Vulnerabilities| |pyaud|
 
+.. |Archive| image:: https://img.shields.io/badge/status-inactive-red.svg
+    :target: https://img.shields.io/badge/status-inactive-red.svg
+    :alt: Status Inactive
 .. |License| image:: https://img.shields.io/badge/License-MIT-yellow.svg
     :target: https://opensource.org/licenses/MIT
     :alt: License
